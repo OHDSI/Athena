@@ -16,7 +16,7 @@ public class Concept {
     private String name;
     private Domain domain;
     private Vocabulary vocabulary;
-    //place for concept_class_id
+    private ConceptClass conceptClass;
     private Boolean standard;
     private String code;
     private Date validStartDate;
@@ -24,6 +24,7 @@ public class Concept {
     private String invalidReason;
     private Set<Domain> domainSet;
     private Set<Vocabulary> vocabularySet;
+    private Set<ConceptClass> conceptClassSet;
 
 
     @Id
@@ -128,5 +129,22 @@ public class Concept {
         this.vocabularySet = vocabularySet;
     }
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CONCEPT_CLASS_ID", nullable = false)
+    public ConceptClass getConceptClass() {
+        return conceptClass;
+    }
 
+    public void setConceptClass(ConceptClass conceptClass) {
+        this.conceptClass = conceptClass;
+    }
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "concept")
+    public Set<ConceptClass> getConceptClassSet() {
+        return conceptClassSet;
+    }
+
+    public void setConceptClassSet(Set<ConceptClass> conceptClassSet) {
+        this.conceptClassSet = conceptClassSet;
+    }
 }

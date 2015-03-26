@@ -8,10 +8,16 @@
     <bean id="conceptDAO" class="org.odhsi.athena.dao.impl.ConceptDAOImpl">
         <constructor-arg name="sessionFactory" ref="sessionFactory"/>
     </bean>
+
     <bean id="domainDAO" class="org.odhsi.athena.dao.impl.DomainDAOImpl">
         <constructor-arg name="sessionFactory" ref="sessionFactory"/>
     </bean>
+
     <bean id="vocabularyDAO" class="org.odhsi.athena.dao.impl.VocabularyDAOImpl">
+        <constructor-arg name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <bean id="conceptClassDAO" class="org.odhsi.athena.dao.impl.ConceptClassDAOImpl">
         <constructor-arg name="sessionFactory" ref="sessionFactory"/>
     </bean>
 </beans>
