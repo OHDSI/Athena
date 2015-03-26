@@ -20,4 +20,8 @@
     <bean id="conceptClassDAO" class="org.odhsi.athena.dao.impl.ConceptClassDAOImpl">
         <constructor-arg name="sessionFactory" ref="sessionFactory"/>
     </bean>
+
+    <bean id="drugStrengthDAO" class="org.odhsi.athena.dao.impl.DrugStrengthDAOImpl">
+
+    </bean>
 </beans>

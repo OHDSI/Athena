@@ -82,7 +82,7 @@ public class Concept {
         this.validEndDate = validEnd;
     }
 
-    @Column(name = "INVALID_REASON", nullable = true)
+    @Column(name = "INVALID_REASON", nullable = true, length = 1)
     public String getInvalidReason() {
         return invalidReason;
     }

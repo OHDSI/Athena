@@ -9,5 +9,6 @@
         <mapping class="org.odhsi.athena.entity.Domain"/>
         <mapping class="org.odhsi.athena.entity.Vocabulary"/>
         <mapping class="org.odhsi.athena.entity.ConceptClass"/>
+        <mapping class="org.odhsi.athena.entity.DrugStrength"/>
     </session-factory>
 </hibernate-configuration>
