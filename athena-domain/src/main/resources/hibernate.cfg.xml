@@ -6,5 +6,7 @@
 
     <session-factory>
         <mapping class="org.odhsi.athena.entity.Concept"/>
+        <mapping class="org.odhsi.athena.entity.Domain"/>
+        <mapping class="org.odhsi.athena.entity.Vocabulary"/>
     </session-factory>
 </hibernate-configuration>

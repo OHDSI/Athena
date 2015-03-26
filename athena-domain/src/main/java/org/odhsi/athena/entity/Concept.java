@@ -1,10 +1,8 @@
 package org.odhsi.athena.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
+import java.util.Set;
 
 /**
  * Created by GMalikov on 25.03.2015.
@@ -16,14 +14,16 @@ public class Concept {
 
     private Long Id;
     private String name;
-    //place for domain_id
-    //place for vocabulary_id
+    private Domain domain;
+    private Vocabulary vocabulary;
     //place for concept_class_id
     private Boolean standard;
     private String code;
     private Date validStartDate;
     private Date validEndDate;
     private String invalidReason;
+    private Set<Domain> domainSet;
+    private Set<Vocabulary> vocabularySet;
 
 
     @Id
@@ -89,4 +89,44 @@ public class Concept {
     public void setInvalidReason(String invalidReason) {
         this.invalidReason = invalidReason;
     }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "DOMAIN_ID", nullable = false)
+    public Domain getDomain() {
+        return domain;
+    }
+
+    public void setDomain(Domain domain) {
+        this.domain = domain;
+    }
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "concept")
+    public Set<Domain> getDomainSet() {
+        return domainSet;
+    }
+
+    public void setDomainSet(Set<Domain> domainSet) {
+        this.domainSet = domainSet;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "VOCABULARY_ID", nullable = false)
+    public Vocabulary getVocabulary() {
+        return vocabulary;
+    }
+
+    public void setVocabulary(Vocabulary vocabulary) {
+        this.vocabulary = vocabulary;
+    }
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "concept")
+    public Set<Vocabulary> getVocabularySet() {
+        return vocabularySet;
+    }
+
+    public void setVocabularySet(Set<Vocabulary> vocabularySet) {
+        this.vocabularySet = vocabularySet;
+    }
+
+
 }
