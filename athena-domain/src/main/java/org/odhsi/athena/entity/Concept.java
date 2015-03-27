@@ -25,6 +25,9 @@ public class Concept {
     private Set<Domain> domainSet;
     private Set<Vocabulary> vocabularySet;
     private Set<ConceptClass> conceptClassSet;
+    private Set<ConceptAncestor> ancestors;
+    private Set<ConceptAncestor> descendants;
+    private Set<ConceptSynonym> synonyms;
 
 
     @Id
@@ -146,5 +149,32 @@ public class Concept {
 
     public void setConceptClassSet(Set<ConceptClass> conceptClassSet) {
         this.conceptClassSet = conceptClassSet;
+    }
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "ancestorConcept")
+    public Set<ConceptAncestor> getAncestors() {
+        return ancestors;
+    }
+
+    public void setAncestors(Set<ConceptAncestor> ancestors) {
+        this.ancestors = ancestors;
+    }
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "descendantConcept")
+    public Set<ConceptAncestor> getDescendants() {
+        return descendants;
+    }
+
+    public void setDescendants(Set<ConceptAncestor> descendants) {
+        this.descendants = descendants;
+    }
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "concept")
+    public Set<ConceptSynonym> getSynonyms() {
+        return synonyms;
+    }
+
+    public void setSynonyms(Set<ConceptSynonym> synonyms) {
+        this.synonyms = synonyms;
     }
 }

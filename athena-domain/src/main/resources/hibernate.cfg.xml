@@ -10,5 +10,7 @@
         <mapping class="org.odhsi.athena.entity.Vocabulary"/>
         <mapping class="org.odhsi.athena.entity.ConceptClass"/>
         <mapping class="org.odhsi.athena.entity.DrugStrength"/>
+        <mapping class="org.odhsi.athena.entity.ConceptAncestor"/>
+        <mapping class="org.odhsi.athena.entity.ConceptSynonym"/>
     </session-factory>
 </hibernate-configuration>
