@@ -35,4 +35,8 @@
     <bean id="relationshipDAO" class="org.odhsi.athena.dao.impl.RelationshipDAOImpl">
         <constructor-arg name="sessionFactory" ref="sessionFactory"/>
     </bean>
+
+    <bean id="conceptRelationshipDAO" class="org.odhsi.athena.dao.impl.ConceptRelationshipDAOImpl">
+
+    </bean>
 </beans>

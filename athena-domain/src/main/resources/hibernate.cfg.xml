@@ -13,5 +13,6 @@
         <mapping class="org.odhsi.athena.entity.ConceptAncestor"/>
         <mapping class="org.odhsi.athena.entity.ConceptSynonym"/>
         <mapping class="org.odhsi.athena.entity.Relationship"/>
+        <mapping class="org.odhsi.athena.entity.ConceptRelationship"/>
     </session-factory>
 </hibernate-configuration>
