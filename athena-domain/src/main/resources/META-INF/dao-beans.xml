@@ -31,4 +31,8 @@
     <bean id="conceptSynonymDAO" class="org.odhsi.athena.dao.impl.ConceptSynonymDAOImpl">
 
     </bean>
+
+    <bean id="relationshipDAO" class="org.odhsi.athena.dao.impl.RelationshipDAOImpl">
+        <constructor-arg name="sessionFactory" ref="sessionFactory"/>
+    </bean>
 </beans>
