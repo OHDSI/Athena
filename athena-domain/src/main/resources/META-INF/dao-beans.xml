@@ -21,17 +21,26 @@
         <constructor-arg name="sessionFactory" ref="sessionFactory"/>
     </bean>
 
-    <bean id="drugStrengthDAO" class="org.odhsi.athena.dao.impl.DrugStrengthDAOImpl"></bean>
+    <bean id="drugStrengthDAO" class="org.odhsi.athena.dao.impl.DrugStrengthDAOImpl"/>
 
-    <bean id="conceptAncestorDAO" class="org.odhsi.athena.dao.impl.ConceptAncestorDAOImpl"></bean>
+    <bean id="conceptAncestorDAO" class="org.odhsi.athena.dao.impl.ConceptAncestorDAOImpl"/>
 
-    <bean id="conceptSynonymDAO" class="org.odhsi.athena.dao.impl.ConceptSynonymDAOImpl"></bean>
+    <bean id="conceptSynonymDAO" class="org.odhsi.athena.dao.impl.ConceptSynonymDAOImpl"/>
 
     <bean id="relationshipDAO" class="org.odhsi.athena.dao.impl.RelationshipDAOImpl">
         <constructor-arg name="sessionFactory" ref="sessionFactory"/>
     </bean>
 
-    <bean id="conceptRelationshipDAO" class="org.odhsi.athena.dao.impl.ConceptRelationshipDAOImpl"></bean>
+    <bean id="conceptRelationshipDAO" class="org.odhsi.athena.dao.impl.ConceptRelationshipDAOImpl"/>
 
-    <bean id="sourceToConceptMap" class="org.odhsi.athena.dao.impl.SourceToConceptMapDAOImpl"></bean>
+    <bean id="sourceToConceptMap" class="org.odhsi.athena.dao.impl.SourceToConceptMapDAOImpl"/>
+
+    <bean id="attributeDefinitionDAO" class="org.odhsi.athena.dao.impl.AttributeDefinitionDAOImpl">
+        <constructor-arg name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <bean id="cohortDefinitionDAO" class="org.odhsi.athena.dao.impl.CohortDefinitionDAOImpl">
+        <constructor-arg name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
 </beans>
