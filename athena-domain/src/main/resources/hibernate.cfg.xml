@@ -17,5 +17,6 @@
         <mapping class="org.odhsi.athena.entity.SourceToConceptMap"/>
         <mapping class="org.odhsi.athena.entity.AttributeDefinition"/>
         <mapping class="org.odhsi.athena.entity.CohortDefinition"/>
+        <mapping class="org.odhsi.athena.entity.CohortAttribute"/>
     </session-factory>
 </hibernate-configuration>

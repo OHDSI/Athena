@@ -43,4 +43,7 @@
         <constructor-arg name="sessionFactory" ref="sessionFactory"/>
     </bean>
 
+    <bean id="cohortAttributeDAO" class="org.odhsi.athena.dao.impl.CohortAttributeDAOImpl"/>
+
+
 </beans>
