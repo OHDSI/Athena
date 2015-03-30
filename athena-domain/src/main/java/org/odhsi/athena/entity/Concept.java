@@ -22,9 +22,6 @@ public class Concept {
     private Date validStartDate;
     private Date validEndDate;
     private String invalidReason;
-    private Set<Domain> domainSet;
-    private Set<Vocabulary> vocabularySet;
-    private Set<ConceptClass> conceptClassSet;
     private Set<ConceptAncestor> ancestors;
     private Set<ConceptAncestor> descendants;
     private Set<ConceptSynonym> synonyms;
@@ -104,15 +101,6 @@ public class Concept {
         this.domain = domain;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "concept")
-    public Set<Domain> getDomainSet() {
-        return domainSet;
-    }
-
-    public void setDomainSet(Set<Domain> domainSet) {
-        this.domainSet = domainSet;
-    }
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "VOCABULARY_ID", nullable = false)
     public Vocabulary getVocabulary() {
@@ -123,15 +111,6 @@ public class Concept {
         this.vocabulary = vocabulary;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "concept")
-    public Set<Vocabulary> getVocabularySet() {
-        return vocabularySet;
-    }
-
-    public void setVocabularySet(Set<Vocabulary> vocabularySet) {
-        this.vocabularySet = vocabularySet;
-    }
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CONCEPT_CLASS_ID", nullable = false)
     public ConceptClass getConceptClass() {
@@ -140,15 +119,6 @@ public class Concept {
 
     public void setConceptClass(ConceptClass conceptClass) {
         this.conceptClass = conceptClass;
-    }
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "concept")
-    public Set<ConceptClass> getConceptClassSet() {
-        return conceptClassSet;
-    }
-
-    public void setConceptClassSet(Set<ConceptClass> conceptClassSet) {
-        this.conceptClassSet = conceptClassSet;
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "ancestorConcept")
