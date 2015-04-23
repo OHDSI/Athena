@@ -1,21 +1,16 @@
 package org.odhsi.athena.entity;
 
-import javax.persistence.*;
 
 /**
  * Created by GMalikov on 27.03.2015.
  */
-@Entity
-@Table(name = "CONCEPT_SYNONYM")
+
 public class ConceptSynonym {
 
     private Concept concept;
     private Concept languageConcept;
     private String synonymName;
 
-    @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CONCEPT_ID")
     public Concept getConcept() {
         return concept;
     }
@@ -24,9 +19,6 @@ public class ConceptSynonym {
         this.concept = concept;
     }
 
-    @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "LANGUAGE_CONCEPT_ID")
     public Concept getLanguageConcept() {
         return languageConcept;
     }
@@ -35,7 +27,6 @@ public class ConceptSynonym {
         this.languageConcept = languageConcept;
     }
 
-    @Column(name = "CONCEPT_SYNONYM_NAME")
     public String getSynonymName() {
         return synonymName;
     }

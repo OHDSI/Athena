@@ -1,12 +1,8 @@
 package org.odhsi.athena.entity;
 
-import javax.persistence.*;
-
 /**
  * Created by GMalikov on 30.03.2015.
  */
-@Entity
-@Table(name = "ATTRIBUTE_DEFINITION")
 public class AttributeDefinition {
 
     private Long id;
@@ -15,8 +11,6 @@ public class AttributeDefinition {
     private Concept typeConcept;
     private Character[] syntax;
 
-    @Id
-    @Column(name = "ATTRIBUTE_DEFINITION_ID")
     public Long getId() {
         return id;
     }
@@ -25,7 +19,6 @@ public class AttributeDefinition {
         this.id = id;
     }
 
-    @Column(name = "ATTRIBUTE_NAME", nullable = false)
     public String getName() {
         return name;
     }
@@ -34,8 +27,6 @@ public class AttributeDefinition {
         this.name = name;
     }
 
-    @Lob
-    @Column(name = "ATTRIBUTE_DESCRIPTION", nullable = true)
     public Character[] getDescription() {
         return description;
     }
@@ -44,8 +35,6 @@ public class AttributeDefinition {
         this.description = description;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ATTRIBUTE_TYPE_CONCEPT_ID", nullable = false)
     public Concept getTypeConcept() {
         return typeConcept;
     }
@@ -54,8 +43,6 @@ public class AttributeDefinition {
         this.typeConcept = typeConcept;
     }
 
-    @Lob
-    @Column(name = "ATTRIBUTE_SYNTAX", nullable = true)
     public Character[] getSyntax() {
         return syntax;
     }

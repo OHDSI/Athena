@@ -1,13 +1,10 @@
 package org.odhsi.athena.entity;
 
-import javax.persistence.*;
 import java.util.Date;
 
 /**
  * Created by GMalikov on 26.03.2015.
  */
-@Entity
-@Table(name = "DRUG_STRENGTH")
 public class DrugStrength {
 
     private Concept drugConcept;
@@ -21,9 +18,6 @@ public class DrugStrength {
     private Date validEndDate;
     private String invalidReason;
 
-    @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "INGREDIENT_CONCEPT_ID", nullable = false)
     public Concept getIngredientConcept() {
         return ingredientConcept;
     }
@@ -32,19 +26,14 @@ public class DrugStrength {
         this.ingredientConcept = ingredientConcept;
     }
 
-    @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "DRUG_CONCEPT_ID", nullable = false)
     public Concept getDrugConcept() {
         return drugConcept;
     }
-
 
     public void setDrugConcept(Concept drugConcept) {
         this.drugConcept = drugConcept;
     }
 
-    @Column(name = "AMOUNT_VALUE", nullable = true)
     public Float getAmountValue() {
         return amountValue;
     }
@@ -53,8 +42,6 @@ public class DrugStrength {
         this.amountValue = amountValue;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "AMOUNT_UNIT_CONCEPT_ID", nullable = true)
     public Concept getAmountUnitConcept() {
         return amountUnitConcept;
     }
@@ -63,7 +50,6 @@ public class DrugStrength {
         this.amountUnitConcept = amountUnitConcept;
     }
 
-    @Column(name = "NUMERATOR_VALUE", nullable = true)
     public Float getNumeratorValue() {
         return numeratorValue;
     }
@@ -72,8 +58,6 @@ public class DrugStrength {
         this.numeratorValue = numeratorValue;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "NUMERATOR_UNIT_CONCEPT_ID", nullable = true)
     public Concept getNumeratorUnitConcept() {
         return numeratorUnitConcept;
     }
@@ -82,8 +66,6 @@ public class DrugStrength {
         this.numeratorUnitConcept = numeratorUnitConcept;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "DENOMINATOR_UNIT_CONCEPT_ID", nullable = true)
     public Concept getDenominatorUnitConcept() {
         return denominatorUnitConcept;
     }
@@ -92,7 +74,6 @@ public class DrugStrength {
         this.denominatorUnitConcept = denominatorUnitConcept;
     }
 
-    @Column(name = "VALID_START_DATE", nullable = false)
     public Date getValidStartDate() {
         return validStartDate;
     }
@@ -101,7 +82,6 @@ public class DrugStrength {
         this.validStartDate = validStartDate;
     }
 
-    @Column(name = "VALID_END_DATE", nullable = false)
     public Date getValidEndDate() {
         return validEndDate;
     }
@@ -110,7 +90,6 @@ public class DrugStrength {
         this.validEndDate = validEndDate;
     }
 
-    @Column(name = "INVALID_REASON", nullable = true, length = 1)
     public String getInvalidReason() {
         return invalidReason;
     }

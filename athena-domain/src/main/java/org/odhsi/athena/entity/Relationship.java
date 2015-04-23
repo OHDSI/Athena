@@ -1,12 +1,9 @@
 package org.odhsi.athena.entity;
 
-import javax.persistence.*;
 
 /**
  * Created by GMalikov on 27.03.2015.
  */
-@Entity
-@Table(name = "RELATIONSHIP")
 public class Relationship {
 
     private String id;
@@ -16,8 +13,6 @@ public class Relationship {
     private Relationship reverse;
     private Concept concept;
 
-    @Id
-    @Column(name = "RELATIONSHIP_ID", length = 20)
     public String getId() {
         return id;
     }
@@ -26,7 +21,6 @@ public class Relationship {
         this.id = id;
     }
 
-    @Column(name = "RELATIONSHIP_NAME", nullable = false)
     public String getName() {
         return name;
     }
@@ -35,7 +29,6 @@ public class Relationship {
         this.name = name;
     }
 
-    @Column(name = "IS_HIERARCHICAL", nullable = false, length = 1)
     public String getHierarchical() {
         return hierarchical;
     }
@@ -44,7 +37,6 @@ public class Relationship {
         this.hierarchical = hierarchical;
     }
 
-    @Column(name = "DEFINES_ANCESTRY", nullable = false, length = 1)
     public String getDefinesAncestry() {
         return definesAncestry;
     }
@@ -53,8 +45,6 @@ public class Relationship {
         this.definesAncestry = definesAncestry;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "REVERSE_RELATIONSHIP_ID", nullable = false)
     public Relationship getReverse() {
         return reverse;
     }
@@ -63,8 +53,6 @@ public class Relationship {
         this.reverse = reverse;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "RELATIONSHIP_CONCEPT_ID", nullable = false)
     public Concept getConcept() {
         return concept;
     }

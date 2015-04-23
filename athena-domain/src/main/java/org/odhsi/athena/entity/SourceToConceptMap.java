@@ -1,13 +1,11 @@
 package org.odhsi.athena.entity;
 
-import javax.persistence.*;
 import java.util.Date;
 
 /**
  * Created by GMalikov on 27.03.2015.
  */
-@Entity
-@Table(name = "SOURCE_TO_CONCEPT_MAP")
+
 public class SourceToConceptMap {
 
     private String sourceCode;
@@ -20,9 +18,6 @@ public class SourceToConceptMap {
     private Date validEndDate;
     private String invalidReason;
 
-    @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "SOURCE_CODE", nullable = false)
     public String getSourceCode() {
         return sourceCode;
     }
@@ -31,8 +26,6 @@ public class SourceToConceptMap {
         this.sourceCode = sourceCode;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "SOURCE_CONCEPT_ID", nullable = false)
     public Concept getSourceConcept() {
         return sourceConcept;
     }
@@ -41,9 +34,6 @@ public class SourceToConceptMap {
         this.sourceConcept = sourceConcept;
     }
 
-    @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "SOURCE_VOCABULARY_ID", nullable = false)
     public Vocabulary getSourceVocabulary() {
         return sourceVocabulary;
     }
@@ -52,7 +42,6 @@ public class SourceToConceptMap {
         this.sourceVocabulary = sourceVocabulary;
     }
 
-    @Column(name = "SOURCE_CODE_DESCRIPTION")
     public String getSourceCodeDescription() {
         return sourceCodeDescription;
     }
@@ -61,8 +50,6 @@ public class SourceToConceptMap {
         this.sourceCodeDescription = sourceCodeDescription;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "TARGET_CONCEPT_ID", nullable = false)
     public Concept getTargetConcept() {
         return targetConcept;
     }
@@ -71,9 +58,6 @@ public class SourceToConceptMap {
         this.targetConcept = targetConcept;
     }
 
-    @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "TARGET_VOCABULARY_ID", nullable = false)
     public Vocabulary getTargetVocabulary() {
         return targetVocabulary;
     }
@@ -82,7 +66,6 @@ public class SourceToConceptMap {
         this.targetVocabulary = targetVocabulary;
     }
 
-    @Column(name = "VALID_START_DATE", nullable = false)
     public Date getValidStartDate() {
         return validStartDate;
     }
@@ -91,8 +74,6 @@ public class SourceToConceptMap {
         this.validStartDate = validStartDate;
     }
 
-    @Id
-    @Column(name = "VALID_END_DATE", nullable = false)
     public Date getValidEndDate() {
         return validEndDate;
     }
@@ -101,7 +82,6 @@ public class SourceToConceptMap {
         this.validEndDate = validEndDate;
     }
 
-    @Column(name = "INVALID_REASON", nullable = false, length = 1)
     public String getInvalidReason() {
         return invalidReason;
     }

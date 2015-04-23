@@ -1,15 +1,33 @@
 package org.odhsi.athena.dao.impl;
 
-import org.hibernate.SessionFactory;
 import org.odhsi.athena.dao.ConceptClassDAO;
-import org.odhsi.athena.entity.ConceptClass;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import javax.sql.DataSource;
 
 /**
  * Created by GMalikov on 26.03.2015.
  */
-public class ConceptClassDAOImpl extends GenericDAOImpl<ConceptClass> implements ConceptClassDAO{
+public class ConceptClassDAOImpl implements ConceptClassDAO, InitializingBean{
 
-    public ConceptClassDAOImpl(SessionFactory sessionFactory) {
-        super(sessionFactory);
+    private DataSource dataSource;
+
+    private JdbcTemplate jdbcTemplate;
+
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        if (dataSource == null){
+            throw new BeanCreationException("Must set dataSource on ConceptClassDAO");
+        }
+        if (jdbcTemplate == null){
+            throw new BeanCreationException("Must set jdbcTemplate on ConceptClassDAO");
+        }
     }
 }

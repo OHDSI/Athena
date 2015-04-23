@@ -1,6 +1,5 @@
 package org.odhsi.athena.entity;
 
-import javax.persistence.*;
 import java.util.Date;
 import java.util.Set;
 
@@ -8,8 +7,6 @@ import java.util.Set;
  * Created by GMalikov on 25.03.2015.
  */
 
-@Entity
-@Table(name = "CONCEPT")
 public class Concept {
 
     private Long Id;
@@ -27,8 +24,6 @@ public class Concept {
     private Set<ConceptSynonym> synonyms;
 
 
-    @Id
-    @Column(name = "CONCEPT_ID", nullable = false)
     public Long getId() {
         return Id;
     }
@@ -37,7 +32,6 @@ public class Concept {
         this.Id = concept_id;
     }
 
-    @Column(name = "CONCEPT_NAME", nullable = false, length = 255)
     public String getName() {
         return name;
     }
@@ -46,7 +40,6 @@ public class Concept {
         this.name = concept_name;
     }
 
-    @Column(name = "STANDARD_CONCEPT", nullable = true)
     public Boolean getStandard() {
         return standard;
     }
@@ -55,7 +48,6 @@ public class Concept {
         this.standard = standard_concept;
     }
 
-    @Column(name = "CONCEPT_CODE", nullable = false, length = 50)
     public String getCode() {
         return code;
     }
@@ -64,7 +56,6 @@ public class Concept {
         this.code = concept_code;
     }
 
-    @Column(name = "VALID_START_DATE", nullable = false)
     public Date getValidStartDate() {
         return validStartDate;
     }
@@ -73,7 +64,6 @@ public class Concept {
         this.validStartDate = validStart;
     }
 
-    @Column(name = "VALID_END_DATE", nullable = false)
     public Date getValidEndDate() {
         return validEndDate;
     }
@@ -82,7 +72,6 @@ public class Concept {
         this.validEndDate = validEnd;
     }
 
-    @Column(name = "INVALID_REASON", nullable = true, length = 1)
     public String getInvalidReason() {
         return invalidReason;
     }
@@ -91,8 +80,6 @@ public class Concept {
         this.invalidReason = invalidReason;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "DOMAIN_ID", nullable = false)
     public Domain getDomain() {
         return domain;
     }
@@ -101,8 +88,6 @@ public class Concept {
         this.domain = domain;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "VOCABULARY_ID", nullable = false)
     public Vocabulary getVocabulary() {
         return vocabulary;
     }
@@ -111,8 +96,6 @@ public class Concept {
         this.vocabulary = vocabulary;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CONCEPT_CLASS_ID", nullable = false)
     public ConceptClass getConceptClass() {
         return conceptClass;
     }
@@ -121,7 +104,6 @@ public class Concept {
         this.conceptClass = conceptClass;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "ancestorConcept")
     public Set<ConceptAncestor> getAncestors() {
         return ancestors;
     }
@@ -130,7 +112,6 @@ public class Concept {
         this.ancestors = ancestors;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "descendantConcept")
     public Set<ConceptAncestor> getDescendants() {
         return descendants;
     }
@@ -139,7 +120,6 @@ public class Concept {
         this.descendants = descendants;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "concept")
     public Set<ConceptSynonym> getSynonyms() {
         return synonyms;
     }
