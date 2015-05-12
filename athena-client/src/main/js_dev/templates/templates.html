@@ -1,0 +1,72 @@
+
+<script type="text/template" id="vocab-list-item">
+    <td><%= name %></td> <td><%= statusName %></td>
+    <td>
+        <button class="btn btn-small js-log">
+            <span class="glyphicon glyphicon-eye-open"></span> Show log
+        </button>
+        <button class="btn btn-small js-build">
+            <span class="glyphicon glyphicon-cog"></span> Build
+        </button>
+    </td>
+</script>
+
+<script type="text/template" id="vocab-list">
+    <thead>
+        <tr><th> Vocabulary </th><th> Status </th><th></th></tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</script>
+
+<script type="text/template" id="vocab-message-log">
+    <td> <%= date %> </td> <td> <%= text %> </td>
+</script>
+
+<script type="text/template" id="message-log-list">
+    <tbody>
+
+    </tbody>
+</script>
+<script type="text/template" id="vocab-builder-layout">
+    <div id="builderWrapper">
+        <div class="row">
+            <div class="col-md-6">
+                <div id="vocabularyStatusTable"></div>
+            </div>
+            <div class="col-md-6">
+                <div class="row">
+                    <div id="vocabularyLogTable"></div>
+                </div>
+                <div class="row">
+                    <div id="vocabularyInfo">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script type="text/template" id="vocabulary-info-template">
+        <div class="panel-heading">
+            <h4 class="panel-title"><%= name %> Owerview</h4>
+        </div>
+        <div class="panel-body">
+            <ul>
+                <li>Records total: <%= recordsTotal %></li>
+                <li>Domains: <%= domains %> </li>
+                <li>Concepts: <%= concepts %></li>
+                <li>Relations: <%= relations %></li>
+                <li>Source vocabulary name: <%= sourceName %></li>
+                <li>Intersected with: <%= intersected %> </li>
+                <li>Last updated: <%= lastUpdated %></li>
+            </ul>
+            <ul class="list-inline">
+                <li><button type="button" class="btn btn-primary btn-xs">Browse domains</button></li>
+                <li><button type="button" class="btn btn-primary btn-xs">Browse concepts</button></li>
+                <li><button type="button" class="btn btn-primary btn-xs">Browse relations</button></li>
+                <li><button type="button" class="btn btn-primary btn-xs">Show intersections</button></li>
+            </ul>
+        </div>
+</script>

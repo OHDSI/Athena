@@ -1,1 +1,18 @@
-@import "../bower_components/bootstrap-sass/assets/stylesheets/_bootstrap";
+@import "cerulean.css";
+
+#builderWrapper{
+  margin-left: 30px;
+  margin-right: 30px;
+}
+
+#vocabularyLogTable{
+  tbody{
+    td{
+      font-size: 10px;
+    }
+  }
+}
+
+#vocab-log-header{
+  margin-top: 0px;
+}
