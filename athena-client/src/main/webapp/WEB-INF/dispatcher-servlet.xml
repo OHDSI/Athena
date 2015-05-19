@@ -10,7 +10,7 @@
         <beans:property name="suffix" value=".jsp"/>
     </beans:bean>
 
-    <!--<import resource="classpath:META-INF/services-beans.xml"/>-->
+    <import resource="classpath:META-INF/services-beans.xml"/>
 
     <context:component-scan base-package="org.odhsi.athena"/>
     <mvc:annotation-driven/>

@@ -26,12 +26,14 @@ AthenaApp.module("VocabularyBuilder.List", function(List, AthenaApp, Backbone, M
     });
 
     List.VocabStatusCollection = Marionette.CompositeView.extend({
-        tagName: "table",
-        className: "table table-hover table-bordered",
+//        tagName: "table",
+//        className: "table table-hover table-bordered",
         template: "#vocab-list",
         childView: List.VocabStatus,
-        itemViewContainer: "tbody",
-
+        childViewContainer: "#statusListTableBody",
+        onRender: function(){
+            console.log("Collection view is rendered!");
+        },
         childEvents:{
             'highlight:vocabulary': function(childView){
                 console.log('Got the childView event!' + childView);

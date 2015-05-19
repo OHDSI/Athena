@@ -1,7 +1,7 @@
-
 <script type="text/template" id="vocab-list-item">
-    <td><%= name %></td> <td><%= statusName %></td>
-    <td>
+    <td class="statusListName"><%= name %></td>
+    <td class="statusListStatus"><%= statusName %></td>
+    <td class="statusListControls">
         <button class="btn btn-small js-log">
             <span class="glyphicon glyphicon-eye-open"></span> Show log
         </button>
@@ -12,16 +12,27 @@
 </script>
 
 <script type="text/template" id="vocab-list">
-    <thead>
-        <tr><th> Vocabulary </th><th> Status </th><th></th></tr>
-    </thead>
-    <tbody>
+    <table id="statusListTableHeader" class="table table-hover table-bordered status-header">
+        <thead>
+        <tr>
+            <th class="statusListName"> Vocabulary</th>
+            <th class="statusListStatus"> Status</th>
+            <th class="statusListControls"></th>
+        </tr>
+        </thead>
+    </table>
+    <div id="statusListTableWrapper">
+        <table class="table table-hover table-bordered">
+            <tbody id="statusListTableBody">
 
-    </tbody>
+            </tbody>
+        </table>
+    </div>
 </script>
 
 <script type="text/template" id="vocab-message-log">
-    <td> <%= date %> </td> <td> <%= text %> </td>
+    <td> <%= date %></td>
+    <td> <%= text %></td>
 </script>
 
 <script type="text/template" id="message-log-list">
@@ -49,24 +60,32 @@
     </div>
 </script>
 <script type="text/template" id="vocabulary-info-template">
-        <div class="panel-heading">
-            <h4 class="panel-title"><%= name %> Owerview</h4>
-        </div>
-        <div class="panel-body">
-            <ul>
-                <li>Records total: <%= recordsTotal %></li>
-                <li>Domains: <%= domains %> </li>
-                <li>Concepts: <%= concepts %></li>
-                <li>Relations: <%= relations %></li>
-                <li>Source vocabulary name: <%= sourceName %></li>
-                <li>Intersected with: <%= intersected %> </li>
-                <li>Last updated: <%= lastUpdated %></li>
-            </ul>
-            <ul class="list-inline">
-                <li><button type="button" class="btn btn-primary btn-xs">Browse domains</button></li>
-                <li><button type="button" class="btn btn-primary btn-xs">Browse concepts</button></li>
-                <li><button type="button" class="btn btn-primary btn-xs">Browse relations</button></li>
-                <li><button type="button" class="btn btn-primary btn-xs">Show intersections</button></li>
-            </ul>
-        </div>
+    <div class="panel-heading">
+        <h4 class="panel-title"><%= name %> Owerview</h4>
+    </div>
+    <div class="panel-body">
+        <ul>
+            <li>Records total: <%= recordsTotal %></li>
+            <li>Domains: <%= domains %></li>
+            <li>Concepts: <%= concepts %></li>
+            <li>Relations: <%= relations %></li>
+            <li>Source vocabulary name: <%= sourceName %></li>
+            <li>Intersected with: <%= intersected %></li>
+            <li>Last updated: <%= lastUpdated %></li>
+        </ul>
+        <ul class="list-inline">
+            <li>
+                <button type="button" class="btn btn-primary btn-xs">Browse domains</button>
+            </li>
+            <li>
+                <button type="button" class="btn btn-primary btn-xs">Browse concepts</button>
+            </li>
+            <li>
+                <button type="button" class="btn btn-primary btn-xs">Browse relations</button>
+            </li>
+            <li>
+                <button type="button" class="btn btn-primary btn-xs">Show intersections</button>
+            </li>
+        </ul>
+    </div>
 </script>
