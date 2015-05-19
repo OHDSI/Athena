@@ -28,6 +28,7 @@ public class VocabularyStatusController {
     @ResponseBody
     public List<VocabularyStatusDTO> getVocabularyStatuses(){
         LOGGER.info("Getting statuses");
-        return vocabularyService.getAllVocabularyStatuses();
+        List<VocabularyStatusDTO> result = vocabularyService.getAllVocabularyStatuses();
+        return result;
     }
 }
