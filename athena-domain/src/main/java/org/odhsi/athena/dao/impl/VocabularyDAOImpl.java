@@ -1,8 +1,8 @@
 package org.odhsi.athena.dao.impl;
 
 import org.odhsi.athena.dao.VocabularyDAO;
+import org.odhsi.athena.db_stored.SfGetCurrentStatus;
 import org.odhsi.athena.entity.Vocabulary;
-import org.odhsi.athena.stored.SfGetCurrentStatus;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.core.JdbcTemplate;
