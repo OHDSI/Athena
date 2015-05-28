@@ -1,4 +1,5 @@
 @import "cerulean.css";
+@import "dataTables.bootstrap.css";
 
 #builderWrapper{
   margin-left: 30px;
@@ -16,37 +17,3 @@
 #vocab-log-header{
   margin-top: 0px;
 }
-
-#statusListTableWrapper{
-  height: 400px;
-  overflow-y: scroll;
-  margin-top: -20px;
-  table{
-    tbody{
-      td.statusListName{
-        width: 207px;
-      }
-      td.statusListStatus{
-        width: 88px;
-      }
-      td.statusListControls{
-        width: 286px;
-      }
-    }
-  }
-}
-
-#statusListTableHeader{
-  thead{
-    th.statusListName{
-      width: 196px;
-    }
-    th.statusListStatus{
-      width: 84px;
-    }
-    th.statusListControls{
-      width: 286px;
-    }
-  }
-}
-

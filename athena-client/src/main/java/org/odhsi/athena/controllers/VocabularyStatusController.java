@@ -1,5 +1,6 @@
 package org.odhsi.athena.controllers;
 
+import org.odhsi.athena.dto.SimpleStatusDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
 import org.odhsi.athena.services.VocabularyService;
 import org.slf4j.Logger;
@@ -29,6 +30,14 @@ public class VocabularyStatusController {
     public List<VocabularyStatusDTO> getVocabularyStatuses(){
         LOGGER.info("Getting statuses");
         List<VocabularyStatusDTO> result = vocabularyService.getAllVocabularyStatuses();
+        return result;
+    }
+
+    @RequestMapping(value = "/getSimpleStatuses", method = RequestMethod.GET)
+    @ResponseBody
+    public List<SimpleStatusDTO> getSimpleStatuses(){
+        LOGGER.info("Getting simple statuses");
+        List<SimpleStatusDTO> result = vocabularyService.getSimpleStatuses();
         return result;
     }
 }

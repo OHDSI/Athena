@@ -1,33 +1,21 @@
-<script type="text/template" id="vocab-list-item">
-    <td class="statusListName"><%= name %></td>
-    <td class="statusListStatus"><%= statusName %></td>
-    <td class="statusListControls">
-        <button class="btn btn-small js-log">
-            <span class="glyphicon glyphicon-eye-open"></span> Show log
-        </button>
-        <button class="btn btn-small js-build">
-            <span class="glyphicon glyphicon-cog"></span> Build
-        </button>
-    </td>
-</script>
-
 <script type="text/template" id="vocab-list">
-    <table id="statusListTableHeader" class="table table-hover table-bordered status-header">
+    <table id="status_table" class="table table-hover table-bordered">
         <thead>
         <tr>
-            <th class="statusListName"> Vocabulary</th>
-            <th class="statusListStatus"> Status</th>
-            <th class="statusListControls"></th>
+            <th class="vocab-list-id">id</th>
+            <th class="vocab-list-name">Name</th>
+            <th class="vocab-list-status">Status</th>
+            <th class="vocab-list-statusName">Status</th>
+            <th class="vocab-list-opNumber">opNumber</th>
+            <th class="vocab-list-description">description</th>
+            <th class="vocab-list-detail">detail</th>
+            <th class="vocab-list-controls">Controls</th>
         </tr>
         </thead>
-    </table>
-    <div id="statusListTableWrapper">
-        <table class="table table-hover table-bordered">
-            <tbody id="statusListTableBody">
+        <tbody>
 
-            </tbody>
-        </table>
-    </div>
+        </tbody>
+    </table>
 </script>
 
 <script type="text/template" id="vocab-message-log">

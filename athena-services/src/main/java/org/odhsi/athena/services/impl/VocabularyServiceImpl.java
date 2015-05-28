@@ -1,6 +1,7 @@
 package org.odhsi.athena.services.impl;
 
 import org.odhsi.athena.dao.VocabularyDAO;
+import org.odhsi.athena.dto.SimpleStatusDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
 import org.odhsi.athena.entity.Vocabulary;
 import org.odhsi.athena.services.VocabularyService;
@@ -46,6 +47,16 @@ public class VocabularyServiceImpl implements VocabularyService {
         List<VocabularyStatusDTO> result = new ArrayList<>();
         for (Vocabulary current : vocabularies) {
             result.add(makeDTOWithCurrentStatus(current));
+        }
+        return result;
+    }
+
+    @Override
+    public List<SimpleStatusDTO> getSimpleStatuses() {
+        List<Vocabulary> vocabularies = getAllVocabularies();
+        List<SimpleStatusDTO> result = new ArrayList<>();
+        for (Vocabulary current : vocabularies) {
+            result.add(new SimpleStatusDTO(current));
         }
         return result;
     }

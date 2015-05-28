@@ -1,8 +1,8 @@
 /**
  * Created by GMalikov on 05.05.2015.
  */
-AthenaApp.module("VocabularyBuilder.Show", function(Show, AthenaApp, Backbone, Marionette, $, _){
-    Show.Log = Marionette.ItemView.extend({
+AthenaApp.module("VocabularyBuilder.Log", function(Log, AthenaApp, Backbone, Marionette, $, _){
+    Log.Show = Marionette.ItemView.extend({
         tagName: "tr",
         template: "#vocab-message-log",
 
@@ -18,11 +18,11 @@ AthenaApp.module("VocabularyBuilder.Show", function(Show, AthenaApp, Backbone, M
         }
     });
 
-    Show.LogCollection = Marionette.CompositeView.extend({
+    Log.List = Marionette.CompositeView.extend({
         tagName: "table",
         className: "table table-condensed",
         template: "#message-log-list",
-        childView: Show.Log,
+        childView: Log.Show,
         itemViewContainer: "tbody",
 
         templateHelpers: function(){

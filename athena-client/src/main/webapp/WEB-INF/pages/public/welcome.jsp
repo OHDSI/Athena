@@ -10,27 +10,30 @@
 <head>
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/resources/app/css/cerulean.css">
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/resources/app/css/main.min.css">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/resources/app/css/dataTables.bootstrap.css">
 
     <script src="${pageContext.request.contextPath}/resources/app/lib/jquery.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/underscore.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/backbone.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/backbone.marionette.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/lib/bootstrap.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/lib/jquery.dataTables.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/lib/dataTables.bootstrap.js"></script>
+
 
     <script src="${pageContext.request.contextPath}/resources/app/js/athena.js"></script>
 
     <script src="${pageContext.request.contextPath}/resources/app/js/entities/vocabStatus.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/js/entities/logMessages.js"></script>
 
-    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/vocabularyBuilderApp.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/vocabularyBuilderLayoutView.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/list/statusListView.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/list/statusListController.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/show/vocabularyShowLogController.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/show/vocabularyShowLogView.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/builderApp.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/builderLayoutView.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/status/builderStatusListView.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/status/builderStatusController.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/log/builderLogController.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/log/builderLogListView.js"></script>
 
-    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/info/vocabularyInfoController.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/info/vocabularyInfoView.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/info/builderInfoController.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/info/builderInfoView.js"></script>
 
     <title>Athena welcome page</title>
 </head>
