@@ -57,4 +57,7 @@
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
+    <bean id="vocabularyBuildLogDAO" class="org.odhsi.athena.dao.impl.VocabularyBuildLogDAOImpl">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
 </beans>

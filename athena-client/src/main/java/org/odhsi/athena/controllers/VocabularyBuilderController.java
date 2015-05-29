@@ -1,6 +1,6 @@
 package org.odhsi.athena.controllers;
 
-import org.odhsi.athena.dto.SimpleStatusDTO;
+import org.odhsi.athena.dto.VocabularyBuildLogDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
 import org.odhsi.athena.services.VocabularyService;
 import org.slf4j.Logger;
@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
@@ -18,26 +19,23 @@ import java.util.List;
  */
 
 @Controller
-public class VocabularyStatusController {
+public class VocabularyBuilderController {
 
     @Autowired
     private VocabularyService vocabularyService;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyStatusController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyBuilderController.class);
 
     @RequestMapping(value = "/getVocabularyStatuses", method = RequestMethod.GET)
     @ResponseBody
     public List<VocabularyStatusDTO> getVocabularyStatuses(){
-        LOGGER.info("Getting statuses");
-        List<VocabularyStatusDTO> result = vocabularyService.getAllVocabularyStatuses();
-        return result;
+        return vocabularyService.getAllVocabularyStatuses();
     }
 
-    @RequestMapping(value = "/getSimpleStatuses", method = RequestMethod.GET)
-    @ResponseBody
-    public List<SimpleStatusDTO> getSimpleStatuses(){
-        LOGGER.info("Getting simple statuses");
-        List<SimpleStatusDTO> result = vocabularyService.getSimpleStatuses();
+    @RequestMapping(value = "/getLogForVocabulary", method = RequestMethod.GET)
+    public List<VocabularyBuildLogDTO> getLogForVocabulary(@RequestParam String vocabularyId){
+        LOGGER.info("Getting logs");
+        List<VocabularyBuildLogDTO> result = vocabularyService.getLogForVocabulary(vocabularyId);
         return result;
     }
 }

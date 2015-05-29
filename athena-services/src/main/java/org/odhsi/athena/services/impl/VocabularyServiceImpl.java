@@ -1,9 +1,11 @@
 package org.odhsi.athena.services.impl;
 
+import org.odhsi.athena.dao.VocabularyBuildLogDAO;
 import org.odhsi.athena.dao.VocabularyDAO;
-import org.odhsi.athena.dto.SimpleStatusDTO;
+import org.odhsi.athena.dto.VocabularyBuildLogDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
 import org.odhsi.athena.entity.Vocabulary;
+import org.odhsi.athena.entity.VocabularyBuildLog;
 import org.odhsi.athena.services.VocabularyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,9 @@ import java.util.List;
 public class VocabularyServiceImpl implements VocabularyService {
     @Autowired
     private VocabularyDAO vocabularyDAO;
+
+    @Autowired
+    private VocabularyBuildLogDAO vocabularyBuildLogDAO;
 
     private DocumentBuilderFactory factory;
 
@@ -52,11 +57,11 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public List<SimpleStatusDTO> getSimpleStatuses() {
-        List<Vocabulary> vocabularies = getAllVocabularies();
-        List<SimpleStatusDTO> result = new ArrayList<>();
-        for (Vocabulary current : vocabularies) {
-            result.add(new SimpleStatusDTO(current));
+    public List<VocabularyBuildLogDTO> getLogForVocabulary(String vocabularyId) {
+        List<VocabularyBuildLog> vocabularyBuildLogs = vocabularyBuildLogDAO.getLogForVocabulary(vocabularyId);
+        List<VocabularyBuildLogDTO> result = new ArrayList<>();
+        for(VocabularyBuildLog current : vocabularyBuildLogs){
+            result.add(new VocabularyBuildLogDTO(current));
         }
         return result;
     }

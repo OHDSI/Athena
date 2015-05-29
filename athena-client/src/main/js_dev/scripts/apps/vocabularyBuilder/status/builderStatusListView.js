@@ -7,7 +7,7 @@ AthenaApp.module("VocabularyBuilder.Status", function (Status, AthenaApp, Backbo
         template: "#vocab-list",
 
         onShow: function () {
-            this.$el.find('#status_table').DataTable({
+            var table = this.$el.find('#status_table').DataTable({
                 "ajax": {
                     "url": "../athena-client/getVocabularyStatuses",
                     "type": "GET",
@@ -59,11 +59,28 @@ AthenaApp.module("VocabularyBuilder.Status", function (Status, AthenaApp, Backbo
                     {
                         "targets": -1,
                         "data": null,
-                        "defaultContent": "<button type='button' class='btn btn-xs'><span class='glyphicon glyphicon-eye-open'></span>View log</button>",
+                        "defaultContent": "<button type='button' class='btn btn-xs showLog'>" +
+                            "<span class='glyphicon glyphicon-eye-open'></span>View log" +
+                            "</button> &nbsp;" +
+                            "<button type='button' class='btn btn-xs build'>" +
+                            "<span class='glyphicon glyphicon-cog'></span>Build" +
+                            "</button>",
                         "sortable": false
                     }
                 ],
                 "pagingType": "simple"
+            });
+
+            $('#status_table tbody').on('click', '.showLog', function(){
+                var data = table.row($(this).parents('tr')[0]).data();
+                alert(data.name + " vocabulary has status: " + data.status);
+            });
+
+            $('#status_table tbody').on('click', '.build', function(){
+                var data = table.row($(this).parents('tr')[0]).data();
+                if(data.status === "1" || data.status === "2" || data.status === "3"){
+                    alert("Going to build vocabulary!");
+                }
             });
         }
     });

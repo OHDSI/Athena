@@ -1,6 +1,6 @@
 package org.odhsi.athena.services;
 
-import org.odhsi.athena.dto.SimpleStatusDTO;
+import org.odhsi.athena.dto.VocabularyBuildLogDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
 import org.odhsi.athena.entity.Vocabulary;
 
@@ -17,6 +17,6 @@ public interface VocabularyService {
 
     public List<VocabularyStatusDTO> getAllVocabularyStatuses();
 
-    public List<SimpleStatusDTO> getSimpleStatuses();
+    public List<VocabularyBuildLogDTO> getLogForVocabulary(String vocabularyId);
 
 }

@@ -15,4 +15,6 @@ public interface VocabularyDAO{
     public List<Vocabulary> getAllVocabularies();
 
     public String getVocabularyStatus(String id);
+
+
 }
