@@ -7,12 +7,14 @@ AthenaApp.module("VocabularyBuilder.Status", function (Status, AthenaApp, Backbo
         template: "#vocab-list",
 
         onShow: function () {
+            var self = this;
             var table = this.$el.find('#status_table').DataTable({
                 "ajax": {
                     "url": "../athena-client/getVocabularyStatuses",
                     "type": "GET",
                     "dataSrc": ""
                 },
+                "stateSave": true,
                 "columnDefs": [
                     {
                         "targets": "vocab-list-id",
@@ -68,12 +70,23 @@ AthenaApp.module("VocabularyBuilder.Status", function (Status, AthenaApp, Backbo
                         "sortable": false
                     }
                 ],
-                "pagingType": "simple"
+                "pagingType": "simple",
+                "createdRow": function(row, data, dataIndex){
+                    if(data.status == 0){
+                        $(row).addClass('info');
+                    } else if(data.status == 1){
+                        $(row).addClass('success');
+                    } else if(data.status == 2){
+                        $(row).addClass('warning');
+                    } else if(data.status == 3){
+                        $(row).addClass('danger');
+                    }
+                }
             });
 
             $('#status_table tbody').on('click', '.showLog', function(){
                 var data = table.row($(this).parents('tr')[0]).data();
-                alert(data.name + " vocabulary has status: " + data.status);
+                self.trigger("showLog", data.id);
             });
 
             $('#status_table tbody').on('click', '.build', function(){

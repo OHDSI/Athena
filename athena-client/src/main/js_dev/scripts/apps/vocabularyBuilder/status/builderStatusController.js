@@ -22,6 +22,10 @@ AthenaApp.module("VocabularyBuilder.List", function (List, AthenaApp, Backbone, 
 //                AthenaApp.VocabularyBuilder.Info.Controller.showVocabularyInfo(vocabularyBuilderLayout.vocabularyInfoRegion, model);
             });
 
+            vocabularyStatusesView.on("showLog", function(vocabularyId){
+                AthenaApp.VocabularyBuilder.Log.Controller.showVocabularyLog(vocabularyBuilderLayout.logTableRegion, vocabularyId);
+            });
+
             AthenaApp.mainRegion.show(vocabularyBuilderLayout);
 
         }

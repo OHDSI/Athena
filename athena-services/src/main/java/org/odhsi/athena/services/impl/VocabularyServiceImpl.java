@@ -10,6 +10,7 @@ import org.odhsi.athena.services.VocabularyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -80,7 +81,9 @@ public class VocabularyServiceImpl implements VocabularyService {
             Document document = builder.parse(is);
             dto.setOpNumber(document.getElementsByTagName("op_number").item(0).getTextContent());
             dto.setDescription(document.getElementsByTagName("description").item(0).getTextContent());
-            dto.setStatus(document.getElementsByTagName("status").item(0).getTextContent());
+            if(!StringUtils.isEmpty(document.getElementsByTagName("status").item(0).getTextContent())){
+                dto.setStatus(document.getElementsByTagName("status").item(0).getTextContent());
+            }
             dto.setStatusName(getStatusNameForDTO(dto.getStatus()));
             dto.setDetail(document.getElementsByTagName("detail").item(0).getTextContent());
         } catch (ParserConfigurationException | SAXException | IOException e) {

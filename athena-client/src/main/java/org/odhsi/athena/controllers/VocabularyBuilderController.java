@@ -29,10 +29,12 @@ public class VocabularyBuilderController {
     @RequestMapping(value = "/getVocabularyStatuses", method = RequestMethod.GET)
     @ResponseBody
     public List<VocabularyStatusDTO> getVocabularyStatuses(){
-        return vocabularyService.getAllVocabularyStatuses();
+        List<VocabularyStatusDTO> result = vocabularyService.getAllVocabularyStatuses();
+        return result;
     }
 
     @RequestMapping(value = "/getLogForVocabulary", method = RequestMethod.GET)
+    @ResponseBody
     public List<VocabularyBuildLogDTO> getLogForVocabulary(@RequestParam String vocabularyId){
         LOGGER.info("Getting logs");
         List<VocabularyBuildLogDTO> result = vocabularyService.getLogForVocabulary(vocabularyId);

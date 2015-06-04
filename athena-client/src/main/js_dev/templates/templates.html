@@ -19,15 +19,24 @@
 </script>
 
 <script type="text/template" id="vocab-message-log">
-    <td> <%= date %></td>
-    <td> <%= text %></td>
+    <table id="build_log_table" class="table table-bordered">
+        <thead>
+            <tr>
+                <th class="vocab_log_id">id</th>
+                <th class="vocab_log_opStart">Date</th>
+                <th class="vocab_log_opNumber">opNumber</th>
+                <th class="vocab_log_opDescription">Description</th>
+                <th class="vocab_log_opEnd">opEnd</th>
+                <th class="vocab_log_opStatus">opStatus</th>
+                <th class="vocab_log_opDetail">opDetail</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
 </script>
 
-<script type="text/template" id="message-log-list">
-    <tbody>
-
-    </tbody>
-</script>
 <script type="text/template" id="vocab-builder-layout">
     <div id="builderWrapper">
         <div class="row">
@@ -47,6 +56,7 @@
         </div>
     </div>
 </script>
+
 <script type="text/template" id="vocabulary-info-template">
     <div class="panel-heading">
         <h4 class="panel-title"><%= name %> Owerview</h4>

@@ -25,6 +25,7 @@ public class VocabularyBuildLogDTO {
     public VocabularyBuildLogDTO(VocabularyBuildLog vocabularyBuildLog){
         this.setId(vocabularyBuildLog.getId());
         this.setOpStart(vocabularyBuildLog.getOpStart());
+        this.setOpNumber(vocabularyBuildLog.getOpNumber());
         this.setOpDescription(vocabularyBuildLog.getOpDescription());
         this.setOpEnd(vocabularyBuildLog.getOpEnd());
         this.setOpStatus(vocabularyBuildLog.getOpStatus());
