@@ -10,4 +10,6 @@ import java.util.List;
 public interface VocabularyBuildLogDAO {
 
     public List<VocabularyBuildLog> getLogForVocabulary(String vocabularyId);
+
+    public String getVocabularyStatus(String vocabularyId);
 }

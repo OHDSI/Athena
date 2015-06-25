@@ -89,7 +89,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         return result;
     }
 
-    private VocabularyStatusDTO makeDTOWithCurrentStatus(Vocabulary vocabulary) {
+    private VocabularyStatusDTO makeDTOWithCurrentStatusXML(Vocabulary vocabulary) {
         VocabularyStatusDTO dto = new VocabularyStatusDTO(vocabulary);
         if (this.factory == null) {
             this.factory = DocumentBuilderFactory.newInstance();
@@ -109,13 +109,23 @@ public class VocabularyServiceImpl implements VocabularyService {
             dto.setStatusName(getStatusNameForDTO(dto.getStatus()));
             dto.setDetail(document.getElementsByTagName("detail").item(0).getTextContent());
         } catch (ParserConfigurationException | SAXException | IOException e) {
-            LOGGER.error("makeDTOWithCurrentStatus(Vocabulary vocabulary) failed.", e);
+            LOGGER.error("makeDTOWithCurrentStatusXML(Vocabulary vocabulary) failed.", e);
             return dto;
         }
         return dto;
     }
 
+    private VocabularyStatusDTO makeDTOWithCurrentStatus(Vocabulary vocabulary){
+        VocabularyStatusDTO dto = new VocabularyStatusDTO(vocabulary);
+        dto.setStatus(vocabularyBuildLogDAO.getVocabularyStatus(vocabulary.getId()));
+        dto.setStatusName(getStatusNameForDTO(dto.getStatus()));
+        return dto;
+    }
+
     private String getStatusNameForDTO(String status) {
+        if (status == null){
+            return VocabularyStatusDTO.NOT_AVAILABLE;
+        }
         switch (status) {
             case "0":
                 return VocabularyStatusDTO.BUILD_IN_PROGRESS;
