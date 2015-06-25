@@ -2,6 +2,7 @@ package org.odhsi.athena.dao;
 
 import org.odhsi.athena.entity.Vocabulary;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -16,5 +17,7 @@ public interface VocabularyDAO{
 
     public String getVocabularyStatus(String id);
 
+    public Date getLatestUpdateFromConversion(String id);
 
+    public void buildVocabulary(String id, String version, Date latestUpdate);
 }

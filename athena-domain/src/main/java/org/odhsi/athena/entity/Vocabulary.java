@@ -1,5 +1,6 @@
 package org.odhsi.athena.entity;
 
+import java.util.Date;
 import java.util.Set;
 
 /**
@@ -14,6 +15,7 @@ public class Vocabulary {
     private String version;
     private Concept concept;
     private Set<Concept> conceptSet;
+    private Date latestUpdate;
 
 
     public String getId() {
@@ -62,5 +64,13 @@ public class Vocabulary {
 
     public void setConceptSet(Set<Concept> conceptSet) {
         this.conceptSet = conceptSet;
+    }
+
+    public Date getLatestUpdate() {
+        return latestUpdate;
+    }
+
+    public void setLatestUpdate(Date latestUpdate) {
+        this.latestUpdate = latestUpdate;
     }
 }

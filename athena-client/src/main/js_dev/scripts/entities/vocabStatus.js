@@ -19,10 +19,24 @@ AthenaApp.module("Entities", function(Entities, AthenaApp, Backbone, Marionette,
                 }
             });
             return defer.promise();
+        },
+        buildVocabulary: function(vocabularyId){
+            $.ajax({
+                method: "POST",
+                url: "../athena-client/buildVocabulary",
+                data:{
+                    vocabularyId: vocabularyId
+                }
+            });
+
         }
     };
 
     AthenaApp.reqres.setHandler("vocabStatus:entities", function(){
         return API.getVocabStatuses();
+    });
+
+    AthenaApp.reqres.setHandler("vocabStatus:buildVocabulary", function(vocabularyId){
+        API.buildVocabulary(vocabularyId);
     });
 });

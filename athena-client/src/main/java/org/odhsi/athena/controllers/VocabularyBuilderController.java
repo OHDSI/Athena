@@ -2,6 +2,8 @@ package org.odhsi.athena.controllers;
 
 import org.odhsi.athena.dto.VocabularyBuildLogDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
+import org.odhsi.athena.exceptions.MissingVocabularyAttributeException;
+import org.odhsi.athena.exceptions.VocabularyNotFoundException;
 import org.odhsi.athena.services.VocabularyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -36,8 +39,21 @@ public class VocabularyBuilderController {
     @RequestMapping(value = "/getLogForVocabulary", method = RequestMethod.GET)
     @ResponseBody
     public List<VocabularyBuildLogDTO> getLogForVocabulary(@RequestParam String vocabularyId){
-        LOGGER.info("Getting logs");
         List<VocabularyBuildLogDTO> result = vocabularyService.getLogForVocabulary(vocabularyId);
         return result;
+    }
+
+    @RequestMapping(value = "/buildVocabulary", method = RequestMethod.POST)
+    @ResponseBody
+    public String buildVocabulary(@RequestParam String vocabularyId, HttpServletResponse response){
+        LOGGER.info("Building vocabulary : " + vocabularyId);
+        try {
+            vocabularyService.buildVocabulary(vocabularyId);
+        } catch (VocabularyNotFoundException|MissingVocabularyAttributeException e) {
+            LOGGER.info(e.getMessage());
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return e.getMessage();
+        }
+        return "Success";
     }
 }

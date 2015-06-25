@@ -6,6 +6,8 @@ import org.odhsi.athena.dto.VocabularyBuildLogDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
 import org.odhsi.athena.entity.Vocabulary;
 import org.odhsi.athena.entity.VocabularyBuildLog;
+import org.odhsi.athena.exceptions.MissingVocabularyAttributeException;
+import org.odhsi.athena.exceptions.VocabularyNotFoundException;
 import org.odhsi.athena.services.VocabularyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +23,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -43,6 +46,25 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
+    public void buildVocabulary(String id) throws VocabularyNotFoundException, MissingVocabularyAttributeException {
+        Vocabulary vocabulary = vocabularyDAO.getVocabularyById(id);
+        if (vocabulary == null) {
+            throw new VocabularyNotFoundException("Requested vocabulary with id: " + id + " not found");
+        }
+        if (vocabulary.getVersion() == null) {
+            throw new MissingVocabularyAttributeException("Requested vocabulary with id: " + id + " does not have a version");
+        }
+        Date latestUpdate = vocabularyDAO.getLatestUpdateFromConversion(id);
+        if (latestUpdate == null) {
+            throw new MissingVocabularyAttributeException("Requested vocabulary with id: " + id + " does not have a latestUpdate");
+        } else {
+            vocabulary.setLatestUpdate(latestUpdate);
+        }
+
+        vocabularyDAO.buildVocabulary(vocabulary.getId(), vocabulary.getVersion(), vocabulary.getLatestUpdate());
+    }
+
+    @Override
     public List<Vocabulary> getAllVocabularies() {
         return vocabularyDAO.getAllVocabularies();
     }
@@ -61,7 +83,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     public List<VocabularyBuildLogDTO> getLogForVocabulary(String vocabularyId) {
         List<VocabularyBuildLog> vocabularyBuildLogs = vocabularyBuildLogDAO.getLogForVocabulary(vocabularyId);
         List<VocabularyBuildLogDTO> result = new ArrayList<>();
-        for(VocabularyBuildLog current : vocabularyBuildLogs){
+        for (VocabularyBuildLog current : vocabularyBuildLogs) {
             result.add(new VocabularyBuildLogDTO(current));
         }
         return result;
@@ -81,7 +103,7 @@ public class VocabularyServiceImpl implements VocabularyService {
             Document document = builder.parse(is);
             dto.setOpNumber(document.getElementsByTagName("op_number").item(0).getTextContent());
             dto.setDescription(document.getElementsByTagName("description").item(0).getTextContent());
-            if(!StringUtils.isEmpty(document.getElementsByTagName("status").item(0).getTextContent())){
+            if (!StringUtils.isEmpty(document.getElementsByTagName("status").item(0).getTextContent())) {
                 dto.setStatus(document.getElementsByTagName("status").item(0).getTextContent());
             }
             dto.setStatusName(getStatusNameForDTO(dto.getStatus()));
@@ -93,8 +115,8 @@ public class VocabularyServiceImpl implements VocabularyService {
         return dto;
     }
 
-    private String getStatusNameForDTO(String status){
-        switch (status){
+    private String getStatusNameForDTO(String status) {
+        switch (status) {
             case "0":
                 return VocabularyStatusDTO.BUILD_IN_PROGRESS;
             case "1":

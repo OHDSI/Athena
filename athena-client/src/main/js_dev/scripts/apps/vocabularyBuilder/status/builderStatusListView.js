@@ -84,6 +84,9 @@ AthenaApp.module("VocabularyBuilder.Status", function (Status, AthenaApp, Backbo
                 }
             });
 
+            setInterval(function(){
+                table.ajax.reload(null, false);
+            }, 30000);
             $('#status_table tbody').on('click', '.showLog', function(){
                 var data = table.row($(this).parents('tr')[0]).data();
                 self.trigger("showLog", data.id);
@@ -92,7 +95,7 @@ AthenaApp.module("VocabularyBuilder.Status", function (Status, AthenaApp, Backbo
             $('#status_table tbody').on('click', '.build', function(){
                 var data = table.row($(this).parents('tr')[0]).data();
                 if(data.status === "1" || data.status === "2" || data.status === "3"){
-                    alert("Going to build vocabulary!");
+                    self.trigger("buildVocabulary", data.id);
                 }
             });
         }

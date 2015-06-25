@@ -66,7 +66,7 @@ AthenaApp.module("VocabularyBuilder.Log", function(Log, AthenaApp, Backbone, Mar
                         "visible": false
                     }
                 ],
-                "pagingType": "simple",
+                "pagingType": "full",
                 "createdRow": function(row, data, dataIndex){
                     if((data.opNumber == 999) || (data.opNumber == 0)){
                         $(row).addClass('success');
@@ -75,6 +75,10 @@ AthenaApp.module("VocabularyBuilder.Log", function(Log, AthenaApp, Backbone, Mar
                     }
                 }
             });
+
+            setInterval(function(){
+                table.ajax.reload(null, false);
+            }, 30000);
         }
     });
 

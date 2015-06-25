@@ -13,8 +13,8 @@ AthenaApp.module("VocabularyBuilder.List", function (List, AthenaApp, Backbone, 
                 vocabularyBuilderLayout.statusTableRegion.show(vocabularyStatusesView);
             });
 
-            vocabularyStatusesView.on("childview:vocabStatus:build", function (childView, model) {
-                alert("Starting build process");
+            vocabularyStatusesView.on("buildVocabulary", function (vocabularyId) {
+                AthenaApp.request("vocabStatus:buildVocabulary", vocabularyId);
             });
 
             vocabularyStatusesView.on("childview:vocabStatus:show", function (childView, model) {

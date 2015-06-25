@@ -31,7 +31,7 @@ public class VocabularyBuildLogDAOImpl implements VocabularyBuildLogDAO, Initial
 
     @Override
     public List<VocabularyBuildLog> getLogForVocabulary(String vocabularyId) {
-        String sql = "SELECT * FROM DEV_TIMUR.VOCABULARY_LOG WHERE VOCABULARY_ID = :vocabularyId ORDER BY OP_START DESC";
+        String sql = "SELECT * FROM DEV_TIMUR.VOCABULARY_LOG WHERE VOCABULARY_ID = :vocabularyId ORDER BY OP_START ASC";
         Map<String, Object> params = new HashMap<>();
         params.put("vocabularyId", vocabularyId);
         return namedParameterJdbcTemplate.query(sql,params,new VocabularyBuildLogMapper());
@@ -52,6 +52,7 @@ public class VocabularyBuildLogDAOImpl implements VocabularyBuildLogDAO, Initial
             return vocabularyBuildLog;
         }
     }
+
     @Resource(name = "dataSource")
     public void setDataSource(DataSource dataSource){
         this.dataSource = dataSource;
