@@ -40,6 +40,12 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyServiceImpl.class);
 
+    private static final String STATUS_ALL = "All";
+
+    private static final String STATUS_ERRORS = "Errors";
+
+    private static final String STATUS_SUCESSFUL = "Successful";
+
     @Override
     public Vocabulary getById(String id) {
         return vocabularyDAO.getVocabularyById(id);
@@ -80,8 +86,15 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public List<VocabularyBuildLogDTO> getLogForVocabulary(String vocabularyId) {
-        List<VocabularyBuildLog> vocabularyBuildLogs = vocabularyBuildLogDAO.getLogForVocabulary(vocabularyId);
+    public List<VocabularyBuildLogDTO> getLogForVocabulary(String vocabularyId, String filter) {
+        List<VocabularyBuildLog> vocabularyBuildLogs = new ArrayList<>();
+        if (STATUS_ERRORS.equals(filter)){
+            vocabularyBuildLogs.addAll(vocabularyBuildLogDAO.getErrorLogsForVocabulary(vocabularyId));
+        } else if (STATUS_SUCESSFUL.equals(filter)){
+            vocabularyBuildLogs.addAll(vocabularyBuildLogDAO.getSuccessLogsForVocabulary(vocabularyId));
+        } else {
+            vocabularyBuildLogs.addAll(vocabularyBuildLogDAO.getAllLogsForVocabulary(vocabularyId));
+        }
         List<VocabularyBuildLogDTO> result = new ArrayList<>();
         for (VocabularyBuildLog current : vocabularyBuildLogs) {
             result.add(new VocabularyBuildLogDTO(current));

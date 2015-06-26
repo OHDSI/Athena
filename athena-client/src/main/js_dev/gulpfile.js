@@ -24,8 +24,9 @@ gulp.task('libs', function(){
     var backbone = gulp.src('node_modules/backbone.marionette/node_modules/backbone/backbone.js');
     var dataTables = gulp.src('data_tables/jquery.dataTables.js');
     var dataTablesBS = gulp.src('data_tables/dataTables.bootstrap.js');
+    var dataTablesScroller = gulp.src('data_tables/dataTables.scroller.js');;
 
-    return es.merge(marionette, underscore, jquery, bootstrap, backbone, dataTables,dataTablesBS)
+    return es.merge(marionette, underscore, jquery, bootstrap, backbone, dataTables,dataTablesBS, dataTablesScroller)
         .pipe(gulp.dest('../webapp/resources/app/lib'))
 });
 

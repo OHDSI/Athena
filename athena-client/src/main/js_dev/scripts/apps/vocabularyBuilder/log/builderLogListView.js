@@ -5,7 +5,29 @@ AthenaApp.module("VocabularyBuilder.Log", function(Log, AthenaApp, Backbone, Mar
     Log.Show = Marionette.ItemView.extend({
         tagName: "div",
         template: "#vocab-message-log",
-
+        searchFilter: "All",
+        ui:{
+            "filterAll" : "#filter_all_logs",
+            "filterErrorsOnly" : "#filter_errors_only_logs",
+            "filterBuildOnly" : "#filter_build_only_logs"
+        },
+        events: {
+            "click @ui.filterAll" : "setFilterAll",
+            "click @ui.filterErrorsOnly" : "setFilterErrorsOnly",
+            "click @ui.filterBuildOnly" : "setFilterBuildOnly"
+        },
+        setFilterAll: function(){
+            this.searchFilter = "All";
+            $('#build_log_table').dataTable().api().ajax.reload(null, false);
+        },
+        setFilterErrorsOnly: function(){
+            this.searchFilter = "Errors";
+            $('#build_log_table').dataTable().api().ajax.reload(null, false);
+        },
+        setFilterBuildOnly: function(){
+            this.searchFilter = "Successful";
+            $('#build_log_table').dataTable().api().ajax.reload(null, false);
+        },
         onShow: function(){
             var self = this;
             var table = this.$el.find('#build_log_table').DataTable({
@@ -14,12 +36,12 @@ AthenaApp.module("VocabularyBuilder.Log", function(Log, AthenaApp, Backbone, Mar
                     "type": "GET",
                     "dataSrc": "",
                     "data":{
-                        "vocabularyId": self.options.vocabularyId
+                        "vocabularyId": self.options.vocabularyId,
+                        filter: function(){ return self.searchFilter}
                     }
                 },
                 "searching": false,
                 "ordering": false,
-                "stateSave": true,
                 "columnDefs":[
                     {
                         "targets": "vocab_log_id",
@@ -66,19 +88,26 @@ AthenaApp.module("VocabularyBuilder.Log", function(Log, AthenaApp, Backbone, Mar
                         "visible": false
                     }
                 ],
-                "pagingType": "full",
+                "paging": false,
+                "scrollY": "500px",
+                "scrollCollapse": true,
+                stateSave: false,
                 "createdRow": function(row, data, dataIndex){
-                    if((data.opNumber == 999) || (data.opNumber == 0)){
+                    if(data.opStatus == 1){
                         $(row).addClass('success');
-                    } else {
+                    } else if(data.opStatus == 0 || data.opStatus == -1) {
                         $(row).addClass('info');
+                    }else if(data.opStatus == 2){
+                        $(row).addClass('warning');
+                    } else if(data.opStatus == 3){
+                        $(row).addClass('danger');
                     }
                 }
             });
 
             setInterval(function(){
                 table.ajax.reload(null, false);
-            }, 30000);
+            }, 5000);
         }
     });
 

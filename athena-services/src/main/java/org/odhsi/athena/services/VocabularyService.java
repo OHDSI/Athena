@@ -21,6 +21,6 @@ public interface VocabularyService {
 
     public List<VocabularyStatusDTO> getAllVocabularyStatuses();
 
-    public List<VocabularyBuildLogDTO> getLogForVocabulary(String vocabularyId);
+    public List<VocabularyBuildLogDTO> getLogForVocabulary(String vocabularyId, String filter);
 
 }

@@ -9,7 +9,11 @@ import java.util.List;
  */
 public interface VocabularyBuildLogDAO {
 
-    public List<VocabularyBuildLog> getLogForVocabulary(String vocabularyId);
+    public List<VocabularyBuildLog> getAllLogsForVocabulary(String vocabularyId);
+
+    public List<VocabularyBuildLog> getErrorLogsForVocabulary(String vocabularyId);
+
+    public List<VocabularyBuildLog> getSuccessLogsForVocabulary(String vocabularyId);
 
     public String getVocabularyStatus(String vocabularyId);
 }

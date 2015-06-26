@@ -31,8 +31,24 @@ public class VocabularyBuildLogDAOImpl implements VocabularyBuildLogDAO, Initial
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public List<VocabularyBuildLog> getLogForVocabulary(String vocabularyId) {
-        String sql = "SELECT * FROM DEV_TIMUR.VOCABULARY_LOG WHERE VOCABULARY_ID = :vocabularyId ORDER BY OP_START ASC";
+    public List<VocabularyBuildLog> getAllLogsForVocabulary(String vocabularyId) {
+        String sql = "SELECT * FROM DEV_TIMUR.VOCABULARY_LOG WHERE VOCABULARY_ID = :vocabularyId ORDER BY LOG_ID DESC";
+        Map<String, Object> params = new HashMap<>();
+        params.put("vocabularyId", vocabularyId);
+        return namedParameterJdbcTemplate.query(sql,params,new VocabularyBuildLogMapper());
+    }
+
+    @Override
+    public List<VocabularyBuildLog> getErrorLogsForVocabulary(String vocabularyId) {
+        String sql = "SELECT * FROM DEV_TIMUR.VOCABULARY_LOG WHERE VOCABULARY_ID = :vocabularyId AND OP_STATUS = 3 ORDER BY LOG_ID DESC";
+        Map<String, Object> params = new HashMap<>();
+        params.put("vocabularyId", vocabularyId);
+        return namedParameterJdbcTemplate.query(sql,params,new VocabularyBuildLogMapper());
+    }
+
+    @Override
+    public List<VocabularyBuildLog> getSuccessLogsForVocabulary(String vocabularyId) {
+        String sql = "SELECT * FROM DEV_TIMUR.VOCABULARY_LOG WHERE VOCABULARY_ID = :vocabularyId AND (OP_STATUS = 1 OR OP_STATUS = 2) ORDER BY LOG_ID DESC";
         Map<String, Object> params = new HashMap<>();
         params.put("vocabularyId", vocabularyId);
         return namedParameterJdbcTemplate.query(sql,params,new VocabularyBuildLogMapper());

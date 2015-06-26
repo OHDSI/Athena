@@ -19,6 +19,19 @@
 </script>
 
 <script type="text/template" id="vocab-message-log">
+    <div id="log_filter_controls">
+        <ul class="list-inline">
+            <li>
+                <button type="button" id="filter_all_logs" class="btn btn-primary btn-xs">All messages</button>
+            </li>
+            <li>
+                <button type="button" id="filter_errors_only_logs" class="btn btn-danger btn-xs">Errors only</button>
+            </li>
+            <li>
+                <button type="button" id="filter_build_only_logs" class="btn btn-success btn-xs">Successful only</button>
+            </li>
+        </ul>
+    </div>
     <table id="build_log_table" class="table table-bordered">
         <thead>
             <tr>

@@ -38,8 +38,8 @@ public class VocabularyBuilderController {
 
     @RequestMapping(value = "/getLogForVocabulary", method = RequestMethod.GET)
     @ResponseBody
-    public List<VocabularyBuildLogDTO> getLogForVocabulary(@RequestParam String vocabularyId){
-        List<VocabularyBuildLogDTO> result = vocabularyService.getLogForVocabulary(vocabularyId);
+    public List<VocabularyBuildLogDTO> getLogForVocabulary(@RequestParam String vocabularyId, @RequestParam String filter){
+        List<VocabularyBuildLogDTO> result = vocabularyService.getLogForVocabulary(vocabularyId, filter);
         return result;
     }
 
@@ -54,6 +54,7 @@ public class VocabularyBuilderController {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return e.getMessage();
         }
+        LOGGER.info("Finished building the vocabulary : " + vocabularyId);
         return "Success";
     }
 }

@@ -18,6 +18,7 @@
     <script src="${pageContext.request.contextPath}/resources/app/lib/backbone.marionette.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/jquery.dataTables.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/dataTables.bootstrap.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/lib/dataTables.scroller.js"></script>
 
 
     <script src="${pageContext.request.contextPath}/resources/app/js/athena.js"></script>
