@@ -31,8 +31,8 @@ public class VocabularyBuilderController {
 
     @RequestMapping(value = "/getVocabularyStatuses", method = RequestMethod.GET)
     @ResponseBody
-    public List<VocabularyStatusDTO> getVocabularyStatuses(){
-        List<VocabularyStatusDTO> result = vocabularyService.getAllVocabularyStatuses();
+    public List<VocabularyStatusDTO> getVocabularyStatuses(@RequestParam String filter){
+        List<VocabularyStatusDTO> result = vocabularyService.getAllVocabularyStatuses(filter);
         return result;
     }
 

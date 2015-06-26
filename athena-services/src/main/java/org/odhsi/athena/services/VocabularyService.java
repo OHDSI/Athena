@@ -19,7 +19,7 @@ public interface VocabularyService {
 
     public void buildVocabulary(String id) throws VocabularyNotFoundException, MissingVocabularyAttributeException;
 
-    public List<VocabularyStatusDTO> getAllVocabularyStatuses();
+    public List<VocabularyStatusDTO> getAllVocabularyStatuses(String filter);
 
     public List<VocabularyBuildLogDTO> getLogForVocabulary(String vocabularyId, String filter);
 

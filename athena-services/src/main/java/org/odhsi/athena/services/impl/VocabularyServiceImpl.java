@@ -40,11 +40,21 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyServiceImpl.class);
 
-    private static final String STATUS_ALL = "All";
+    private static final String LOG_STATUS_ALL = "All";
 
-    private static final String STATUS_ERRORS = "Errors";
+    private static final String LOG_STATUS_ERRORS = "Errors";
 
-    private static final String STATUS_SUCESSFUL = "Successful";
+    private static final String LOG_STATUS_SUCESSFUL = "Successful";
+
+    private static final String VOCABULARY_STATUS_ALL = "All";
+
+    private static final String VOCABULARY_STATUS_AVAILABLE = "Available";
+
+    private static final String VOCABULARY_STATUS_UNAVAILABLE = "Unavailable";
+
+    private static final String VOCABULARY_STATUS_READY = "Ready";
+
+    private static final String VOCABULARY_STATUS_FAILED = "Failed";
 
     @Override
     public Vocabulary getById(String id) {
@@ -76,11 +86,45 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public List<VocabularyStatusDTO> getAllVocabularyStatuses() {
+    public List<VocabularyStatusDTO> getAllVocabularyStatuses(String filter) {
         List<Vocabulary> vocabularies = getAllVocabularies();
         List<VocabularyStatusDTO> result = new ArrayList<>();
         for (Vocabulary current : vocabularies) {
             result.add(makeDTOWithCurrentStatus(current));
+        }
+        return filterResults(result, filter);
+    }
+
+    private List<VocabularyStatusDTO> filterResults(List<VocabularyStatusDTO> statusDTOList, String filter) {
+        List<VocabularyStatusDTO> result = new ArrayList<>();
+        if (VOCABULARY_STATUS_ALL.equals(filter)) {
+            return statusDTOList;
+        }
+        for (VocabularyStatusDTO current : statusDTOList) {
+            switch (filter) {
+                case VOCABULARY_STATUS_AVAILABLE:
+                    if (!VocabularyStatusDTO.NOT_AVAILABLE.equals(current.getStatusName())) {
+                        result.add(current);
+                    }
+                    break;
+                case VOCABULARY_STATUS_UNAVAILABLE:
+                    if (VocabularyStatusDTO.NOT_AVAILABLE.equals(current.getStatusName())) {
+                        result.add(current);
+                    }
+                    break;
+                case VOCABULARY_STATUS_READY:
+                    if (VocabularyStatusDTO.READY.equals(current.getStatusName()) || VocabularyStatusDTO.READY_WITH_NOTICES.equals(current.getStatusName())) {
+                        result.add(current);
+                    }
+                    break;
+                case VOCABULARY_STATUS_FAILED:
+                    if (VocabularyStatusDTO.FAILED.equals(current.getStatusName())) {
+                        result.add(current);
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
         return result;
     }
@@ -88,9 +132,9 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public List<VocabularyBuildLogDTO> getLogForVocabulary(String vocabularyId, String filter) {
         List<VocabularyBuildLog> vocabularyBuildLogs = new ArrayList<>();
-        if (STATUS_ERRORS.equals(filter)){
+        if (LOG_STATUS_ERRORS.equals(filter)) {
             vocabularyBuildLogs.addAll(vocabularyBuildLogDAO.getErrorLogsForVocabulary(vocabularyId));
-        } else if (STATUS_SUCESSFUL.equals(filter)){
+        } else if (LOG_STATUS_SUCESSFUL.equals(filter)) {
             vocabularyBuildLogs.addAll(vocabularyBuildLogDAO.getSuccessLogsForVocabulary(vocabularyId));
         } else {
             vocabularyBuildLogs.addAll(vocabularyBuildLogDAO.getAllLogsForVocabulary(vocabularyId));
@@ -128,7 +172,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         return dto;
     }
 
-    private VocabularyStatusDTO makeDTOWithCurrentStatus(Vocabulary vocabulary){
+    private VocabularyStatusDTO makeDTOWithCurrentStatus(Vocabulary vocabulary) {
         VocabularyStatusDTO dto = new VocabularyStatusDTO(vocabulary);
         dto.setStatus(vocabularyBuildLogDAO.getVocabularyStatus(vocabulary.getId()));
         dto.setStatusName(getStatusNameForDTO(dto.getStatus()));
@@ -136,7 +180,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     private String getStatusNameForDTO(String status) {
-        if (status == null){
+        if (status == null) {
             return VocabularyStatusDTO.NOT_AVAILABLE;
         }
         switch (status) {
