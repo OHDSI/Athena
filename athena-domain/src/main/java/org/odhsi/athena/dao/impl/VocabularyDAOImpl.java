@@ -140,9 +140,10 @@ public class VocabularyDAOImpl implements VocabularyDAO, InitializingBean{
         String sql = "SELECT COUNT(DISTINCT DOMAIN_ID) " +
                 "FROM DEV_TIMUR.CONCEPT " +
                 "WHERE VOCABULARY_ID = :vocabularyId and (STANDARD_CONCEPT = 'S' or STANDARD_CONCEPT is null) " +
-                "and INVALID_REASON is null and VALID_END_DATE = '31.12.2099'";
+                "and INVALID_REASON is null and VALID_END_DATE > :endDate ";
         Map<String,Object> params = new HashMap<>();
         params.put("vocabularyId", vocabularyId);
+        params.put("endDate", new Date());
         return namedParameterJdbcTemplate.queryForObject(sql, params, Long.class);
     }
 
