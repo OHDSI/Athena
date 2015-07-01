@@ -19,13 +19,16 @@
     <script src="${pageContext.request.contextPath}/resources/app/lib/jquery.dataTables.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/dataTables.bootstrap.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/dataTables.scroller.js"></script>
-
+    <script src="${pageContext.request.contextPath}/resources/app/lib/spin.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/lib/jquery.spin.js"></script>
 
     <script src="${pageContext.request.contextPath}/resources/app/js/athena.js"></script>
 
     <script src="${pageContext.request.contextPath}/resources/app/js/entities/vocabStatus.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/js/entities/logMessages.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/entities/vocabInfo.js"></script>
 
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/common/views/loading.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/builderApp.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/builderLayoutView.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/status/builderStatusListView.js"></script>

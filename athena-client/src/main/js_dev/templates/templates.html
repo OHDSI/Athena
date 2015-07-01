@@ -77,12 +77,10 @@
             </div>
             <div class="col-md-6">
                 <div class="row">
-                    <div id="vocabularyLogTable"></div>
+                    <div id="vocabularyInfo"></div>
                 </div>
                 <div class="row">
-                    <div id="vocabularyInfo">
-
-                    </div>
+                    <div id="vocabularyLogTable"></div>
                 </div>
             </div>
         </div>
@@ -95,12 +93,12 @@
     </div>
     <div class="panel-body">
         <ul>
-            <li>Records total: <%= recordsTotal %></li>
-            <li>Domains: <%= domains %></li>
-            <li>Concepts: <%= concepts %></li>
-            <li>Relations: <%= relations %></li>
+            <li>Record total: <%= recordsCount %></li>
+            <li>Domains: <%= domainsCount %></li>
+            <li>Concepts: <%= conceptsCount %></li>
+            <li>Relations: <%= relationsCount %></li>
             <li>Source vocabulary name: <%= sourceName %></li>
-            <li>Intersected with: <%= intersected %></li>
+            <!--<li>Intersections with: <%= intersections %></li>-->
             <li>Last updated: <%= lastUpdated %></li>
         </ul>
         <ul class="list-inline">
@@ -118,4 +116,8 @@
             </li>
         </ul>
     </div>
+</script>
+
+<script type="text/template" id="loading-view">
+    <div id="spinner"></div>
 </script>

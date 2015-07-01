@@ -24,9 +24,12 @@ gulp.task('libs', function(){
     var backbone = gulp.src('node_modules/backbone.marionette/node_modules/backbone/backbone.js');
     var dataTables = gulp.src('data_tables/jquery.dataTables.js');
     var dataTablesBS = gulp.src('data_tables/dataTables.bootstrap.js');
-    var dataTablesScroller = gulp.src('data_tables/dataTables.scroller.js');;
+    var dataTablesScroller = gulp.src('data_tables/dataTables.scroller.js');
+    var spinnerJquery = gulp.src('spinner/jquery.spin.js');
+    var spinner = gulp.src('spinner/spin.js');
 
-    return es.merge(marionette, underscore, jquery, bootstrap, backbone, dataTables,dataTablesBS, dataTablesScroller)
+    return es.merge(marionette, underscore, jquery, bootstrap,
+        backbone, dataTables,dataTablesBS, dataTablesScroller, spinnerJquery, spinner)
         .pipe(gulp.dest('../webapp/resources/app/lib'))
 });
 

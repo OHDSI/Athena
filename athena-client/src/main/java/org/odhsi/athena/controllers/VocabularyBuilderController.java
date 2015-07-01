@@ -1,6 +1,7 @@
 package org.odhsi.athena.controllers;
 
 import org.odhsi.athena.dto.VocabularyBuildLogDTO;
+import org.odhsi.athena.dto.VocabularyInfoDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
 import org.odhsi.athena.exceptions.MissingVocabularyAttributeException;
 import org.odhsi.athena.exceptions.VocabularyNotFoundException;
@@ -46,7 +47,6 @@ public class VocabularyBuilderController {
     @RequestMapping(value = "/buildVocabulary", method = RequestMethod.POST)
     @ResponseBody
     public String buildVocabulary(@RequestParam String vocabularyId, HttpServletResponse response){
-        LOGGER.info("Building vocabulary : " + vocabularyId);
         try {
             vocabularyService.buildVocabulary(vocabularyId);
         } catch (VocabularyNotFoundException|MissingVocabularyAttributeException e) {
@@ -54,7 +54,14 @@ public class VocabularyBuilderController {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return e.getMessage();
         }
-        LOGGER.info("Finished building the vocabulary : " + vocabularyId);
         return "Success";
+    }
+
+    @RequestMapping(value = "getVocabularyInfo", method = RequestMethod.GET)
+    @ResponseBody
+    public VocabularyInfoDTO getVocabularyInfo(@RequestParam String id){
+        LOGGER.info("Getting info for " + id + " vocabulary");
+        VocabularyInfoDTO result = vocabularyService.getInfoForVocabulary(id);
+        return result;
     }
 }

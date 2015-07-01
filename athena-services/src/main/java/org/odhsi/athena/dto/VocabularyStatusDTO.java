@@ -23,7 +23,7 @@ public class VocabularyStatusDTO {
 
     public VocabularyStatusDTO(Vocabulary vocabulary){
         this.id = vocabulary.getId();
-        this.name = vocabulary.getName();
+        this.name = vocabulary.getId();
     }
 
     public String getId() {

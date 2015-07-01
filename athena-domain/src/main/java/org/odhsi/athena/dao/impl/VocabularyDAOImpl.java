@@ -64,7 +64,7 @@ public class VocabularyDAOImpl implements VocabularyDAO, InitializingBean{
         public Vocabulary mapRow(ResultSet resultSet, int i) throws SQLException {
             Vocabulary vocabulary = new Vocabulary();
             vocabulary.setId(resultSet.getString("VOCABULARY_ID"));
-            vocabulary.setName(resultSet.getString("VOCABULARY_ID"));
+            vocabulary.setName(resultSet.getString("VOCABULARY_NAME"));
             vocabulary.setConcept(null);
             vocabulary.setConceptSet(null);
             vocabulary.setReference(resultSet.getString("VOCABULARY_REFERENCE"));
@@ -116,5 +116,45 @@ public class VocabularyDAOImpl implements VocabularyDAO, InitializingBean{
         if (namedParameterJdbcTemplate == null){
             throw new BeanCreationException("Must set namedParameterJdbcTemplate on VocabularyDAO");
         }
+    }
+
+    @Override
+    public long getRecordsTotalForVocabulary(String vocabularyId) {
+        String sql = "SELECT COUNT(CONCEPT_ID) FROM DEV_TIMUR.CONCEPT WHERE VOCABULARY_ID = :vocabularyId";
+        Map<String,Object> params = new HashMap<>();
+        params.put("vocabularyId", vocabularyId);
+        return namedParameterJdbcTemplate.queryForObject(sql, params, Long.class);
+    }
+
+    @Override
+    public long getDomainsCountForVocabulary(String vocabularyId) {
+        String sql = "SELECT COUNT(DISTINCT DOMAIN_ID) " +
+                "FROM DEV_TIMUR.CONCEPT WHERE VOCABULARY_ID = :vocabularyId";
+        Map<String,Object> params = new HashMap<>();
+        params.put("vocabularyId", vocabularyId);
+        return namedParameterJdbcTemplate.queryForObject(sql, params, Long.class);
+    }
+
+    @Override
+    public long getConceptsCountForVocabulary(String vocabularyId) {
+        String sql = "SELECT COUNT(DISTINCT DOMAIN_ID) " +
+                "FROM DEV_TIMUR.CONCEPT " +
+                "WHERE VOCABULARY_ID = :vocabularyId and (STANDARD_CONCEPT = 'S' or STANDARD_CONCEPT is null) " +
+                "and INVALID_REASON is null and VALID_END_DATE = '31.12.2099'";
+        Map<String,Object> params = new HashMap<>();
+        params.put("vocabularyId", vocabularyId);
+        return namedParameterJdbcTemplate.queryForObject(sql, params, Long.class);
+    }
+
+    @Override
+    public long getRelationsCountForVocabulary(String vocabularyId) {
+        String sql = "SELECT COUNT(*) " +
+                "FROM DEV_TIMUR.CONCEPT " +
+                "INNER JOIN DEV_TIMUR.CONCEPT_RELATIONSHIP " +
+                "ON CONCEPT.CONCEPT_ID = CONCEPT_RELATIONSHIP.CONCEPT_ID_1 " +
+                "WHERE CONCEPT.VOCABULARY_ID = :vocabularyId";
+        Map<String,Object> params = new HashMap<>();
+        params.put("vocabularyId", vocabularyId);
+        return namedParameterJdbcTemplate.queryForObject(sql, params, Long.class);
     }
 }

@@ -1,6 +1,7 @@
 package org.odhsi.athena.services;
 
 import org.odhsi.athena.dto.VocabularyBuildLogDTO;
+import org.odhsi.athena.dto.VocabularyInfoDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
 import org.odhsi.athena.entity.Vocabulary;
 import org.odhsi.athena.exceptions.MissingVocabularyAttributeException;
@@ -22,5 +23,7 @@ public interface VocabularyService {
     public List<VocabularyStatusDTO> getAllVocabularyStatuses(String filter);
 
     public List<VocabularyBuildLogDTO> getLogForVocabulary(String vocabularyId, String filter);
+
+    public VocabularyInfoDTO getInfoForVocabulary(String vocabularyId);
 
 }

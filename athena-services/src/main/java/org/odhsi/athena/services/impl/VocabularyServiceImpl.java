@@ -3,6 +3,7 @@ package org.odhsi.athena.services.impl;
 import org.odhsi.athena.dao.VocabularyBuildLogDAO;
 import org.odhsi.athena.dao.VocabularyDAO;
 import org.odhsi.athena.dto.VocabularyBuildLogDTO;
+import org.odhsi.athena.dto.VocabularyInfoDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
 import org.odhsi.athena.entity.Vocabulary;
 import org.odhsi.athena.entity.VocabularyBuildLog;
@@ -197,4 +198,18 @@ public class VocabularyServiceImpl implements VocabularyService {
         }
     }
 
+    @Override
+    public VocabularyInfoDTO getInfoForVocabulary(String vocabularyId) {
+        Vocabulary vocabulary = vocabularyDAO.getVocabularyById(vocabularyId);
+        VocabularyInfoDTO result = new VocabularyInfoDTO();
+        result.setRecordsCount(vocabularyDAO.getRecordsTotalForVocabulary(vocabularyId));
+        result.setDomainsCount(vocabularyDAO.getDomainsCountForVocabulary(vocabularyId));
+        result.setConceptsCount(vocabularyDAO.getConceptsCountForVocabulary(vocabularyId));
+        result.setRelationsCount(vocabularyDAO.getRelationsCountForVocabulary(vocabularyId));
+        result.setLastUpdated(vocabularyDAO.getLatestUpdateFromConversion(vocabularyId));
+        result.setName(vocabulary.getId());
+        result.setSourceName(vocabulary.getName());
+        result.setId(vocabulary.getId());
+        return result;
+    }
 }

@@ -20,4 +20,12 @@ public interface VocabularyDAO{
     public Date getLatestUpdateFromConversion(String id);
 
     public void buildVocabulary(String id, String version, Date latestUpdate);
+
+    public long getRecordsTotalForVocabulary(String vocabularyId);
+
+    public long getDomainsCountForVocabulary(String vocabularyId);
+
+    public long getConceptsCountForVocabulary(String vocabularyId);
+
+    public long getRelationsCountForVocabulary(String vocabularyId);
 }
