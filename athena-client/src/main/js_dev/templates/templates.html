@@ -25,7 +25,8 @@
                 <button type="button" id="filter_available_vocabularies" class="btn btn-info btn-sm">Available</button>
             </li>
             <li>
-                <button type="button" id="filter_unavailable_vocabularies" class="btn btn-primary btn-sm">Unavailable</button>
+                <button type="button" id="filter_unavailable_vocabularies" class="btn btn-primary btn-sm">Unavailable
+                </button>
             </li>
             <li>
                 <button type="button" id="filter_ready_vocabularies" class="btn btn-success btn-sm">Ready</button>
@@ -47,21 +48,22 @@
                 <button type="button" id="filter_errors_only_logs" class="btn btn-danger btn-xs">Errors only</button>
             </li>
             <li>
-                <button type="button" id="filter_build_only_logs" class="btn btn-success btn-xs">Successful only</button>
+                <button type="button" id="filter_build_only_logs" class="btn btn-success btn-xs">Successful only
+                </button>
             </li>
         </ul>
     </div>
     <table id="build_log_table" class="table table-bordered">
         <thead>
-            <tr>
-                <th class="vocab_log_id">id</th>
-                <th class="vocab_log_opStart">Date</th>
-                <th class="vocab_log_opNumber">opNumber</th>
-                <th class="vocab_log_opDescription">Description</th>
-                <th class="vocab_log_opEnd">opEnd</th>
-                <th class="vocab_log_opStatus">opStatus</th>
-                <th class="vocab_log_opDetail">opDetail</th>
-            </tr>
+        <tr>
+            <th class="vocab_log_id">id</th>
+            <th class="vocab_log_opStart">Date</th>
+            <th class="vocab_log_opNumber">opNumber</th>
+            <th class="vocab_log_opDescription">Description</th>
+            <th class="vocab_log_opEnd">opEnd</th>
+            <th class="vocab_log_opStatus">opStatus</th>
+            <th class="vocab_log_opDetail">opDetail</th>
+        </tr>
         </thead>
         <tbody>
 
@@ -93,7 +95,7 @@
     </div>
     <div class="panel-body">
         <ul>
-            <li>Record total: <%= recordsCount %></li>
+            <li>Records total: <%= recordsCount %></li>
             <li>Domains: <%= domainsCount %></li>
             <li>Concepts: <%= conceptsCount %></li>
             <li>Relations: <%= relationsCount %></li>
@@ -111,13 +113,40 @@
             <li>
                 <button type="button" class="btn btn-primary btn-xs">Browse relations</button>
             </li>
-            <li>
-                <button type="button" class="btn btn-primary btn-xs">Show intersections</button>
-            </li>
         </ul>
     </div>
 </script>
 
 <script type="text/template" id="loading-view">
     <div id="spinner"></div>
+</script>
+
+<script type="text/template" id="main-menu">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-2">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
+            <ul id="menuContainer" class="nav navbar-nav">
+                <!--<li class="active"><a href="#">Build vocabularies <span class="sr-only">(current)</span></a></li>-->
+                <!--<li><a href="#">Browse vocabularies</a></li>-->
+            </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                <p class="navbar-text">ATHENA Standardized Vocabularies for OMOP CDM</p>
+            </ul>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="menu-item">
+    <a href="#"><%= name %></a>
+
 </script>

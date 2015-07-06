@@ -25,11 +25,10 @@ gulp.task('libs', function(){
     var dataTables = gulp.src('data_tables/jquery.dataTables.js');
     var dataTablesBS = gulp.src('data_tables/dataTables.bootstrap.js');
     var dataTablesScroller = gulp.src('data_tables/dataTables.scroller.js');
-    var spinnerJquery = gulp.src('spinner/jquery.spin.js');
-    var spinner = gulp.src('spinner/spin.js');
+    var heartcode = gulp.src('heartcode/heartcode-canvasloader.js');
 
     return es.merge(marionette, underscore, jquery, bootstrap,
-        backbone, dataTables,dataTablesBS, dataTablesScroller, spinnerJquery, spinner)
+        backbone, dataTables,dataTablesBS, dataTablesScroller, heartcode)
         .pipe(gulp.dest('../webapp/resources/app/lib'))
 });
 

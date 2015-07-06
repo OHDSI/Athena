@@ -6,5 +6,6 @@
     <import resource="classpath:META-INF/dao-beans.xml"/>
 
     <bean id="vocabularyService" class="org.odhsi.athena.services.impl.VocabularyServiceImpl"/>
+    <bean id="securityService" class="org.odhsi.athena.services.impl.SecurityServiceImpl"/>
 
 </beans>
