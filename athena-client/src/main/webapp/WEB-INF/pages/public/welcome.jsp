@@ -21,6 +21,7 @@
     <script src="${pageContext.request.contextPath}/resources/app/lib/dataTables.bootstrap.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/dataTables.scroller.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/heartcode-canvasloader.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/lib/backbone.picky.min.js"></script>
 
     <%--Main App--%>
     <script src="${pageContext.request.contextPath}/resources/app/js/athena.js"></script>

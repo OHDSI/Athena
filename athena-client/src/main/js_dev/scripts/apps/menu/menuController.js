@@ -11,8 +11,27 @@ AthenaApp.module("MainMenu", function(MainMenu, AthenaApp, Backbone, Marionette,
                 var menuMainView = new MainMenu.Main({
                     collection: menuItems
                 });
+
+                menuMainView.on("childview:navigate", function(childView, model){
+                    var menuId = model.get("id");
+                    if(menuId === 'statusList'){
+                        AthenaApp.trigger("builder:listStatus");
+                    } else {
+                        alert("This view is not been implemented yet");
+                    }
+                });
                 AthenaApp.menuRegion.show(menuMainView);
             });
+        },
+        setActiveMenu: function(menuId){
+            if(AthenaApp.menuRegion.currentView){
+                var menuItems = AthenaApp.menuRegion.currentView.collection;
+                var menuToSelect = menuItems.find(function(menuItem){
+                    return menuItem.get("id") === menuId;
+                });
+                menuToSelect.select();
+                AthenaApp.menuRegion.currentView.collection.reset(menuItems.models);
+            }
         }
     }
 });

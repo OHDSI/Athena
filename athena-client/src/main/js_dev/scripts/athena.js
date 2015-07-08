@@ -5,8 +5,7 @@ var AthenaApp = new Backbone.Marionette.Application();
 
 AthenaApp.addRegions({
     mainRegion: "#mainRegion",
-    menuRegion: "#menu-region",
-    testRegion: "#testRegion"
+    menuRegion: "#menu-region"
 });
 
 AthenaApp.navigate = function(route, options){
@@ -22,8 +21,6 @@ AthenaApp.on('start', function(){
     console.log("Athena has started!");
     if(Backbone.history){
         Backbone.history.start();
-
-        AthenaApp.trigger("showMenu");
 
         if(this.getCurrentRoute() === ""){
             AthenaApp.trigger("builder:listStatus");

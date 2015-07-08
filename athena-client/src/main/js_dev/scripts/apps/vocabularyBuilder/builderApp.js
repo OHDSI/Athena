@@ -11,6 +11,7 @@ AthenaApp.module("VocabularyBuilder", function(VocabularyBuilder, AthenaApp, Bac
     var API = {
         listStatus: function(){
             VocabularyBuilder.List.Controller.listVocabularyStatuses();
+            AthenaApp.execute("set:active:menu", "statusList");
         }
     };
 

@@ -8,7 +8,11 @@ AthenaApp.module("MainMenu", function(MainMenu, AthenaApp, Backbone, Marionette,
         }
     };
 
-    AthenaApp.on("showMenu", function(){
+    MainMenu.on("start", function(){
         API.showMenu();
+    });
+
+    AthenaApp.commands.setHandler("set:active:menu", function(menuId){
+        MainMenu.Controller.setActiveMenu(menuId);
     });
 });

@@ -26,9 +26,10 @@ gulp.task('libs', function(){
     var dataTablesBS = gulp.src('data_tables/dataTables.bootstrap.js');
     var dataTablesScroller = gulp.src('data_tables/dataTables.scroller.js');
     var heartcode = gulp.src('heartcode/heartcode-canvasloader.js');
+    var picky = gulp.src('picky/backbone.picky.min.js');
 
     return es.merge(marionette, underscore, jquery, bootstrap,
-        backbone, dataTables,dataTablesBS, dataTablesScroller, heartcode)
+        backbone, dataTables,dataTablesBS, dataTablesScroller, heartcode, picky)
         .pipe(gulp.dest('../webapp/resources/app/lib'))
 });
 
