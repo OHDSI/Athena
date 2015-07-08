@@ -6,10 +6,12 @@ package org.odhsi.athena.dto;
 public class MenuItemDTO {
     String id;
     String name;
+    String navigationTrigger;
 
-    public MenuItemDTO(String id, String name){
+    public MenuItemDTO(String id, String name, String navigationTrigger){
         this.id = id;
         this.name = name;
+        this.navigationTrigger = navigationTrigger;
     }
 
     public String getId() {
@@ -26,5 +28,13 @@ public class MenuItemDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getNavigationTrigger() {
+        return navigationTrigger;
+    }
+
+    public void setNavigationTrigger(String navigationTrigger) {
+        this.navigationTrigger = navigationTrigger;
     }
 }
