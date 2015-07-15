@@ -105,9 +105,9 @@ AthenaApp.module("VocabularyBuilder.Log", function(Log, AthenaApp, Backbone, Mar
                 }
             });
 
-            setInterval(function(){
-                table.ajax.reload(null, false);
-            }, 5000);
+//            setInterval(function(){
+//                table.ajax.reload(null, false);
+//            }, 5000);
         }
     });
 

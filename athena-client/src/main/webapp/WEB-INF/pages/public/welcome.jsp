@@ -35,7 +35,7 @@
     <%--Common--%>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/common/views/loading.js"></script>
 
-    <%--Main Menu--%>
+    <%--Main Menu App--%>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/menu/menuApp.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/menu/menuController.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/menu/menuItemView.js"></script>
@@ -50,6 +50,13 @@
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/log/builderLogListView.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/info/builderInfoController.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/vocabularyBuilder/info/builderInfoView.js"></script>
+
+    <%--Vocabulary Browser App--%>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserApp.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserLayoutView.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserMainController.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/vocabularies/browserVocabulariesView.js"></script>
+
 
     <title>Athena welcome page</title>
 </head>

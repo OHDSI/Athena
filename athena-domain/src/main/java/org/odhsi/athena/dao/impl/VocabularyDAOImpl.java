@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -157,5 +158,49 @@ public class VocabularyDAOImpl implements VocabularyDAO, InitializingBean{
         Map<String,Object> params = new HashMap<>();
         params.put("vocabularyId", vocabularyId);
         return namedParameterJdbcTemplate.queryForObject(sql, params, Long.class);
+    }
+
+    @Override
+    public List<Vocabulary> getVocabulariesForBrowserTable(Integer start, Integer length, String sortOrder, String searchVal) {
+//        String sql = "SELECT * FROM DEV_TIMUR.VOCABULARY " + " ORDER BY VOCABULARY_ID " + sortOrder.toUpperCase() + " OFFSET :offsetValue ROWS FETCH NEXT :nextValue ROWS ONLY";
+        StringBuilder sqlString = new StringBuilder();
+        sqlString.append("SELECT * FROM DEV_TIMUR.VOCABULARY ");
+        if(!StringUtils.isEmpty(searchVal)){
+            sqlString.append(" WHERE VOCABULARY_ID LIKE '");
+            sqlString.append(searchVal);
+            sqlString.append("%' ");
+            sqlString.append(" OR VOCABULARY_NAME LIKE '");
+            sqlString.append(searchVal);
+            sqlString.append("%' ");
+        }
+        sqlString.append(" ORDER BY VOCABULARY_ID ");
+        sqlString.append(sortOrder.toUpperCase());
+        sqlString.append(" OFFSET :offsetValue ROWS FETCH NEXT :nextValue ROWS ONLY");
+        Map<String, Object> params = new HashMap<>();
+        params.put("offsetValue", start);
+        params.put("nextValue", length);
+        return namedParameterJdbcTemplate.query(sqlString.toString(),params, new VocabularyMapper());
+    }
+
+    @Override
+    public int getFilteredVocabulariesCountForBrowserTable(String searchVal) {
+//        String sql = "SELECT COUNT(VOCABULARY_ID) FROM DEV_TIMUR.VOCABULARY";
+        StringBuilder sqlString = new StringBuilder();
+        sqlString.append("SELECT COUNT(VOCABULARY_ID) FROM DEV_TIMUR.VOCABULARY ");
+        if (!StringUtils.isEmpty(searchVal)){
+            sqlString.append(" WHERE VOCABULARY_ID LIKE '");
+            sqlString.append(searchVal);
+            sqlString.append("%' ");
+            sqlString.append(" OR VOCABULARY_NAME LIKE '");
+            sqlString.append(searchVal);
+            sqlString.append("%' ");
+        }
+        return jdbcTemplate.queryForObject(sqlString.toString(), Integer.class);
+    }
+
+    @Override
+    public int getTotalVocabulariesCountForBrowserTable() {
+        String sql = "SELECT COUNT(VOCABULARY_ID) FROM DEV_TIMUR.VOCABULARY";
+        return jdbcTemplate.queryForObject(sql, Integer.class);
     }
 }

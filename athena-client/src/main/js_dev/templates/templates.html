@@ -149,3 +149,53 @@
 <script type="text/template" id="menu-item">
     <a class="menu-item" href="#"><%= name %></a>
 </script>
+
+<script type="text/template" id="vocab-browser-layout">
+    <div id="browserWrapper">
+        <div class="row">
+            <div class="col-md-4">
+                <div id="vocabulariesList">
+
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div id="domainsList">
+                    <p>Domains table</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div id="conceptsList">
+                    <p>Concepts table</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div id="relationsList">
+                    <p>Relations table</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div id="synonymsList">
+                    <p>Synonyms table</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div id="browserControls">
+                    <p>Browser controls</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="browser-vocabularies">
+    <table id="vocabularies-table" class="table table-hover">
+        <thead>
+            <tr>
+                <th class="vocab-short-name">Name</th>
+                <th class="vocab-full-name">Full name</th>
+            </tr>
+        </thead>
+    </table>
+</script>

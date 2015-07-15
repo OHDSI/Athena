@@ -15,7 +15,7 @@ public class SecurityServiceImpl implements SecurityService {
     public List<MenuItemDTO> getMenuItems() {
         List<MenuItemDTO> result = new ArrayList<>();
         result.add(new MenuItemDTO("statusList", "Build vocabularies", "builder:listStatus"));
-        result.add(new MenuItemDTO("browser", "Browse vocabularies", "browser:listVocabularies"));
+        result.add(new MenuItemDTO("browser", "Browse vocabularies", "browser:list"));
         return result;
     }
 }

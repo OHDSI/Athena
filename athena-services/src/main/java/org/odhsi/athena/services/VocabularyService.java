@@ -1,5 +1,6 @@
 package org.odhsi.athena.services;
 
+import org.odhsi.athena.dto.VocabularyBrowserPagingResultDTO;
 import org.odhsi.athena.dto.VocabularyBuildLogDTO;
 import org.odhsi.athena.dto.VocabularyInfoDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
@@ -25,5 +26,7 @@ public interface VocabularyService {
     public List<VocabularyBuildLogDTO> getLogForVocabulary(String vocabularyId, String filter);
 
     public VocabularyInfoDTO getInfoForVocabulary(String vocabularyId);
+
+    public VocabularyBrowserPagingResultDTO getVocabulariesForBrowserTable(int start, int length, int draw, String sortOrder, String searchVal);
 
 }

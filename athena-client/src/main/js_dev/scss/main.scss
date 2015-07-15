@@ -2,3 +2,29 @@
 @import "dataTables.bootstrap.css";
 @import "vocBuilder";
 
+#vocabulariesList{
+  font-size: 12px;
+  thead{
+    td{
+      font-size: 12px;
+    }
+  }
+  tbody{
+    td{
+      font-size: 12px;
+    }
+  }
+}
+
+#browserWrapper{
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+#vocabularies-table_filter{
+  label{
+    input{
+      width: 135px;
+    }
+  }
+}

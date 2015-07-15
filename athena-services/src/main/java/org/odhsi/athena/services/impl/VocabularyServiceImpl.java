@@ -2,9 +2,7 @@ package org.odhsi.athena.services.impl;
 
 import org.odhsi.athena.dao.VocabularyBuildLogDAO;
 import org.odhsi.athena.dao.VocabularyDAO;
-import org.odhsi.athena.dto.VocabularyBuildLogDTO;
-import org.odhsi.athena.dto.VocabularyInfoDTO;
-import org.odhsi.athena.dto.VocabularyStatusDTO;
+import org.odhsi.athena.dto.*;
 import org.odhsi.athena.entity.Vocabulary;
 import org.odhsi.athena.entity.VocabularyBuildLog;
 import org.odhsi.athena.exceptions.MissingVocabularyAttributeException;
@@ -211,5 +209,28 @@ public class VocabularyServiceImpl implements VocabularyService {
         result.setSourceName(vocabulary.getName());
         result.setId(vocabulary.getId());
         return result;
+    }
+
+    @Override
+    public VocabularyBrowserPagingResultDTO getVocabulariesForBrowserTable(int start, int length, int draw, String sortOrder, String searchVal) {
+        List<Vocabulary> vocabularies = vocabularyDAO.getVocabulariesForBrowserTable(start, length, checkSortOrder(sortOrder), searchVal.trim());
+        VocabularyBrowserPagingResultDTO result = new VocabularyBrowserPagingResultDTO();
+        List<VocabularyBrowserTableDTO> vocabulariesDTO = new ArrayList<>();
+        for(Vocabulary vocabulary : vocabularies){
+            vocabulariesDTO.add(new VocabularyBrowserTableDTO(vocabulary));
+        }
+        result.setData(vocabulariesDTO);
+        result.setRecordsTotal(vocabularyDAO.getTotalVocabulariesCountForBrowserTable());
+        result.setRecordsFiltered(vocabularyDAO.getFilteredVocabulariesCountForBrowserTable(searchVal));
+        result.setDraw(draw);
+        return result;
+    }
+
+    private String checkSortOrder(String sortOrder){
+        if("asc".equals(sortOrder) || "desc".equals(sortOrder)){
+            return sortOrder;
+        } else {
+            return "desc";
+        }
     }
 }

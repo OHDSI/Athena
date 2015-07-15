@@ -28,4 +28,10 @@ public interface VocabularyDAO{
     public long getConceptsCountForVocabulary(String vocabularyId);
 
     public long getRelationsCountForVocabulary(String vocabularyId);
+
+    public List<Vocabulary> getVocabulariesForBrowserTable(Integer start, Integer length, String sortOrder, String searchVal);
+
+    public int getFilteredVocabulariesCountForBrowserTable(String searchVal);
+
+    public int getTotalVocabulariesCountForBrowserTable();
 }
