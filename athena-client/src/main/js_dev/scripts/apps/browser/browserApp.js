@@ -9,7 +9,7 @@ AthenaApp.module("Browser", function(Browser, AthenaApp, Backbone, Marionette, $
     });
 
     var API = {
-        vocabularyBrowser: function(){
+        browser: function(){
             Browser.Main.Controller.showMainLayout();
             AthenaApp.execute("set:active:menu", "browser");
         }
@@ -17,7 +17,7 @@ AthenaApp.module("Browser", function(Browser, AthenaApp, Backbone, Marionette, $
 
     AthenaApp.on("browser:list", function(){
         AthenaApp.navigate("browser");
-        API.vocabularyBrowser();
+        API.browser();
     });
     AthenaApp.addInitializer(function(){
         new Browser.Router({
