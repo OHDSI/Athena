@@ -33,6 +33,20 @@ AthenaApp.module("Browser.Vocabularies", function (Vocabularies, AthenaApp, Back
                     }
                 ]
             });
+
+            $('#vocabularies-table tbody').on('click', 'tr', function(){
+                var data;
+                if($(this).hasClass('info')){
+                    $(this).removeClass('info');
+                    self.trigger("browser:vocabulary:deselected");
+                } else {
+                    table.$('tr.info').removeClass('info');
+                    $(this).addClass('info');
+                    data = table.row($(this)).data();
+                    self.trigger("browser:vocabulary:selected", data.shortName);
+                }
+            });
+
         }
     });
 });

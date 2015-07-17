@@ -125,12 +125,13 @@ AthenaApp.module("VocabularyBuilder.Status", function (Status, AthenaApp, Backbo
 //            setInterval(function(){
 //                table.ajax.reload(null, false);
 //            }, 5000);
-            $('#status_table tbody').on('click', '.showLog', function(){
+            var status_tbody = $('#status_table tbody');
+            status_tbody.on('click', '.showLog', function(){
                 var data = table.row($(this).parents('tr')[0]).data();
                 self.trigger("showLog", data.id);
             });
 
-            $('#status_table tbody').on('click', '.build', function(){
+            status_tbody.on('click', '.build', function(){
                 var data = table.row($(this).parents('tr')[0]).data();
                 if(data.status === "1" || data.status === "2" || data.status === "3"){
                     self.trigger("buildVocabulary", data.id);

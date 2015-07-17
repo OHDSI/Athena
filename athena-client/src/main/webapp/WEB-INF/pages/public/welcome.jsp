@@ -55,7 +55,8 @@
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserApp.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserLayoutView.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserMainController.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/vocabularies/browserVocabulariesView.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserVocabulariesView.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserDomainsView.js"></script>
 
 
     <title>Athena welcome page</title>

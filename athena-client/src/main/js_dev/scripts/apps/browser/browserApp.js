@@ -24,4 +24,17 @@ AthenaApp.module("Browser", function(Browser, AthenaApp, Backbone, Marionette, $
             controller: API
         });
     });
+
+    Browser.currentVocabulary = null;
+    Browser.currentDomain = null;
+    Browser.currentConcept = null;
+
+    Browser.setCurrentVocabulary = function(vocabulary){
+        Browser.currentVocabulary = vocabulary;
+        Browser.trigger("browser:vocabulary:changed");
+    };
+
+    Browser.getCurrentVocabulary = function(){
+        return Browser.currentVocabulary;
+    };
 });

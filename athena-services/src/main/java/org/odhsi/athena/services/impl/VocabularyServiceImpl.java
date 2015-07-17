@@ -212,12 +212,12 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public VocabularyBrowserPagingResultDTO getVocabulariesForBrowserTable(int start, int length, int draw, String sortOrder, String searchVal) {
+    public BrowserVocabularyPagingResultDTO getVocabulariesForBrowserTable(int start, int length, int draw, String sortOrder, String searchVal) {
         List<Vocabulary> vocabularies = vocabularyDAO.getVocabulariesForBrowserTable(start, length, checkSortOrder(sortOrder), searchVal.trim());
-        VocabularyBrowserPagingResultDTO result = new VocabularyBrowserPagingResultDTO();
-        List<VocabularyBrowserTableDTO> vocabulariesDTO = new ArrayList<>();
+        BrowserVocabularyPagingResultDTO result = new BrowserVocabularyPagingResultDTO();
+        List<BrowserVocabularyTableDTO> vocabulariesDTO = new ArrayList<>();
         for(Vocabulary vocabulary : vocabularies){
-            vocabulariesDTO.add(new VocabularyBrowserTableDTO(vocabulary));
+            vocabulariesDTO.add(new BrowserVocabularyTableDTO(vocabulary));
         }
         result.setData(vocabulariesDTO);
         result.setRecordsTotal(vocabularyDAO.getTotalVocabulariesCountForBrowserTable());

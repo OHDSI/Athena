@@ -4,6 +4,7 @@ import org.odhsi.athena.dao.DomainDAO;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
 
@@ -16,9 +17,12 @@ public class DomainDAOImpl implements DomainDAO, InitializingBean {
 
     private JdbcTemplate jdbcTemplate;
 
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
     public void setDataSource(DataSource dataSource){
         this.dataSource = dataSource;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
     }
 
     @Override
@@ -30,4 +34,5 @@ public class DomainDAOImpl implements DomainDAO, InitializingBean {
             throw new BeanCreationException("Must set jdbcTemplate on DomainDAO");
         }
     }
+
 }

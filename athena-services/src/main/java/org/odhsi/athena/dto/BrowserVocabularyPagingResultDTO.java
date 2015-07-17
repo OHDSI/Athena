@@ -5,11 +5,11 @@ import java.util.List;
 /**
  * Created by GMalikov on 10.07.2015.
  */
-public class VocabularyBrowserPagingResultDTO {
+public class BrowserVocabularyPagingResultDTO {
     int draw;
     int recordsTotal;
     int recordsFiltered;
-    List<VocabularyBrowserTableDTO> data;
+    List<BrowserVocabularyTableDTO> data;
 
     public int getDraw() {
         return draw;
@@ -35,11 +35,11 @@ public class VocabularyBrowserPagingResultDTO {
         this.recordsFiltered = recordsFiltered;
     }
 
-    public List<VocabularyBrowserTableDTO> getData() {
+    public List<BrowserVocabularyTableDTO> getData() {
         return data;
     }
 
-    public void setData(List<VocabularyBrowserTableDTO> data) {
+    public void setData(List<BrowserVocabularyTableDTO> data) {
         this.data = data;
     }
 }

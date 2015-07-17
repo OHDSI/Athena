@@ -60,4 +60,8 @@
     <bean id="vocabularyBuildLogDAO" class="org.odhsi.athena.dao.impl.VocabularyBuildLogDAOImpl">
         <property name="dataSource" ref="dataSource"/>
     </bean>
+
+    <bean id="domainWithConceptCountDAO" class="org.odhsi.athena.dao.impl.DomainWithConceptCountDAOImpl">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
 </beans>

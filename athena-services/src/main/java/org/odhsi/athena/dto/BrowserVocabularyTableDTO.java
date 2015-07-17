@@ -5,12 +5,12 @@ import org.odhsi.athena.entity.Vocabulary;
 /**
  * Created by GMalikov on 09.07.2015.
  */
-public class VocabularyBrowserTableDTO {
+public class BrowserVocabularyTableDTO {
 
     String shortName;
     String fullName;
 
-    public VocabularyBrowserTableDTO(Vocabulary vocabulary){
+    public BrowserVocabularyTableDTO(Vocabulary vocabulary){
         this.setShortName(vocabulary.getId());
         this.setFullName(vocabulary.getName());
     }
