@@ -3,13 +3,14 @@ package org.odhsi.athena.dto;
 import java.util.List;
 
 /**
- * Created by GMalikov on 10.07.2015.
+ * Created by GMalikov on 20.07.2015.
  */
-public class BrowserVocabularyPagingResultDTO {
+public class BrowserConceptPagingResultDTO {
+
     private int draw;
     private int recordsTotal;
     private int recordsFiltered;
-    private List<BrowserVocabularyTableDTO> data;
+    private List<BrowserConceptTableDTO> data;
 
     public int getDraw() {
         return draw;
@@ -35,11 +36,11 @@ public class BrowserVocabularyPagingResultDTO {
         this.recordsFiltered = recordsFiltered;
     }
 
-    public List<BrowserVocabularyTableDTO> getData() {
+    public List<BrowserConceptTableDTO> getData() {
         return data;
     }
 
-    public void setData(List<BrowserVocabularyTableDTO> data) {
+    public void setData(List<BrowserConceptTableDTO> data) {
         this.data = data;
     }
 }

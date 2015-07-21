@@ -31,10 +31,22 @@ AthenaApp.module("Browser", function(Browser, AthenaApp, Backbone, Marionette, $
 
     Browser.setCurrentVocabulary = function(vocabulary){
         Browser.currentVocabulary = vocabulary;
+        Browser.setCurrentDomain(null);
         Browser.trigger("browser:vocabulary:changed");
     };
 
     Browser.getCurrentVocabulary = function(){
         return Browser.currentVocabulary;
     };
+
+    Browser.setCurrentDomain = function(domain){
+        Browser.currentDomain = domain;
+        Browser.trigger("browser:domain:changed");
+    };
+
+    Browser.getCurrentDomain = function(){
+        return Browser.currentDomain;
+    }
+
+
 });

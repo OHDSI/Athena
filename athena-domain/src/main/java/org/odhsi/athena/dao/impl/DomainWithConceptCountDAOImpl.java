@@ -43,7 +43,7 @@ public class DomainWithConceptCountDAOImpl implements DomainWithConceptCountDAO,
 
     @Override
     public List<DomainWithConceptCount> getDomainsWithConceptCountForVocabulary(String vocabularyId) {
-        String sql = "SELECT DOMAIN_ID, COUNT(CONCEPT_ID) AS CONCEPT_COUNT FROM G_MALIKOV.CONCEPT" +
+        String sql = "SELECT DOMAIN_ID, COUNT(CONCEPT_ID) AS CONCEPT_COUNT FROM DEV_TIMUR.CONCEPT" +
                 " WHERE VOCABULARY_ID = :vocabularyId GROUP BY DOMAIN_ID ORDER BY DOMAIN_ID";
         Map<String, Object> params = new HashMap<>();
         params.put("vocabularyId", vocabularyId);

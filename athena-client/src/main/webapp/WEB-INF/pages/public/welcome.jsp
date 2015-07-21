@@ -53,39 +53,18 @@
 
     <%--Vocabulary Browser App--%>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserApp.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserLayoutView.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/views/browserLayoutView.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserMainController.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserVocabulariesView.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/browserDomainsView.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/views/browserVocabulariesView.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/views/browserDomainsView.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/js/apps/browser/views/browserConceptsView.js"></script>
 
 
     <title>Athena welcome page</title>
 </head>
 <body>
 <div id="menu-region">
-    <%--<nav class="navbar navbar-inverse">--%>
-        <%--<div class="container-fluid">--%>
-            <%--<div class="navbar-header">--%>
-                <%--<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-2">--%>
-                    <%--<span class="sr-only">Toggle navigation</span>--%>
-                    <%--<span class="icon-bar"></span>--%>
-                    <%--<span class="icon-bar"></span>--%>
-                    <%--<span class="icon-bar"></span>--%>
-                <%--</button>--%>
-            <%--</div>--%>
 
-            <%--<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">--%>
-                <%--<ul class="nav navbar-nav">--%>
-                    <%--<li class="active"><a href="#">Build vocabularies <span class="sr-only">(current)</span></a></li>--%>
-                    <%--<li><a href="#">Browse vocabularies</a></li>--%>
-                <%--</ul>--%>
-
-                <%--<ul class="nav navbar-nav navbar-right">--%>
-                    <%--<p class="navbar-text">ATHENA Standardized Vocabularies for OMOP CDM</p>--%>
-                <%--</ul>--%>
-            <%--</div>--%>
-        <%--</div>--%>
-    <%--</nav>--%>
 </div>
 <div id="testRegion"></div>
 <div id="mainRegion"></div>

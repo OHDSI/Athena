@@ -8,5 +8,6 @@
     <bean id="vocabularyService" class="org.odhsi.athena.services.impl.VocabularyServiceImpl"/>
     <bean id="securityService" class="org.odhsi.athena.services.impl.SecurityServiceImpl"/>
     <bean id="domainService" class="org.odhsi.athena.services.impl.DomainServiceImpl"/>
+    <bean id="conceptService" class="org.odhsi.athena.services.impl.ConceptServiceImpl"/>
 
 </beans>

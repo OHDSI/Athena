@@ -35,8 +35,20 @@ AthenaApp.module("Browser.Domains", function(Domains, AthenaApp, Backbone, Mario
             });
 
             AthenaApp.Browser.on("browser:vocabulary:changed", function(){
-                console.log("Current vocabulary: " + AthenaApp.Browser.getCurrentVocabulary());
                 table.ajax.reload(null, false);
+            });
+
+            $('#domains-table tbody').on('click', 'tr', function(){
+                var data;
+                if($(this).hasClass('info')){
+                    $(this).removeClass('info');
+                    self.trigger("browser:domain:deselected");
+                } else {
+                    table.$('tr.info').removeClass('info');
+                    $(this).addClass('info');
+                    data = table.row($(this)).data();
+                    self.trigger("browser:domain:selected", data.id);
+                }
             });
         }
     });
