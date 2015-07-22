@@ -41,12 +41,24 @@ AthenaApp.module("Browser", function(Browser, AthenaApp, Backbone, Marionette, $
 
     Browser.setCurrentDomain = function(domain){
         Browser.currentDomain = domain;
+        Browser.setCurrentConcept(null);
         Browser.trigger("browser:domain:changed");
     };
 
     Browser.getCurrentDomain = function(){
         return Browser.currentDomain;
-    }
+    };
 
+    Browser.setCurrentConcept = function(concept){
+        Browser.currentConcept = concept;
+        Browser.trigger("browser:concept:changed");
+    };
 
+    Browser.getCurrentConcept = function(){
+        if(Browser.currentConcept == null){
+            return -1;
+        } else {
+            return Browser.currentConcept;
+        }
+    };
 });

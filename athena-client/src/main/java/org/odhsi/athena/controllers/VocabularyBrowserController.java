@@ -2,9 +2,11 @@ package org.odhsi.athena.controllers;
 
 import org.odhsi.athena.dto.BrowserConceptPagingResultDTO;
 import org.odhsi.athena.dto.BrowserDomainWithConceptCountTableDTO;
+import org.odhsi.athena.dto.BrowserRelationWithConceptPagingResultDTO;
 import org.odhsi.athena.dto.BrowserVocabularyPagingResultDTO;
 import org.odhsi.athena.services.ConceptService;
 import org.odhsi.athena.services.DomainService;
+import org.odhsi.athena.services.RelationService;
 import org.odhsi.athena.services.VocabularyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -32,6 +34,9 @@ public class VocabularyBrowserController {
     @Autowired
     private ConceptService conceptService;
 
+    @Autowired
+    private RelationService relationService;
+
     @RequestMapping(value = "/getVocabulariesForBrowser", method = RequestMethod.GET)
     @ResponseBody
     public BrowserVocabularyPagingResultDTO getVocabulariesForBrowser(HttpServletRequest request,
@@ -58,4 +63,12 @@ public class VocabularyBrowserController {
         return result;
     }
 
+    @RequestMapping(value = "/getConceptRelationsForBrowser", method = RequestMethod.GET)
+    @ResponseBody
+    public BrowserRelationWithConceptPagingResultDTO getConceptRelationsForBrowser(HttpServletRequest request, @RequestParam int draw, int start, int length, Long conceptId){
+        String searchValue = request.getParameter("search[value]");
+        String sortOrder = request.getParameter("order[0][dir]");
+        BrowserRelationWithConceptPagingResultDTO result = relationService.getPagingRelationsForBrowser(draw, start, length, sortOrder, searchValue, conceptId);
+        return result;
+    }
 }

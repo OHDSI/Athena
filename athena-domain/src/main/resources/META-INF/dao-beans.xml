@@ -64,4 +64,8 @@
     <bean id="domainWithConceptCountDAO" class="org.odhsi.athena.dao.impl.DomainWithConceptCountDAOImpl">
         <property name="dataSource" ref="dataSource"/>
     </bean>
+
+    <bean id="relationWithConceptDAO" class="org.odhsi.athena.dao.impl.RelationWithConceptDAOImpl">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
 </beans>

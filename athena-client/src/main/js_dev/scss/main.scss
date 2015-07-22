@@ -72,3 +72,25 @@
     }
   }
 }
+
+#relationsList{
+  font-size: 12px;
+  thead{
+    td{
+      font-size: 12px;
+    }
+  }
+  tbody{
+    td{
+      font-size: 12px;
+    }
+  }
+}
+
+#relations-table_filter{
+  label{
+    input{
+      width: 135px;
+    }
+  }
+}
