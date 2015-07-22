@@ -10,5 +10,6 @@
     <bean id="domainService" class="org.odhsi.athena.services.impl.DomainServiceImpl"/>
     <bean id="conceptService" class="org.odhsi.athena.services.impl.ConceptServiceImpl"/>
     <bean id="relationService" class="org.odhsi.athena.services.impl.RelationServiceImpl"/>
+    <bean id="synonymService" class="org.odhsi.athena.services.impl.SynonymServiceImpl"/>
 
 </beans>

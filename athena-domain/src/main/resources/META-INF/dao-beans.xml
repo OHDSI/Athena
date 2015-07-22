@@ -68,4 +68,8 @@
     <bean id="relationWithConceptDAO" class="org.odhsi.athena.dao.impl.RelationWithConceptDAOImpl">
         <property name="dataSource" ref="dataSource"/>
     </bean>
+
+    <bean id="synonymWithConceptDAO" class="org.odhsi.athena.dao.impl.SynonymWithLanguageDAOImpl">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
 </beans>

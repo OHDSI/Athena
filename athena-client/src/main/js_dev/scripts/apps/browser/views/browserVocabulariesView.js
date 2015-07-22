@@ -8,7 +8,6 @@ AthenaApp.module("Browser.Vocabularies", function (Vocabularies, AthenaApp, Back
         onShow: function () {
             var self = this;
             var table = this.$el.find("#vocabularies-table").DataTable({
-                scrollX: true,
                 serverSide: true,
                 pagingType: 'simple',
                 bLengthChange: false,

@@ -1,13 +1,7 @@
 package org.odhsi.athena.controllers;
 
-import org.odhsi.athena.dto.BrowserConceptPagingResultDTO;
-import org.odhsi.athena.dto.BrowserDomainWithConceptCountTableDTO;
-import org.odhsi.athena.dto.BrowserRelationWithConceptPagingResultDTO;
-import org.odhsi.athena.dto.BrowserVocabularyPagingResultDTO;
-import org.odhsi.athena.services.ConceptService;
-import org.odhsi.athena.services.DomainService;
-import org.odhsi.athena.services.RelationService;
-import org.odhsi.athena.services.VocabularyService;
+import org.odhsi.athena.dto.*;
+import org.odhsi.athena.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +30,9 @@ public class VocabularyBrowserController {
 
     @Autowired
     private RelationService relationService;
+
+    @Autowired
+    private SynonymService synonymService;
 
     @RequestMapping(value = "/getVocabulariesForBrowser", method = RequestMethod.GET)
     @ResponseBody
@@ -69,6 +66,15 @@ public class VocabularyBrowserController {
         String searchValue = request.getParameter("search[value]");
         String sortOrder = request.getParameter("order[0][dir]");
         BrowserRelationWithConceptPagingResultDTO result = relationService.getPagingRelationsForBrowser(draw, start, length, sortOrder, searchValue, conceptId);
+        return result;
+    }
+
+    @RequestMapping(value = "/getSynonymsForBrowser", method = RequestMethod.GET)
+    @ResponseBody
+    public BrowserSynonymPagingResultDTO getSynonymsForBrowser(HttpServletRequest request, @RequestParam int draw, int start, int length, Long conceptId){
+        String searchValue = request.getParameter("search[value]");
+        String sortOrder = request.getParameter("order[0][dir]");
+        BrowserSynonymPagingResultDTO result = synonymService.getPagingSynonymsForBrowser(draw,start,length,sortOrder,searchValue,conceptId);
         return result;
     }
 }

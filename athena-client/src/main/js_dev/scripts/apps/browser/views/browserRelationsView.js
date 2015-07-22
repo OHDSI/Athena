@@ -35,7 +35,6 @@ AthenaApp.module("Browser.Relations", function (Relations, AthenaApp, Backbone, 
             });
 
             $('#relations-table tbody').on('click', 'tr', function () {
-                var data;
                 if ($(this).hasClass('info')) {
                     $(this).removeClass('info');
                 } else {
