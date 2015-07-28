@@ -167,10 +167,10 @@ public class VocabularyDAOImpl implements VocabularyDAO, InitializingBean{
         sqlString.append("SELECT * FROM DEV_TIMUR.VOCABULARY ");
         if(!StringUtils.isEmpty(searchVal)){
             sqlString.append(" WHERE VOCABULARY_ID LIKE '");
-            sqlString.append(searchVal);
+            sqlString.append(searchVal.trim());
             sqlString.append("%' ");
             sqlString.append(" OR VOCABULARY_NAME LIKE '");
-            sqlString.append(searchVal);
+            sqlString.append(searchVal.trim());
             sqlString.append("%' ");
         }
         sqlString.append(" ORDER BY VOCABULARY_ID ");

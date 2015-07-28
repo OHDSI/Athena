@@ -6,20 +6,20 @@ import org.odhsi.athena.entity.DomainWithConceptCount;
  * Created by GMalikov on 16.07.2015.
  */
 public class BrowserDomainWithConceptCountTableDTO {
-    String id;
-    long conceptCount;
+    private String domain;
+    private long conceptCount;
 
     public BrowserDomainWithConceptCountTableDTO(DomainWithConceptCount domainWithConceptCount){
-        this.setId(domainWithConceptCount.getId());
+        this.setDomain(domainWithConceptCount.getId());
         this.setConceptCount(domainWithConceptCount.getConceptCount());
     }
 
-    public String getId() {
-        return id;
+    public String getDomain() {
+        return domain;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     public long getConceptCount() {

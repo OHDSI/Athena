@@ -25,11 +25,12 @@ gulp.task('libs', function(){
     var dataTables = gulp.src('data_tables/jquery.dataTables.js');
     var dataTablesBS = gulp.src('data_tables/dataTables.bootstrap.js');
     var dataTablesScroller = gulp.src('data_tables/dataTables.scroller.js');
-    var heartcode = gulp.src('heartcode/heartcode-canvasloader.js');
     var picky = gulp.src('picky/backbone.picky.min.js');
+    var jqGrid = gulp.src('jqGrid/jquery.jqGrid.min.js');
+    var jqGridLocale = gulp.src('jqGrid/grid.locale-en.js');
 
     return es.merge(marionette, underscore, jquery, bootstrap,
-        backbone, dataTables,dataTablesBS, dataTablesScroller, heartcode, picky)
+        backbone, dataTables,dataTablesBS, dataTablesScroller, picky, jqGrid, jqGridLocale)
         .pipe(gulp.dest('../webapp/resources/app/lib'))
 });
 
@@ -52,7 +53,7 @@ gulp.task('fonts', function(){
 
 gulp.task('images', function(){
     return gulp.src('./images/**')
-        .pipe(gulp.dest('../webapp/resources/app/images'));
+        .pipe(gulp.dest('../webapp/resources/app/css/images'));
 });
 
 gulp.task('templates', function(){

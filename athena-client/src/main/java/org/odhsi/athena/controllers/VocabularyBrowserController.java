@@ -36,11 +36,9 @@ public class VocabularyBrowserController {
 
     @RequestMapping(value = "/getVocabulariesForBrowser", method = RequestMethod.GET)
     @ResponseBody
-    public BrowserVocabularyPagingResultDTO getVocabulariesForBrowser(HttpServletRequest request,
-                                            @RequestParam int draw, int start, int length){
-        String searchVal = request.getParameter("search[value]");
-        String sortOrder = request.getParameter("order[0][dir]");
-        BrowserVocabularyPagingResultDTO result = vocabularyService.getVocabulariesForBrowserTable(start, length, draw, sortOrder, searchVal);
+    public BrowserVocabularyPagingResultDTO getVocabulariesForBrowser(HttpServletRequest request, @RequestParam int page, int rows, String sidx, String sord){
+        String searchName = request.getParameter("fullName");
+        BrowserVocabularyPagingResultDTO result = vocabularyService.getVocabulariesForBrowserTable((page-1)*rows, rows, page, sord, searchName);
         return result;
     }
 

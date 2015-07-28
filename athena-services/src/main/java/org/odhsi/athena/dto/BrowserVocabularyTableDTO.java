@@ -7,20 +7,30 @@ import org.odhsi.athena.entity.Vocabulary;
  */
 public class BrowserVocabularyTableDTO {
 
-    String shortName;
+    String id;
+    String name;
     String fullName;
 
     public BrowserVocabularyTableDTO(Vocabulary vocabulary){
-        this.setShortName(vocabulary.getId());
+        this.setId(vocabulary.getId().replace(" ","_"));
+        this.setName(vocabulary.getId());
         this.setFullName(vocabulary.getName());
     }
 
-    public String getShortName() {
-        return shortName;
+    public String getId() {
+        return id;
     }
 
-    public void setShortName(String shortName) {
-        this.shortName = shortName;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getFullName() {

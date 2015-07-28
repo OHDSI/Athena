@@ -152,61 +152,55 @@
 
 <script type="text/template" id="vocab-browser-layout">
     <div id="browserWrapper">
-        <div class="row">
-            <div class="col-md-4">
-                <div id="vocabulariesList">
+        <!--<div class="well well-sm">-->
+            <div class="row">
 
+                <div class="col-md-6">
+                    <div id="vocabulariesList">
+
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div id="conceptsList">
+                        <p>Concepts table</p>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div id="domainsList">
-                    <p>Domains table</p>
+        <!--</div>-->
+        <!--<div class="well well-sm">-->
+            <div class="row">
+                <div class="col-md-4">
+                    <div id="relationsList">
+                        <p>Relations table</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div id="synonymsList">
+                        <p>Synonyms table</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div id="browserControls">
+                        <p>Browser controls</p>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div id="conceptsList">
-                    <p>Concepts table</p>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-4">
-                <div id="relationsList">
-                    <p>Relations table</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div id="synonymsList">
-                    <p>Synonyms table</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div id="browserControls">
-                    <p>Browser controls</p>
-                </div>
-            </div>
-        </div>
+        <!--</div>-->
     </div>
 </script>
 
 <script type="text/template" id="browser-vocabularies">
-    <table id="vocabularies-table" class="table table-hover">
-        <thead>
-            <tr>
-                <th class="vocab-short-name">Vocabulary</th>
-                <th class="vocab-full-name">Full name</th>
-            </tr>
-        </thead>
-    </table>
+    <table id="vocabularies-table"></table>
+    <div id="vocabularies-pager"></div>
 </script>
 
 <script type="text/template" id="browser-domains">
     <table id="domains-table" class="table table-hover">
         <thead>
-            <tr>
-                <th class="domain-id">Domain</th>
-                <th class="domain-concepts-count">Concepts</th>
-            </tr>
+        <tr>
+            <th class="domain-id">Domain</th>
+            <th class="domain-concepts-count">Concepts</th>
+        </tr>
         </thead>
     </table>
 </script>
@@ -214,10 +208,10 @@
 <script type="text/template" id="browser-concepts">
     <table id="concepts-table" class="table table-hover">
         <thead>
-            <tr>
-                <th class="concept-id">id</th>
-                <th class="concept-name">Concept</th>
-            </tr>
+        <tr>
+            <th class="concept-id">id</th>
+            <th class="concept-name">Concept</th>
+        </tr>
         </thead>
     </table>
 </script>

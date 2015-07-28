@@ -27,6 +27,6 @@ public interface VocabularyService {
 
     public VocabularyInfoDTO getInfoForVocabulary(String vocabularyId);
 
-    public BrowserVocabularyPagingResultDTO getVocabulariesForBrowserTable(int start, int length, int draw, String sortOrder, String searchVal);
+    public BrowserVocabularyPagingResultDTO getVocabulariesForBrowserTable(int start, int length, int page, String sortOrder, String searchVal);
 
 }

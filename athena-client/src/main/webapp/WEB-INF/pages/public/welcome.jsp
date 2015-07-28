@@ -11,6 +11,11 @@
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/resources/app/css/cerulean.css">
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/resources/app/css/main.min.css">
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/resources/app/css/dataTables.bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/resources/app/css/jquery-ui.min.css">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/resources/app/css/ui.jqgrid-bootstarp.css">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/resources/app/css/ui.jqgrid.css">
+
+
 
     <%--Libraries--%>
     <script src="${pageContext.request.contextPath}/resources/app/lib/jquery.js"></script>
@@ -20,8 +25,9 @@
     <script src="${pageContext.request.contextPath}/resources/app/lib/jquery.dataTables.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/dataTables.bootstrap.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/dataTables.scroller.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/lib/heartcode-canvasloader.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/backbone.picky.min.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/lib/grid.locale-en.js"></script>
+    <script src="${pageContext.request.contextPath}/resources/app/lib/jquery.jqGrid.min.js"></script>
 
     <%--Main App--%>
     <script src="${pageContext.request.contextPath}/resources/app/js/athena.js"></script>

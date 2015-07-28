@@ -212,17 +212,28 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public BrowserVocabularyPagingResultDTO getVocabulariesForBrowserTable(int start, int length, int draw, String sortOrder, String searchVal) {
-        List<Vocabulary> vocabularies = vocabularyDAO.getVocabulariesForBrowserTable(start, length, checkSortOrder(sortOrder), searchVal.trim());
+    public BrowserVocabularyPagingResultDTO getVocabulariesForBrowserTable(int start, int length, int page, String sortOrder, String searchVal) {
+        List<Vocabulary> vocabularies = vocabularyDAO.getVocabulariesForBrowserTable(start, length, checkSortOrder(sortOrder), searchVal);
         BrowserVocabularyPagingResultDTO result = new BrowserVocabularyPagingResultDTO();
         List<BrowserVocabularyTableDTO> vocabulariesDTO = new ArrayList<>();
         for(Vocabulary vocabulary : vocabularies){
             vocabulariesDTO.add(new BrowserVocabularyTableDTO(vocabulary));
         }
         result.setData(vocabulariesDTO);
-        result.setRecordsTotal(vocabularyDAO.getTotalVocabulariesCountForBrowserTable());
-        result.setRecordsFiltered(vocabularyDAO.getFilteredVocabulariesCountForBrowserTable(searchVal));
-        result.setDraw(draw);
+        result.setRecords(vocabularyDAO.getFilteredVocabulariesCountForBrowserTable(searchVal));
+        result.setTotalPages(calculateTotalPages(result.getRecords(), length));
+        result.setPage(page);
+        return result;
+    }
+
+    private long calculateTotalPages(long recordsTotal, long recordsPerPage){
+        long result = 0;
+        if(recordsPerPage > 0){
+            result = recordsTotal/recordsPerPage;
+            if (recordsTotal%recordsPerPage > 0){
+                result = result +1;
+            }
+        }
         return result;
     }
 

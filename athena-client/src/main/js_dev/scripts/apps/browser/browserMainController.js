@@ -42,10 +42,10 @@ AthenaApp.module("Browser.Main", function(Main, AthenaApp, Backbone, Marionette,
 
             browserLayout.on("show", function(){
                 browserLayout.vocabulariesRegion.show(vocabulariesView);
-                browserLayout.domainsRegion.show(domainsView);
-                browserLayout.conceptsRegion.show(conceptsView);
-                browserLayout.relationsRegion.show(relationsView);
-                browserLayout.synonymsRegion.show(synonymsView);
+//                browserLayout.domainsRegion.show(domainsView);
+//                browserLayout.conceptsRegion.show(conceptsView);
+//                browserLayout.relationsRegion.show(relationsView);
+//                browserLayout.synonymsRegion.show(synonymsView);
             });
 
             AthenaApp.mainRegion.show(browserLayout);
