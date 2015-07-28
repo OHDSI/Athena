@@ -39,10 +39,18 @@ AthenaApp.module("Browser.Vocabularies", function (Vocabularies, AthenaApp, Back
                 shrinkToFit: false,
                 pager: '#vocabularies-pager',
                 beforeSelectRow: function(rowid){
+                    var expanded = jQuery("td.sgexpanded", "#vocabularies-table")[0];
+                    if(expanded) {
+                        setTimeout(function(){
+                            $(expanded).trigger("click");
+                        }, 100);
+                    }
                     if ($(this).jqGrid("getGridParam", "selrow") === rowid) {
                         $(this).jqGrid("resetSelection");
+                        self.trigger("browser:vocabulary:deselected");
                         return false;
                     } else {
+                        self.trigger("browser:vocabulary:selected", $(this).jqGrid('getCell', rowid,'name'), true);
                         return true;
                     }
                 },
@@ -53,6 +61,10 @@ AthenaApp.module("Browser.Vocabularies", function (Vocabularies, AthenaApp, Back
                         setTimeout(function(){
                             $(expanded).trigger("click");
                         }, 100);
+                    }
+                    if ($(this).jqGrid("getGridParam", "selrow") !== rowid){
+                        $(this).jqGrid('setSelection', rowid, true);
+                        self.trigger("browser:vocabulary:selected", $(this).jqGrid('getCell', rowid,'name'));
                     }
                 },
                 subGridRowExpanded: function(subgrid_id, row_id){
@@ -67,24 +79,6 @@ AthenaApp.module("Browser.Vocabularies", function (Vocabularies, AthenaApp, Back
                         datatype: 'json',
                         mtype: 'GET',
                         loadonce: true,
-//                        jsonReader: {
-//                            root: function (obj) {
-//                                return obj;
-//                            },
-//                            page: function (obj) {
-//                                return 1;
-//                            },
-//                            records: function (obj) {
-//                                return obj.length;
-//                            },
-//                            total: function (obj) {
-//                                var result = (obj.length - obj.length%10)/10;
-//                                if(obj.length%10 > 0){
-//                                    result = result + 1;
-//                                }
-//                                return result;
-//                            }
-//                        },
                         rowNum: 10,
                         height: '100%',
                         colNames: ['Domain', 'Concepts count'],
@@ -97,9 +91,22 @@ AthenaApp.module("Browser.Vocabularies", function (Vocabularies, AthenaApp, Back
                         postData:{
                             vocabularyId: vocabularyId
                         },
-                        pager: pager_id
+                        pager: pager_id,
+                        beforeSelectRow: function(rowid){
+                            if ($(this).jqGrid("getGridParam", "selrow") === rowid) {
+                                $(this).jqGrid("resetSelection");
+                                self.trigger("browser:domain:deselected");
+                                return false;
+                            } else {
+                                self.trigger("browser:domain:selected", $(this).jqGrid('getCell', rowid,'domain'));
+                                return true;
+                            }
+                        }
                     });
 
+                },
+                subGridRowColapsed:function(subgrid_id, row_id){
+                    self.trigger("browser:domain:deselected");
                 }
             });
             $('#vocabularies-table').jqGrid('filterToolbar', {searchOnEnter: true, searchOperators: false, search: true});

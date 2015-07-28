@@ -24,11 +24,11 @@ AthenaApp.module("Browser.Main", function(Main, AthenaApp, Backbone, Marionette,
                 AthenaApp.Browser.setCurrentVocabulary(null);
             });
 
-            domainsView.on("browser:domain:selected", function(domainId){
+            vocabulariesView.on("browser:domain:selected", function(domainId){
                 AthenaApp.Browser.setCurrentDomain(domainId);
             });
 
-            domainsView.on("browser:domain:deselected", function(){
+            vocabulariesView.on("browser:domain:deselected", function(){
                 AthenaApp.Browser.setCurrentDomain(null);
             });
 

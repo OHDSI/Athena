@@ -33,6 +33,7 @@ AthenaApp.module("Browser", function(Browser, AthenaApp, Backbone, Marionette, $
         Browser.currentVocabulary = vocabulary;
         Browser.setCurrentDomain(null);
         Browser.trigger("browser:vocabulary:changed");
+        console.log("Current vocabulary is: " + vocabulary);
     };
 
     Browser.getCurrentVocabulary = function(){
@@ -43,6 +44,7 @@ AthenaApp.module("Browser", function(Browser, AthenaApp, Backbone, Marionette, $
         Browser.currentDomain = domain;
         Browser.setCurrentConcept(null);
         Browser.trigger("browser:domain:changed");
+        console.log("Current domain is: " + domain);
     };
 
     Browser.getCurrentDomain = function(){
