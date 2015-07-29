@@ -12,8 +12,6 @@ AthenaApp.module("Browser.Main", function(Main, AthenaApp, Backbone, Marionette,
 
             var relationsView = new AthenaApp.Browser.Relations.View();
 
-            var synonymsView = new AthenaApp.Browser.Synonyms.View();
-
             vocabulariesAndDomainsView.on("browser:vocabulary:selected", function(vocabularyId){
                 AthenaApp.Browser.setCurrentVocabulary(vocabularyId);
             });
@@ -40,10 +38,8 @@ AthenaApp.module("Browser.Main", function(Main, AthenaApp, Backbone, Marionette,
 
             browserLayout.on("show", function(){
                 browserLayout.vocabulariesRegion.show(vocabulariesAndDomainsView);
-//                browserLayout.domainsRegion.show(domainsView);
                 browserLayout.conceptsRegion.show(conceptsView);
                 browserLayout.relationsRegion.show(relationsView);
-//                browserLayout.synonymsRegion.show(synonymsView);
             });
 
             AthenaApp.mainRegion.show(browserLayout);
