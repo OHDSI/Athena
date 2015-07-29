@@ -7,6 +7,6 @@ import org.odhsi.athena.dto.BrowserConceptPagingResultDTO;
  */
 public interface ConceptService {
 
-    public BrowserConceptPagingResultDTO getPagingConceptsForBrowser(int draw, int start, int length, String searchValue, String sortOrder, String vocabularyId, String domainId);
+    public BrowserConceptPagingResultDTO getPagingConceptsForBrowser(int start, int length, int page, String searchValue, String sortOrder, String vocabularyId, String domainId);
 
 }

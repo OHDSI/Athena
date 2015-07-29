@@ -6,9 +6,7 @@ AthenaApp.module("Browser.Main", function(Main, AthenaApp, Backbone, Marionette,
         showMainLayout: function(){
             var browserLayout = new AthenaApp.Browser.Layout.Main();
 
-            var vocabulariesView = new AthenaApp.Browser.Vocabularies.View();
-
-            var domainsView = new AthenaApp.Browser.Domains.View();
+            var vocabulariesAndDomainsView = new AthenaApp.Browser.Vocabularies.View();
 
             var conceptsView = new AthenaApp.Browser.Concepts.View();
 
@@ -16,19 +14,19 @@ AthenaApp.module("Browser.Main", function(Main, AthenaApp, Backbone, Marionette,
 
             var synonymsView = new AthenaApp.Browser.Synonyms.View();
 
-            vocabulariesView.on("browser:vocabulary:selected", function(vocabularyId){
+            vocabulariesAndDomainsView.on("browser:vocabulary:selected", function(vocabularyId){
                 AthenaApp.Browser.setCurrentVocabulary(vocabularyId);
             });
 
-            vocabulariesView.on("browser:vocabulary:deselected", function(){
+            vocabulariesAndDomainsView.on("browser:vocabulary:deselected", function(){
                 AthenaApp.Browser.setCurrentVocabulary(null);
             });
 
-            vocabulariesView.on("browser:domain:selected", function(domainId){
+            vocabulariesAndDomainsView.on("browser:domain:selected", function(domainId){
                 AthenaApp.Browser.setCurrentDomain(domainId);
             });
 
-            vocabulariesView.on("browser:domain:deselected", function(){
+            vocabulariesAndDomainsView.on("browser:domain:deselected", function(){
                 AthenaApp.Browser.setCurrentDomain(null);
             });
 
@@ -41,9 +39,9 @@ AthenaApp.module("Browser.Main", function(Main, AthenaApp, Backbone, Marionette,
             });
 
             browserLayout.on("show", function(){
-                browserLayout.vocabulariesRegion.show(vocabulariesView);
+                browserLayout.vocabulariesRegion.show(vocabulariesAndDomainsView);
 //                browserLayout.domainsRegion.show(domainsView);
-//                browserLayout.conceptsRegion.show(conceptsView);
+                browserLayout.conceptsRegion.show(conceptsView);
 //                browserLayout.relationsRegion.show(relationsView);
 //                browserLayout.synonymsRegion.show(synonymsView);
             });

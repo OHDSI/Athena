@@ -51,10 +51,9 @@ public class VocabularyBrowserController {
 
     @RequestMapping(value = "/getConceptsForBrowser", method = RequestMethod.GET)
     @ResponseBody
-    public BrowserConceptPagingResultDTO getConceptsForBrowser(HttpServletRequest request, @RequestParam int draw, int start, int length, String vocabularyId, String domainId){
-        String searchValue = request.getParameter("search[value]");
-        String sortOrder = request.getParameter("order[0][dir]");
-        BrowserConceptPagingResultDTO result = conceptService.getPagingConceptsForBrowser(draw, start, length, searchValue, sortOrder, vocabularyId, domainId);
+    public BrowserConceptPagingResultDTO getConceptsForBrowser(HttpServletRequest request, @RequestParam int page, int rows, String sidx, String sord, String vocabularyId, String domainId){
+        String searchValue = request.getParameter("name");
+        BrowserConceptPagingResultDTO result = conceptService.getPagingConceptsForBrowser((page-1)*rows, rows, page, searchValue, sord, vocabularyId, domainId);
         return result;
     }
 

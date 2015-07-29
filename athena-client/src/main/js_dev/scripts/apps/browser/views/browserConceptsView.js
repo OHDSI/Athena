@@ -1,55 +1,62 @@
 /**
  * Created by GMalikov on 20.07.2015.
  */
-AthenaApp.module("Browser.Concepts", function(Concepts, AthenaApp, Backbone, Marionette, $, _){
+AthenaApp.module("Browser.Concepts", function (Concepts, AthenaApp, Backbone, Marionette, $, _) {
     Concepts.View = Marionette.ItemView.extend({
         tagName: "div",
         template: "#browser-concepts",
-        onShow: function(){
+        onShow: function () {
             var self = this;
-            var table = this.$el.find("#concepts-table").DataTable({
-                serverSide: true,
-                pagingType: 'simple',
-                bLengthChange: false,
-                ajax:{
-                    url: '../athena-client/getConceptsForBrowser',
-                    type: 'GET',
-                    data:{
-                        vocabularyId: function(){return AthenaApp.Browser.getCurrentVocabulary();},
-                        domainId: function(){return AthenaApp.Browser.getCurrentDomain();}
+            var table = this.$el.find("#concepts-table").jqGrid({
+                url: '../athena-client/getConceptsForBrowser',
+                datatype: 'json',
+                mtype: 'GET',
+                jsonReader: {
+                    root: function (obj) {
+                        return obj.data
+                    },
+                    page: function (obj) {
+                        return obj.page
+                    },
+                    records: function (obj) {
+                        return obj.records
+                    },
+                    total: function (obj) {
+                        return obj.totalPages
                     }
                 },
-                columnDefs:[
-                    {
-                        targets: "concept-id",
-                        data: "id",
-                        searchable: false,
-                        visible: false
-                    },
-                    {
-                        targets: "concept-name",
-                        data: "name",
-                        searchable: true,
-                        visible: true
+//                width: $("#conceptsList").width(),
+                width: 617,
+                height: 500,
+                colModel: [
+                    {label: '', name: 'id', index: 'id', key: true, hidden: true},
+                    {label: 'Concept', name: 'name', index: 'name', width: 613, key: false, sortable: true, search: true,
+                        cellattr: function (rowId, tv, rawObject, cm, rdata) {
+                            return 'style="white-space: normal;'
+                        }
                     }
-                ]
-            });
+                ],
+                sortname: 'name',
+                viewrecords: true,
+                sortorder: 'asc',
+                rowNum: 20,
+                shrinkToFit: false,
+                pager: "#concepts-pager",
+                postData: {
+                    vocabularyId: function () {
+                        return AthenaApp.Browser.getCurrentVocabulary();
+                    },
+                    domainId: function () {
+                        return AthenaApp.Browser.getCurrentDomain();
+                    }
 
-            $('#concepts-table tbody').on('click', 'tr', function(){
-                var data;
-                if($(this).hasClass('info')){
-                    $(this).removeClass('info');
-                    self.trigger("browser:concept:deselected");
-                } else {
-                    table.$('tr.info').removeClass('info');
-                    $(this).addClass('info');
-                    data = table.row($(this)).data();
-                    self.trigger("browser:concept:selected", data.id);
                 }
             });
 
-            AthenaApp.Browser.on("browser:domain:changed", function(){
-                table.ajax.reload(null,false);
+            $('#concepts-table').jqGrid('filterToolbar', {searchOnEnter: true, searchOperators: false, search: true});
+
+            AthenaApp.Browser.on("browser:domain:changed", function () {
+                $("#concepts-table").trigger("reloadGrid");
             });
         }
     });

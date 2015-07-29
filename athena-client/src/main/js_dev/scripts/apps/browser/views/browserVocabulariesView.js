@@ -25,23 +25,24 @@ AthenaApp.module("Browser.Vocabularies", function (Vocabularies, AthenaApp, Back
                         return obj.totalPages
                     }
                 },
-                width: $('#vocabulariesList').width(),
-                height: 'auto',
+//                width: $('#vocabulariesList').width(),
+                width: 617,
+                height: 500,
                 colModel: [
-                    {label: '', name: 'id', index:'id', key: true, hidden: true},
+                    {label: '', name: 'id', index: 'id', key: true, hidden: true},
                     {label: 'Vocabulary', name: 'name', index: 'name', width: 130, key: false, sortable: true, search: false},
-                    {label: 'Full name', name: 'fullName', index: 'fullName', width: 500, key: false, sortable: false, search: true}
+                    {label: 'Full name', name: 'fullName', index: 'fullName', width: 455, key: false, sortable: false, search: true}
                 ],
                 sortname: 'id',
                 viewrecords: true,
                 sortorder: 'asc',
-                rowNum: 10,
+                rowNum: 20,
                 shrinkToFit: false,
                 pager: '#vocabularies-pager',
-                beforeSelectRow: function(rowid){
+                beforeSelectRow: function (rowid) {
                     var expanded = jQuery("td.sgexpanded", "#vocabularies-table")[0];
-                    if(expanded) {
-                        setTimeout(function(){
+                    if (expanded) {
+                        setTimeout(function () {
                             $(expanded).trigger("click");
                         }, 100);
                     }
@@ -50,31 +51,31 @@ AthenaApp.module("Browser.Vocabularies", function (Vocabularies, AthenaApp, Back
                         self.trigger("browser:vocabulary:deselected");
                         return false;
                     } else {
-                        self.trigger("browser:vocabulary:selected", $(this).jqGrid('getCell', rowid,'name'), true);
+                        self.trigger("browser:vocabulary:selected", $(this).jqGrid('getCell', rowid, 'name'), true);
                         return true;
                     }
                 },
                 subGrid: true,
-                subGridBeforeExpand: function(divid, rowid) {
+                subGridBeforeExpand: function (divid, rowid) {
                     var expanded = jQuery("td.sgexpanded", "#vocabularies-table")[0];
-                    if(expanded) {
-                        setTimeout(function(){
+                    if (expanded) {
+                        setTimeout(function () {
                             $(expanded).trigger("click");
                         }, 100);
                     }
-                    if ($(this).jqGrid("getGridParam", "selrow") !== rowid){
+                    if ($(this).jqGrid("getGridParam", "selrow") !== rowid) {
                         $(this).jqGrid('setSelection', rowid, true);
-                        self.trigger("browser:vocabulary:selected", $(this).jqGrid('getCell', rowid,'name'));
+                        self.trigger("browser:vocabulary:selected", $(this).jqGrid('getCell', rowid, 'name'));
                     }
                 },
-                subGridRowExpanded: function(subgrid_id, row_id){
+                subGridRowExpanded: function (subgrid_id, row_id) {
                     var subgrid_table_id;
                     var pager_id;
-                    var vocabularyId = $("#vocabularies-table").jqGrid('getCell', row_id,'name');
-                    subgrid_table_id = subgrid_id.replace(/ /g, "_")+"t";
-                    pager_id = "p_"+subgrid_table_id;
-                    $("#"+subgrid_id).html("<table id='"+subgrid_table_id+"' class='scroll'></table><div id='"+ pager_id +"' class='scroll'></div>");
-                    $("#"+subgrid_table_id).jqGrid({
+                    var vocabularyId = $("#vocabularies-table").jqGrid('getCell', row_id, 'name');
+                    subgrid_table_id = subgrid_id.replace(/ /g, "_") + "t";
+                    pager_id = "p_" + subgrid_table_id;
+                    $("#" + subgrid_id).html("<table id='" + subgrid_table_id + "' class='scroll'></table><div id='" + pager_id + "' class='scroll'></div>");
+                    $("#" + subgrid_table_id).jqGrid({
                         url: '../athena-client/getDomainsForBrowser',
                         datatype: 'json',
                         mtype: 'GET',
@@ -82,48 +83,34 @@ AthenaApp.module("Browser.Vocabularies", function (Vocabularies, AthenaApp, Back
                         rowNum: 10,
                         height: '100%',
                         colNames: ['Domain', 'Concepts count'],
-                        colModel:[
-                            {name: 'domain', index:'domain', width:130, key: true},
-                            {name: 'conceptCount', index:'conceptCount', width:150}
+                        colModel: [
+                            {name: 'domain', index: 'domain', width: 130, key: true},
+                            {name: 'conceptCount', index: 'conceptCount', width: 150}
                         ],
                         sortName: 'domain',
                         sortorder: 'asc',
-                        postData:{
+                        postData: {
                             vocabularyId: vocabularyId
                         },
                         pager: pager_id,
-                        beforeSelectRow: function(rowid){
+                        beforeSelectRow: function (rowid) {
                             if ($(this).jqGrid("getGridParam", "selrow") === rowid) {
                                 $(this).jqGrid("resetSelection");
                                 self.trigger("browser:domain:deselected");
                                 return false;
                             } else {
-                                self.trigger("browser:domain:selected", $(this).jqGrid('getCell', rowid,'domain'));
+                                self.trigger("browser:domain:selected", $(this).jqGrid('getCell', rowid, 'domain'));
                                 return true;
                             }
                         }
                     });
 
                 },
-                subGridRowColapsed:function(subgrid_id, row_id){
+                subGridRowColapsed: function (subgrid_id, row_id) {
                     self.trigger("browser:domain:deselected");
                 }
             });
             $('#vocabularies-table').jqGrid('filterToolbar', {searchOnEnter: true, searchOperators: false, search: true});
-
-//            $('#vocabularies-table tbody').on('click', 'tr', function(){
-//                var data;
-//                if($(this).hasClass('info')){
-//                    $(this).removeClass('info');
-//                    self.trigger("browser:vocabulary:deselected");
-//                } else {
-//                    table.$('tr.info').removeClass('info');
-//                    $(this).addClass('info');
-//                    data = table.row($(this)).data();
-//                    self.trigger("browser:vocabulary:selected", data.shortName);
-//                }
-//            });
-
         }
     });
 });

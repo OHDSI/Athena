@@ -8,6 +8,7 @@ import org.odhsi.athena.entity.VocabularyBuildLog;
 import org.odhsi.athena.exceptions.MissingVocabularyAttributeException;
 import org.odhsi.athena.exceptions.VocabularyNotFoundException;
 import org.odhsi.athena.services.VocabularyService;
+import org.odhsi.athena.util.DTOHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -213,7 +214,7 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     @Override
     public BrowserVocabularyPagingResultDTO getVocabulariesForBrowserTable(int start, int length, int page, String sortOrder, String searchVal) {
-        List<Vocabulary> vocabularies = vocabularyDAO.getVocabulariesForBrowserTable(start, length, checkSortOrder(sortOrder), searchVal);
+        List<Vocabulary> vocabularies = vocabularyDAO.getVocabulariesForBrowserTable(start, length, DTOHelper.checkSortOrder(sortOrder), searchVal);
         BrowserVocabularyPagingResultDTO result = new BrowserVocabularyPagingResultDTO();
         List<BrowserVocabularyTableDTO> vocabulariesDTO = new ArrayList<>();
         for(Vocabulary vocabulary : vocabularies){
@@ -221,27 +222,8 @@ public class VocabularyServiceImpl implements VocabularyService {
         }
         result.setData(vocabulariesDTO);
         result.setRecords(vocabularyDAO.getFilteredVocabulariesCountForBrowserTable(searchVal));
-        result.setTotalPages(calculateTotalPages(result.getRecords(), length));
+        result.setTotalPages(DTOHelper.calculateTotalPages(result.getRecords(), length));
         result.setPage(page);
         return result;
-    }
-
-    private long calculateTotalPages(long recordsTotal, long recordsPerPage){
-        long result = 0;
-        if(recordsPerPage > 0){
-            result = recordsTotal/recordsPerPage;
-            if (recordsTotal%recordsPerPage > 0){
-                result = result +1;
-            }
-        }
-        return result;
-    }
-
-    private String checkSortOrder(String sortOrder){
-        if("asc".equals(sortOrder) || "desc".equals(sortOrder)){
-            return sortOrder;
-        } else {
-            return "desc";
-        }
     }
 }
