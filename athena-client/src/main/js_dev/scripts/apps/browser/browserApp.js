@@ -54,6 +54,7 @@ AthenaApp.module("Browser", function(Browser, AthenaApp, Backbone, Marionette, $
     Browser.setCurrentConcept = function(concept){
         Browser.currentConcept = concept;
         Browser.trigger("browser:concept:changed");
+        console.log("Current concept is: " + concept);
     };
 
     Browser.getCurrentConcept = function(){

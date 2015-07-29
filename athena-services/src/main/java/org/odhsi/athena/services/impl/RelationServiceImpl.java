@@ -5,6 +5,7 @@ import org.odhsi.athena.dto.BrowserRelationWithConceptPagingResultDTO;
 import org.odhsi.athena.dto.BrowserRelationWithConceptTableDTO;
 import org.odhsi.athena.entity.RelationWithConcept;
 import org.odhsi.athena.services.RelationService;
+import org.odhsi.athena.util.DTOHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public class RelationServiceImpl implements RelationService {
     private RelationWithConceptDAO relationWithConceptDAO;
 
     @Override
-    public BrowserRelationWithConceptPagingResultDTO getPagingRelationsForBrowser(int draw, int start, int length, String sortOrder, String searchValue, Long conceptId) {
+    public BrowserRelationWithConceptPagingResultDTO getPagingRelationsForBrowser(int start, int length, int page, String sortOrder, String searchValue, Long conceptId) {
         List<RelationWithConcept> relationWithConcepts = relationWithConceptDAO.getRelationsForBrowserPagingResult(start, length, checkSortOrder(sortOrder), searchValue, conceptId);
         BrowserRelationWithConceptPagingResultDTO result = new BrowserRelationWithConceptPagingResultDTO();
         List<BrowserRelationWithConceptTableDTO> relationsDTO = new ArrayList<>();
@@ -27,8 +28,9 @@ public class RelationServiceImpl implements RelationService {
             relationsDTO.add(new BrowserRelationWithConceptTableDTO(relationWithConcept));
         }
         result.setData(relationsDTO);
-        result.setRecordsTotal(relationWithConceptDAO.getTotalRelationsWithConcepts());
-        result.setRecordsFiltered(relationWithConceptDAO.getFilteredRelationsForBrowser(searchValue, conceptId));
+        result.setRecords(relationWithConceptDAO.getFilteredRelationsForBrowser(searchValue, conceptId));
+        result.setTotalPages(DTOHelper.calculateTotalPages(result.getRecords(), length));
+        result.setPage(page);
         return result;
     }
 

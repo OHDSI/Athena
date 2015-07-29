@@ -7,6 +7,6 @@ import org.odhsi.athena.dto.BrowserRelationWithConceptPagingResultDTO;
  */
 public interface RelationService {
 
-    public BrowserRelationWithConceptPagingResultDTO getPagingRelationsForBrowser(int draw, int start, int length, String sortOrder, String searchValue, Long conceptId);
+    public BrowserRelationWithConceptPagingResultDTO getPagingRelationsForBrowser(int start, int length, int page, String sortOrder, String searchValue, Long conceptId);
 
 }

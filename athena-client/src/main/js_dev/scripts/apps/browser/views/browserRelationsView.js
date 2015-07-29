@@ -7,44 +7,50 @@ AthenaApp.module("Browser.Relations", function (Relations, AthenaApp, Backbone, 
         template: "#browser-relations",
         onShow: function () {
             var self = this;
-            var table = this.$el.find("#relations-table").DataTable({
-                serverSide: true,
-                pagingType: 'simple',
-                bLengthChange: false,
-                ajax: {
-                    url: '../athena-client/getConceptRelationsForBrowser',
-                    type: "GET",
-                    data: {
-                        conceptId: function(){return AthenaApp.Browser.getCurrentConcept();}
+            var cellatrWordWrap = function (rowId, tv, rawObject, cm, rdata) {
+                return 'style="white-space: normal;'
+            };
+            var table = this.$el.find("#relations-table").jqGrid({
+                url: '../athena-client/getConceptRelationsForBrowser',
+                datatype: 'json',
+                mtype: 'GET',
+                jsonReader: {
+                    root: function (obj) {
+                        return obj.data
+                    },
+                    page: function (obj) {
+                        return obj.page
+                    },
+                    records: function (obj) {
+                        return obj.records
+                    },
+                    total: function (obj) {
+                        return obj.totalPages
                     }
                 },
-                columnDefs: [
-                    {
-                        "targets": "relation-name",
-                        "data": "relationName",
-                        "searchable": true,
-                        "visible": true
-                    },
-                    {
-                        "targets": "related-concept-name",
-                        "data": "conceptName",
-                        "searchable": true,
-                        "visible": true
+                width: $("#relationsList").width(),
+                height: 'auto',
+                colModel: [
+                    {label: 'Relation name', name: 'relationName', index: 'relationName', width: 130, search: false, sortable: true, cellattr: cellatrWordWrap},
+                    {label: 'Related concept', name: 'conceptName', index: 'conceptName', width: 455, search: true, sortable: false, cellattr: cellatrWordWrap}
+                ],
+                sortname: 'relationName',
+                viewrecords: true,
+                sortorder: 'asc',
+                rowNum: 10,
+                shrinkToFit: false,
+                pager: "#relations-pager",
+                postData: {
+                    conceptId: function () {
+                        return AthenaApp.Browser.getCurrentConcept();
                     }
-                ]
-            });
-
-            $('#relations-table tbody').on('click', 'tr', function () {
-                if ($(this).hasClass('info')) {
-                    $(this).removeClass('info');
-                } else {
-                    table.$('tr.info').removeClass('info');
-                    $(this).addClass('info');
                 }
             });
 
-            AthenaApp.Browser.on("browser:concept:changed", function(){
-                table.ajax.reload(null,false);
+            $(table).jqGrid('filterToolbar', {searchOnEnter: true, searchOperators: false, search: true});
+
+            AthenaApp.Browser.on("browser:concept:changed", function () {
+                $(table).trigger("reloadGrid");
             });
         }
     });

@@ -153,7 +153,7 @@
 <script type="text/template" id="vocab-browser-layout">
     <div id="browserWrapper">
         <!--<div class="well well-sm">-->
-        <div class="row">
+        <div id="browserFirstRow" class="row">
 
             <div class="col-md-6">
                 <div id="vocabulariesList">
@@ -168,18 +168,13 @@
         </div>
         <!--</div>-->
         <!--<div class="well well-sm">-->
-        <div class="row">
-            <div class="col-md-4">
+        <div id="browserSecondRow" class="row">
+            <div class="col-md-6">
                 <div id="relationsList">
-                    <p>Relations table</p>
+
                 </div>
             </div>
-            <div class="col-md-4">
-                <div id="synonymsList">
-                    <p>Synonyms table</p>
-                </div>
-            </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div id="browserControls">
                     <p>Browser controls</p>
                 </div>
@@ -200,14 +195,8 @@
 </script>
 
 <script type="text/template" id="browser-relations">
-    <table id="relations-table" class="table table-hover">
-        <thead>
-        <tr>
-            <th class="relation-name">Relation</th>
-            <th class="related-concept-name">Concept</th>
-        </tr>
-        </thead>
-    </table>
+    <table id="relations-table"></table>
+    <div id="relations-pager"></div>
 </script>
 
 <script type="text/template" id="browser-synonyms">

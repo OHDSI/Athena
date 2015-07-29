@@ -6,33 +6,33 @@ import java.util.List;
  * Created by GMalikov on 21.07.2015.
  */
 public class BrowserRelationWithConceptPagingResultDTO {
-    private int draw;
-    private int recordsTotal;
-    private int recordsFiltered;
+    private int page;
+    private long totalPages;
+    private long records;
     private List<BrowserRelationWithConceptTableDTO> data;
 
-    public int getDraw() {
-        return draw;
+    public int getPage() {
+        return page;
     }
 
-    public void setDraw(int draw) {
-        this.draw = draw;
+    public void setPage(int page) {
+        this.page = page;
     }
 
-    public int getRecordsTotal() {
-        return recordsTotal;
+    public long getTotalPages() {
+        return totalPages;
     }
 
-    public void setRecordsTotal(int recordsTotal) {
-        this.recordsTotal = recordsTotal;
+    public void setTotalPages(long totalPages) {
+        this.totalPages = totalPages;
     }
 
-    public int getRecordsFiltered() {
-        return recordsFiltered;
+    public long getRecords() {
+        return records;
     }
 
-    public void setRecordsFiltered(int recordsFiltered) {
-        this.recordsFiltered = recordsFiltered;
+    public void setRecords(long records) {
+        this.records = records;
     }
 
     public List<BrowserRelationWithConceptTableDTO> getData() {

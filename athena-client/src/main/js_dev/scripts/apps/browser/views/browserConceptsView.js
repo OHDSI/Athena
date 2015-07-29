@@ -7,6 +7,9 @@ AthenaApp.module("Browser.Concepts", function (Concepts, AthenaApp, Backbone, Ma
         template: "#browser-concepts",
         onShow: function () {
             var self = this;
+            var cellatrWordWrap = function (rowId, tv, rawObject, cm, rdata) {
+                return 'style="white-space: normal;'
+            };
             var table = this.$el.find("#concepts-table").jqGrid({
                 url: '../athena-client/getConceptsForBrowser',
                 datatype: 'json',
@@ -30,11 +33,7 @@ AthenaApp.module("Browser.Concepts", function (Concepts, AthenaApp, Backbone, Ma
                 height: 500,
                 colModel: [
                     {label: '', name: 'id', index: 'id', key: true, hidden: true},
-                    {label: 'Concept', name: 'name', index: 'name', width: 613, key: false, sortable: true, search: true,
-                        cellattr: function (rowId, tv, rawObject, cm, rdata) {
-                            return 'style="white-space: normal;'
-                        }
-                    }
+                    {label: 'Concept', name: 'name', index: 'name', width: 613, key: false, sortable: true, search: true, cellattr: cellatrWordWrap}
                 ],
                 sortname: 'name',
                 viewrecords: true,
@@ -50,13 +49,23 @@ AthenaApp.module("Browser.Concepts", function (Concepts, AthenaApp, Backbone, Ma
                         return AthenaApp.Browser.getCurrentDomain();
                     }
 
+                },
+                beforeSelectRow: function(rowid){
+                    if ($(this).jqGrid("getGridParam", "selrow") === rowid) {
+                        $(this).jqGrid("resetSelection");
+                        self.trigger("browser:concept:deselected");
+                        return false;
+                    } else {
+                        self.trigger("browser:concept:selected", $(this).jqGrid('getCell', rowid, 'id'), true);
+                        return true;
+                    }
                 }
             });
 
-            $('#concepts-table').jqGrid('filterToolbar', {searchOnEnter: true, searchOperators: false, search: true});
+            $(table).jqGrid('filterToolbar', {searchOnEnter: true, searchOperators: false, search: true});
 
             AthenaApp.Browser.on("browser:domain:changed", function () {
-                $("#concepts-table").trigger("reloadGrid");
+                $(table).trigger("reloadGrid");
             });
         }
     });

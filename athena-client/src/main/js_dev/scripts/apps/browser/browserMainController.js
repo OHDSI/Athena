@@ -42,7 +42,7 @@ AthenaApp.module("Browser.Main", function(Main, AthenaApp, Backbone, Marionette,
                 browserLayout.vocabulariesRegion.show(vocabulariesAndDomainsView);
 //                browserLayout.domainsRegion.show(domainsView);
                 browserLayout.conceptsRegion.show(conceptsView);
-//                browserLayout.relationsRegion.show(relationsView);
+                browserLayout.relationsRegion.show(relationsView);
 //                browserLayout.synonymsRegion.show(synonymsView);
             });
 
