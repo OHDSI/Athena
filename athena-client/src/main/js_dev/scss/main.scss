@@ -24,13 +24,6 @@
   padding-right: 10px;
 }
 
-#vocabularies-table_filter{
-  label{
-    input{
-      width: 135px;
-    }
-  }
-}
 
 #conceptsList{
   font-size: 12px;
@@ -46,13 +39,6 @@
   }
 }
 
-#concepts-table_filter{
-  label{
-    input{
-      width: 135px;
-    }
-  }
-}
 
 #relationsList{
   font-size: 12px;
@@ -64,14 +50,6 @@
   tbody{
     td{
       font-size: 12px;
-    }
-  }
-}
-
-#relations-table_filter{
-  label{
-    input{
-      width: 135px;
     }
   }
 }

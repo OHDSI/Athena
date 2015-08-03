@@ -29,9 +29,9 @@ AthenaApp.module("Browser.Relations", function (Relations, AthenaApp, Backbone, 
                     }
                 },
                 width: $("#relationsList").width(),
-                height: 'auto',
+                height: 315,
                 colModel: [
-                    {label: 'Relation name', name: 'relationName', index: 'relationName', width: 130, search: false, sortable: true, cellattr: cellatrWordWrap},
+                    {label: 'Relation name', name: 'relationName', index: 'relationName', width: 144, search: false, sortable: true, cellattr: cellatrWordWrap},
                     {label: 'Related concept', name: 'conceptName', index: 'conceptName', width: 455, search: true, sortable: false, cellattr: cellatrWordWrap}
                 ],
                 sortname: 'relationName',

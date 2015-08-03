@@ -47,7 +47,9 @@ public class VocabularyStatusDTO {
     }
 
     public void setStatus(String status) {
-        this.status = status;
+        if(status != null){
+            this.status = status;
+        }
     }
 
     public String getStatusName() {
