@@ -1,134 +1,67 @@
 /**
  * Created by GMalikov on 05.05.2015.
  */
-AthenaApp.module("VocabularyBuilder.Log", function(Log, AthenaApp, Backbone, Marionette, $, _){
+AthenaApp.module("VocabularyBuilder.Log", function (Log, AthenaApp, Backbone, Marionette, $, _) {
     Log.Show = Marionette.ItemView.extend({
         tagName: "div",
         template: "#vocab-message-log",
         searchFilter: "All",
-        ui:{
-            "filterAll" : "#filter_all_logs",
-            "filterErrorsOnly" : "#filter_errors_only_logs",
-            "filterBuildOnly" : "#filter_build_only_logs"
-        },
         events: {
-            "click @ui.filterAll" : "setFilterAll",
-            "click @ui.filterErrorsOnly" : "setFilterErrorsOnly",
-            "click @ui.filterBuildOnly" : "setFilterBuildOnly"
+            "click #filter_all_logs": function(){ this.changeFilter("All")},
+            "click #filter_errors_only_logs": function(){ this.changeFilter("Errors")},
+            "click #filter_build_only_logs": function(){ this.changeFilter("Successful")}
         },
-        setFilterAll: function(){
-            this.searchFilter = "All";
-            $('#build_log_table').dataTable().api().ajax.reload(null, false);
+
+        changeFilter: function(filterStatus){
+            this.searchFilter = filterStatus;
+            $("#build_log_table").setGridParam({datatype:'json', page:1}).trigger("reloadGrid");
         },
-        setFilterErrorsOnly: function(){
-            this.searchFilter = "Errors";
-            $('#build_log_table').dataTable().api().ajax.reload(null, false);
-        },
-        setFilterBuildOnly: function(){
-            this.searchFilter = "Successful";
-            $('#build_log_table').dataTable().api().ajax.reload(null, false);
-        },
-        onShow: function(){
+        onShow: function () {
             var self = this;
-            var table = this.$el.find('#build_log_table').DataTable({
-                "ajax":{
-                    "url": "../athena-client/getLogForVocabulary",
-                    "type": "GET",
-                    "dataSrc": "",
-                    "data":{
-                        "vocabularyId": self.options.vocabularyId,
-                        filter: function(){ return self.searchFilter}
+            var cellatrWordWrap = function (rowId, tv, rawObject, cm, rdata) {
+                return 'style="white-space: normal;'
+            };
+            var table = this.$el.find('#build_log_table').jqGrid({
+                url: '../athena-client/getLogForVocabulary',
+                datatype: 'json',
+                mtype: 'GET',
+                loadonce: true,
+                width: 625,
+                height: 500,
+                rowNum: 21,
+                colModel: [
+                    {label: '', name: 'id', index: 'id', hidden: true, key: true},
+                    {label: 'Date', name: 'opStart', index: 'opStart', width: 130, sortable: false},
+                    {label: 'Description', name: 'opDescription', index: 'opDescription', width: 450, sortable: false, cellattr: cellatrWordWrap},
+                    {label: '', name: 'opStatus', index: 'opStatus', hidden: true}
+                ],
+                sortName: 'opStart',
+                sortorder: 'asc',
+                shrinkToFit: true,
+                pager: '#build_log_pager',
+                postData: {
+                    vocabularyId: self.options.vocabularyId,
+                    filter: function () {
+                        return self.searchFilter
                     }
                 },
-                "searching": false,
-                "ordering": false,
-                "columnDefs":[
-                    {
-                        "targets": "vocab_log_id",
-                        "data": "id",
-                        "searchable": false,
-                        "visible": false
-                    },
-                    {
-                        "targets": "vocab_log_opStart",
-                        "data": "opStart",
-                        "searchable": false,
-                        "sortable": false,
-                        "visible": true
-                    },
-                    {
-                        "targets": "vocab_log_opNumber",
-                        "data": "opNumber",
-                        "searchable": false,
-                        "visible": false
-                    },
-                    {
-                        "targets": "vocab_log_opDescription",
-                        "data": "opDescription",
-                        "searchable": false,
-                        "sortable": false,
-                        "visible": true
-                    },
-                    {
-                        "targets": "vocab_log_opEnd",
-                        "data": "opEnd",
-                        "searchable": false,
-                        "visible": false
-                    },
-                    {
-                        "targets": "vocab_log_opStatus",
-                        "data": "opStatus",
-                        "searchable": false,
-                        "visible": false
-                    },
-                    {
-                        "targets": "vocab_log_opDetail",
-                        "data": "opDetail",
-                        "searchable": false,
-                        "visible": false
-                    }
-                ],
-                "paging": false,
-                "scrollY": "500px",
-                "scrollCollapse": true,
-                stateSave: false,
-                "createdRow": function(row, data, dataIndex){
-                    if(data.opStatus == 1){
-                        $(row).addClass('success');
-                    } else if(data.opStatus == 0 || data.opStatus == -1) {
-                        $(row).addClass('info');
-                    }else if(data.opStatus == 2){
-                        $(row).addClass('warning');
-                    } else if(data.opStatus == 3){
-                        $(row).addClass('danger');
+                rowattr: function (rowData, currentObj, rowId) {
+                    if (rowData.opStatus == 1) {
+                        return {"class": "success"};
+                    } else if (rowData.opStatus == 0 || rowData.opStatus == -1) {
+                        return {"class": "info"};
+                    } else if (rowData.opStatus == 2) {
+                        return {"class": "warning"};
+                    } else if (rowData.opStatus == 3) {
+                        return {"class": "danger"};
                     }
                 }
             });
 
 //            setInterval(function(){
-//                table.ajax.reload(null, false);
+//                var currentPage = $(table).getGridParam('page');
+//                $(table).setGridParam({datatype:'json', page:currentPage}).trigger("reloadGrid");
 //            }, 5000);
         }
     });
-
-//    Log.List = Marionette.CompositeView.extend({
-//        tagName: "table",
-//        className: "table table-condensed",
-//        template: "#message-log-list",
-//        childView: Log.Show,
-//        itemViewContainer: "tbody",
-//
-//        templateHelpers: function(){
-//            var vocabulary = this.options.vocabulary;
-//            return{
-//                vocabulary: function(){
-//                    if(vocabulary === undefined){
-//                        return "";
-//                    } else {
-//                        return vocabulary;
-//                    }
-//                }
-//            }
-//        }
-//    });
 });

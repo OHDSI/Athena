@@ -69,11 +69,13 @@
     <title>Athena welcome page</title>
 </head>
 <body>
-<div id="menu-region">
+<div id="app-wrapper">
+    <div id="menu-region">
 
+    </div>
+    <div id="testRegion"></div>
+    <div id="mainRegion"></div>
 </div>
-<div id="testRegion"></div>
-<div id="mainRegion"></div>
 
 </body>
 <script type="text/javascript">

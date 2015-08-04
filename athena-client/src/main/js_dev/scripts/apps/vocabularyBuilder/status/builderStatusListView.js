@@ -25,9 +25,9 @@ AthenaApp.module("VocabularyBuilder.Status", function (Status, AthenaApp, Backbo
                 datatype: 'json',
                 mtype: 'GET',
                 loadonce: true,
-                rowNum: 21,
+                rowNum: 30,
                 width: 580,
-                height: 500,
+                height: 707,
                 colModel:[
                     {label: 'Name', name: 'id', index:'id', width: 130, key:true, sortable: true, search: true},
                     {label: '', name: 'status', index: 'status', hidden: true},
@@ -64,10 +64,12 @@ AthenaApp.module("VocabularyBuilder.Status", function (Status, AthenaApp, Backbo
                             "</button>";
                 return html;
             }
+
 //            setInterval(function(){
 //                var currentPage = $(table).getGridParam('page');
 //                $(table).setGridParam({datatype:'json', page:currentPage}).trigger("reloadGrid");
 //            }, 5000);
+
             var status_tbody = $('#status_table tbody');
             status_tbody.on('click', '.showLog', function(){
                 self.trigger("showLog", $(this).attr('id').split("_")[1]);
