@@ -27,7 +27,7 @@ AthenaApp.module("VocabularyBuilder.Status", function (Status, AthenaApp, Backbo
                 loadonce: true,
                 rowNum: 30,
                 width: 580,
-                height: 707,
+                height: 700,
                 colModel:[
                     {label: 'Name', name: 'id', index:'id', width: 130, key:true, sortable: true, search: true},
                     {label: '', name: 'status', index: 'status', hidden: true},

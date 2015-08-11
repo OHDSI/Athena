@@ -28,7 +28,7 @@ AthenaApp.module("VocabularyBuilder.Log", function (Log, AthenaApp, Backbone, Ma
                 loadonce: true,
                 width: 625,
                 height: 500,
-                rowNum: 21,
+                rowNum: 19,
                 colModel: [
                     {label: '', name: 'id', index: 'id', hidden: true, key: true},
                     {label: 'Date', name: 'opStart', index: 'opStart', width: 130, sortable: false},
