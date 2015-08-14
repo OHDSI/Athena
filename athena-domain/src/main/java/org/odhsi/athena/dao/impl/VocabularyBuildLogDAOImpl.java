@@ -2,6 +2,8 @@ package org.odhsi.athena.dao.impl;
 
 import org.odhsi.athena.dao.VocabularyBuildLogDAO;
 import org.odhsi.athena.entity.VocabularyBuildLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -29,6 +31,8 @@ public class VocabularyBuildLogDAOImpl implements VocabularyBuildLogDAO, Initial
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private JdbcTemplate jdbcTemplate;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyBuildLogDAOImpl.class);
 
     @Override
     public List<VocabularyBuildLog> getAllLogsForVocabulary(String vocabularyId) {
@@ -79,6 +83,7 @@ public class VocabularyBuildLogDAOImpl implements VocabularyBuildLogDAO, Initial
         try{
             return namedParameterJdbcTemplate.queryForObject(sql, params,String.class);
         } catch (EmptyResultDataAccessException ex){
+            LOGGER.error("Status not found for " + vocabularyId + " " + ex.getMessage());
             return null;
         }
     }

@@ -50,7 +50,7 @@ public class VocabularyBuilderController {
         try {
             vocabularyService.buildVocabulary(vocabularyId);
         } catch (VocabularyNotFoundException|MissingVocabularyAttributeException e) {
-            LOGGER.info(e.getMessage());
+            LOGGER.error(e.getMessage());
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return e.getMessage();
         }
