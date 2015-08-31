@@ -80,11 +80,21 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>npm install deps</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install gulp</arguments>
+                        </configuration>
+                        <phase>generate-resources</phase>
+                    </execution>
+                    <execution>
                         <id>gulp build</id>
                         <goals>
                             <goal>gulp</goal>
                         </goals>
-                        <phase>generate-resources</phase>
+                        <phase>install</phase>
                     </execution>
                 </executions>
             </plugin>
