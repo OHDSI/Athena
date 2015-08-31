@@ -66,6 +66,10 @@ gulp.task('default', function(){
     });
 });
 
+gulp.task('clean', function(){
+    return del(['../webapp/resources/app/*'],{force: true});
+});
+
 //gulp.task('default', function(){
 //    return rs('clean', ['scripts', 'libs', 'css', 'sass', 'images']);
 //});

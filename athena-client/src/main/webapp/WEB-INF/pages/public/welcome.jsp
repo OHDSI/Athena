@@ -22,9 +22,6 @@
     <script src="${pageContext.request.contextPath}/resources/app/lib/underscore.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/backbone.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/backbone.marionette.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/lib/jquery.dataTables.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/lib/dataTables.bootstrap.js"></script>
-    <script src="${pageContext.request.contextPath}/resources/app/lib/dataTables.scroller.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/backbone.picky.min.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/grid.locale-en.js"></script>
     <script src="${pageContext.request.contextPath}/resources/app/lib/jquery.jqGrid.min.js"></script>
