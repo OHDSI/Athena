@@ -94,22 +94,35 @@
                             <arguments>install --unsafe-perm</arguments>
                         </configuration>
                     </execution>
+                    <!--<execution>-->
+                        <!--<id>npm install deps</id>-->
+                        <!--<goals>-->
+                            <!--<goal>npm</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<arguments>install gulp</arguments>-->
+                        <!--</configuration>-->
+                        <!--<phase>generate-resources</phase>-->
+                    <!--</execution>-->
                     <execution>
-                        <id>npm install deps</id>
+                        <id>gulp clean</id>
                         <goals>
-                            <goal>npm</goal>
+                            <goal>gulp</goal>
                         </goals>
-                        <configuration>
-                            <arguments>install gulp</arguments>
-                        </configuration>
                         <phase>generate-resources</phase>
+                        <configuration>
+                            <arguments>clean</arguments>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>gulp build</id>
                         <goals>
                             <goal>gulp</goal>
                         </goals>
-                        <phase>install</phase>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <arguments>default</arguments>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
