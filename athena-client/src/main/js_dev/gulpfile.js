@@ -61,9 +61,13 @@ gulp.task('templates', function(){
         .pipe(gulp.dest('../webapp/resources/app/templates'));
 });
 gulp.task('default', function(){
-    return del(['../webapp/resources/app/*'],{force: true}, function(){
+
+    return del(['../webapp/resources/app/*']).then({force: true},function(){
         return rs('scripts', 'libs', 'css', 'sass', 'images', 'templates', 'fonts');
     });
+//    return del(['../webapp/resources/app/*'],{force: true}, function(){
+//        return rs('scripts', 'libs', 'css', 'sass', 'images', 'templates', 'fonts');
+//    });
 });
 
 gulp.task('clean', function(){
