@@ -90,15 +90,8 @@
                             <goal>npm</goal>
                         </goals>
                         <phase>generate-resources</phase>
-                    </execution>
-                    <execution>
-                        <id>npm gulp-sass</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <phase>generate-resources</phase>
                         <configuration>
-                            <arguments>rebuild node-sass</arguments>
+                            <arguments>install --unsafe-perm</arguments>
                         </configuration>
                     </execution>
                     <execution>
