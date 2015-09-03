@@ -78,7 +78,7 @@
                         <phase>generate-resources</phase>
                         <configuration>
                             <nodeVersion>v0.12.7</nodeVersion>
-                            <npmVersion>2.14.1</npmVersion>
+                            <npmVersion>2.11.3</npmVersion>
                             <!--<npmVersion>2.13.2</npmVersion>-->
                             <!--<nodeVersion>v0.10.36</nodeVersion>-->
                             <!--<npmVersion>1.3.6</npmVersion>-->
@@ -90,6 +90,16 @@
                             <goal>npm</goal>
                         </goals>
                         <phase>generate-resources</phase>
+                    </execution>
+                    <execution>
+                        <id>npm gulp-sass</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <arguments>rebuild node-sass</arguments>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>npm install deps</id>
