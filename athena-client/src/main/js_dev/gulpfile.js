@@ -18,9 +18,9 @@ gulp.task('scripts', function(){
 
 gulp.task('libs', function(){
     var marionette = gulp.src('node_modules/backbone.marionette/lib/backbone.marionette.js');
-    var underscore = gulp.src('node_modules/backbone.marionette/node_modules/underscore/underscore.js');
+    var underscore = gulp.src('node_modules/underscore/underscore.js');
     var jquery = gulp.src('node_modules/jquery/dist/jquery.js');
-    var bootstrap = gulp.src('bower_components/bootstrap-sass/assets/javascripts/bootstrap.js');
+    var bootstrap = gulp.src('node_modules/bootstrap/dist/js/bootstrap.js');
     var backbone = gulp.src('node_modules/backbone.marionette/node_modules/backbone/backbone.js');
     var picky = gulp.src('picky/backbone.picky.min.js');
     var jqGrid = gulp.src('jqGrid/jquery.jqGrid.min.js');
