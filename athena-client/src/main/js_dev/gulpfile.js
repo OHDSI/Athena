@@ -22,15 +22,12 @@ gulp.task('libs', function(){
     var jquery = gulp.src('node_modules/jquery/dist/jquery.js');
     var bootstrap = gulp.src('bower_components/bootstrap-sass/assets/javascripts/bootstrap.js');
     var backbone = gulp.src('node_modules/backbone.marionette/node_modules/backbone/backbone.js');
-    var dataTables = gulp.src('data_tables/jquery.dataTables.js');
-    var dataTablesBS = gulp.src('data_tables/dataTables.bootstrap.js');
-    var dataTablesScroller = gulp.src('data_tables/dataTables.scroller.js');
     var picky = gulp.src('picky/backbone.picky.min.js');
     var jqGrid = gulp.src('jqGrid/jquery.jqGrid.min.js');
     var jqGridLocale = gulp.src('jqGrid/grid.locale-en.js');
 
     return es.merge(marionette, underscore, jquery, bootstrap,
-        backbone, dataTables,dataTablesBS, dataTablesScroller, picky, jqGrid, jqGridLocale)
+        backbone, picky, jqGrid, jqGridLocale)
         .pipe(gulp.dest('../webapp/resources/app/lib'))
 });
 
@@ -61,9 +58,6 @@ gulp.task('templates', function(){
         .pipe(gulp.dest('../webapp/resources/app/templates'));
 });
 gulp.task('default', function(){
-//    return del(['../webapp/resources/app/*']).then({force: true},function(){
-//        return rs('scripts', 'libs', 'css', 'sass', 'images', 'templates', 'fonts');
-//    });
     return rs('clean','scripts', 'libs', 'css', 'sass', 'images', 'templates', 'fonts');
 });
 
