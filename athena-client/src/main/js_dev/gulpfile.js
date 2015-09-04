@@ -64,11 +64,11 @@ gulp.task('default', function(){
 //    return del(['../webapp/resources/app/*']).then({force: true},function(){
 //        return rs('scripts', 'libs', 'css', 'sass', 'images', 'templates', 'fonts');
 //    });
-    return rs('scripts', 'libs', 'css', 'sass', 'images', 'templates', 'fonts');
+    return rs('clean','scripts', 'libs', 'css', 'sass', 'images', 'templates', 'fonts');
 });
 
 gulp.task('clean', function(){
-    return del(['../webapp/resources/app/*'],{force: true});
+    return del(['../webapp/resources/app/**'],{force: true});
 });
 
 //gulp.task('default', function(){
