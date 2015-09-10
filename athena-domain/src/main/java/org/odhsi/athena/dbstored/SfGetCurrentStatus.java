@@ -1,4 +1,4 @@
-package org.odhsi.athena.db_stored;
+package org.odhsi.athena.dbstored;
 
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.object.SqlFunction;

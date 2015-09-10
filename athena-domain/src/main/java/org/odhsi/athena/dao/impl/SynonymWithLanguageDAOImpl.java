@@ -2,15 +2,10 @@ package org.odhsi.athena.dao.impl;
 
 import org.odhsi.athena.dao.SynonymWithLanguageDAO;
 import org.odhsi.athena.entity.SynonymWithLanguage;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
-import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -20,33 +15,7 @@ import java.util.Map;
 /**
  * Created by GMalikov on 22.07.2015.
  */
-public class SynonymWithLanguageDAOImpl implements SynonymWithLanguageDAO, InitializingBean {
-
-    private DataSource dataSource;
-
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-    private JdbcTemplate jdbcTemplate;
-
-    @Resource(name = "dataSource")
-    public void setDataSource(DataSource dataSource){
-        this.dataSource = dataSource;
-        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        if(dataSource == null){
-            throw new BeanCreationException("dataSource on SynonymWithLanguageDAOImpl is not set");
-        }
-        if(namedParameterJdbcTemplate == null){
-            throw new BeanCreationException("namedParameterJdbcTemplate on SynonymWithLanguageDAOImpl is not set");
-        }
-        if(jdbcTemplate == null){
-            throw new BeanCreationException("jdncTemplate on SynonymWithLanguageDAOImpl is not set");
-        }
-    }
+public class SynonymWithLanguageDAOImpl extends BaseDAOImpl<SynonymWithLanguageDAOImpl> implements SynonymWithLanguageDAO, InitializingBean {
 
     @Override
     public List<SynonymWithLanguage> getConceptSynonymsForBrowser(int start, int length, String searchValue, String sortOrder, Long conceptId) {

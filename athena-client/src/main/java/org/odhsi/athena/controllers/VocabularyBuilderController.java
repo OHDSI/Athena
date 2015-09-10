@@ -3,8 +3,7 @@ package org.odhsi.athena.controllers;
 import org.odhsi.athena.dto.VocabularyBuildLogDTO;
 import org.odhsi.athena.dto.VocabularyInfoDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
-import org.odhsi.athena.exceptions.MissingVocabularyAttributeException;
-import org.odhsi.athena.exceptions.VocabularyNotFoundException;
+import org.odhsi.athena.exceptions.VocabularyProcessingException;
 import org.odhsi.athena.services.VocabularyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,15 +32,13 @@ public class VocabularyBuilderController {
     @RequestMapping(value = "/getVocabularyStatuses", method = RequestMethod.GET)
     @ResponseBody
     public List<VocabularyStatusDTO> getVocabularyStatuses(@RequestParam String filter){
-        List<VocabularyStatusDTO> result = vocabularyService.getAllVocabularyStatuses(filter);
-        return result;
+        return vocabularyService.getAllVocabularyStatuses(filter);
     }
 
     @RequestMapping(value = "/getLogForVocabulary", method = RequestMethod.GET)
     @ResponseBody
     public List<VocabularyBuildLogDTO> getLogForVocabulary(@RequestParam String vocabularyId, @RequestParam String filter){
-        List<VocabularyBuildLogDTO> result = vocabularyService.getLogForVocabulary(vocabularyId, filter);
-        return result;
+        return vocabularyService.getLogForVocabulary(vocabularyId, filter);
     }
 
     @RequestMapping(value = "/buildVocabulary", method = RequestMethod.POST)
@@ -49,8 +46,8 @@ public class VocabularyBuilderController {
     public String buildVocabulary(@RequestParam String vocabularyId, HttpServletResponse response){
         try {
             vocabularyService.buildVocabulary(vocabularyId);
-        } catch (VocabularyNotFoundException|MissingVocabularyAttributeException e) {
-            LOGGER.error(e.getMessage());
+        } catch (VocabularyProcessingException e) {
+            LOGGER.error("Error during vocabulary building: ",e);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return e.getMessage();
         }
@@ -61,7 +58,6 @@ public class VocabularyBuilderController {
     @ResponseBody
     public VocabularyInfoDTO getVocabularyInfo(@RequestParam String id){
         LOGGER.info("Getting info for " + id + " vocabulary");
-        VocabularyInfoDTO result = vocabularyService.getInfoForVocabulary(id);
-        return result;
+        return vocabularyService.getInfoForVocabulary(id);
     }
 }

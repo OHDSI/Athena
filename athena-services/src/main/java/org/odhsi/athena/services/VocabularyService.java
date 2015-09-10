@@ -5,8 +5,7 @@ import org.odhsi.athena.dto.VocabularyBuildLogDTO;
 import org.odhsi.athena.dto.VocabularyInfoDTO;
 import org.odhsi.athena.dto.VocabularyStatusDTO;
 import org.odhsi.athena.entity.Vocabulary;
-import org.odhsi.athena.exceptions.MissingVocabularyAttributeException;
-import org.odhsi.athena.exceptions.VocabularyNotFoundException;
+import org.odhsi.athena.exceptions.VocabularyProcessingException;
 
 import java.util.List;
 
@@ -19,7 +18,7 @@ public interface VocabularyService {
 
     public List<Vocabulary> getAllVocabularies();
 
-    public void buildVocabulary(String id) throws VocabularyNotFoundException, MissingVocabularyAttributeException;
+    public void buildVocabulary(String id) throws VocabularyProcessingException;
 
     public List<VocabularyStatusDTO> getAllVocabularyStatuses(String filter);
 

@@ -2,13 +2,9 @@ package org.odhsi.athena.dao.impl;
 
 import org.odhsi.athena.dao.DomainWithConceptCountDAO;
 import org.odhsi.athena.entity.DomainWithConceptCount;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-import javax.annotation.Resource;
-import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -18,28 +14,7 @@ import java.util.Map;
 /**
  * Created by GMalikov on 17.07.2015.
  */
-public class DomainWithConceptCountDAOImpl implements DomainWithConceptCountDAO, InitializingBean {
-
-    private DataSource dataSource;
-
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        if (dataSource == null){
-            throw new BeanCreationException("Must set dataSource on DomainWithConceptCountDAO");
-        }
-        if (namedParameterJdbcTemplate == null){
-            throw new BeanCreationException("Must set namedParameterJdbcTemplate on DomainWithConceptCountDAO");
-        }
-    }
-
-    @Resource(name = "dataSource")
-    public void setDataSource(DataSource dataSource){
-        this.dataSource = dataSource;
-        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-    }
+public class DomainWithConceptCountDAOImpl extends BaseDAOImpl<DomainWithConceptCountDAOImpl> implements DomainWithConceptCountDAO, InitializingBean {
 
     @Override
     public List<DomainWithConceptCount> getDomainsWithConceptCountForVocabulary(String vocabularyId) {

@@ -1,10 +1,8 @@
 package org.odhsi.athena.dao.impl;
 
 import org.odhsi.athena.dao.VocabularyDAO;
-import org.odhsi.athena.db_stored.SfGetCurrentStatus;
+import org.odhsi.athena.dbstored.SfGetCurrentStatus;
 import org.odhsi.athena.entity.Vocabulary;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -43,14 +41,13 @@ public class VocabularyDAOImpl implements VocabularyDAO, InitializingBean{
 
     private SimpleJdbcCall procBuildVocabulary;
 
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyDAOImpl.class);
+    private static final String VOCABULARY_ID = "vocabularyId";
 
     @Override
     public Vocabulary getVocabularyById(String id) {
         String sql = "SELECT * FROM DEV_TIMUR.VOCABULARY WHERE VOCABULARY_ID = :vocabularyId";
         Map<String,Object> params = new HashMap<>();
-        params.put("vocabularyId", id);
+        params.put(VOCABULARY_ID, id);
         return namedParameterJdbcTemplate.queryForObject(sql,params,new VocabularyMapper());
     }
 
@@ -84,7 +81,7 @@ public class VocabularyDAOImpl implements VocabularyDAO, InitializingBean{
     public Date getLatestUpdateFromConversion(String id) {
         String sql = "SELECT LATEST_UPDATE FROM DEV_TIMUR.VOCABULARY_CONVERSION WHERE VOCABULARY_ID_V5 = :vocabularyId";
         Map<String, Object> params = new HashMap<>();
-        params.put("vocabularyId", id);
+        params.put(VOCABULARY_ID, id);
         return namedParameterJdbcTemplate.queryForObject(sql, params, Date.class);
     }
 
@@ -132,7 +129,7 @@ public class VocabularyDAOImpl implements VocabularyDAO, InitializingBean{
         String sql = "SELECT COUNT(DISTINCT DOMAIN_ID) " +
                 "FROM DEV_TIMUR.CONCEPT WHERE VOCABULARY_ID = :vocabularyId";
         Map<String,Object> params = new HashMap<>();
-        params.put("vocabularyId", vocabularyId);
+        params.put(VOCABULARY_ID, vocabularyId);
         return namedParameterJdbcTemplate.queryForObject(sql, params, Long.class);
     }
 
@@ -143,7 +140,7 @@ public class VocabularyDAOImpl implements VocabularyDAO, InitializingBean{
                 "WHERE VOCABULARY_ID = :vocabularyId and (STANDARD_CONCEPT = 'S' or STANDARD_CONCEPT is null) " +
                 "and INVALID_REASON is null and VALID_END_DATE > :endDate ";
         Map<String,Object> params = new HashMap<>();
-        params.put("vocabularyId", vocabularyId);
+        params.put(VOCABULARY_ID, vocabularyId);
         params.put("endDate", new Date());
         return namedParameterJdbcTemplate.queryForObject(sql, params, Long.class);
     }
@@ -156,13 +153,12 @@ public class VocabularyDAOImpl implements VocabularyDAO, InitializingBean{
                 "ON CONCEPT.CONCEPT_ID = CONCEPT_RELATIONSHIP.CONCEPT_ID_1 " +
                 "WHERE CONCEPT.VOCABULARY_ID = :vocabularyId";
         Map<String,Object> params = new HashMap<>();
-        params.put("vocabularyId", vocabularyId);
+        params.put(VOCABULARY_ID, vocabularyId);
         return namedParameterJdbcTemplate.queryForObject(sql, params, Long.class);
     }
 
     @Override
     public List<Vocabulary> getVocabulariesForBrowserTable(Integer start, Integer length, String sortOrder, String searchVal) {
-//        String sql = "SELECT * FROM DEV_TIMUR.VOCABULARY " + " ORDER BY VOCABULARY_ID " + sortOrder.toUpperCase() + " OFFSET :offsetValue ROWS FETCH NEXT :nextValue ROWS ONLY";
         StringBuilder sqlString = new StringBuilder();
         sqlString.append("SELECT * FROM DEV_TIMUR.VOCABULARY ");
         if(!StringUtils.isEmpty(searchVal)){
@@ -184,7 +180,6 @@ public class VocabularyDAOImpl implements VocabularyDAO, InitializingBean{
 
     @Override
     public int getFilteredVocabulariesCountForBrowserTable(String searchVal) {
-//        String sql = "SELECT COUNT(VOCABULARY_ID) FROM DEV_TIMUR.VOCABULARY";
         StringBuilder sqlString = new StringBuilder();
         sqlString.append("SELECT COUNT(VOCABULARY_ID) FROM DEV_TIMUR.VOCABULARY ");
         if (!StringUtils.isEmpty(searchVal)){

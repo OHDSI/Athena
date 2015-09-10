@@ -5,6 +5,8 @@ package org.odhsi.athena.util;
  */
 public class DTOHelper {
 
+    private DTOHelper(){}
+
     public static long calculateTotalPages(long recordsTotal, long recordsPerPage){
         long result = 0;
         if(recordsPerPage > 0){

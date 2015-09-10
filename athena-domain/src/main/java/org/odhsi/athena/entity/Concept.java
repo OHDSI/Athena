@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class Concept {
 
-    private Long Id;
+    private Long id;
     private String name;
     private Domain domain;
     private Vocabulary vocabulary;
@@ -25,35 +25,35 @@ public class Concept {
 
 
     public Long getId() {
-        return Id;
+        return id;
     }
 
-    public void setId(Long concept_id) {
-        this.Id = concept_id;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String concept_name) {
-        this.name = concept_name;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Boolean getStandard() {
         return standard;
     }
 
-    public void setStandard(Boolean standard_concept) {
-        this.standard = standard_concept;
+    public void setStandard(Boolean standardConcept) {
+        this.standard = standardConcept;
     }
 
     public String getCode() {
         return code;
     }
 
-    public void setCode(String concept_code) {
-        this.code = concept_code;
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public Date getValidStartDate() {

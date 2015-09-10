@@ -4,16 +4,11 @@ import org.odhsi.athena.dao.VocabularyBuildLogDAO;
 import org.odhsi.athena.entity.VocabularyBuildLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.Resource;
-import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -25,20 +20,18 @@ import java.util.Map;
  */
 
 @Repository("vocabularyBuildLogDAO")
-public class VocabularyBuildLogDAOImpl implements VocabularyBuildLogDAO, InitializingBean {
-    private DataSource dataSource;
+public class VocabularyBuildLogDAOImpl extends BaseDAOImpl<VocabularyBuildLogDAOImpl> implements VocabularyBuildLogDAO, InitializingBean {
 
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-    private JdbcTemplate jdbcTemplate;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyBuildLogDAOImpl.class);
+
+    private static final String VOCABULARY_ID = "vocabularyId";
 
     @Override
     public List<VocabularyBuildLog> getAllLogsForVocabulary(String vocabularyId) {
         String sql = "SELECT * FROM DEV_TIMUR.VOCABULARY_LOG WHERE VOCABULARY_ID = :vocabularyId ORDER BY LOG_ID DESC";
         Map<String, Object> params = new HashMap<>();
-        params.put("vocabularyId", vocabularyId);
+        params.put(VOCABULARY_ID, vocabularyId);
         return namedParameterJdbcTemplate.query(sql,params,new VocabularyBuildLogMapper());
     }
 
@@ -46,7 +39,7 @@ public class VocabularyBuildLogDAOImpl implements VocabularyBuildLogDAO, Initial
     public List<VocabularyBuildLog> getErrorLogsForVocabulary(String vocabularyId) {
         String sql = "SELECT * FROM DEV_TIMUR.VOCABULARY_LOG WHERE VOCABULARY_ID = :vocabularyId AND OP_STATUS = 3 ORDER BY LOG_ID DESC";
         Map<String, Object> params = new HashMap<>();
-        params.put("vocabularyId", vocabularyId);
+        params.put(VOCABULARY_ID, vocabularyId);
         return namedParameterJdbcTemplate.query(sql,params,new VocabularyBuildLogMapper());
     }
 
@@ -54,7 +47,7 @@ public class VocabularyBuildLogDAOImpl implements VocabularyBuildLogDAO, Initial
     public List<VocabularyBuildLog> getSuccessLogsForVocabulary(String vocabularyId) {
         String sql = "SELECT * FROM DEV_TIMUR.VOCABULARY_LOG WHERE VOCABULARY_ID = :vocabularyId AND (OP_STATUS = 1 OR OP_STATUS = 2) ORDER BY LOG_ID DESC";
         Map<String, Object> params = new HashMap<>();
-        params.put("vocabularyId", vocabularyId);
+        params.put(VOCABULARY_ID, vocabularyId);
         return namedParameterJdbcTemplate.query(sql,params,new VocabularyBuildLogMapper());
     }
 
@@ -79,32 +72,12 @@ public class VocabularyBuildLogDAOImpl implements VocabularyBuildLogDAO, Initial
         String sql = "SELECT OP_STATUS FROM DEV_TIMUR.VOCABULARY_LOG " +
                 "WHERE LOG_ID = (SELECT MAX(LOG_ID) FROM DEV_TIMUR.VOCABULARY_LOG WHERE VOCABULARY_ID = :vocabularyId)";
         Map<String, Object> params = new HashMap<>();
-        params.put("vocabularyId", vocabularyId);
+        params.put(VOCABULARY_ID, vocabularyId);
         try{
             return namedParameterJdbcTemplate.queryForObject(sql, params,String.class);
         } catch (EmptyResultDataAccessException ex){
-            LOGGER.error("Status not found for " + vocabularyId + " " + ex.getMessage());
+            LOGGER.info("Status not found for " + vocabularyId, ex);
             return null;
-        }
-    }
-
-    @Resource(name = "dataSource")
-    public void setDataSource(DataSource dataSource){
-        this.dataSource = dataSource;
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
-        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        if(dataSource == null){
-            throw new BeanCreationException("dataSource on VocabularyBuildLogDAO is not set.");
-        }
-        if (namedParameterJdbcTemplate == null){
-            throw new BeanCreationException("namedParameterJdbcTemplate on VocabularyBuildLogDAO is not set.");
-        }
-        if (jdbcTemplate == null){
-            throw new BeanCreationException("jdbcTemplate on VocabularyBuildLogDAO is not set.");
         }
     }
 }

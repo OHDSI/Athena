@@ -5,23 +5,11 @@ import org.odhsi.athena.dao.VocabularyDAO;
 import org.odhsi.athena.dto.*;
 import org.odhsi.athena.entity.Vocabulary;
 import org.odhsi.athena.entity.VocabularyBuildLog;
-import org.odhsi.athena.exceptions.MissingVocabularyAttributeException;
-import org.odhsi.athena.exceptions.VocabularyNotFoundException;
+import org.odhsi.athena.exceptions.VocabularyProcessingException;
 import org.odhsi.athena.services.VocabularyService;
 import org.odhsi.athena.util.DTOHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -35,12 +23,6 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     @Autowired
     private VocabularyBuildLogDAO vocabularyBuildLogDAO;
-
-    private DocumentBuilderFactory factory;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyServiceImpl.class);
-
-    private static final String LOG_STATUS_ALL = "All";
 
     private static final String LOG_STATUS_ERRORS = "Errors";
 
@@ -56,23 +38,25 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     private static final String VOCABULARY_STATUS_FAILED = "Failed";
 
+    private static final String ERROR_MESSAGE_VOCABULARY = "Requested vocabulary with id: ";
+
     @Override
     public Vocabulary getById(String id) {
         return vocabularyDAO.getVocabularyById(id);
     }
 
     @Override
-    public void buildVocabulary(String id) throws VocabularyNotFoundException, MissingVocabularyAttributeException {
+    public void buildVocabulary(String id) throws VocabularyProcessingException {
         Vocabulary vocabulary = vocabularyDAO.getVocabularyById(id);
         if (vocabulary == null) {
-            throw new VocabularyNotFoundException("Requested vocabulary with id: " + id + " not found");
+            throw new VocabularyProcessingException(ERROR_MESSAGE_VOCABULARY + id + " not found");
         }
         if (vocabulary.getVersion() == null) {
-            throw new MissingVocabularyAttributeException("Requested vocabulary with id: " + id + " does not have a version");
+            throw new VocabularyProcessingException(ERROR_MESSAGE_VOCABULARY + id + " does not have a version");
         }
         Date latestUpdate = vocabularyDAO.getLatestUpdateFromConversion(id);
         if (latestUpdate == null) {
-            throw new MissingVocabularyAttributeException("Requested vocabulary with id: " + id + " does not have a latestUpdate");
+            throw new VocabularyProcessingException(ERROR_MESSAGE_VOCABULARY + id + " does not have a latestUpdate");
         } else {
             vocabulary.setLatestUpdate(latestUpdate);
         }
@@ -92,14 +76,11 @@ public class VocabularyServiceImpl implements VocabularyService {
         for (Vocabulary current : vocabularies) {
             result.add(makeDTOWithCurrentStatus(current));
         }
-        return filterResults(result, filter);
+        return VOCABULARY_STATUS_ALL.equals(filter) ? result : filterResults(result,filter);
     }
 
     private List<VocabularyStatusDTO> filterResults(List<VocabularyStatusDTO> statusDTOList, String filter) {
         List<VocabularyStatusDTO> result = new ArrayList<>();
-        if (VOCABULARY_STATUS_ALL.equals(filter)) {
-            return statusDTOList;
-        }
         for (VocabularyStatusDTO current : statusDTOList) {
             switch (filter) {
                 case VOCABULARY_STATUS_AVAILABLE:
@@ -146,32 +127,6 @@ public class VocabularyServiceImpl implements VocabularyService {
         return result;
     }
 
-    private VocabularyStatusDTO makeDTOWithCurrentStatusXML(Vocabulary vocabulary) {
-        VocabularyStatusDTO dto = new VocabularyStatusDTO(vocabulary);
-        if (this.factory == null) {
-            this.factory = DocumentBuilderFactory.newInstance();
-        }
-        String statusXML = vocabularyDAO.getVocabularyStatus(vocabulary.getId());
-        statusXML = statusXML.replace("&lt;", "<");
-        statusXML = statusXML.replace("&gt;", ">");
-        try {
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            InputSource is = new InputSource(new StringReader(statusXML));
-            Document document = builder.parse(is);
-            dto.setOpNumber(document.getElementsByTagName("op_number").item(0).getTextContent());
-            dto.setDescription(document.getElementsByTagName("description").item(0).getTextContent());
-            if (!StringUtils.isEmpty(document.getElementsByTagName("status").item(0).getTextContent())) {
-                dto.setStatus(document.getElementsByTagName("status").item(0).getTextContent());
-            }
-            dto.setStatusName(getStatusNameForDTO(dto.getStatus()));
-            dto.setDetail(document.getElementsByTagName("detail").item(0).getTextContent());
-        } catch (ParserConfigurationException | SAXException | IOException e) {
-            LOGGER.error("makeDTOWithCurrentStatusXML(Vocabulary vocabulary) failed.", e);
-            return dto;
-        }
-        return dto;
-    }
-
     private VocabularyStatusDTO makeDTOWithCurrentStatus(Vocabulary vocabulary) {
         VocabularyStatusDTO dto = new VocabularyStatusDTO(vocabulary);
         dto.setStatus(vocabularyBuildLogDAO.getVocabularyStatus(vocabulary.getId()));
@@ -180,9 +135,6 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     private String getStatusNameForDTO(String status) {
-        if (status == null) {
-            return VocabularyStatusDTO.NOT_AVAILABLE;
-        }
         switch (status) {
             case "0":
                 return VocabularyStatusDTO.BUILD_IN_PROGRESS;
