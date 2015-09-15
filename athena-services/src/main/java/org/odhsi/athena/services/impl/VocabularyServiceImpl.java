@@ -84,30 +84,46 @@ public class VocabularyServiceImpl implements VocabularyService {
         for (VocabularyStatusDTO current : statusDTOList) {
             switch (filter) {
                 case VOCABULARY_STATUS_AVAILABLE:
-                    if (!VocabularyStatusDTO.NOT_AVAILABLE.equals(current.getStatusName())) {
-                        result.add(current);
-                    }
+                    addToAvailableList(result, current);
                     break;
                 case VOCABULARY_STATUS_UNAVAILABLE:
-                    if (VocabularyStatusDTO.NOT_AVAILABLE.equals(current.getStatusName())) {
-                        result.add(current);
-                    }
+                    addToUnavailableList(result, current);
                     break;
                 case VOCABULARY_STATUS_READY:
-                    if (VocabularyStatusDTO.READY.equals(current.getStatusName()) || VocabularyStatusDTO.READY_WITH_NOTICES.equals(current.getStatusName())) {
-                        result.add(current);
-                    }
+                    addToReadyList(result, current);
                     break;
                 case VOCABULARY_STATUS_FAILED:
-                    if (VocabularyStatusDTO.FAILED.equals(current.getStatusName())) {
-                        result.add(current);
-                    }
+                    addToFailedList(result, current);
                     break;
                 default:
                     break;
             }
         }
         return result;
+    }
+
+    private void addToFailedList(List<VocabularyStatusDTO> result, VocabularyStatusDTO current) {
+        if (VocabularyStatusDTO.FAILED.equals(current.getStatusName())) {
+            result.add(current);
+        }
+    }
+
+    private void addToReadyList(List<VocabularyStatusDTO> result, VocabularyStatusDTO current) {
+        if (VocabularyStatusDTO.READY.equals(current.getStatusName()) || VocabularyStatusDTO.READY_WITH_NOTICES.equals(current.getStatusName())) {
+            result.add(current);
+        }
+    }
+
+    private void addToUnavailableList(List<VocabularyStatusDTO> result, VocabularyStatusDTO current) {
+        if (VocabularyStatusDTO.NOT_AVAILABLE.equals(current.getStatusName())) {
+            result.add(current);
+        }
+    }
+
+    private void addToAvailableList(List<VocabularyStatusDTO> result, VocabularyStatusDTO current) {
+        if (!VocabularyStatusDTO.NOT_AVAILABLE.equals(current.getStatusName())) {
+            result.add(current);
+        }
     }
 
     @Override

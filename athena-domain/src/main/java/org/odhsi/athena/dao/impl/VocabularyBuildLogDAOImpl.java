@@ -76,7 +76,7 @@ public class VocabularyBuildLogDAOImpl extends BaseDAOImpl<VocabularyBuildLogDAO
         try{
             return namedParameterJdbcTemplate.queryForObject(sql, params,String.class);
         } catch (EmptyResultDataAccessException ex){
-            LOGGER.info("Status not found for " + vocabularyId, ex);
+            LOGGER.info("Status not found for " + vocabularyId);
             return null;
         }
     }
