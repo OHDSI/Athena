@@ -77,6 +77,55 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <id>one</id>
+                        <configuration>
+                            <changeLogFile>../athena-domain/src/main/resources/META-INF/db/changelog/db.changelog-master.xml</changeLogFile>
+                            <driver>oracle.jdbc.OracleDriver</driver>
+                            <url>jdbc:oracle:thin:@//91.225.130.5:1521/omop</url>
+                            <username>athena</username>
+                            <password>123</password>
+                        </configuration>
+                        <goals>
+                            <goal>update</goal>
+                        </goals>
+                    </execution>
+                    <!--<execution>-->
+                        <!--<phase>generate-test-resources</phase>-->
+                        <!--<id>two</id>-->
+                        <!--<configuration>-->
+                            <!--<changeLogFile>../fsin33-domain/src/main/resources/migration.xml</changeLogFile>-->
+                            <!--<driver>com.mysql.jdbc.Driver</driver>-->
+                            <!--<url>jdbc:mysql://localhost:3306/fsin33-test</url>-->
+                            <!--<username>root</username>-->
+                            <!--<password>password</password>-->
+                        <!--</configuration>-->
+                        <!--<goals>-->
+                            <!--<goal>update</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                    <!--<execution>-->
+                        <!--<phase>process-test-resources</phase>-->
+                        <!--<id>three</id>-->
+                        <!--<configuration>-->
+                            <!--<changeLogFile>../fsin33-domain/src/test/resources/migration-test-data.xml</changeLogFile>-->
+                            <!--<driver>com.mysql.jdbc.Driver</driver>-->
+                            <!--<url>jdbc:mysql://localhost:3306/fsin33-test</url>-->
+                            <!--<username>root</username>-->
+                            <!--<password>password</password>-->
+                        <!--</configuration>-->
+                        <!--<goals>-->
+                            <!--<goal>update</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
