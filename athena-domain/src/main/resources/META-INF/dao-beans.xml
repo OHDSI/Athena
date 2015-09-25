@@ -36,4 +36,24 @@
     <bean id="synonymWithConceptDAO" class="org.odhsi.athena.dao.impl.SynonymWithLanguageDAOImpl">
         <property name="dataSource" ref="dataSource"/>
     </bean>
+
+    <bean id="secUserDAO" class="org.odhsi.athena.dao.impl.SecUserDAOImpl">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="secRoleDAO" class="org.odhsi.athena.dao.impl.SecRoleDAOImpl">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="secPermissionDAO" class="org.odhsi.athena.dao.impl.SecPermissionDAOImpl">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="secActionDAO" class="org.odhsi.athena.dao.impl.SecActionDAOImpl">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="secDomainDAO" class="org.odhsi.athena.dao.impl.SecDomainDAOImpl">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
 </beans>

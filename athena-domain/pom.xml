@@ -91,6 +91,7 @@
                             <url>jdbc:oracle:thin:@//91.225.130.5:1521/omop</url>
                             <username>athena</username>
                             <password>123</password>
+                            <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
                         </configuration>
                         <goals>
                             <goal>update</goal>
