@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div>
+     Your licensing request for <span th:text="${vocabularyName}"></span> vocabulary is
+    <span th:text="${accepted} ? 'accepted' : 'declined'"></span>.
+    <br/>
+    You can check list of available vocabularies on <a th:href="@{${downloadVocabulariesPageUrl}}">download vocabularies page</a>. </div>
+<br/>
+Regards,<br/>
+Odysseus Data Services, Inc.
+</body>
+</html>

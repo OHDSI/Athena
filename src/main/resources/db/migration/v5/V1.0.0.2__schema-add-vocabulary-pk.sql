@@ -1,0 +1,1 @@
+ALTER TABLE vocabulary ADD PRIMARY KEY (vocabulary_id);

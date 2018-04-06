@@ -1,0 +1,1 @@
+ALTER TABLE vocabulary_conversion ADD COLUMN name VARCHAR DEFAULT '';
