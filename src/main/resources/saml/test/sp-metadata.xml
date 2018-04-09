@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<md:EntityDescriptor ID="com_odysseusinc_athena_sp" entityID="com:odysseusinc:athena:sp"
+                     xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata">
+    <md:SPSSODescriptor AuthnRequestsSigned="true" WantAssertionsSigned="true"
+                        protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        <md:KeyDescriptor use="signing">
+            <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+                <ds:X509Data>
+                    <ds:X509Certificate>
+                        MIIFhzCCBG+gAwIBAgIIeTSDWCGj3dwwDQYJKoZIhvcNAQELBQAwgbQxCzAJBgNV
+                        BAYTAlVTMRAwDgYDVQQIEwdBcml6b25hMRMwEQYDVQQHEwpTY290dHNkYWxlMRow
+                        GAYDVQQKExFHb0RhZGR5LmNvbSwgSW5jLjEtMCsGA1UECxMkaHR0cDovL2NlcnRz
+                        LmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvMTMwMQYDVQQDEypHbyBEYWRkeSBTZWN1
+                        cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5IC0gRzIwHhcNMTYxMjIwMTQ0ODAwWhcN
+                        MTcxMjIwMTQ0ODAwWjB+MQswCQYDVQQGEwJVUzEWMBQGA1UECBMNTWFzc2FjaHVz
+                        ZXR0czESMBAGA1UEBxMJQ2FtYnJpZGdlMSQwIgYDVQQKExtPZHlzc2V1cyBEYXRh
+                        IFNlcnZpY2VzLCBJbmMxHTAbBgNVBAMMFCouYXJhY2huZW5ldHdvcmsuY29tMIIB
+                        IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx9M4sIgwdsg8ay4RmXxPPaiU
+                        yn5P1AWi1X/3ggdyGV7KTuBqVuMCzInHojtImKcC/58c80uN0FdkOAteNU9bXO74
+                        By0z8E5Y4GdTcIrJ4fRtTS0wJXcMFGWXo5H/EODizvyH7a/R2yQT3vYLxZIz/w6C
+                        TG364XK1cENDVjhBHzFu5N790Wd8lAsa0uQa2p1gf+T2+BNJWHcyJBGAKgt5FdpS
+                        ZVuT65Vl9zn/YuZ5C4Z4H6pNQJzd3drvlnTf3/AiOP8jxS3HsGxpx6wNVyZjg/+0
+                        pvZnMQyheNVOWXMFywtev2+4ehtOmYyFdAeytO+jY3+Lkp999f1LIDXPsCI7mwID
+                        AQABo4IB0DCCAcwwDAYDVR0TAQH/BAIwADApBgNVHSUEIjAgBggrBgEFBQcDAQYI
+                        KwYBBQUHAwIGCmCGSAGG+E0BAgMwDgYDVR0PAQH/BAQDAgWgMDUGA1UdHwQuMCww
+                        KqAooCaGJGh0dHA6Ly9jcmwuZ29kYWRkeS5jb20vZ2RpZzJzMi00LmNybDBdBgNV
+                        HSAEVjBUMEgGC2CGSAGG/W0BBxcCMDkwNwYIKwYBBQUHAgEWK2h0dHA6Ly9jZXJ0
+                        aWZpY2F0ZXMuZ29kYWRkeS5jb20vcmVwb3NpdG9yeS8wCAYGZ4EMAQICMHYGCCsG
+                        AQUFBwEBBGowaDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZ29kYWRkeS5jb20v
+                        MEAGCCsGAQUFBzAChjRodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3Jl
+                        cG9zaXRvcnkvZ2RpZzIuY3J0MB8GA1UdIwQYMBaAFEDCvSeOzDSDMKIz1/tss/C0
+                        LIDOMDMGA1UdEQQsMCqCFCouYXJhY2huZW5ldHdvcmsuY29tghJhcmFjaG5lbmV0
+                        d29yay5jb20wHQYDVR0OBBYEFCT/X9LUr4kBkI8q0LCWAtNj27rUMA0GCSqGSIb3
+                        DQEBCwUAA4IBAQCKZh+zdglSW3hvTFWCAsRNc9IwRczlI/aMYImMGGbuVf0V9T8R
+                        V+08JaOY0/NM2frfjci24E5RRQHFb4r7lmwSMDDjC9mIiX0OUkPY2KgrYIIgIOHQ
+                        ZK5hZ1JeAhRlY2yH6UhUEvZC9kuBXtkK7VH2KKL2D1j/PuiC+qtzjKx7H7r9K7cm
+                        Nb5nITZXmD6k6pxvPNyenAnkMe41lk2C2AUo81L3leFr64zYRwX3B9mBEgc0RLPS
+                        XBik9Z5nLVl5+63eZXM2+iuvHakLm97eesFATDPbwx5djU+JMwpQY/3ckBojIvEZ
+                        b/xXINwCyX//bIF+G6hDESnA75efNahG1gDx
+                    </ds:X509Certificate>
+                </ds:X509Data>
+            </ds:KeyInfo>
+        </md:KeyDescriptor>
+        <md:KeyDescriptor use="encryption">
+            <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+                <ds:X509Data>
+                    <ds:X509Certificate>
+                        MIIFhzCCBG+gAwIBAgIIeTSDWCGj3dwwDQYJKoZIhvcNAQELBQAwgbQxCzAJBgNV
+                        BAYTAlVTMRAwDgYDVQQIEwdBcml6b25hMRMwEQYDVQQHEwpTY290dHNkYWxlMRow
+                        GAYDVQQKExFHb0RhZGR5LmNvbSwgSW5jLjEtMCsGA1UECxMkaHR0cDovL2NlcnRz
+                        LmdvZGFkZHkuY29tL3JlcG9zaXRvcnkvMTMwMQYDVQQDEypHbyBEYWRkeSBTZWN1
+                        cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5IC0gRzIwHhcNMTYxMjIwMTQ0ODAwWhcN
+                        MTcxMjIwMTQ0ODAwWjB+MQswCQYDVQQGEwJVUzEWMBQGA1UECBMNTWFzc2FjaHVz
+                        ZXR0czESMBAGA1UEBxMJQ2FtYnJpZGdlMSQwIgYDVQQKExtPZHlzc2V1cyBEYXRh
+                        IFNlcnZpY2VzLCBJbmMxHTAbBgNVBAMMFCouYXJhY2huZW5ldHdvcmsuY29tMIIB
+                        IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx9M4sIgwdsg8ay4RmXxPPaiU
+                        yn5P1AWi1X/3ggdyGV7KTuBqVuMCzInHojtImKcC/58c80uN0FdkOAteNU9bXO74
+                        By0z8E5Y4GdTcIrJ4fRtTS0wJXcMFGWXo5H/EODizvyH7a/R2yQT3vYLxZIz/w6C
+                        TG364XK1cENDVjhBHzFu5N790Wd8lAsa0uQa2p1gf+T2+BNJWHcyJBGAKgt5FdpS
+                        ZVuT65Vl9zn/YuZ5C4Z4H6pNQJzd3drvlnTf3/AiOP8jxS3HsGxpx6wNVyZjg/+0
+                        pvZnMQyheNVOWXMFywtev2+4ehtOmYyFdAeytO+jY3+Lkp999f1LIDXPsCI7mwID
+                        AQABo4IB0DCCAcwwDAYDVR0TAQH/BAIwADApBgNVHSUEIjAgBggrBgEFBQcDAQYI
+                        KwYBBQUHAwIGCmCGSAGG+E0BAgMwDgYDVR0PAQH/BAQDAgWgMDUGA1UdHwQuMCww
+                        KqAooCaGJGh0dHA6Ly9jcmwuZ29kYWRkeS5jb20vZ2RpZzJzMi00LmNybDBdBgNV
+                        HSAEVjBUMEgGC2CGSAGG/W0BBxcCMDkwNwYIKwYBBQUHAgEWK2h0dHA6Ly9jZXJ0
+                        aWZpY2F0ZXMuZ29kYWRkeS5jb20vcmVwb3NpdG9yeS8wCAYGZ4EMAQICMHYGCCsG
+                        AQUFBwEBBGowaDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZ29kYWRkeS5jb20v
+                        MEAGCCsGAQUFBzAChjRodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3Jl
+                        cG9zaXRvcnkvZ2RpZzIuY3J0MB8GA1UdIwQYMBaAFEDCvSeOzDSDMKIz1/tss/C0
+                        LIDOMDMGA1UdEQQsMCqCFCouYXJhY2huZW5ldHdvcmsuY29tghJhcmFjaG5lbmV0
+                        d29yay5jb20wHQYDVR0OBBYEFCT/X9LUr4kBkI8q0LCWAtNj27rUMA0GCSqGSIb3
+                        DQEBCwUAA4IBAQCKZh+zdglSW3hvTFWCAsRNc9IwRczlI/aMYImMGGbuVf0V9T8R
+                        V+08JaOY0/NM2frfjci24E5RRQHFb4r7lmwSMDDjC9mIiX0OUkPY2KgrYIIgIOHQ
+                        ZK5hZ1JeAhRlY2yH6UhUEvZC9kuBXtkK7VH2KKL2D1j/PuiC+qtzjKx7H7r9K7cm
+                        Nb5nITZXmD6k6pxvPNyenAnkMe41lk2C2AUo81L3leFr64zYRwX3B9mBEgc0RLPS
+                        XBik9Z5nLVl5+63eZXM2+iuvHakLm97eesFATDPbwx5djU+JMwpQY/3ckBojIvEZ
+                        b/xXINwCyX//bIF+G6hDESnA75efNahG1gDx
+                    </ds:X509Certificate>
+                </ds:X509Data>
+            </ds:KeyInfo>
+        </md:KeyDescriptor>
+        <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                                Location="https://athenatest.odysseusinc.com/saml/SingleLogout"/>
+        <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+                                Location="https://athenatest.odysseusinc.com/saml/SingleLogout"/>
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</md:NameIDFormat>
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName</md:NameIDFormat>
+        <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                                     Location="https://athenatest.odysseusinc.com/auth/callback?client_name=SAML2Client" index="0"
+                                     isDefault="true"/>
+        <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact"
+                                     Location="https://athenatest.odysseusinc.com/auth/callback?client_name=SAML2Client" index="1"/>
+    </md:SPSSODescriptor>
+</md:EntityDescriptor>

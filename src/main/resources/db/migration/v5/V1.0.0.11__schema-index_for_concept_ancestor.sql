@@ -1,0 +1,1 @@
+CREATE INDEX concept_ancestor_desc_concept_level ON concept_ancestor (descendant_concept_id, min_levels_of_separation);

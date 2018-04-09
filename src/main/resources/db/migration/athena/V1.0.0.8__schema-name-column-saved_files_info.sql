@@ -1,0 +1,1 @@
+ALTER TABLE saved_files_info ADD COLUMN name VARCHAR DEFAULT '';

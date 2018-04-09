@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div>
+    User <span th:text="${username}"></span> (<span th:text="${email}"></span>) requested license for <span th:text="${vocabularyname}"></span> vocabulary.
+    <br/>
+    To accept the request, please follow this
+    <a th:href="@{${approveUrl}}">link</a>. Alternatively, please follow this
+    <a th:href="@{${declineUrl}}">link</a>
+    if you wish to reject this request.</div>
+<br/>
+Regards,<br/>
+Odysseus Data Services, Inc.
+</body>
+</html>
