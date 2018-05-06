@@ -18,7 +18,12 @@
 		   c.concept_synonym_name
 		   from concepts_view as c
 		   join domain as d on c.domain_id = d.domain_id
-		   join vocabulary as v on c.vocabulary_id = v.vocabulary_id 
+		   join vocabulary as v on c.vocabulary_id = v.vocabulary_id
+		   join (
+		     SELECT *
+		     FROM dblink('dbname=athena_db','SELECT vocabulary_id_v5, available FROM vocabulary_conversion') AS vc(vocabulary_id_v5 VARCHAR(20), available VARCHAR(25))
+		   ) AS vc ON v.vocabulary_id = vc.vocabulary_id_v5
+		   WHERE vc.available IS NULL
 		   "
 		   preImportDeleteQuery="*:*">
 
