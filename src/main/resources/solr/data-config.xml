@@ -23,7 +23,7 @@
 		     SELECT *
 		     FROM dblink('dbname=athena_db','SELECT vocabulary_id_v5, available FROM vocabulary_conversion') AS vc(vocabulary_id_v5 VARCHAR(20), available VARCHAR(25))
 		   ) AS vc ON v.vocabulary_id = vc.vocabulary_id_v5
-		   WHERE vc.available IS NULL
+		   WHERE vc.available IS NULL OR vc.vocabulary_id_v5 = 'CPT4'
 		   "
 		   preImportDeleteQuery="*:*">
 
@@ -42,3 +42,4 @@
    </entity>
  </document>
 </dataConfig>
+
