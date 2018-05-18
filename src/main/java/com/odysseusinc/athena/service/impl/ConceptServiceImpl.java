@@ -45,6 +45,7 @@ import com.odysseusinc.athena.repositories.v5.ConceptV5Repository;
 import com.odysseusinc.athena.repositories.v5.RelationshipV5Repository;
 import com.odysseusinc.athena.service.ConceptService;
 import com.odysseusinc.athena.service.SolrService;
+import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.graph.RelationGraphParameter;
 import com.odysseusinc.athena.service.impl.solr.SearchResult;
 import com.odysseusinc.athena.service.writer.FileHelper;
@@ -90,6 +91,8 @@ public class ConceptServiceImpl implements ConceptService {
     private RelationshipV5Repository relationshipV5Repository;
     @Autowired
     private FileHelper fileHelper;
+    @Autowired
+    private VocabularyConversionService conversionService;
 
     @Value("${csv.separator:;}")
     private Character separator;
@@ -158,10 +161,11 @@ public class ConceptServiceImpl implements ConceptService {
     @Override
     public ConceptSearchResultDTO search(ConceptSearchDTO searchDTO) throws IOException, SolrServerException {
 
-        SolrQuery solrQuery = converterToSolrQuery.createQuery(searchDTO);
+        List<String> v5Ids = conversionService.getUnavailableVocabularies();
+        SolrQuery solrQuery = converterToSolrQuery.createQuery(searchDTO, v5Ids);
         QueryResponse solrResponse = solrService.search(solrQuery);
         List<SolrDocument> solrDocumentList = solrResponse.getResults();
-        return converter.convert(new SearchResult<>(solrQuery, solrResponse, solrDocumentList));
+        return converter.convert(new SearchResult<>(solrQuery, solrResponse, solrDocumentList), v5Ids);
     }
 
     @Override
@@ -179,15 +183,15 @@ public class ConceptServiceImpl implements ConceptService {
             try (CSVWriter csvWriter = new AthenaCSVWriter(name, separator)) {
                 if (first) {
                     csvWriter.writeNext(new String[]{"Id", "Code", "Name", "Concept Class Id", "Domain", "Vocabulary",
-                        "Invalid Reason", "Standard Concept"}, false);
+                            "Invalid Reason", "Standard Concept"}, false);
                     first = false;
                 }
                 solrQuery.set(CURSOR_MARK_PARAM, cursorMark);
                 QueryResponse solrResponse = solrService.search(solrQuery);
                 List<SolrDocument> solrDocuments = solrResponse.getResults();
                 List<ConceptDTO> concepts = solrDocuments.stream()
-                    .map(SolrDocumentToConceptDTO::convert)
-                    .collect(toList());
+                        .map(SolrDocumentToConceptDTO::convert)
+                        .collect(toList());
                 writeAll(csvWriter, concepts);
                 String nextCursorMark = solrResponse.getNextCursorMark();
                 if (cursorMark.equals(nextCursorMark)) {

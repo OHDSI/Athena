@@ -34,6 +34,8 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import net.minidev.json.JSONArray;
 import org.pac4j.core.authorization.generator.AuthorizationGenerator;
@@ -174,6 +176,16 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
             throw new NotExistException(AthenaUser.class);
         }
         return user;
+    }
+
+    public boolean currentUserExists() {
+
+        Authentication principal = SecurityContextHolder.getContext().getAuthentication();
+        if (Objects.isNull(principal)) {
+            return false;
+        }
+        Optional<AthenaProfile> optional = UserProfileUtil.getProfile(principal);
+        return optional.isPresent() && Objects.nonNull(optional.get().getAthenaUser());
     }
 
     private void initRoles() {

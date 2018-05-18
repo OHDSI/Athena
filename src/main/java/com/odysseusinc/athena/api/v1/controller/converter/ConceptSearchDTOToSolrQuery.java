@@ -23,9 +23,11 @@
 package com.odysseusinc.athena.api.v1.controller.converter;
 
 import static java.util.Arrays.asList;
+import static org.apache.solr.common.params.CommonParams.FQ;
 import static org.hibernate.validator.internal.util.StringHelper.join;
 
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
+import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,12 +44,14 @@ public class ConceptSearchDTOToSolrQuery {
     private static final String ID = "id";
     private static final String CLASS_ID = "concept_class_id";
     private static final String DOMAIN_ID = "domain_id";
-    private static final String VOCABULARY_ID = "vocabulary_id";
+    public static final String VOCABULARY_ID = "vocabulary_id";
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
 
     @Autowired
     LimitChecker limitChecker;
+    @Autowired
+    VocabularyConversionService vocabularyConversionService;
 
     @Value("${solr.default.query.operator:AND}")
     private String solrQueryOperator;
@@ -57,11 +61,6 @@ public class ConceptSearchDTOToSolrQuery {
         if (source.getSort() != null && source.getOrder() != null) {
             result.setSort(source.getSort(), SolrQuery.ORDER.valueOf(source.getOrder()));
         }
-    }
-
-    private void setIdOnlyOutput(SolrQuery result) {
-
-        result.setFields("id");
     }
 
     private void setPagination(ConceptSearchDTO source, SolrQuery result) {
@@ -102,7 +101,12 @@ public class ConceptSearchDTOToSolrQuery {
         }
     }
 
-    private void setFacets(SolrQuery result) {
+    private void setUnavailableVocabularies(SolrQuery result, List<String> ids) {
+
+        ids.forEach(e -> result.add(FQ, "-filter(" + VOCABULARY_ID + ":" + e + ")"));
+    }
+
+    private void setFacets(SolrQuery result, List<String> ids) {
 
         result.addFacetField(DOMAIN_ID);
         result.addFacetField(CLASS_ID);
@@ -147,12 +151,14 @@ public class ConceptSearchDTOToSolrQuery {
         return facetName + "s";
     }
 
-    public SolrQuery createQuery(ConceptSearchDTO source) {
+    public SolrQuery createQuery(ConceptSearchDTO source, List<String> unavailableVocabularyIds) {
 
-        SolrQuery result = baseQuery(source);
+        List<String> ids = getWrappedInQuotationMarks(unavailableVocabularyIds);
+
+        SolrQuery result = baseQuery(source, ids);
         setSorting(source, result);
         setPagination(source, result);
-        setFacets(result);
+        setFacets(result, ids);
         if (result.getFilterQueries() != null && result.getFilterQueries().length > 0) {
             result.setParam("facet.method", "fcs");
         } else {
@@ -161,20 +167,38 @@ public class ConceptSearchDTOToSolrQuery {
         return result;
     }
 
+    public SolrQuery createQuery(ConceptSearchDTO source) {
+
+        return createQuery(source, vocabularyConversionService.getUnavailableVocabularies());
+    }
+
     public SolrQuery convertForCursor(ConceptSearchDTO source) {
 
-        SolrQuery result = baseQuery(source);
+        List<String> ids = getWrappedInQuotationMarksUnavailableVocabularyIds();
+        SolrQuery result = baseQuery(source, ids);
         result.setSort(ID, SolrQuery.ORDER.asc);
         result.setStart(0);
         result.setRows(limitChecker.getMaxLimitPageSize());
         return result;
     }
 
-    private SolrQuery baseQuery(ConceptSearchDTO source) {
+    private SolrQuery baseQuery(ConceptSearchDTO source, List<String> ids) {
 
         SolrQuery result = new SolrQuery();
         setQuery(source, result);
         setFilters(source, result);
+        setUnavailableVocabularies(result, ids);
         return result;
+    }
+
+    private List<String> getWrappedInQuotationMarksUnavailableVocabularyIds() {
+
+        List<String> v5Ids = vocabularyConversionService.getUnavailableVocabularies();
+        return getWrappedInQuotationMarks(v5Ids);
+    }
+
+    private List<String> getWrappedInQuotationMarks(List<String> v5Ids) {
+
+        return v5Ids.stream().map(e -> "\"" + e + "\"").collect(Collectors.toList());
     }
 }

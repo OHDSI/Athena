@@ -15,22 +15,26 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Vitaly Koulakov, Maria Pozhidaeva
- * Created: April 4, 2018
+ * Authors: Maria Pozhidaeva
+ * Created: May 17, 2018
  *
  */
 
-package com.odysseusinc.athena.exceptions;
+package com.odysseusinc.athena.service;
 
-public class PermissionDeniedException extends RuntimeException {
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
+import com.odysseusinc.athena.exceptions.PermissionDeniedException;
+import com.odysseusinc.athena.model.athena.VocabularyConversion;
+import java.util.List;
+import org.springframework.data.domain.Sort;
 
-    public PermissionDeniedException() {
+public interface VocabularyConversionService {
 
-        super();
-    }
+    List<String> getUnavailableVocabularies() throws PermissionDeniedException;
 
-    public PermissionDeniedException(String message) {
+     List<VocabularyDTO> missingAvailableForDownloadingLicenses(Long userId, boolean withoutPending);
 
-        super(message);
-    }
+     List<VocabularyConversion> findByOmopReqIsNull(Sort sort);
+
+     List<VocabularyConversion> findByOmopReqIsNotNull( );
 }

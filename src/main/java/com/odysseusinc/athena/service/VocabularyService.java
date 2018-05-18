@@ -24,7 +24,6 @@ package com.odysseusinc.athena.service;
 
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.License;
@@ -55,8 +54,6 @@ public interface VocabularyService {
     Long requestLicenses(AthenaUser user, Integer vocabularyV4Id);
 
     void deleteLicense(Long licenseId);
-
-    List<VocabularyDTO> missingAvailableForDownloadingLicenses(Long userId, boolean withoutPending);
 
     void acceptLicense(Long id, Boolean accepted);
 
