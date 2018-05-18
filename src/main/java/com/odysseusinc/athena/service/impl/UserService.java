@@ -44,6 +44,8 @@ import org.pac4j.core.credentials.TokenCredentials;
 import org.pac4j.core.exception.HttpAction;
 import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.core.profile.creator.ProfileCreator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -55,6 +57,7 @@ import org.springframework.util.StringUtils;
 
 @Service
 public class UserService implements ProfileCreator<TokenCredentials, CommonProfile>, AuthorizationGenerator<CommonProfile> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private AthenaUserRepository athenaUserRepository;
@@ -182,6 +185,7 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
 
         Authentication principal = SecurityContextHolder.getContext().getAuthentication();
         if (Objects.isNull(principal)) {
+            LOGGER.info("No current user");
             return false;
         }
         Optional<AthenaProfile> optional = UserProfileUtil.getProfile(principal);
