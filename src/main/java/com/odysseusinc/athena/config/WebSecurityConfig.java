@@ -84,7 +84,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/api/v1/users/remind-password**")
                     .antMatchers("/api/v1/users/reset-password**")
                     .antMatchers("/api/v1/users/professional-types**")
-                    .antMatchers("/api/v1/concepts/**")
+                    //.antMatchers("/api/v1/concepts/**")
                     .antMatchers("/api/v1/vocabularies/zip/**")
                     .antMatchers("/api/v1/vocabularies/licenses/accept/mail**")
                     .antMatchers("/api/v1/build-number");
