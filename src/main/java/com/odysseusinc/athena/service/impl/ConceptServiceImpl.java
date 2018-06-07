@@ -35,6 +35,7 @@ import com.odysseusinc.athena.api.v1.controller.converter.SolrDocumentToConceptD
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchResultDTO;
+import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
@@ -115,7 +116,12 @@ public class ConceptServiceImpl implements ConceptService {
     @Override
     public ConceptV5 getById(Long id) {
 
-        return conceptRepository.findOne(id);
+        List<String> v5Ids = conversionService.getUnavailableVocabularies();
+        ConceptV5 conceptV5 = conceptRepository.findOne(id);
+        if (v5Ids.contains(conceptV5.getVocabulary().getId())) {
+            throw new PermissionDeniedException();
+        }
+        return conceptV5;
     }
 
     @Override
