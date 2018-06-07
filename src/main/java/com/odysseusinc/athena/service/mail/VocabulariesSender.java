@@ -51,6 +51,9 @@ public class VocabulariesSender extends MailSender {
     private String controlFilesUrl;
     @Value("${vocabularies.download.forum.url}")
     private String forumUrl;
+    @Value("${vocabularies.download.umls.url}")
+    private String umlsUrl;
+
     private FailedSendingToAdminSender failedSendingToAdminSender;
 
     public void send(AthenaUser user, String url, CDMVersion version) throws MessagingException, MailException {
@@ -83,6 +86,7 @@ public class VocabulariesSender extends MailSender {
         parameters.put("forumUrl", forumUrl);
         parameters.put("controlFilesUrl", controlFilesUrl);
         parameters.put("url", url);
+        parameters.put("umlsUrl", umlsUrl);
         parameters.put("version", String.valueOf((int) version.getValue()));
         return parameters;
     }

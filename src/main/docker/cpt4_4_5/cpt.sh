@@ -1,2 +1,2 @@
 #!/bin/bash
-java -jar cpt4.jar 4
+java -Dumls-user=xxx -Dumls-password=xxx -jar cpt4.jar 4
