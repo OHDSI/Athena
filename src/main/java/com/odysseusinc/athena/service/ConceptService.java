@@ -24,6 +24,7 @@ package com.odysseusinc.athena.service;
 
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchResultDTO;
+import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
@@ -49,4 +50,6 @@ public interface ConceptService {
     List<ConceptRelationship> getConceptRelationships(Long id, String relationshipId, Boolean standardsOnly);
 
     List<RelationshipV5> getAllRelationships(Long conceptId);
+
+    boolean checkLicense(long conceptId)throws PermissionDeniedException;
 }

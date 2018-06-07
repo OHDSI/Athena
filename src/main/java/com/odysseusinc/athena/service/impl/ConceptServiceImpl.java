@@ -47,6 +47,7 @@ import com.odysseusinc.athena.repositories.v5.RelationshipV5Repository;
 import com.odysseusinc.athena.service.ConceptService;
 import com.odysseusinc.athena.service.SolrService;
 import com.odysseusinc.athena.service.VocabularyConversionService;
+import com.odysseusinc.athena.service.aspect.LicenseCheck;
 import com.odysseusinc.athena.service.graph.RelationGraphParameter;
 import com.odysseusinc.athena.service.impl.solr.SearchResult;
 import com.odysseusinc.athena.service.writer.FileHelper;
@@ -114,14 +115,27 @@ public class ConceptServiceImpl implements ConceptService {
                     });
 
     @Override
+    @LicenseCheck
     public ConceptV5 getByIdWithLicenseCheck(Long id) {
 
-        List<String> v5Ids = conversionService.getUnavailableVocabularies();
         ConceptV5 conceptV5 = conceptRepository.findOne(id);
-        if (v5Ids.contains(conceptV5.getVocabulary().getId())) {
+        if (!checkLicense(conceptV5)) {
             throw new PermissionDeniedException();
         }
         return conceptV5;
+    }
+
+    @Override
+    public boolean checkLicense(long conceptId) {
+
+        ConceptV5 conceptV5 = conceptRepository.findOne(conceptId);
+        return checkLicense(conceptV5);
+    }
+
+    private boolean checkLicense(ConceptV5 conceptV5) {
+
+        List<String> v5Ids = conversionService.getUnavailableVocabularies();
+        return !v5Ids.contains(conceptV5.getVocabulary().getId());
     }
 
     @Override
@@ -138,16 +152,16 @@ public class ConceptServiceImpl implements ConceptService {
     }
 
     @Override
+    @LicenseCheck
     public List<ConceptAncestorRelationV5> getRelations(Long id, Integer depth) throws ExecutionException {
 
-        getByIdWithLicenseCheck(id);
         return graphCache.get(new RelationGraphParameter(id, depth));
     }
 
     @Override
+    @LicenseCheck
     public List<ConceptRelationship> getConceptRelationships(Long id, String relationshipId, Boolean standardsOnly) {
 
-        getByIdWithLicenseCheck(id);
         if (standardsOnly) {
             return StringUtils.isEmpty(relationshipId)
                     ? conceptRelationshipV5Repository.findBySourceConceptIdAndStandardLike(id, "S") :
@@ -161,9 +175,9 @@ public class ConceptServiceImpl implements ConceptService {
     }
 
     @Override
+    @LicenseCheck
     public List<RelationshipV5> getAllRelationships(Long id) {
 
-        getByIdWithLicenseCheck(id);
         return relationshipV5Repository.findRelationships(id);
     }
 
