@@ -114,7 +114,7 @@ public class ConceptServiceImpl implements ConceptService {
                     });
 
     @Override
-    public ConceptV5 getById(Long id) {
+    public ConceptV5 getByIdWithLicenseCheck(Long id) {
 
         List<String> v5Ids = conversionService.getUnavailableVocabularies();
         ConceptV5 conceptV5 = conceptRepository.findOne(id);
@@ -140,12 +140,14 @@ public class ConceptServiceImpl implements ConceptService {
     @Override
     public List<ConceptAncestorRelationV5> getRelations(Long id, Integer depth) throws ExecutionException {
 
+        getByIdWithLicenseCheck(id);
         return graphCache.get(new RelationGraphParameter(id, depth));
     }
 
     @Override
     public List<ConceptRelationship> getConceptRelationships(Long id, String relationshipId, Boolean standardsOnly) {
 
+        getByIdWithLicenseCheck(id);
         if (standardsOnly) {
             return StringUtils.isEmpty(relationshipId)
                     ? conceptRelationshipV5Repository.findBySourceConceptIdAndStandardLike(id, "S") :
@@ -161,6 +163,7 @@ public class ConceptServiceImpl implements ConceptService {
     @Override
     public List<RelationshipV5> getAllRelationships(Long id) {
 
+        getByIdWithLicenseCheck(id);
         return relationshipV5Repository.findRelationships(id);
     }
 

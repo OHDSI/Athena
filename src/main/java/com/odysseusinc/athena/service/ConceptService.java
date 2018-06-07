@@ -36,7 +36,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 
 public interface ConceptService {
 
-    ConceptV5 getById(Long id);
+    ConceptV5 getByIdWithLicenseCheck(Long id);
 
     ConceptSearchResultDTO search(ConceptSearchDTO searchDTO) throws IOException, SolrServerException;
 
