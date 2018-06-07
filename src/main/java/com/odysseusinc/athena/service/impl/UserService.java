@@ -185,7 +185,7 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
 
         Authentication principal = SecurityContextHolder.getContext().getAuthentication();
         if (Objects.isNull(principal)) {
-            LOGGER.info("No current user");
+            LOGGER.debug("No current user");
             return false;
         }
         Optional<AthenaProfile> optional = UserProfileUtil.getProfile(principal);

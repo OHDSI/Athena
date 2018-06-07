@@ -106,7 +106,7 @@ public class ConceptSearchDTOToSolrQuery {
         ids.forEach(e -> result.add(FQ, "-filter(" + VOCABULARY_ID + ":" + e + ")"));
     }
 
-    private void setFacets(SolrQuery result, List<String> ids) {
+    private void setFacets(SolrQuery result) {
 
         result.addFacetField(DOMAIN_ID);
         result.addFacetField(CLASS_ID);
@@ -158,7 +158,7 @@ public class ConceptSearchDTOToSolrQuery {
         SolrQuery result = baseQuery(source, ids);
         setSorting(source, result);
         setPagination(source, result);
-        setFacets(result, ids);
+        setFacets(result);
         if (result.getFilterQueries() != null && result.getFilterQueries().length > 0) {
             result.setParam("facet.method", "fcs");
         } else {
@@ -174,6 +174,7 @@ public class ConceptSearchDTOToSolrQuery {
 
     public SolrQuery convertForCursor(ConceptSearchDTO source) {
 
+        //quotation marks are for correct url query in case of compound vocabulary name
         List<String> ids = getWrappedInQuotationMarksUnavailableVocabularyIds();
         SolrQuery result = baseQuery(source, ids);
         result.setSort(ID, SolrQuery.ORDER.asc);
