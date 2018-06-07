@@ -20,8 +20,4 @@
  *
  */
 
-/**
- * @author vkoulakov
- * @since 3/9/17.
- */
 package com.odysseusinc.athena.exceptions;

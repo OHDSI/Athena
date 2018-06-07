@@ -24,10 +24,6 @@ package com.odysseusinc.athena.model.athenav5;
 
 import java.io.Serializable;
 
-/**
- * @author vkoulakov
- * @since 4/14/17.
- */
 public class ConceptAncestorRelationId implements Serializable {
     Long ancestorId;
     Long descendantId;

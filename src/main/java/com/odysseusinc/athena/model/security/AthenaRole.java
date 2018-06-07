@@ -27,10 +27,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-/**
- * @author vkoulakov
- * @since 3/3/17.
- */
 @Entity
 @Table(name = "roles")
 public class AthenaRole {

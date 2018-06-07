@@ -36,11 +36,6 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
-
-/**
- * @author vkoulakov
- * @since 2/15/17.
- */
 @Configuration
 @EnableJpaRepositories(basePackages = "com.odysseusinc.athena.repositories.v4",
         entityManagerFactoryRef = "athenav4EntityManagerFactory",

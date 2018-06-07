@@ -22,10 +22,6 @@
 
 package com.odysseusinc.athena.exceptions;
 
-/**
- * @author vkoulakov
- * @since 2/15/17.
- */
 public class SecurityConfigException extends Exception {
 
     public SecurityConfigException() {

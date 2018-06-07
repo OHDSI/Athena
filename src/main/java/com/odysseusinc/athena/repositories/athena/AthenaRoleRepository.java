@@ -29,10 +29,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-/**
- * @author vkoulakov
- * @since 3/14/17.
- */
 public interface AthenaRoleRepository extends CrudRepository<AthenaRole, Long> {
     @Query("select r from AthenaRole r where name in (:names)")
     List<AthenaRole> findByNames(@Param("names") List<String> names);
