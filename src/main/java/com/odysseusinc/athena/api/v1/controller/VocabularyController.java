@@ -141,7 +141,7 @@ public class VocabularyController {
         }
         AthenaUser currentUser = userService.getCurrentUser();
         //PENDING licenses are not active
-        boolean noLicence = vocabularyConversionService.missingAvailableForDownloadingLicenses(currentUser.getId(), false).stream()
+        boolean noLicence = vocabularyConversionService.getUnavailableVocabularies(currentUser.getId(), false).stream()
                 .map(VocabularyDTO::getId)
                 .map(Long::new)
                 .anyMatch(idV4s::contains);
@@ -232,7 +232,7 @@ public class VocabularyController {
     @RequestMapping(value = "licenses/suggest", method = RequestMethod.GET)
     public ResponseEntity<List<VocabularyDTO>> suggestLicenses(@RequestParam("userId") Long userId) {
         //PENDING licenses are added -> do not need to suggest
-        final List<VocabularyDTO> vocabularies = vocabularyConversionService.missingAvailableForDownloadingLicenses(userId, true);
+        final List<VocabularyDTO> vocabularies = vocabularyConversionService.getUnavailableVocabularies(userId, true);
         return new ResponseEntity<>(vocabularies, OK);
     }
 

@@ -32,9 +32,9 @@ public interface VocabularyConversionService {
 
     List<String> getUnavailableVocabularies() throws PermissionDeniedException;
 
-     List<VocabularyDTO> missingAvailableForDownloadingLicenses(Long userId, boolean withoutPending);
+    List<VocabularyDTO> getUnavailableVocabularies(Long userId, boolean withoutPending);
 
-     List<VocabularyConversion> findByOmopReqIsNull(Sort sort);
+    List<VocabularyConversion> findByOmopReqIsNull(Sort sort);
 
-     List<VocabularyConversion> findByOmopReqIsNotNull( );
+    List<VocabularyConversion> findByOmopReqIsNotNull();
 }

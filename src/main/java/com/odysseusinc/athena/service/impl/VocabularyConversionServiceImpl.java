@@ -75,7 +75,7 @@ public class VocabularyConversionServiceImpl implements VocabularyConversionServ
     }
 
     @Override
-    public List<VocabularyDTO> missingAvailableForDownloadingLicenses(Long userId, boolean withoutPending) {
+    public List<VocabularyDTO> getUnavailableVocabularies(Long userId, boolean withoutPending) {
 
         return converterUtils.convertList(
                 vocabularyConversionRepository.unavailableVocabularies(userId, withoutPending), VocabularyDTO.class);
