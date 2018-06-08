@@ -40,6 +40,7 @@ import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
 import com.odysseusinc.athena.model.athenav5.RelationshipV5;
+import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.v5.ConceptAncestorRelationV5Repository;
 import com.odysseusinc.athena.repositories.v5.ConceptRelationshipV5Repository;
 import com.odysseusinc.athena.repositories.v5.ConceptV5Repository;
@@ -59,9 +60,12 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import javax.persistence.criteria.Predicate;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -95,6 +99,8 @@ public class ConceptServiceImpl implements ConceptService {
     private FileHelper fileHelper;
     @Autowired
     private VocabularyConversionService conversionService;
+    @Autowired
+    private UserService userService;
 
     @Value("${csv.separator:;}")
     private Character separator;
@@ -107,12 +113,20 @@ public class ConceptServiceImpl implements ConceptService {
             .expireAfterWrite(2, TimeUnit.HOURS)
             .build(
                     new CacheLoader<RelationGraphParameter, List<ConceptAncestorRelationV5>>() {
-                        public List<ConceptAncestorRelationV5> load(@NotNull RelationGraphParameter parameter)
-                                throws ExecutionException {
+                        public List<ConceptAncestorRelationV5> load(@NotNull RelationGraphParameter parameter) {
 
-                            return getRelationsFromRepository(parameter.getId(), parameter.getDepth());
+                            return getRelationsFromRepositoryForCurrentUser(parameter.getConceptId(), parameter.getDepth());
                         }
                     });
+
+    @Override
+    public void invalidateGraphCache(Long userId) {
+
+        List<RelationGraphParameter> keys = graphCache.asMap().keySet().stream()
+                .filter(e -> userId.equals(e.getUserId()))
+                .collect(Collectors.toList());
+        graphCache.invalidateAll(keys);
+    }
 
     @Override
     @LicenseCheck
@@ -144,34 +158,61 @@ public class ConceptServiceImpl implements ConceptService {
         return csvFileName;
     }
 
-    private List<ConceptAncestorRelationV5> getRelationsFromRepository(Long id, Integer depth) {
+    String ONE_LEVEL_DESCENDANTS_SQL = "SELECT ca.ancestor_concept_id, ca.descendant_concept_id, ca.min_levels_of_separation AS weight, "
+            + " c.concept_id, c.concept_name, c.vocabulary_id, c.concept_class_id, 0 AS is_current, -1 as depth "
+            + " FROM "
+            + " concept_ancestor ca "
+            + " JOIN "
+            + " concepts_view c ON c.concept_id = ca.descendant_concept_id "
+            + " WHERE "
+            + " ancestor_concept_id = :conceptId "
+            + " AND "
+            + " min_levels_of_separation = 1";
 
-        List<ConceptAncestorRelationV5> relations = ancestorRelationV5Repository.findAncestors(id, depth);
-        relations.addAll(ancestorRelationV5Repository.findOneLevelDescendants(id));
+    private List<ConceptAncestorRelationV5> getRelationsFromRepositoryForCurrentUser(Long conceptId, Integer depth) {
+
+        List<String> v5Ids = conversionService.getUnavailableVocabularies();
+
+        List<ConceptAncestorRelationV5> relations;
+        if (v5Ids.isEmpty()) {
+            relations = ancestorRelationV5Repository.findAncestors(conceptId, depth);
+            relations.addAll(ancestorRelationV5Repository.findOneLevelDescendants(conceptId));
+        } else {
+            relations = ancestorRelationV5Repository.findAncestors(conceptId, depth, v5Ids);
+            relations.addAll(ancestorRelationV5Repository.findOneLevelDescendants(conceptId, v5Ids));
+        }
         return relations;
     }
 
     @Override
     @LicenseCheck
-    public List<ConceptAncestorRelationV5> getRelations(Long id, Integer depth) throws ExecutionException {
+    public List<ConceptAncestorRelationV5> getRelations(Long conceptId, Integer depth) throws ExecutionException {
 
-        return graphCache.get(new RelationGraphParameter(id, depth));
+        AthenaUser currentUser = userService.getCurrentUser();
+        Long userId = Optional.ofNullable(currentUser.getId()).orElse(null);
+        return graphCache.get(new RelationGraphParameter(conceptId, userId, depth));
     }
 
     @Override
     @LicenseCheck
-    public List<ConceptRelationship> getConceptRelationships(Long id, String relationshipId, Boolean standardsOnly) {
+    public List<ConceptRelationship> getConceptRelationships(Long conceptId, String relationshipId, Boolean standardsOnly) {
 
-        if (standardsOnly) {
-            return StringUtils.isEmpty(relationshipId)
-                    ? conceptRelationshipV5Repository.findBySourceConceptIdAndStandardLike(id, "S") :
-                    conceptRelationshipV5Repository.findBySourceConceptIdAndRelationshipIdAndStandardLike(id,
-                            relationshipId, "S");
-        } else {
-            return StringUtils.isEmpty(relationshipId)
-                    ? conceptRelationshipV5Repository.findBySourceConceptId(id) :
-                    conceptRelationshipV5Repository.findBySourceConceptIdAndRelationshipId(id, relationshipId);
-        }
+        List<String> vocabularyV5Ids = conversionService.getUnavailableVocabularies();
+
+        return conceptRelationshipV5Repository.findAll((root, query, cb) -> {
+
+            Predicate predicate = cb.and(root.get("sourceConceptId").in(conceptId));
+            if (standardsOnly) {
+                predicate = cb.and(predicate, root.get("standard").in("S"));
+            }
+            if (!StringUtils.isEmpty(relationshipId)) {
+                predicate = cb.and(predicate, root.get("relationshipId").in(relationshipId));
+            }
+            if (!vocabularyV5Ids.isEmpty()) {
+                predicate = cb.and(predicate, root.get("targetConceptVocabularyId").in(vocabularyV5Ids).not());
+            }
+            return predicate;
+        });
     }
 
     @Override

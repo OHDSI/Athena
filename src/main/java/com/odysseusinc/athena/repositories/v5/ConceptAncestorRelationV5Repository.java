@@ -23,16 +23,19 @@
 package com.odysseusinc.athena.repositories.v5;
 
 import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.PersistenceContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @PersistenceContext(unitName = "athenaEntityManagerFactory")
 public interface ConceptAncestorRelationV5Repository extends JpaRepository<ConceptAncestorRelationV5, Long> {
-    @Query(value = "-- In concept_ancestor table all concepts are valid by default (business rule), "
+
+    String ANCESTORS_SQL = "-- In concept_ancestor table all concepts are valid by default (business rule), "
             + "-- so no need in explicit check \n"
             + "WITH RECURSIVE r(depth) AS ( "
             + "  SELECT "
@@ -48,7 +51,7 @@ public interface ConceptAncestorRelationV5Repository extends JpaRepository<Conce
             + "  FROM "
             + "    concept_ancestor ca "
             + "  WHERE "
-            + "    ca.descendant_concept_id = ?1 "
+            + "    ca.descendant_concept_id = :conceptId "
             + "    AND "
             + "    ca.min_levels_of_separation = 0 "
             + "  UNION "
@@ -64,7 +67,7 @@ public interface ConceptAncestorRelationV5Repository extends JpaRepository<Conce
             + "             ca.descendant_concept_id = r.ancestor_concept_id "
             + "  WHERE "
             + "    ca.min_levels_of_separation = 1 "
-            + "    AND depth < ?2 "
+            + "    AND depth < :depth "
             + ") "
             + "SELECT"
             + "  r.*,"
@@ -73,20 +76,30 @@ public interface ConceptAncestorRelationV5Repository extends JpaRepository<Conce
             + "  c.vocabulary_id,"
             + "  c.concept_class_id "
             + "FROM r"
-            + "  JOIN concepts_view c ON c.concept_id = r.ancestor_concept_id "
-            + "ORDER BY concept_id, ancestor_concept_id, descendant_concept_id;", nativeQuery = true)
-    List<ConceptAncestorRelationV5> findAncestors(Long conceptId, Integer depth);
+            + "  JOIN concepts_view c ON c.concept_id = r.ancestor_concept_id ";
 
-    @Query(nativeQuery = true,
-            value = "SELECT ca.ancestor_concept_id, ca.descendant_concept_id, ca.min_levels_of_separation AS weight, "
-                    + " c.concept_id, c.concept_name, c.vocabulary_id, c.concept_class_id, 0 AS is_current, -1 as depth "
-                    + " FROM "
-                    + " concept_ancestor ca "
-                    + " JOIN "
-                    + " concepts_view c ON c.concept_id = ca.descendant_concept_id "
-                    + " WHERE "
-                    + " ancestor_concept_id = ?1 "
-                    + " AND "
-                    + " min_levels_of_separation = 1")
-    List<ConceptAncestorRelationV5> findOneLevelDescendants(Long conceptId);
+    String ONE_LEVEL_DESCENDANTS_SQL = "SELECT ca.ancestor_concept_id, ca.descendant_concept_id, ca.min_levels_of_separation AS weight, "
+            + " c.concept_id, c.concept_name, c.vocabulary_id, c.concept_class_id, 0 AS is_current, -1 as depth "
+            + " FROM "
+            + " concept_ancestor ca "
+            + " JOIN "
+            + " concepts_view c ON c.concept_id = ca.descendant_concept_id "
+            + " WHERE "
+            + " ancestor_concept_id = :conceptId "
+            + " AND "
+            + " min_levels_of_separation = 1";
+
+    String ANCESTORS_ORDER_SQL = " ORDER BY concept_id, ancestor_concept_id, descendant_concept_id;";
+
+    @Query(value = ANCESTORS_SQL + "WHERE c.vocabulary_id NOT IN :ids " + ANCESTORS_ORDER_SQL, nativeQuery = true)
+    List<ConceptAncestorRelationV5> findAncestors(@Param("conceptId") Long conceptId, @Param("depth") Integer depth, @Param("ids") Collection<String> ids);
+
+    @Query(value = ANCESTORS_SQL + ANCESTORS_ORDER_SQL, nativeQuery = true)
+    List<ConceptAncestorRelationV5> findAncestors(@Param("conceptId") Long conceptId, @Param("depth") Integer depth);
+
+    @Query(nativeQuery = true, value = ONE_LEVEL_DESCENDANTS_SQL + " AND c.vocabulary_id NOT IN :ids")
+    List<ConceptAncestorRelationV5> findOneLevelDescendants(@Param("conceptId") Long conceptId, @Param("ids") Collection<String> ids);
+
+    @Query(nativeQuery = true, value = ONE_LEVEL_DESCENDANTS_SQL)
+    List<ConceptAncestorRelationV5> findOneLevelDescendants(@Param("conceptId") Long conceptId);
 }

@@ -25,27 +25,39 @@ package com.odysseusinc.athena.service.graph;
 import com.google.common.base.Objects;
 
 public class RelationGraphParameter {
-    private Long id;
+    private Long conceptId;
+    private Long userId;
     private Integer depth;
 
     public RelationGraphParameter() {
 
     }
 
-    public RelationGraphParameter(Long id, Integer depth) {
+    public RelationGraphParameter(Long conceptId, Long userId, Integer depth) {
 
-        this.id = id;
+        this.conceptId = conceptId;
+        this.userId = userId;
         this.depth = depth;
     }
 
-    public Long getId() {
+    public Long getConceptId() {
 
-        return id;
+        return conceptId;
     }
 
-    public void setId(Long id) {
+    public void setConceptId(Long conceptId) {
 
-        this.id = id;
+        this.conceptId = conceptId;
+    }
+
+    public void setUserId(Long userId) {
+
+        this.userId = userId;
+    }
+
+    public Long getUserId() {
+
+        return userId;
     }
 
     public Integer getDepth() {
@@ -58,6 +70,7 @@ public class RelationGraphParameter {
         this.depth = depth;
     }
 
+
     @Override
     public boolean equals(Object o) {
 
@@ -68,13 +81,14 @@ public class RelationGraphParameter {
             return false;
         }
         RelationGraphParameter that = (RelationGraphParameter) o;
-        return Objects.equal(id, that.id)
+        return Objects.equal(conceptId, that.conceptId)
+        && Objects.equal(userId, that.userId)
                 && Objects.equal(depth, that.depth);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hashCode(id, depth);
+        return Objects.hashCode(conceptId, userId, depth);
     }
 }

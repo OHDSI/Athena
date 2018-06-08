@@ -42,6 +42,7 @@ import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadItemRepository;
 import com.odysseusinc.athena.repositories.athena.LicenseRepository;
 import com.odysseusinc.athena.repositories.athena.NotificationRepository;
+import com.odysseusinc.athena.service.ConceptService;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.mail.LicenseAcceptanceSender;
@@ -81,6 +82,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     private AsyncVocabularyService asyncVocabularyService;
     private NotificationRepository notificationRepository;
     private LicenseAcceptanceSender licenseAcceptanceSender;
+    private ConceptService conceptService;
 
     @Autowired
     public VocabularyServiceImpl(VocabularyConversionService vocabularyConversionService,
@@ -92,6 +94,7 @@ public class VocabularyServiceImpl implements VocabularyService {
                                  ConverterUtils converterUtils,
                                  AsyncVocabularyService asyncVocabularyService,
                                  NotificationRepository notificationRepository,
+                                 ConceptService conceptService,
                                  LicenseAcceptanceSender licenseAcceptanceSender) {
 
         this.vocabularyConversionService = vocabularyConversionService;
@@ -104,6 +107,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         this.asyncVocabularyService = asyncVocabularyService;
         this.notificationRepository = notificationRepository;
         this.licenseAcceptanceSender = licenseAcceptanceSender;
+        this.conceptService = conceptService;
     }
 
     @Override
@@ -207,6 +211,8 @@ public class VocabularyServiceImpl implements VocabularyService {
                 .collect(toList());
         List<License> result = new ArrayList<>();
         licenseRepository.save(licenses).iterator().forEachRemaining(result::add);
+
+        conceptService.invalidateGraphCache(user.getId());
         return result;
     }
 
@@ -219,7 +225,9 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public void deleteLicense(Long licenseId) {
 
+        License userLicense = licenseRepository.findOne(licenseId);
         licenseRepository.delete(licenseId);
+        conceptService.invalidateGraphCache(userLicense.getUser().getId());
     }
 
     @Override
@@ -234,6 +242,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         } else {
             licenseRepository.delete(id);
         }
+        conceptService.invalidateGraphCache(user.getId());
         licenseAcceptanceSender.send(user, accepted, vocabularyName);
     }
 

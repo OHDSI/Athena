@@ -22,6 +22,7 @@
 
 package com.odysseusinc.athena.service;
 
+import com.google.common.cache.LoadingCache;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchResultDTO;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
@@ -29,6 +30,7 @@ import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
 import com.odysseusinc.athena.model.athenav5.RelationshipV5;
+import com.odysseusinc.athena.service.graph.RelationGraphParameter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -37,7 +39,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 
 public interface ConceptService {
 
-    ConceptV5 getByIdWithLicenseCheck(Long id);
+    ConceptV5 getByIdWithLicenseCheck(Long conceptId);
 
     ConceptSearchResultDTO search(ConceptSearchDTO searchDTO) throws IOException, SolrServerException;
 
@@ -45,11 +47,13 @@ public interface ConceptService {
 
     String getSearchedConceptsFileName();
 
-    List<ConceptAncestorRelationV5> getRelations(Long id, Integer depth) throws ExecutionException;
+    List<ConceptAncestorRelationV5> getRelations(Long conceptId, Integer depth) throws ExecutionException;
 
-    List<ConceptRelationship> getConceptRelationships(Long id, String relationshipId, Boolean standardsOnly);
+    List<ConceptRelationship> getConceptRelationships(Long conceptId, String relationshipId, Boolean standardsOnly);
 
     List<RelationshipV5> getAllRelationships(Long conceptId);
 
-    boolean checkLicense(long conceptId)throws PermissionDeniedException;
+    boolean checkLicense(long conceptId) throws PermissionDeniedException;
+
+    void invalidateGraphCache(Long userId);
 }

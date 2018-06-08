@@ -23,22 +23,19 @@
 package com.odysseusinc.athena.repositories.v5;
 
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.persistence.PersistenceContext;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @PersistenceContext(unitName = "athenaEntityManagerFactory")
 public interface ConceptRelationshipV5Repository
-        extends JpaRepository<ConceptRelationship, Long> {
+        extends JpaRepository<ConceptRelationship, Long>, JpaSpecificationExecutor<ConceptRelationship> {
 
-    List<ConceptRelationship> findBySourceConceptIdAndRelationshipId(Long conceptId, String relationshipId);
-
-    List<ConceptRelationship> findBySourceConceptId(Long conceptId);
-
-    List<ConceptRelationship> findBySourceConceptIdAndStandardLike(Long conceptId, String standard);
-
-    List<ConceptRelationship> findBySourceConceptIdAndRelationshipIdAndStandardLike(
-            Long conceptId, String relationshipId, String standard);
 }
