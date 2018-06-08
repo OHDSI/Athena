@@ -40,6 +40,7 @@ import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
 import com.odysseusinc.athena.model.athenav5.RelationshipV5;
+import com.odysseusinc.athena.model.meta.ConceptRelationship_;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.v5.ConceptAncestorRelationV5Repository;
 import com.odysseusinc.athena.repositories.v5.ConceptRelationshipV5Repository;
@@ -158,17 +159,6 @@ public class ConceptServiceImpl implements ConceptService {
         return csvFileName;
     }
 
-    String ONE_LEVEL_DESCENDANTS_SQL = "SELECT ca.ancestor_concept_id, ca.descendant_concept_id, ca.min_levels_of_separation AS weight, "
-            + " c.concept_id, c.concept_name, c.vocabulary_id, c.concept_class_id, 0 AS is_current, -1 as depth "
-            + " FROM "
-            + " concept_ancestor ca "
-            + " JOIN "
-            + " concepts_view c ON c.concept_id = ca.descendant_concept_id "
-            + " WHERE "
-            + " ancestor_concept_id = :conceptId "
-            + " AND "
-            + " min_levels_of_separation = 1";
-
     private List<ConceptAncestorRelationV5> getRelationsFromRepositoryForCurrentUser(Long conceptId, Integer depth) {
 
         List<String> v5Ids = conversionService.getUnavailableVocabularies();
@@ -201,15 +191,16 @@ public class ConceptServiceImpl implements ConceptService {
 
         return conceptRelationshipV5Repository.findAll((root, query, cb) -> {
 
-            Predicate predicate = cb.and(root.get("sourceConceptId").in(conceptId));
+            Predicate predicate = cb.equal(root.get(ConceptRelationship_.sourceConceptId), conceptId);
             if (standardsOnly) {
-                predicate = cb.and(predicate, root.get("standard").in("S"));
+                predicate = cb.and(predicate, cb.equal(root.get(ConceptRelationship_.standard), "S"));
             }
             if (!StringUtils.isEmpty(relationshipId)) {
-                predicate = cb.and(predicate, root.get("relationshipId").in(relationshipId));
+                predicate = cb.and(predicate, cb.like(root.get(ConceptRelationship_.relationshipId), relationshipId));
             }
             if (!vocabularyV5Ids.isEmpty()) {
-                predicate = cb.and(predicate, root.get("targetConceptVocabularyId").in(vocabularyV5Ids).not());
+                predicate = cb.and(predicate,
+                        root.get(ConceptRelationship_.targetConceptVocabularyId).in(vocabularyV5Ids).not());
             }
             return predicate;
         });
