@@ -70,7 +70,6 @@ public class RelationGraphParameter {
         this.depth = depth;
     }
 
-
     @Override
     public boolean equals(Object o) {
 
