@@ -30,6 +30,7 @@ import com.odysseusinc.athena.service.security.RevokedTokenStore;
 import org.opensaml.saml.common.xml.SAMLConstants;
 import org.pac4j.core.authorization.authorizer.RequireAnyRoleAuthorizer;
 import org.pac4j.core.client.Clients;
+import org.pac4j.core.client.direct.AnonymousClient;
 import org.pac4j.core.config.Config;
 import org.pac4j.http.client.direct.HeaderClient;
 import org.pac4j.jwt.config.encryption.SecretEncryptionConfiguration;
@@ -109,7 +110,8 @@ public class Pac4jConfig {
 
         final Clients clients = new Clients(callback,
                 headerClient,
-                saml2Client
+                saml2Client,
+                new AnonymousClient()
         );
         final Config config = new Config(clients);
 

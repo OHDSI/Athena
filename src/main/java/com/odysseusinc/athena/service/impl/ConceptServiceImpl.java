@@ -38,10 +38,9 @@ import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchResultDTO;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
+import com.odysseusinc.athena.model.athenav5.ConceptRelationship_;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
 import com.odysseusinc.athena.model.athenav5.RelationshipV5;
-import com.odysseusinc.athena.model.meta.ConceptRelationship_;
-import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.v5.ConceptAncestorRelationV5Repository;
 import com.odysseusinc.athena.repositories.v5.ConceptRelationshipV5Repository;
 import com.odysseusinc.athena.repositories.v5.ConceptV5Repository;
@@ -61,7 +60,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +75,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 @Service
 @Transactional(readOnly = true)
@@ -178,21 +175,20 @@ public class ConceptServiceImpl implements ConceptService {
     @LicenseCheck
     public List<ConceptAncestorRelationV5> getRelations(Long conceptId, Integer depth) throws ExecutionException {
 
-        AthenaUser currentUser = userService.getCurrentUser();
-        Long userId = Optional.ofNullable(currentUser.getId()).orElse(null);
+        Long userId = userService.getCurrentUserId();
         return graphCache.get(new RelationGraphParameter(conceptId, userId, depth));
     }
 
     @Override
     @LicenseCheck
-    public List<ConceptRelationship> getConceptRelationships(Long conceptId, String relationshipId, Boolean standardsOnly) {
+    public List<ConceptRelationship> getConceptRelationships(Long conceptId, String relationshipId, Boolean onlyStandard) {
 
         List<String> vocabularyV5Ids = conversionService.getUnavailableVocabularies();
 
         return conceptRelationshipV5Repository.findAll((root, query, cb) -> {
 
             Predicate predicate = cb.equal(root.get(ConceptRelationship_.sourceConceptId), conceptId);
-            if (standardsOnly) {
+            if (onlyStandard) {
                 predicate = cb.and(predicate, cb.equal(root.get(ConceptRelationship_.standard), "S"));
             }
             if (!StringUtils.isEmpty(relationshipId)) {

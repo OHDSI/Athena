@@ -149,10 +149,10 @@ public class ConceptController {
     public ResponseEntity<GroupedConceptRelationshipListDTO> relationships(
             @PathVariable Long id,
             @RequestParam(name = "relationshipId", required = false) String relationshipId,
-            @RequestParam(name = "std", required = false, defaultValue = "FALSE") Boolean standardsOnly) {
+            @RequestParam(name = "std", required = false, defaultValue = "FALSE") Boolean onlyStandard) {
 
         List<ConceptRelationship> relationships = conceptService.getConceptRelationships(id, relationshipId,
-                standardsOnly);
+                onlyStandard);
         List<ConceptRelationshipDTO> resultList = converterUtils.convertList(relationships,
                 ConceptRelationshipDTO.class);
 

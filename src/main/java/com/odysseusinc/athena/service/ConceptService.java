@@ -22,7 +22,6 @@
 
 package com.odysseusinc.athena.service;
 
-import com.google.common.cache.LoadingCache;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchResultDTO;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
@@ -30,7 +29,6 @@ import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
 import com.odysseusinc.athena.model.athenav5.RelationshipV5;
-import com.odysseusinc.athena.service.graph.RelationGraphParameter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -49,7 +47,7 @@ public interface ConceptService {
 
     List<ConceptAncestorRelationV5> getRelations(Long conceptId, Integer depth) throws ExecutionException;
 
-    List<ConceptRelationship> getConceptRelationships(Long conceptId, String relationshipId, Boolean standardsOnly);
+    List<ConceptRelationship> getConceptRelationships(Long conceptId, String relationshipId, Boolean onlyStandard);
 
     List<RelationshipV5> getAllRelationships(Long conceptId);
 

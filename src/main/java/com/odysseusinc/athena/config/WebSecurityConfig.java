@@ -22,20 +22,8 @@
 
 package com.odysseusinc.athena.config;
 
-import static org.pac4j.core.util.CommonHelper.assertNotNull;
-
-import com.google.common.base.Strings;
 import com.odysseusinc.athena.service.security.RevokedTokenStore;
-import java.io.IOException;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.pac4j.core.config.Config;
-import org.pac4j.core.context.J2EContext;
-import org.pac4j.core.http.J2ENopHttpActionAdapter;
 import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.jwt.profile.JwtGenerator;
 import org.pac4j.springframework.security.web.CallbackFilter;
@@ -108,16 +96,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         @Override
         protected void configure(final HttpSecurity http) throws Exception {
 
-            final SecurityFilter filter = new SecurityFilterWithSkipCondition(config, "HeaderClient") {
-
-                @Override
-                protected boolean skip(HttpServletRequest request, String authTokenHeader) {
-
-                    final String path = request.getServletPath();
-                    String authToken = request.getHeader(authTokenHeader);
-                    return path.startsWith("/api/v1/concepts") && Strings.isNullOrEmpty(authToken);
-                }
-            };
+            final SecurityFilter filter = new SecurityFilter(config, "HeaderClient,AnonymousClient");
 
             http
                     .antMatcher("/api/**")
@@ -148,41 +127,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             logoutFilter.setCentralLogout(true);
             return logoutFilter;
         }
-
-        private abstract class SecurityFilterWithSkipCondition extends SecurityFilter {
-
-            private SecurityFilterWithSkipCondition(Config config, String headerClient) {
-
-                super(config, headerClient);
-            }
-
-            protected abstract boolean skip(HttpServletRequest request, String authTokenHeader);
-
-            @Override
-            public void doFilter(final ServletRequest req, final ServletResponse resp,
-                                 final FilterChain filterChain) throws IOException, ServletException {
-
-                assertNotNull("securityLogic", getSecurityLogic());
-                assertNotNull("config", getConfig());
-
-                final HttpServletRequest request = (HttpServletRequest) req;
-                final HttpServletResponse response = (HttpServletResponse) resp;
-                final J2EContext context = new J2EContext(request, response, config.getSessionStore());
-
-                if (skip(request, authTokenHeader)) {
-                    filterChain.doFilter(request, response);
-                    return;
-                }
-
-                getSecurityLogic().perform(context, getConfig(), (ctx, parameters) -> {
-
-                    filterChain.doFilter(request, response);
-                    return null;
-
-                }, J2ENopHttpActionAdapter.INSTANCE, getClients(), getAuthorizers(), getMatchers(), getMultiProfile());
-            }
-        }
-
     }
 
     @Configuration
@@ -221,15 +165,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/webjars*/**").permitAll()
                     .antMatchers("/swagger-resources*/**").permitAll()
                     .antMatchers("/configuration*/**").permitAll()
-                    .antMatchers("/configuration*/**").permitAll()
                     .antMatchers("/api/v1/build-number*/**").permitAll()
                     .antMatchers("/auth/saml-metadata").permitAll()
+                    .antMatchers("/api/v1/concepts**").permitAll()
 
                     .and()
                     .addFilterBefore(asyncSecurityCallbackFilter, BasicAuthenticationFilter.class)
                     .logout()
                     .logoutSuccessUrl("/");
-
         }
 
         @Bean

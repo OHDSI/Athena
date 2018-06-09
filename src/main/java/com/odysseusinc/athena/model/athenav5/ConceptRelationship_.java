@@ -15,14 +15,13 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Maria Pozhidaeva
- * Created: June 8, 2018
+ * Authors: Pavel Grafkin, Vitaly Koulakov, Maria Pozhidaeva
+ * Created: April 4, 2018
  *
  */
 
-package com.odysseusinc.athena.model.meta;
+package com.odysseusinc.athena.model.athenav5;
 
-import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.StaticMetamodel;
 

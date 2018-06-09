@@ -167,6 +167,16 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
         return getUser(principal);
     }
 
+    public Long getCurrentUserId() throws PermissionDeniedException {
+
+        Long userId = null;
+        if (currentUserExists()) {
+            AthenaUser currentUser = getCurrentUser();
+            userId = currentUser.getId();
+        }
+        return userId;
+    }
+
     public AthenaUser getUser(Principal principal) throws PermissionDeniedException {
 
         if (principal == null) {
@@ -184,7 +194,7 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
     public boolean currentUserExists() {
 
         Authentication principal = SecurityContextHolder.getContext().getAuthentication();
-        if (Objects.isNull(principal)) {
+        if (Objects.isNull(principal) || "anonymousUser".equals(principal.getPrincipal())) {
             LOGGER.debug("No current user");
             return false;
         }
