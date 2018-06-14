@@ -35,8 +35,10 @@ import com.odysseusinc.athena.api.v1.controller.converter.SolrDocumentToConceptD
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchResultDTO;
+import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
+import com.odysseusinc.athena.model.athenav5.ConceptRelationship_;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
 import com.odysseusinc.athena.model.athenav5.RelationshipV5;
 import com.odysseusinc.athena.repositories.v5.ConceptAncestorRelationV5Repository;
@@ -45,6 +47,8 @@ import com.odysseusinc.athena.repositories.v5.ConceptV5Repository;
 import com.odysseusinc.athena.repositories.v5.RelationshipV5Repository;
 import com.odysseusinc.athena.service.ConceptService;
 import com.odysseusinc.athena.service.SolrService;
+import com.odysseusinc.athena.service.VocabularyConversionService;
+import com.odysseusinc.athena.service.aspect.LicenseCheck;
 import com.odysseusinc.athena.service.graph.RelationGraphParameter;
 import com.odysseusinc.athena.service.impl.solr.SearchResult;
 import com.odysseusinc.athena.service.writer.FileHelper;
@@ -59,6 +63,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import javax.persistence.criteria.Predicate;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -69,7 +75,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 @Service
 @Transactional(readOnly = true)
@@ -90,6 +95,10 @@ public class ConceptServiceImpl implements ConceptService {
     private RelationshipV5Repository relationshipV5Repository;
     @Autowired
     private FileHelper fileHelper;
+    @Autowired
+    private VocabularyConversionService conversionService;
+    @Autowired
+    private UserService userService;
 
     @Value("${csv.separator:;}")
     private Character separator;
@@ -102,17 +111,39 @@ public class ConceptServiceImpl implements ConceptService {
             .expireAfterWrite(2, TimeUnit.HOURS)
             .build(
                     new CacheLoader<RelationGraphParameter, List<ConceptAncestorRelationV5>>() {
-                        public List<ConceptAncestorRelationV5> load(@NotNull RelationGraphParameter parameter)
-                                throws ExecutionException {
+                        public List<ConceptAncestorRelationV5> load(@NotNull RelationGraphParameter parameter) {
 
-                            return getRelationsFromRepository(parameter.getId(), parameter.getDepth());
+                            return getRelationsFromRepositoryForCurrentUser(parameter.getConceptId(), parameter.getDepth());
                         }
                     });
 
     @Override
-    public ConceptV5 getById(Long id) {
+    public void invalidateGraphCache(Long userId) {
+
+        List<RelationGraphParameter> keys = graphCache.asMap().keySet().stream()
+                .filter(e -> userId.equals(e.getUserId()))
+                .collect(Collectors.toList());
+        graphCache.invalidateAll(keys);
+    }
+
+    @Override
+    @LicenseCheck
+    public ConceptV5 getByIdWithLicenseCheck(Long id) {
 
         return conceptRepository.findOne(id);
+    }
+
+    @Override
+    public boolean checkLicense(long conceptId) {
+
+        ConceptV5 conceptV5 = conceptRepository.findOne(conceptId);
+        return checkLicense(conceptV5);
+    }
+
+    private boolean checkLicense(ConceptV5 conceptV5) {
+
+        List<String> v5Ids = conversionService.getUnavailableVocabularies();
+        return !v5Ids.contains(conceptV5.getVocabulary().getId());
     }
 
     @Override
@@ -121,35 +152,54 @@ public class ConceptServiceImpl implements ConceptService {
         return csvFileName;
     }
 
-    private List<ConceptAncestorRelationV5> getRelationsFromRepository(Long id, Integer depth) {
+    private List<ConceptAncestorRelationV5> getRelationsFromRepositoryForCurrentUser(Long conceptId, Integer depth) {
 
-        List<ConceptAncestorRelationV5> relations = ancestorRelationV5Repository.findAncestors(id, depth);
-        relations.addAll(ancestorRelationV5Repository.findOneLevelDescendants(id));
+        List<String> v5Ids = conversionService.getUnavailableVocabularies();
+
+        List<ConceptAncestorRelationV5> relations;
+        if (v5Ids.isEmpty()) {
+            relations = ancestorRelationV5Repository.findAncestors(conceptId, depth);
+            relations.addAll(ancestorRelationV5Repository.findOneLevelDescendants(conceptId));
+        } else {
+            relations = ancestorRelationV5Repository.findAncestors(conceptId, depth, v5Ids);
+            relations.addAll(ancestorRelationV5Repository.findOneLevelDescendants(conceptId, v5Ids));
+        }
         return relations;
     }
 
     @Override
-    public List<ConceptAncestorRelationV5> getRelations(Long id, Integer depth) throws ExecutionException {
+    @LicenseCheck
+    public List<ConceptAncestorRelationV5> getRelations(Long conceptId, Integer depth) throws ExecutionException {
 
-        return graphCache.get(new RelationGraphParameter(id, depth));
+        Long userId = userService.getCurrentUserId();
+        return graphCache.get(new RelationGraphParameter(conceptId, userId, depth));
     }
 
     @Override
-    public List<ConceptRelationship> getConceptRelationships(Long id, String relationshipId, Boolean standardsOnly) {
+    @LicenseCheck
+    public List<ConceptRelationship> getConceptRelationships(Long conceptId, String relationshipId, Boolean onlyStandard) {
 
-        if (standardsOnly) {
-            return StringUtils.isEmpty(relationshipId)
-                    ? conceptRelationshipV5Repository.findBySourceConceptIdAndStandardLike(id, "S") :
-                    conceptRelationshipV5Repository.findBySourceConceptIdAndRelationshipIdAndStandardLike(id,
-                            relationshipId, "S");
-        } else {
-            return StringUtils.isEmpty(relationshipId)
-                    ? conceptRelationshipV5Repository.findBySourceConceptId(id) :
-                    conceptRelationshipV5Repository.findBySourceConceptIdAndRelationshipId(id, relationshipId);
-        }
+        List<String> vocabularyV5Ids = conversionService.getUnavailableVocabularies();
+
+        return conceptRelationshipV5Repository.findAll((root, query, cb) -> {
+
+            Predicate predicate = cb.equal(root.get(ConceptRelationship_.sourceConceptId), conceptId);
+            if (onlyStandard) {
+                predicate = cb.and(predicate, cb.equal(root.get(ConceptRelationship_.standard), "S"));
+            }
+            if (!StringUtils.isEmpty(relationshipId)) {
+                predicate = cb.and(predicate, cb.like(root.get(ConceptRelationship_.relationshipId), relationshipId));
+            }
+            if (!vocabularyV5Ids.isEmpty()) {
+                predicate = cb.and(predicate,
+                        root.get(ConceptRelationship_.targetConceptVocabularyId).in(vocabularyV5Ids).not());
+            }
+            return predicate;
+        });
     }
 
     @Override
+    @LicenseCheck
     public List<RelationshipV5> getAllRelationships(Long id) {
 
         return relationshipV5Repository.findRelationships(id);
@@ -158,10 +208,11 @@ public class ConceptServiceImpl implements ConceptService {
     @Override
     public ConceptSearchResultDTO search(ConceptSearchDTO searchDTO) throws IOException, SolrServerException {
 
-        SolrQuery solrQuery = converterToSolrQuery.createQuery(searchDTO);
+        List<String> v5Ids = conversionService.getUnavailableVocabularies();
+        SolrQuery solrQuery = converterToSolrQuery.createQuery(searchDTO, v5Ids);
         QueryResponse solrResponse = solrService.search(solrQuery);
         List<SolrDocument> solrDocumentList = solrResponse.getResults();
-        return converter.convert(new SearchResult<>(solrQuery, solrResponse, solrDocumentList));
+        return converter.convert(new SearchResult<>(solrQuery, solrResponse, solrDocumentList), v5Ids);
     }
 
     @Override
@@ -179,15 +230,15 @@ public class ConceptServiceImpl implements ConceptService {
             try (CSVWriter csvWriter = new AthenaCSVWriter(name, separator)) {
                 if (first) {
                     csvWriter.writeNext(new String[]{"Id", "Code", "Name", "Concept Class Id", "Domain", "Vocabulary",
-                        "Invalid Reason", "Standard Concept"}, false);
+                            "Invalid Reason", "Standard Concept"}, false);
                     first = false;
                 }
                 solrQuery.set(CURSOR_MARK_PARAM, cursorMark);
                 QueryResponse solrResponse = solrService.search(solrQuery);
                 List<SolrDocument> solrDocuments = solrResponse.getResults();
                 List<ConceptDTO> concepts = solrDocuments.stream()
-                    .map(SolrDocumentToConceptDTO::convert)
-                    .collect(toList());
+                        .map(SolrDocumentToConceptDTO::convert)
+                        .collect(toList());
                 writeAll(csvWriter, concepts);
                 String nextCursorMark = solrResponse.getNextCursorMark();
                 if (cursorMark.equals(nextCursorMark)) {

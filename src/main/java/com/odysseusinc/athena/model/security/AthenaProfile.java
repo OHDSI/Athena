@@ -24,10 +24,6 @@ package com.odysseusinc.athena.model.security;
 
 import org.pac4j.saml.profile.SAML2Profile;
 
-/**
- * @author vkoulakov
- * @since 3/13/17.
- */
 public class AthenaProfile extends SAML2Profile {
     private AthenaUser athenaUser;
     private String token;

@@ -26,10 +26,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.Map;
 
-/**
- * @author vkoulakov
- * @since 2/27/17.
- */
 @ConfigurationProperties(prefix = "cas")
 public class CasConfigurationProperties {
     private String defaultIDP;

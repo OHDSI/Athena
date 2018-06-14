@@ -16,21 +16,18 @@
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
  * Authors: Pavel Grafkin, Vitaly Koulakov, Maria Pozhidaeva
- * Created: April 4, 2018
+ * Created: June 7, 2018
  *
  */
 
-package com.odysseusinc.athena.exceptions;
+package com.odysseusinc.athena.service.aspect;
 
-public class PermissionDeniedException extends RuntimeException {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    public PermissionDeniedException() {
-
-        super();
-    }
-
-    public PermissionDeniedException(String message) {
-
-        super(message);
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface LicenseCheck {
 }

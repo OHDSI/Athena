@@ -22,6 +22,7 @@
 
 package com.odysseusinc.athena.api.v1.controller.converter;
 
+import static com.odysseusinc.athena.api.v1.controller.converter.ConceptSearchDTOToSolrQuery.VOCABULARY_ID;
 import static com.odysseusinc.athena.api.v1.controller.converter.ConceptSearchDTOToSolrQuery.getFacetLabel;
 import static java.util.stream.Collectors.toList;
 
@@ -44,11 +45,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConceptSearchResultToDTO {
 
-    public ConceptSearchResultDTO convert(SearchResult<SolrDocument> source) {
+    public ConceptSearchResultDTO convert(SearchResult<SolrDocument> source, List<String> unavailableVocabularyIds) {
 
         return new ConceptSearchResultDTO(
                 buildContent(source),
-                buildFacets(source),
+                buildFacets(source, unavailableVocabularyIds),
                 buildPageRequest(source),
                 getTotal(source)
         );
@@ -61,7 +62,7 @@ public class ConceptSearchResultToDTO {
                 .collect(toList());
     }
 
-    private Map<String, Map<String, Long>> buildFacets(SearchResult<SolrDocument> source) {
+    private Map<String, Map<String, Long>> buildFacets(SearchResult<SolrDocument> source, List<String> unavailableVocabularyIds) {
 
         NamedList response = source.getSolrResponse().getResponse();
         Map facetsMap = (Map) response.asMap(10).get("facets");
@@ -72,6 +73,9 @@ public class ConceptSearchResultToDTO {
 
             for (FacetField facetField : facetFields) {
                 HashMap<String, Long> facetOptionList = getFacetOptionList(facetsMap, facetField.getName());
+                if (VOCABULARY_ID.equals(facetField.getName())) {
+                    facetOptionList.keySet().removeAll(unavailableVocabularyIds);
+                }
                 facets.put(facetField.getName(), convertToSortMap(facetOptionList));
             }
         }
@@ -93,7 +97,7 @@ public class ConceptSearchResultToDTO {
         });
 
         return facetOptionList;
-}
+    }
 
     private PageRequest buildPageRequest(SearchResult source) {
 

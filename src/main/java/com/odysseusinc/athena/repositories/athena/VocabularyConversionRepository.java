@@ -36,17 +36,22 @@ import org.springframework.stereotype.Repository;
 public interface VocabularyConversionRepository extends CrudRepository<VocabularyConversion, Integer> {
 
     String MISSING_LICENSES = "SELECT * FROM vocabulary_conversion WHERE "
-            + "url IS NOT NULL AND "
-            + "vocabulary_id_v4 != 4 AND " //id of cpt4 vocabulary
+            + "available IS NOT NULL AND "
+            + "vocabulary_id_v4 != 4" ; //id of cpt4 vocabulary
+
+    String MISSING_LICENSES_FOR_USER = MISSING_LICENSES + " AND "
             + "vocabulary_id_v4 NOT IN "
             + "(SELECT vocabulary_id_v4 FROM licenses AS lic "
             + "where "
             + "(status IN ('APPROVED') OR :withoutPending IS TRUE) AND "
-            + "lic.user_id= :userId)";
+            + "lic.user_id = :userId)";
+
+    @Query(nativeQuery = true, value = MISSING_LICENSES_FOR_USER)
+    List<VocabularyConversion> unavailableVocabularies(@Param("userId") Long userId,
+                                                       @Param("withoutPending") Boolean withoutPending);
 
     @Query(nativeQuery = true, value = MISSING_LICENSES)
-    List<VocabularyConversion> missingAvailableForDownloadingLicenses(@Param("userId") Long userId,
-                                                                      @Param("withoutPending") Boolean withoutPending);
+    List<VocabularyConversion> unavailableVocabularies();
 
     VocabularyConversion findByIdV4(Integer idV4);
 

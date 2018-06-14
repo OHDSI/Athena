@@ -20,17 +20,28 @@
  *
  */
 
-package com.odysseusinc.athena.exceptions;
+package com.odysseusinc.athena.service.aspect;
 
-public class PermissionDeniedException extends RuntimeException {
+import com.odysseusinc.athena.exceptions.PermissionDeniedException;
+import com.odysseusinc.athena.service.ConceptService;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-    public PermissionDeniedException() {
+@Aspect
+@Component
+public class LicenseCheckAspect {
 
-        super();
-    }
+    @Autowired
+    private ConceptService conceptService;
 
-    public PermissionDeniedException(String message) {
+    @Before(value = "@annotation(com.odysseusinc.athena.service.aspect.LicenseCheck) && args(conceptId,..)")
+    public void check(long conceptId) throws PermissionDeniedException {
 
-        super(message);
+        if (!conceptService.checkLicense(conceptId)) {
+            throw new PermissionDeniedException();
+        }
     }
 }
+

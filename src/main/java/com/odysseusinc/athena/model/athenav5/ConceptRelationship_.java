@@ -22,9 +22,17 @@
 
 package com.odysseusinc.athena.model.athenav5;
 
-import java.io.Serializable;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.StaticMetamodel;
 
-public class ConceptAncestorRelationId implements Serializable {
-    Long ancestorId;
-    Long descendantId;
+@StaticMetamodel(ConceptRelationship.class)
+public class ConceptRelationship_ {
+
+    public static volatile SingularAttribute<ConceptRelationship, Long> sourceConceptId;
+    public static volatile SingularAttribute<ConceptRelationship, String> standard;
+    public static volatile SingularAttribute<ConceptRelationship, Long> targetConceptId;
+    public static volatile SingularAttribute<ConceptRelationship, String> targetConceptName;
+    public static volatile SingularAttribute<ConceptRelationship, String> targetConceptVocabularyId;
+    public static volatile SingularAttribute<ConceptRelationship, String> relationshipId;
+    public static volatile SingularAttribute<ConceptRelationship, String> relationshipName;
 }

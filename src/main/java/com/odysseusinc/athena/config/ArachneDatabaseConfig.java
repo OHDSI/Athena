@@ -33,11 +33,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 
-
-/**
- * @author vkoulakov
- * @since 2/27/17.
- */
 @Configuration
 @EnableConfigurationProperties(DataSourceProperties.class)
 public class ArachneDatabaseConfig {

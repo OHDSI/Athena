@@ -30,6 +30,7 @@ import org.pac4j.springframework.security.web.CallbackFilter;
 import org.pac4j.springframework.security.web.LogoutFilter;
 import org.pac4j.springframework.security.web.SecurityFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -75,6 +76,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         @Autowired
         private RevokedTokenStore tokenStore;
 
+        @Value("${athena.token.header}")
+        private String authTokenHeader;
+
         @Override
         public void configure(WebSecurity webSecurity) throws Exception {
 
@@ -84,7 +88,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/api/v1/users/remind-password**")
                     .antMatchers("/api/v1/users/reset-password**")
                     .antMatchers("/api/v1/users/professional-types**")
-                    .antMatchers("/api/v1/concepts/**")
                     .antMatchers("/api/v1/vocabularies/zip/**")
                     .antMatchers("/api/v1/vocabularies/licenses/accept/mail**")
                     .antMatchers("/api/v1/build-number");
@@ -93,7 +96,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         @Override
         protected void configure(final HttpSecurity http) throws Exception {
 
-            final SecurityFilter filter = new SecurityFilter(config, "HeaderClient");
+            final SecurityFilter filter = new SecurityFilter(config, "HeaderClient,AnonymousClient");
 
             http
                     .antMatcher("/api/**")
@@ -104,7 +107,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
 
         @Bean
-        public FilterRegistrationBean logourFilterRegistration() {
+        public FilterRegistrationBean logoutFilterRegistration() {
 
             FilterRegistrationBean bean = new FilterRegistrationBean();
             bean.setFilter(logoutFilter());
@@ -124,7 +127,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             logoutFilter.setCentralLogout(true);
             return logoutFilter;
         }
-
     }
 
     @Configuration
@@ -163,15 +165,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/webjars*/**").permitAll()
                     .antMatchers("/swagger-resources*/**").permitAll()
                     .antMatchers("/configuration*/**").permitAll()
-                    .antMatchers("/configuration*/**").permitAll()
                     .antMatchers("/api/v1/build-number*/**").permitAll()
                     .antMatchers("/auth/saml-metadata").permitAll()
+                    .antMatchers("/api/v1/concepts**").permitAll()
 
                     .and()
                     .addFilterBefore(asyncSecurityCallbackFilter, BasicAuthenticationFilter.class)
                     .logout()
                     .logoutSuccessUrl("/");
-
         }
 
         @Bean

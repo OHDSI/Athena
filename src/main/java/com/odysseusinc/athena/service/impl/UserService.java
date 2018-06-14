@@ -34,6 +34,8 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import net.minidev.json.JSONArray;
 import org.pac4j.core.authorization.generator.AuthorizationGenerator;
@@ -42,6 +44,8 @@ import org.pac4j.core.credentials.TokenCredentials;
 import org.pac4j.core.exception.HttpAction;
 import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.core.profile.creator.ProfileCreator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -53,6 +57,7 @@ import org.springframework.util.StringUtils;
 
 @Service
 public class UserService implements ProfileCreator<TokenCredentials, CommonProfile>, AuthorizationGenerator<CommonProfile> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private AthenaUserRepository athenaUserRepository;
@@ -162,6 +167,16 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
         return getUser(principal);
     }
 
+    public Long getCurrentUserId() throws PermissionDeniedException {
+
+        Long userId = null;
+        if (currentUserExists()) {
+            AthenaUser currentUser = getCurrentUser();
+            userId = currentUser.getId();
+        }
+        return userId;
+    }
+
     public AthenaUser getUser(Principal principal) throws PermissionDeniedException {
 
         if (principal == null) {
@@ -174,6 +189,17 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
             throw new NotExistException(AthenaUser.class);
         }
         return user;
+    }
+
+    public boolean currentUserExists() {
+
+        Authentication principal = SecurityContextHolder.getContext().getAuthentication();
+        if (Objects.isNull(principal) || "anonymousUser".equals(principal.getPrincipal())) {
+            LOGGER.debug("No current user");
+            return false;
+        }
+        Optional<AthenaProfile> optional = UserProfileUtil.getProfile(principal);
+        return optional.isPresent() && Objects.nonNull(optional.get().getAthenaUser());
     }
 
     private void initRoles() {

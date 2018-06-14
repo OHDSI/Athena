@@ -51,6 +51,7 @@ import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.service.DownloadBundleService;
+import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.impl.UserService;
 import com.odysseusinc.athena.service.mail.LicenseRequestSender;
@@ -90,6 +91,7 @@ public class VocabularyController {
     private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyController.class);
 
     private VocabularyService vocabularyService;
+    private VocabularyConversionService vocabularyConversionService;
     private LicenseRequestSender licenseRequestSender;
     private UserService userService;
     private DownloadBundleService downloadBundleService;
@@ -99,6 +101,7 @@ public class VocabularyController {
     @Autowired
     @SuppressWarnings("SpringJavaAutowiringInspection")
     public VocabularyController(VocabularyService vocabularyService,
+                                VocabularyConversionService vocabularyConversionService,
                                 UserService userService,
                                 DownloadBundleService downloadBundleService,
                                 FileHelper fileHelper,
@@ -106,6 +109,7 @@ public class VocabularyController {
                                 LicenseRequestSender licenseRequestSender) {
 
         this.vocabularyService = vocabularyService;
+        this.vocabularyConversionService = vocabularyConversionService;
         this.userService = userService;
         this.downloadBundleService = downloadBundleService;
         this.fileHelper = fileHelper;
@@ -137,7 +141,7 @@ public class VocabularyController {
         }
         AthenaUser currentUser = userService.getCurrentUser();
         //PENDING licenses are not active
-        boolean noLicence = vocabularyService.missingAvailableForDownloadingLicenses(currentUser.getId(), false).stream()
+        boolean noLicence = vocabularyConversionService.getUnavailableVocabularies(currentUser.getId(), false).stream()
                 .map(VocabularyDTO::getId)
                 .map(Long::new)
                 .anyMatch(idV4s::contains);
@@ -228,7 +232,7 @@ public class VocabularyController {
     @RequestMapping(value = "licenses/suggest", method = RequestMethod.GET)
     public ResponseEntity<List<VocabularyDTO>> suggestLicenses(@RequestParam("userId") Long userId) {
         //PENDING licenses are added -> do not need to suggest
-        final List<VocabularyDTO> vocabularies = vocabularyService.missingAvailableForDownloadingLicenses(userId, true);
+        final List<VocabularyDTO> vocabularies = vocabularyConversionService.getUnavailableVocabularies(userId, true);
         return new ResponseEntity<>(vocabularies, OK);
     }
 

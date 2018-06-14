@@ -30,10 +30,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * @author vkoulakov
- * @since 3/3/17.
- */
 @Configuration
 public class AthenaFlywayConfig {
     @Value("#{'${flyway.athena.locations}'.split(',')}")

@@ -42,7 +42,8 @@ import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadItemRepository;
 import com.odysseusinc.athena.repositories.athena.LicenseRepository;
 import com.odysseusinc.athena.repositories.athena.NotificationRepository;
-import com.odysseusinc.athena.repositories.athena.VocabularyConversionRepository;
+import com.odysseusinc.athena.service.ConceptService;
+import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.mail.LicenseAcceptanceSender;
 import com.odysseusinc.athena.service.mail.LicenseRequestSender;
@@ -71,7 +72,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     private static final String DEFAULT_SORT_COLUMN = "idV4";
     public static final Integer CPT4_ID_V4 = 4;
 
-    private VocabularyConversionRepository vocabularyConversionRepository;
+    private VocabularyConversionService vocabularyConversionService;
     private DownloadBundleRepository downloadBundleRepository;
     private DownloadItemRepository downloadItemRepository;
     private LicenseRepository licenseRepository;
@@ -81,9 +82,10 @@ public class VocabularyServiceImpl implements VocabularyService {
     private AsyncVocabularyService asyncVocabularyService;
     private NotificationRepository notificationRepository;
     private LicenseAcceptanceSender licenseAcceptanceSender;
+    private ConceptService conceptService;
 
     @Autowired
-    public VocabularyServiceImpl(VocabularyConversionRepository vocabularyConversionRepository,
+    public VocabularyServiceImpl(VocabularyConversionService vocabularyConversionService,
                                  DownloadBundleRepository downloadBundleRepository,
                                  DownloadItemRepository downloadItemRepository,
                                  LicenseRepository licenseRepository,
@@ -92,9 +94,10 @@ public class VocabularyServiceImpl implements VocabularyService {
                                  ConverterUtils converterUtils,
                                  AsyncVocabularyService asyncVocabularyService,
                                  NotificationRepository notificationRepository,
+                                 ConceptService conceptService,
                                  LicenseAcceptanceSender licenseAcceptanceSender) {
 
-        this.vocabularyConversionRepository = vocabularyConversionRepository;
+        this.vocabularyConversionService = vocabularyConversionService;
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadItemRepository = downloadItemRepository;
         this.licenseRepository = licenseRepository;
@@ -104,6 +107,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         this.asyncVocabularyService = asyncVocabularyService;
         this.notificationRepository = notificationRepository;
         this.licenseAcceptanceSender = licenseAcceptanceSender;
+        this.conceptService = conceptService;
     }
 
     @Override
@@ -112,7 +116,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         Sort sort = new Sort(Sort.Direction.ASC, DEFAULT_SORT_COLUMN);
         AthenaUser user = userService.getCurrentUser();
         List<VocabularyDTO> vocabularyDTOs = converterUtils.convertList(
-                vocabularyConversionRepository.findByOmopReqIsNull(sort), VocabularyDTO.class);
+                vocabularyConversionService.findByOmopReqIsNull(sort), VocabularyDTO.class);
 
         return new VocabularyToUserVocabularyDTO(user.getLicenses()).convert(vocabularyDTOs);
     }
@@ -124,7 +128,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         LOGGER.info("Ready for save download items for bundle with name: [{}] and uuid: [{}], user id: [{}]",
                 bundleName, uuid, currentUser.getId());
 
-        List<Long> withOmopReqIdV4s = vocabularyConversionRepository.findByOmopReqIsNotNull()
+        List<Long> withOmopReqIdV4s = vocabularyConversionService.findByOmopReqIsNotNull()
                 .stream()
                 .map(VocabularyConversion::getIdV4)
                 .map(Integer::longValue)
@@ -207,6 +211,8 @@ public class VocabularyServiceImpl implements VocabularyService {
                 .collect(toList());
         List<License> result = new ArrayList<>();
         licenseRepository.save(licenses).iterator().forEachRemaining(result::add);
+
+        conceptService.invalidateGraphCache(user.getId());
         return result;
     }
 
@@ -219,15 +225,9 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public void deleteLicense(Long licenseId) {
 
+        License userLicense = licenseRepository.findOne(licenseId);
         licenseRepository.delete(licenseId);
-    }
-
-    @Override
-    public List<VocabularyDTO> missingAvailableForDownloadingLicenses(Long userId, boolean withoutPending) {
-
-        return converterUtils.convertList(
-                vocabularyConversionRepository.missingAvailableForDownloadingLicenses(userId,
-                        withoutPending), VocabularyDTO.class);
+        conceptService.invalidateGraphCache(userLicense.getUser().getId());
     }
 
     @Override
@@ -242,6 +242,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         } else {
             licenseRepository.delete(id);
         }
+        conceptService.invalidateGraphCache(user.getId());
         licenseAcceptanceSender.send(user, accepted, vocabularyName);
     }
 
