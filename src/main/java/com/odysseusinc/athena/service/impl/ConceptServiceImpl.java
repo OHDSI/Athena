@@ -130,11 +130,7 @@ public class ConceptServiceImpl implements ConceptService {
     @LicenseCheck
     public ConceptV5 getByIdWithLicenseCheck(Long id) {
 
-        ConceptV5 conceptV5 = conceptRepository.findOne(id);
-        if (!checkLicense(conceptV5)) {
-            throw new PermissionDeniedException();
-        }
-        return conceptV5;
+        return conceptRepository.findOne(id);
     }
 
     @Override
