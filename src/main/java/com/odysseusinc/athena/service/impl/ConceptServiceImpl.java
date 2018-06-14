@@ -35,12 +35,16 @@ import com.odysseusinc.athena.api.v1.controller.converter.SolrDocumentToConceptD
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchResultDTO;
-import com.odysseusinc.athena.exceptions.PermissionDeniedException;
+import com.odysseusinc.athena.model.athenav5.ConceptAncestor;
 import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
+import com.odysseusinc.athena.model.athenav5.ConceptAncestor_;
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship_;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
 import com.odysseusinc.athena.model.athenav5.RelationshipV5;
+import com.odysseusinc.athena.model.athenav5.SolrConcept;
+import com.odysseusinc.athena.model.athenav5.SolrConcept_;
+import com.odysseusinc.athena.model.athenav5.VocabularyV5_;
 import com.odysseusinc.athena.repositories.v5.ConceptAncestorRelationV5Repository;
 import com.odysseusinc.athena.repositories.v5.ConceptRelationshipV5Repository;
 import com.odysseusinc.athena.repositories.v5.ConceptV5Repository;
@@ -64,7 +68,12 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -72,6 +81,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,7 +109,9 @@ public class ConceptServiceImpl implements ConceptService {
     private VocabularyConversionService conversionService;
     @Autowired
     private UserService userService;
-
+    @Autowired
+    @Qualifier("athenaV5EntityManagerFactory")
+    private EntityManager entityManager;
     @Value("${csv.separator:;}")
     private Character separator;
 
@@ -152,6 +164,39 @@ public class ConceptServiceImpl implements ConceptService {
         return csvFileName;
     }
 
+    private List<ConceptAncestorRelationV5> findOneLevelDescendants(Long conceptId, List<String> v5Ids) {
+
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<ConceptAncestorRelationV5> query = builder.createQuery(ConceptAncestorRelationV5.class);
+        Root<ConceptAncestor> root = query.from(ConceptAncestor.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(builder.equal(root.get(ConceptAncestor_.id), conceptId));
+        predicates.add(builder.equal(root.get(ConceptAncestor_.minLevelsOfSeparation), 1));
+
+        Path<SolrConcept> descendantConcept = root.get(ConceptAncestor_.descendantConcept);
+        Path<String> vocabularyIdPath = descendantConcept.get(SolrConcept_.vocabulary).get(VocabularyV5_.id);
+
+        if (!v5Ids.isEmpty()) {
+            predicates.add(vocabularyIdPath.in(v5Ids).not());
+        }
+        query = query.where(predicates.toArray(new Predicate[predicates.size()]));
+
+        query = query.select(builder.construct(ConceptAncestorRelationV5.class,
+                descendantConcept.get(SolrConcept_.id),
+                descendantConcept.get(SolrConcept_.name),
+                descendantConcept.get(SolrConcept_.conceptClassId),
+                vocabularyIdPath,
+                root.get(ConceptAncestor_.id),
+                descendantConcept.get(SolrConcept_.id),
+                root.get(ConceptAncestor_.minLevelsOfSeparation).alias("weight"),
+                builder.literal(false).alias("is_current"),
+                builder.literal(-1).alias("depth")
+        ));
+
+        return entityManager.createQuery(query).getResultList();
+    }
+
     private List<ConceptAncestorRelationV5> getRelationsFromRepositoryForCurrentUser(Long conceptId, Integer depth) {
 
         List<String> v5Ids = conversionService.getUnavailableVocabularies();
@@ -159,11 +204,10 @@ public class ConceptServiceImpl implements ConceptService {
         List<ConceptAncestorRelationV5> relations;
         if (v5Ids.isEmpty()) {
             relations = ancestorRelationV5Repository.findAncestors(conceptId, depth);
-            relations.addAll(ancestorRelationV5Repository.findOneLevelDescendants(conceptId));
         } else {
             relations = ancestorRelationV5Repository.findAncestors(conceptId, depth, v5Ids);
-            relations.addAll(ancestorRelationV5Repository.findOneLevelDescendants(conceptId, v5Ids));
         }
+        relations.addAll(findOneLevelDescendants(conceptId, v5Ids));
         return relations;
     }
 

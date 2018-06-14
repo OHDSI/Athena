@@ -22,17 +22,22 @@
 
 package com.odysseusinc.athena.model.athenav5;
 
+import java.util.Date;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.StaticMetamodel;
 
-@StaticMetamodel(ConceptRelationship.class)
-public class ConceptRelationship_ {
+@StaticMetamodel(SolrConcept.class)
+public class SolrConcept_ {
 
-    public static volatile SingularAttribute<ConceptRelationship, Long> sourceConceptId;
-    public static volatile SingularAttribute<ConceptRelationship, String> standard;
-    public static volatile SingularAttribute<ConceptRelationship, Long> targetConceptId;
-    public static volatile SingularAttribute<ConceptRelationship, String> targetConceptName;
-    public static volatile SingularAttribute<ConceptRelationship, String> targetConceptVocabularyId;
-    public static volatile SingularAttribute<ConceptRelationship, String> relationshipId;
-    public static volatile SingularAttribute<ConceptRelationship, String> relationshipName;
+    public static volatile SingularAttribute<SolrConcept, Long> id;
+    public static volatile SingularAttribute<SolrConcept, String> name;
+    public static volatile SingularAttribute<SolrConcept, VocabularyV5> vocabulary;
+    public static volatile SingularAttribute<SolrConcept, DomainV5> domain;
+    public static volatile SingularAttribute<SolrConcept, String> standardConcept;
+    public static volatile SingularAttribute<SolrConcept, String> conceptClassId;
+    public static volatile SingularAttribute<SolrConcept, String> conceptCode;
+    public static volatile SingularAttribute<SolrConcept, Date> validStart;
+    public static volatile SingularAttribute<SolrConcept, Date> validEnd;
+    public static volatile SingularAttribute<SolrConcept, String> invalidReason;
 }
+

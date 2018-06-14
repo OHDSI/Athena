@@ -78,17 +78,6 @@ public interface ConceptAncestorRelationV5Repository extends JpaRepository<Conce
             + "FROM r"
             + "  JOIN concepts_view c ON c.concept_id = r.ancestor_concept_id ";
 
-    String ONE_LEVEL_DESCENDANTS_SQL = "SELECT ca.ancestor_concept_id, ca.descendant_concept_id, ca.min_levels_of_separation AS weight, "
-            + " c.concept_id, c.concept_name, c.vocabulary_id, c.concept_class_id, 0 AS is_current, -1 as depth "
-            + " FROM "
-            + " concept_ancestor ca "
-            + " JOIN "
-            + " concepts_view c ON c.concept_id = ca.descendant_concept_id "
-            + " WHERE "
-            + " ancestor_concept_id = :conceptId "
-            + " AND "
-            + " min_levels_of_separation = 1";
-
     String ANCESTORS_ORDER_SQL = " ORDER BY concept_id, ancestor_concept_id, descendant_concept_id;";
 
     @Query(value = ANCESTORS_SQL + "WHERE c.vocabulary_id NOT IN :ids " + ANCESTORS_ORDER_SQL, nativeQuery = true)
@@ -96,10 +85,4 @@ public interface ConceptAncestorRelationV5Repository extends JpaRepository<Conce
 
     @Query(value = ANCESTORS_SQL + ANCESTORS_ORDER_SQL, nativeQuery = true)
     List<ConceptAncestorRelationV5> findAncestors(@Param("conceptId") Long conceptId, @Param("depth") Integer depth);
-
-    @Query(nativeQuery = true, value = ONE_LEVEL_DESCENDANTS_SQL + " AND c.vocabulary_id NOT IN :ids")
-    List<ConceptAncestorRelationV5> findOneLevelDescendants(@Param("conceptId") Long conceptId, @Param("ids") Collection<String> ids);
-
-    @Query(nativeQuery = true, value = ONE_LEVEL_DESCENDANTS_SQL)
-    List<ConceptAncestorRelationV5> findOneLevelDescendants(@Param("conceptId") Long conceptId);
 }

@@ -57,6 +57,23 @@ public class ConceptAncestorRelationV5 extends EntityV5 implements Serializable 
     @Column
     private Integer depth;
 
+    public ConceptAncestorRelationV5() {
+    }
+
+    public ConceptAncestorRelationV5(Long id, String name, String conceptClassId, String vocabularyId, Long ancestorId,
+                                     Long descendantId, Integer weight, Boolean current, Integer depth) {
+
+        this.id = id;
+        this.name = name;
+        this.conceptClassId = conceptClassId;
+        this.vocabularyId = vocabularyId;
+        this.ancestorId = ancestorId;
+        this.descendantId = descendantId;
+        this.weight = weight;
+        this.current = current;
+        this.depth = depth;
+    }
+
     public Long getId() {
 
         return id;

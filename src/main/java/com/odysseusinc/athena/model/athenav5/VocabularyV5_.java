@@ -25,14 +25,12 @@ package com.odysseusinc.athena.model.athenav5;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.StaticMetamodel;
 
-@StaticMetamodel(ConceptRelationship.class)
-public class ConceptRelationship_ {
+@StaticMetamodel(VocabularyV5.class)
+public class VocabularyV5_ {
 
-    public static volatile SingularAttribute<ConceptRelationship, Long> sourceConceptId;
-    public static volatile SingularAttribute<ConceptRelationship, String> standard;
-    public static volatile SingularAttribute<ConceptRelationship, Long> targetConceptId;
-    public static volatile SingularAttribute<ConceptRelationship, String> targetConceptName;
-    public static volatile SingularAttribute<ConceptRelationship, String> targetConceptVocabularyId;
-    public static volatile SingularAttribute<ConceptRelationship, String> relationshipId;
-    public static volatile SingularAttribute<ConceptRelationship, String> relationshipName;
+    public static volatile SingularAttribute<VocabularyV5, String> id;
+    public static volatile SingularAttribute<VocabularyV5, String> name;
+    public static volatile SingularAttribute<VocabularyV5, String> reference;
+    public static volatile SingularAttribute<VocabularyV5, String> version;
+    public static volatile SingularAttribute<VocabularyV5, Integer> conceptId;
 }
