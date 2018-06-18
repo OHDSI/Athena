@@ -134,11 +134,35 @@ public class VocabularyServiceImpl implements VocabularyService {
                 .map(Integer::longValue)
                 .collect(toList());
         withOmopReqIdV4s.addAll(idV4s);
+        checkBundleVocabularies(withOmopReqIdV4s, currentUser.getId());
 
         DownloadBundle bundle = buildDownloadBundle(version, uuid, bundleName, currentUser);
         bundle = saveDownloadItems(bundle, withOmopReqIdV4s);
         LOGGER.info("Download items are added, bundle: [{}]", bundle.toString());
         return bundle;
+    }
+
+    private void checkBundleVocabularies(List<Long> bundleVocabularyV4Ids, Long userId) {
+
+        //PENDING licenses are not active
+        boolean noLicence = vocabularyConversionService.getUnavailableVocabularies(userId, false)
+                .stream()
+                .map(VocabularyDTO::getId)
+                .map(Long::new)
+                .anyMatch(bundleVocabularyV4Ids::contains);
+
+        if (noLicence) {
+            throw new PermissionDeniedException("User must have licenses for all vocabularies");
+        }
+    }
+
+    public void checkBundleVocabularies(DownloadBundle bundle, Long userId) {
+
+        List<Long> bundleVocabularyV4Ids = bundle.getVocabularies().stream()
+                .map(e -> e.getVocabularyConversion().getIdV4())
+                .map(Long::new)
+                .collect(toList());
+        checkBundleVocabularies(bundleVocabularyV4Ids, userId);
     }
 
     private DownloadBundle buildDownloadBundle(CDMVersion version, String uuid, String name, AthenaUser user) {
@@ -192,11 +216,14 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public void restoreDownloadBundle(DownloadBundle downloadBundle) throws PermissionDeniedException {
 
+        AthenaUser currentUser = userService.getCurrentUser();
+        if (!currentUser.getId().equals(downloadBundle.getUserId())) {
+            throw new PermissionDeniedException();
+        }
         if (!downloadBundle.isArchived()) {
             return;
         }
-
-        AthenaUser currentUser = userService.getCurrentUser();
+        checkBundleVocabularies(downloadBundle, currentUser.getId());
         asyncVocabularyService.updateStatus(downloadBundle, DownloadBundleStatus.PENDING);
         saveContent(downloadBundle, currentUser);
         LOGGER.info("Vocabulary restoring is started, bundle id: {}, user id: {}", downloadBundle.getId(),

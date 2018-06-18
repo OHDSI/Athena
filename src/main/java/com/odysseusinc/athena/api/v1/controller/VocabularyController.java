@@ -140,15 +140,6 @@ public class VocabularyController {
             return;
         }
         AthenaUser currentUser = userService.getCurrentUser();
-        //PENDING licenses are not active
-        boolean noLicence = vocabularyConversionService.getUnavailableVocabularies(currentUser.getId(), false).stream()
-                .map(VocabularyDTO::getId)
-                .map(Long::new)
-                .anyMatch(idV4s::contains);
-
-        if (noLicence) {
-            throw new PermissionDeniedException("User must have licenses for all vocabularies");
-        }
         DownloadBundle bundle = vocabularyService.saveBundle(bundleName, idV4s, currentUser, getByValue(version));
         vocabularyService.saveContent(bundle, currentUser);
         LOGGER.info("Vocabulary saving is started, bundle name: {}, user id: {}", bundleName, currentUser.getId());
@@ -161,6 +152,7 @@ public class VocabularyController {
             HttpServletResponse response) throws NotExistException, IOException {
 
         DownloadBundle bundle = vocabularyService.getDownloadBundle(uuid);
+        vocabularyService.checkBundleVocabularies(bundle, bundle.getUserId());
         String version = bundle.getCdmVersion().name().toLowerCase().replace(".", "_");
         String archiveName = String.format("vocabulary_download_%s_{%s}_%s.zip",
                 version, uuid, Long.toString(currentTimeMillis()));
@@ -199,14 +191,10 @@ public class VocabularyController {
 
     @ApiOperation("Restore download history item.")
     @RequestMapping(value = "/restore/{id}", method = RequestMethod.PUT)
-    public ResponseEntity restore(@PathVariable("id") Long bundleId, Principal principal)
+    public ResponseEntity restore(@PathVariable("id") Long bundleId)
             throws PermissionDeniedException {
 
-        final AthenaUser user = userService.getUser(principal);
         DownloadBundle downloadBundle = downloadBundleService.get(bundleId);
-        if (!user.getId().equals(downloadBundle.getUserId())) {
-            throw new PermissionDeniedException();
-        }
         vocabularyService.restoreDownloadBundle(downloadBundle);
         return new ResponseEntity<>(OK);
     }
@@ -283,9 +271,9 @@ public class VocabularyController {
     @ApiOperation("Accept user's license via mail.")
     @RequestMapping(value = "licenses/accept/mail", method = RequestMethod.GET)
     public void acceptLicenseViaMail(@RequestParam("id") Long id,
-                                               @RequestParam("accepted") Boolean accepted,
-                                               @RequestParam("token") String token,
-                                               HttpServletResponse response)
+                                     @RequestParam("accepted") Boolean accepted,
+                                     @RequestParam("token") String token,
+                                     HttpServletResponse response)
             throws PermissionDeniedException, IOException {
 
         checkLicense(vocabularyService.get(id, token));
