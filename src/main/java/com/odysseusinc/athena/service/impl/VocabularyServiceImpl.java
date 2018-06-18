@@ -187,7 +187,6 @@ public class VocabularyServiceImpl implements VocabularyService {
     public DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Long> idV4s) {
 
         final DownloadBundle result = downloadBundleRepository.save(bundle);
-        // add current version - save
         List<DownloadItem> items = idV4s.stream()
                 .map(id -> new DownloadItem(result, new VocabularyConversion(id.intValue())))
                 .collect(Collectors.toList());
