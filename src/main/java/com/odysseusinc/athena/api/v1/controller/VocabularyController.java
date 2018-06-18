@@ -220,7 +220,7 @@ public class VocabularyController {
     @RequestMapping(value = "licenses/suggest", method = RequestMethod.GET)
     public ResponseEntity<List<VocabularyDTO>> suggestLicenses(@RequestParam("userId") Long userId) {
         //PENDING licenses are added -> do not need to suggest
-        final List<VocabularyDTO> vocabularies = vocabularyConversionService.getUnavailableVocabularies(userId, false);
+        final List<VocabularyDTO> vocabularies = vocabularyConversionService.getUnavailableVocabularies(userId, true);
         return new ResponseEntity<>(vocabularies, OK);
     }
 
