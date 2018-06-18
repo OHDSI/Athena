@@ -156,7 +156,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         }
     }
 
-    private void checkBundleVocabularies(DownloadBundle bundle, Long userId) {
+    public void checkBundleVocabularies(DownloadBundle bundle, Long userId) {
 
         List<Long> bundleVocabularyV4Ids = bundle.getVocabularies().stream()
                 .map(e -> e.getVocabularyConversion().getIdV4())

@@ -152,6 +152,7 @@ public class VocabularyController {
             HttpServletResponse response) throws NotExistException, IOException {
 
         DownloadBundle bundle = vocabularyService.getDownloadBundle(uuid);
+        vocabularyService.checkBundleVocabularies(bundle, bundle.getUserId());
         String version = bundle.getCdmVersion().name().toLowerCase().replace(".", "_");
         String archiveName = String.format("vocabulary_download_%s_{%s}_%s.zip",
                 version, uuid, Long.toString(currentTimeMillis()));
