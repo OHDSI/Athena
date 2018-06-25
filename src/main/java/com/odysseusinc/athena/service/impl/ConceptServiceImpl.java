@@ -146,19 +146,6 @@ public class ConceptServiceImpl implements ConceptService {
     }
 
     @Override
-    public boolean checkLicense(long conceptId) {
-
-        ConceptV5 conceptV5 = conceptRepository.findOne(conceptId);
-        return checkLicense(conceptV5);
-    }
-
-    private boolean checkLicense(ConceptV5 conceptV5) {
-
-        List<String> v5Ids = conversionService.getUnavailableVocabularies();
-        return !v5Ids.contains(conceptV5.getVocabulary().getId());
-    }
-
-    @Override
     public String getSearchedConceptsFileName() {
 
         return csvFileName;

@@ -23,13 +23,18 @@
 package com.odysseusinc.athena.service.impl;
 
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
+import static java.lang.String.format;
+import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections.ListUtils.intersection;
+import static org.thymeleaf.util.ListUtils.isEmpty;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyToUserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
+import com.odysseusinc.athena.exceptions.LicenseException;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
@@ -122,16 +127,15 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public DownloadBundle saveBundle(String bundleName, List<Long> idV4s, AthenaUser currentUser, CDMVersion version) {
+    public DownloadBundle saveBundle(String bundleName, List<Integer> idV4s, AthenaUser currentUser, CDMVersion version) {
 
         String uuid = UUID.randomUUID().toString();
         LOGGER.info("Ready for save download items for bundle with name: [{}] and uuid: [{}], user id: [{}]",
                 bundleName, uuid, currentUser.getId());
 
-        List<Long> withOmopReqIdV4s = vocabularyConversionService.findByOmopReqIsNotNull()
+        List<Integer> withOmopReqIdV4s = vocabularyConversionService.findByOmopReqIsNotNull()
                 .stream()
                 .map(VocabularyConversion::getIdV4)
-                .map(Integer::longValue)
                 .collect(toList());
         withOmopReqIdV4s.addAll(idV4s);
         checkBundleVocabularies(withOmopReqIdV4s, currentUser.getId());
@@ -142,25 +146,25 @@ public class VocabularyServiceImpl implements VocabularyService {
         return bundle;
     }
 
-    private void checkBundleVocabularies(List<Long> bundleVocabularyV4Ids, Long userId) {
+    private void checkBundleVocabularies(List<Integer> bundleVocabularyIdV4s, Long userId) {
 
         //PENDING licenses are not active
-        boolean noLicence = vocabularyConversionService.getUnavailableVocabularies(userId, false)
+        List<Integer> allUnavailableVocabularyIds = vocabularyConversionService.getUnavailableVocabularies(userId, false)
                 .stream()
                 .map(VocabularyDTO::getId)
-                .map(Long::new)
-                .anyMatch(bundleVocabularyV4Ids::contains);
+                .collect(Collectors.toList());
 
-        if (noLicence) {
-            throw new PermissionDeniedException("User must have licenses for all vocabularies");
+        List<Integer> unavailableIdsFromBundle = intersection(allUnavailableVocabularyIds, bundleVocabularyIdV4s);
+        if (!isEmpty(unavailableIdsFromBundle)) {
+            throw new LicenseException(
+                    format("User must have licenses for the bundle vocabularies %s", unavailableIdsFromBundle.toString()), unavailableIdsFromBundle);
         }
     }
 
     public void checkBundleVocabularies(DownloadBundle bundle, Long userId) {
 
-        List<Long> bundleVocabularyV4Ids = bundle.getVocabularies().stream()
+        List<Integer> bundleVocabularyV4Ids = bundle.getVocabularies().stream()
                 .map(e -> e.getVocabularyConversion().getIdV4())
-                .map(Long::new)
                 .collect(toList());
         checkBundleVocabularies(bundleVocabularyV4Ids, userId);
     }
@@ -184,11 +188,11 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Long> idV4s) {
+    public DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Integer> idV4s) {
 
         final DownloadBundle result = downloadBundleRepository.save(bundle);
         List<DownloadItem> items = idV4s.stream()
-                .map(id -> new DownloadItem(result, new VocabularyConversion(id.intValue())))
+                .map(id -> new DownloadItem(result, new VocabularyConversion(id)))
                 .collect(Collectors.toList());
 
         result.setVocabularies(downloadItemRepository.save(items));

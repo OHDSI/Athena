@@ -22,8 +22,18 @@
 
 package com.odysseusinc.athena.service.aspect;
 
+import static java.lang.String.format;
+
+import com.odysseusinc.athena.exceptions.LicenseException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
-import com.odysseusinc.athena.service.ConceptService;
+import com.odysseusinc.athena.model.athena.VocabularyConversion;
+import com.odysseusinc.athena.model.athenav5.ConceptV5;
+import com.odysseusinc.athena.repositories.v5.ConceptV5Repository;
+import com.odysseusinc.athena.service.VocabularyConversionService;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +44,27 @@ import org.springframework.stereotype.Component;
 public class LicenseCheckAspect {
 
     @Autowired
-    private ConceptService conceptService;
+    private ConceptV5Repository conceptRepository;
+    @Autowired
+    private VocabularyConversionService vocabularyConversionService;
 
     @Before(value = "@annotation(com.odysseusinc.athena.service.aspect.LicenseCheck) && args(conceptId,..)")
     public void check(long conceptId) throws PermissionDeniedException {
 
-        if (!conceptService.checkLicense(conceptId)) {
-            throw new PermissionDeniedException();
+        List<VocabularyConversion> unavailable = vocabularyConversionService.getUnavailableVocabularyConversions();
+        ConceptV5 conceptV5 = conceptRepository.findOne(conceptId);
+
+        String conceptVocabularyIdV5 = conceptV5.getVocabulary().getId();
+
+        Optional<VocabularyConversion> protectedLicense = unavailable.stream()
+                .filter(e -> e.getIdV5().equals(conceptVocabularyIdV5))
+                .findAny();
+
+        if (protectedLicense.isPresent()) {
+            Integer idV4 = protectedLicense.get().getIdV4();
+            throw new LicenseException(
+                    format("User must have license for the vocabulary %d ", idV4),
+                    Collections.singletonList(idV4));
         }
     }
 }
