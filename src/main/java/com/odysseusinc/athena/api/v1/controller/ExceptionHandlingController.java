@@ -111,13 +111,10 @@ public class ExceptionHandlingController {
     }
 
     @ExceptionHandler(LicenseException.class)
-    public ResponseEntity<JsonResult> exceptionHandler(LicenseException ex) {
+    public ResponseEntity<LicenseExceptionDTO> exceptionHandler(LicenseException ex) {
 
         LOGGER.error(ex.getMessage(), ex);
-        JsonResult result = new JsonResult<>(PERMISSION_DENIED);
-        result.setErrorMessage(ex.getMessage());
-        result.setResult(new LicenseExceptionDTO(ex.getVocabularyIdV4s()));
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(new LicenseExceptionDTO(ex.getVocabularyIdV4s()), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(NotEmptyException.class)
