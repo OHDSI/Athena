@@ -127,7 +127,7 @@ public class VocabularyController {
     @ApiOperation("Save vocabularies.")
     @RequestMapping(value = "/save", method = RequestMethod.GET)
     public void save(@RequestParam(value = "cdmVersion", defaultValue = "5") float version,
-                     @RequestParam(value = "ids") List<Long> idV4s,
+                     @RequestParam(value = "ids") List<Integer> idV4s,
                      @RequestParam(value = "name") String bundleName,
                      HttpServletResponse response) throws IOException, PermissionDeniedException {
 

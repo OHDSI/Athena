@@ -39,13 +39,13 @@ public interface VocabularyService {
 
     void saveContent(DownloadBundle bundle, AthenaUser user);
 
-    DownloadBundle saveBundle(String bundleName, List<Long> idV4s, AthenaUser currentUser, CDMVersion version);
+    DownloadBundle saveBundle(String bundleName, List<Integer> idV4s, AthenaUser currentUser, CDMVersion version);
 
     List<DownloadBundleDTO> getDownloadHistory(Long userId);
 
     DownloadBundle getDownloadBundle(String uuid);
 
-    DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Long> idV4s);
+    DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Integer> idV4s);
 
     void restoreDownloadBundle(DownloadBundle downloadBundle) throws PermissionDeniedException;
 

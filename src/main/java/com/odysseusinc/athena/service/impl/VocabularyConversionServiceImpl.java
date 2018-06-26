@@ -63,15 +63,19 @@ public class VocabularyConversionServiceImpl implements VocabularyConversionServ
     @Override
     public List<String> getUnavailableVocabularies() throws PermissionDeniedException {
 
+        List<VocabularyConversion> conversions = getUnavailableVocabularyConversions();
+        return conversions.stream().map(VocabularyConversion::getIdV5).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<VocabularyConversion> getUnavailableVocabularyConversions() throws PermissionDeniedException {
+
         List<VocabularyConversion> conversions =
                 userService.currentUserExists() ?
-                vocabularyConversionRepository.unavailableVocabularies(userService.getCurrentUser().getId(), false) :
-                vocabularyConversionRepository.unavailableVocabularies();
+                        vocabularyConversionRepository.unavailableVocabularies(userService.getCurrentUser().getId(), false) :
+                        vocabularyConversionRepository.unavailableVocabularies();
 
-        if (CollectionUtils.isEmpty(conversions)) {
-            return Collections.emptyList();
-        }
-        return conversions.stream().map(VocabularyConversion::getIdV5).collect(Collectors.toList());
+        return CollectionUtils.isEmpty(conversions) ? Collections.emptyList() : conversions;
     }
 
     @Override
@@ -90,9 +94,8 @@ public class VocabularyConversionServiceImpl implements VocabularyConversionServ
     @Override
     public List<VocabularyConversion> findByOmopReqIsNotNull() {
 
-        return  vocabularyConversionRepository.findByOmopReqIsNotNull();
+        return vocabularyConversionRepository.findByOmopReqIsNotNull();
     }
-
 
 
 }

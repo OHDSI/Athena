@@ -32,6 +32,8 @@ public interface VocabularyConversionService {
 
     List<String> getUnavailableVocabularies() throws PermissionDeniedException;
 
+    List<VocabularyConversion> getUnavailableVocabularyConversions() throws PermissionDeniedException;
+
     List<VocabularyDTO> getUnavailableVocabularies(Long userId, boolean withoutPending);
 
     List<VocabularyConversion> findByOmopReqIsNull(Sort sort);
