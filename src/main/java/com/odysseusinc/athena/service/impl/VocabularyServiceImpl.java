@@ -221,9 +221,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     public void restoreDownloadBundle(DownloadBundle downloadBundle) throws PermissionDeniedException {
 
         AthenaUser currentUser = userService.getCurrentUser();
-        if (!currentUser.getId().equals(downloadBundle.getUserId())) {
-            throw new PermissionDeniedException();
-        }
+        checkBundleUser(currentUser, downloadBundle);
         if (!downloadBundle.isArchived()) {
             return;
         }
@@ -232,6 +230,13 @@ public class VocabularyServiceImpl implements VocabularyService {
         saveContent(downloadBundle, currentUser);
         LOGGER.info("Vocabulary restoring is started, bundle id: {}, user id: {}", downloadBundle.getId(),
                 currentUser.getId());
+    }
+
+    public void checkBundleUser(AthenaUser user, DownloadBundle bundle){
+
+        if (!user.getId().equals(bundle.getUserId())) {
+            throw new PermissionDeniedException();
+        }
     }
 
     @Override

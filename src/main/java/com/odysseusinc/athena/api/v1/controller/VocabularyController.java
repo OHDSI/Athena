@@ -34,6 +34,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.CustomPageImpl;
+import com.odysseusinc.athena.api.v1.controller.dto.LicenseExceptionDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.PageDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.VocabularyForNotificationDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.AcceptDTO;
@@ -197,6 +198,18 @@ public class VocabularyController {
         DownloadBundle downloadBundle = downloadBundleService.get(bundleId);
         vocabularyService.restoreDownloadBundle(downloadBundle);
         return new ResponseEntity<>(OK);
+    }
+
+    @ApiOperation("Check bundle.")
+    @RequestMapping(value = "/check/{id}", method = RequestMethod.GET)
+    public ResponseEntity checkBundle(@PathVariable("id") Long bundleId)
+            throws PermissionDeniedException {
+
+        DownloadBundle bundle = downloadBundleService.get(bundleId);
+        AthenaUser currentUser = userService.getCurrentUser();
+        vocabularyService.checkBundleUser(currentUser, bundle);
+        vocabularyService.checkBundleVocabularies(bundle, currentUser.getId());
+        return new ResponseEntity<>(new LicenseExceptionDTO(true), HttpStatus.OK);
     }
 
     @Secured("ROLE_ADMIN")

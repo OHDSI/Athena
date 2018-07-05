@@ -22,11 +22,12 @@
 
 package com.odysseusinc.athena.api.v1.controller.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LicenseExceptionDTO {
 
-    private List<Integer> vocabularyIds;
+    private List<Integer> vocabularyIds = new ArrayList<>();
     private boolean isAccessible = false;
 
     public LicenseExceptionDTO() {
@@ -37,19 +38,28 @@ public class LicenseExceptionDTO {
         this.vocabularyIds = vocabularyIds;
     }
 
+    public LicenseExceptionDTO(boolean isAccessible) {
+
+        this.isAccessible = isAccessible;
+    }
+
     public List<Integer> getVocabularyIds() {
+
         return vocabularyIds;
     }
 
     public void setVocabularyIds(List<Integer> vocabularyIds) {
+
         this.vocabularyIds = vocabularyIds;
     }
 
     public boolean isAccessible() {
+
         return isAccessible;
     }
 
     public void setAccessible(boolean accessible) {
+
         isAccessible = accessible;
     }
 }
