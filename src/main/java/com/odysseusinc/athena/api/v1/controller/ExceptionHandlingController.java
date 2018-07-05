@@ -114,7 +114,7 @@ public class ExceptionHandlingController {
     public ResponseEntity<LicenseExceptionDTO> exceptionHandler(LicenseException ex) {
 
         LOGGER.error(ex.getMessage(), ex);
-        return new ResponseEntity<>(new LicenseExceptionDTO(ex.getVocabularyIdV4s()), HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(new LicenseExceptionDTO(ex.getVocabularyIdV4s()), HttpStatus.OK);
     }
 
     @ExceptionHandler(NotEmptyException.class)
