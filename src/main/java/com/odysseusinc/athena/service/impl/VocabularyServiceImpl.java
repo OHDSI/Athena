@@ -24,7 +24,6 @@ package com.odysseusinc.athena.service.impl;
 
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
 import static java.lang.String.format;
-import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.ListUtils.intersection;
 import static org.thymeleaf.util.ListUtils.isEmpty;
@@ -62,6 +61,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -221,9 +221,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     public void restoreDownloadBundle(DownloadBundle downloadBundle) throws PermissionDeniedException {
 
         AthenaUser currentUser = userService.getCurrentUser();
-        if (!currentUser.getId().equals(downloadBundle.getUserId())) {
-            throw new PermissionDeniedException();
-        }
+        checkBundleUser(currentUser, downloadBundle);
         if (!downloadBundle.isArchived()) {
             return;
         }
@@ -232,6 +230,13 @@ public class VocabularyServiceImpl implements VocabularyService {
         saveContent(downloadBundle, currentUser);
         LOGGER.info("Vocabulary restoring is started, bundle id: {}, user id: {}", downloadBundle.getId(),
                 currentUser.getId());
+    }
+
+    public void checkBundleUser(AthenaUser user, DownloadBundle bundle){
+
+        if (ObjectUtils.notEqual(user.getId(), bundle.getUserId())) {
+            throw new PermissionDeniedException();
+        }
     }
 
     @Override

@@ -49,6 +49,8 @@ public interface VocabularyService {
 
     void restoreDownloadBundle(DownloadBundle downloadBundle) throws PermissionDeniedException;
 
+    void checkBundleUser(AthenaUser user, DownloadBundle bundle);
+
     Iterable<License> saveLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, LicenseStatus status);
 
     Long requestLicenses(AthenaUser user, Integer vocabularyV4Id);
