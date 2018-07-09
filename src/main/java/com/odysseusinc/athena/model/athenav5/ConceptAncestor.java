@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,11 +20,14 @@
  *
  */
 
-package com.odysseusinc.athena.model.common;
+package com.odysseusinc.athena.model.athenav5;
 
+import com.odysseusinc.athena.model.common.EntityV5;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -38,8 +41,10 @@ public class ConceptAncestor extends EntityV5 {
     private Long id;
 
     @NotBlank
-    @Column(name = "descendant_concept_id")
-    private Long descendantConceptId;
+    @ManyToOne(optional = false, targetEntity = SolrConcept.class)
+    @JoinColumn(name = "descendant_concept_id", referencedColumnName = "concept_id",
+            insertable = false, updatable = false)
+    private SolrConcept descendantConcept;
 
     @NotBlank
     @Column(name = "min_levels_of_separation")
@@ -57,16 +62,6 @@ public class ConceptAncestor extends EntityV5 {
     public void setId(Long id) {
 
         this.id = id;
-    }
-
-    public Long getDescendantConceptId() {
-
-        return descendantConceptId;
-    }
-
-    public void setDescendantConceptId(Long descendantConceptId) {
-
-        this.descendantConceptId = descendantConceptId;
     }
 
     public Integer getMinLevelsOfSeparation() {
@@ -88,4 +83,13 @@ public class ConceptAncestor extends EntityV5 {
 
         this.maxLevelsOfSeparation = maxLevelsOfSeparation;
     }
+
+    public SolrConcept getDescendantConcept() {
+        return descendantConcept;
+    }
+
+    public void setDescendantConcept(SolrConcept descendantConcept) {
+        this.descendantConcept = descendantConcept;
+    }
+
 }

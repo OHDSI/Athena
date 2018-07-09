@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,10 +29,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-/**
- * @author vkoulakov
- * @since 3/14/17.
- */
 public interface AthenaRoleRepository extends CrudRepository<AthenaRole, Long> {
     @Query("select r from AthenaRole r where name in (:names)")
     List<AthenaRole> findByNames(@Param("names") List<String> names);

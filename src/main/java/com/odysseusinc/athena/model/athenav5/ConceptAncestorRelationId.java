@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,10 +24,6 @@ package com.odysseusinc.athena.model.athenav5;
 
 import java.io.Serializable;
 
-/**
- * @author vkoulakov
- * @since 4/14/17.
- */
 public class ConceptAncestorRelationId implements Serializable {
     Long ancestorId;
     Long descendantId;

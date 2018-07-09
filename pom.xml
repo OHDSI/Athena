@@ -6,7 +6,7 @@
 
     <groupId>com.odysseusinc.athena</groupId>
     <artifactId>athena</artifactId>
-    <version>1.7.1</version>
+    <version>1.8.0</version>
     <packaging>jar</packaging>
 
 
@@ -34,7 +34,7 @@
         <javax.mail.version>1.4</javax.mail.version>
         <spring.context.support>4.3.7.RELEASE</spring.context.support>
         <dockerImagePrefix>hub.arachnenetwork.com</dockerImagePrefix>
-        <arachne.version>1.9.0-SNAPSHOT</arachne.version>
+        <arachne.version>1.13.0-SNAPSHOT</arachne.version>
         <disruptor.version>3.3.6</disruptor.version>
         <commons-lang3.version>3.0</commons-lang3.version>
         <build.number>${BUILD_NUMBER}</build.number>
@@ -79,6 +79,12 @@
             <id>test</id>
             <properties>
                 <env>test</env>
+            </properties>
+        </profile>
+        <profile>
+            <id>qa</id>
+            <properties>
+                <env>qa</env>
             </properties>
         </profile>
         <profile>

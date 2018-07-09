@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,6 +51,9 @@ public class VocabulariesSender extends MailSender {
     private String controlFilesUrl;
     @Value("${vocabularies.download.forum.url}")
     private String forumUrl;
+    @Value("${vocabularies.download.umls.url}")
+    private String umlsUrl;
+
     private FailedSendingToAdminSender failedSendingToAdminSender;
 
     public void send(AthenaUser user, String url, CDMVersion version) throws MessagingException, MailException {
@@ -83,6 +86,7 @@ public class VocabulariesSender extends MailSender {
         parameters.put("forumUrl", forumUrl);
         parameters.put("controlFilesUrl", controlFilesUrl);
         parameters.put("url", url);
+        parameters.put("umlsUrl", umlsUrl);
         parameters.put("version", String.valueOf((int) version.getValue()));
         return parameters;
     }
