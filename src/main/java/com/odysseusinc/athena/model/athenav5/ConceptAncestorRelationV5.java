@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -56,6 +56,23 @@ public class ConceptAncestorRelationV5 extends EntityV5 implements Serializable 
     private Boolean current;
     @Column
     private Integer depth;
+
+    public ConceptAncestorRelationV5() {
+    }
+
+    public ConceptAncestorRelationV5(Long id, String name, String conceptClassId, String vocabularyId, Long ancestorId,
+                                     Long descendantId, Integer weight, Boolean current, Integer depth) {
+
+        this.id = id;
+        this.name = name;
+        this.conceptClassId = conceptClassId;
+        this.vocabularyId = vocabularyId;
+        this.ancestorId = ancestorId;
+        this.descendantId = descendantId;
+        this.weight = weight;
+        this.current = current;
+        this.depth = depth;
+    }
 
     public Long getId() {
 

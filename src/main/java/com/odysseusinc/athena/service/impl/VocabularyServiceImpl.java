@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,13 +23,17 @@
 package com.odysseusinc.athena.service.impl;
 
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections.ListUtils.intersection;
+import static org.thymeleaf.util.ListUtils.isEmpty;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyToUserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
+import com.odysseusinc.athena.exceptions.LicenseException;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
@@ -42,7 +46,8 @@ import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadItemRepository;
 import com.odysseusinc.athena.repositories.athena.LicenseRepository;
 import com.odysseusinc.athena.repositories.athena.NotificationRepository;
-import com.odysseusinc.athena.repositories.athena.VocabularyConversionRepository;
+import com.odysseusinc.athena.service.ConceptService;
+import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.mail.LicenseAcceptanceSender;
 import com.odysseusinc.athena.service.mail.LicenseRequestSender;
@@ -56,6 +61,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +77,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     private static final String DEFAULT_SORT_COLUMN = "idV4";
     public static final Integer CPT4_ID_V4 = 4;
 
-    private VocabularyConversionRepository vocabularyConversionRepository;
+    private VocabularyConversionService vocabularyConversionService;
     private DownloadBundleRepository downloadBundleRepository;
     private DownloadItemRepository downloadItemRepository;
     private LicenseRepository licenseRepository;
@@ -81,9 +87,10 @@ public class VocabularyServiceImpl implements VocabularyService {
     private AsyncVocabularyService asyncVocabularyService;
     private NotificationRepository notificationRepository;
     private LicenseAcceptanceSender licenseAcceptanceSender;
+    private ConceptService conceptService;
 
     @Autowired
-    public VocabularyServiceImpl(VocabularyConversionRepository vocabularyConversionRepository,
+    public VocabularyServiceImpl(VocabularyConversionService vocabularyConversionService,
                                  DownloadBundleRepository downloadBundleRepository,
                                  DownloadItemRepository downloadItemRepository,
                                  LicenseRepository licenseRepository,
@@ -92,9 +99,10 @@ public class VocabularyServiceImpl implements VocabularyService {
                                  ConverterUtils converterUtils,
                                  AsyncVocabularyService asyncVocabularyService,
                                  NotificationRepository notificationRepository,
+                                 ConceptService conceptService,
                                  LicenseAcceptanceSender licenseAcceptanceSender) {
 
-        this.vocabularyConversionRepository = vocabularyConversionRepository;
+        this.vocabularyConversionService = vocabularyConversionService;
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadItemRepository = downloadItemRepository;
         this.licenseRepository = licenseRepository;
@@ -104,6 +112,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         this.asyncVocabularyService = asyncVocabularyService;
         this.notificationRepository = notificationRepository;
         this.licenseAcceptanceSender = licenseAcceptanceSender;
+        this.conceptService = conceptService;
     }
 
     @Override
@@ -112,29 +121,52 @@ public class VocabularyServiceImpl implements VocabularyService {
         Sort sort = new Sort(Sort.Direction.ASC, DEFAULT_SORT_COLUMN);
         AthenaUser user = userService.getCurrentUser();
         List<VocabularyDTO> vocabularyDTOs = converterUtils.convertList(
-                vocabularyConversionRepository.findByOmopReqIsNull(sort), VocabularyDTO.class);
+                vocabularyConversionService.findByOmopReqIsNull(sort), VocabularyDTO.class);
 
         return new VocabularyToUserVocabularyDTO(user.getLicenses()).convert(vocabularyDTOs);
     }
 
     @Override
-    public DownloadBundle saveBundle(String bundleName, List<Long> idV4s, AthenaUser currentUser, CDMVersion version) {
+    public DownloadBundle saveBundle(String bundleName, List<Integer> idV4s, AthenaUser currentUser, CDMVersion version) {
 
         String uuid = UUID.randomUUID().toString();
         LOGGER.info("Ready for save download items for bundle with name: [{}] and uuid: [{}], user id: [{}]",
                 bundleName, uuid, currentUser.getId());
 
-        List<Long> withOmopReqIdV4s = vocabularyConversionRepository.findByOmopReqIsNotNull()
+        List<Integer> withOmopReqIdV4s = vocabularyConversionService.findByOmopReqIsNotNull()
                 .stream()
                 .map(VocabularyConversion::getIdV4)
-                .map(Integer::longValue)
                 .collect(toList());
         withOmopReqIdV4s.addAll(idV4s);
+        checkBundleVocabularies(withOmopReqIdV4s, currentUser.getId());
 
         DownloadBundle bundle = buildDownloadBundle(version, uuid, bundleName, currentUser);
         bundle = saveDownloadItems(bundle, withOmopReqIdV4s);
         LOGGER.info("Download items are added, bundle: [{}]", bundle.toString());
         return bundle;
+    }
+
+    private void checkBundleVocabularies(List<Integer> bundleVocabularyIdV4s, Long userId) {
+
+        //PENDING licenses are not active
+        List<Integer> allUnavailableVocabularyIds = vocabularyConversionService.getUnavailableVocabularies(userId, false)
+                .stream()
+                .map(VocabularyDTO::getId)
+                .collect(Collectors.toList());
+
+        List<Integer> unavailableIdsFromBundle = intersection(allUnavailableVocabularyIds, bundleVocabularyIdV4s);
+        if (!isEmpty(unavailableIdsFromBundle)) {
+            throw new LicenseException(
+                    format("User must have licenses for the bundle vocabularies %s", unavailableIdsFromBundle.toString()), unavailableIdsFromBundle);
+        }
+    }
+
+    public void checkBundleVocabularies(DownloadBundle bundle, Long userId) {
+
+        List<Integer> bundleVocabularyV4Ids = bundle.getVocabularies().stream()
+                .map(e -> e.getVocabularyConversion().getIdV4())
+                .collect(toList());
+        checkBundleVocabularies(bundleVocabularyV4Ids, userId);
     }
 
     private DownloadBundle buildDownloadBundle(CDMVersion version, String uuid, String name, AthenaUser user) {
@@ -156,11 +188,11 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Long> idV4s) {
+    public DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Integer> idV4s) {
 
         final DownloadBundle result = downloadBundleRepository.save(bundle);
         List<DownloadItem> items = idV4s.stream()
-                .map(id -> new DownloadItem(result, new VocabularyConversion(id.intValue())))
+                .map(id -> new DownloadItem(result, new VocabularyConversion(id)))
                 .collect(Collectors.toList());
 
         result.setVocabularies(downloadItemRepository.save(items));
@@ -188,15 +220,23 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public void restoreDownloadBundle(DownloadBundle downloadBundle) throws PermissionDeniedException {
 
+        AthenaUser currentUser = userService.getCurrentUser();
+        checkBundleUser(currentUser, downloadBundle);
         if (!downloadBundle.isArchived()) {
             return;
         }
-
-        AthenaUser currentUser = userService.getCurrentUser();
+        checkBundleVocabularies(downloadBundle, currentUser.getId());
         asyncVocabularyService.updateStatus(downloadBundle, DownloadBundleStatus.PENDING);
         saveContent(downloadBundle, currentUser);
         LOGGER.info("Vocabulary restoring is started, bundle id: {}, user id: {}", downloadBundle.getId(),
                 currentUser.getId());
+    }
+
+    public void checkBundleUser(AthenaUser user, DownloadBundle bundle){
+
+        if (ObjectUtils.notEqual(user.getId(), bundle.getUserId())) {
+            throw new PermissionDeniedException();
+        }
     }
 
     @Override
@@ -207,6 +247,8 @@ public class VocabularyServiceImpl implements VocabularyService {
                 .collect(toList());
         List<License> result = new ArrayList<>();
         licenseRepository.save(licenses).iterator().forEachRemaining(result::add);
+
+        conceptService.invalidateGraphCache(user.getId());
         return result;
     }
 
@@ -219,15 +261,9 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public void deleteLicense(Long licenseId) {
 
+        License userLicense = licenseRepository.findOne(licenseId);
         licenseRepository.delete(licenseId);
-    }
-
-    @Override
-    public List<VocabularyDTO> missingAvailableForDownloadingLicenses(Long userId, boolean withoutPending) {
-
-        return converterUtils.convertList(
-                vocabularyConversionRepository.missingAvailableForDownloadingLicenses(userId,
-                        withoutPending), VocabularyDTO.class);
+        conceptService.invalidateGraphCache(userLicense.getUser().getId());
     }
 
     @Override
@@ -242,6 +278,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         } else {
             licenseRepository.delete(id);
         }
+        conceptService.invalidateGraphCache(user.getId());
         licenseAcceptanceSender.send(user, accepted, vocabularyName);
     }
 

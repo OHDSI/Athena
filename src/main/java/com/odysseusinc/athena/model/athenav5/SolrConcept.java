@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -44,7 +45,7 @@ public class SolrConcept extends EntityV5 {
     @Id
     @NotBlank
     @Column(name = "concept_id")
-    private Integer id;
+    private Long id;
 
     @NotNull
     @Column(name = "concept_name")
@@ -86,12 +87,12 @@ public class SolrConcept extends EntityV5 {
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<ConceptSynonymV5> synonyms;
 
-    public Integer getId() {
+    public Long getId() {
 
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
 
         this.id = id;
     }

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -97,7 +97,7 @@ public class ConceptController {
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Resource<ConceptDetailsDTO>> getConcept(@PathVariable Long id) {
 
-        ConceptV5 concept = conceptService.getById(id);
+        ConceptV5 concept = conceptService.getByIdWithLicenseCheck(id);
         Resource<ConceptDetailsDTO> conceptResource = new Resource<>(
                 conversionService.convert(concept, ConceptDetailsDTO.class),
                 linkTo(methodOn(ConceptController.class).getConcept(id)).withSelfRel());
@@ -149,10 +149,10 @@ public class ConceptController {
     public ResponseEntity<GroupedConceptRelationshipListDTO> relationships(
             @PathVariable Long id,
             @RequestParam(name = "relationshipId", required = false) String relationshipId,
-            @RequestParam(name = "std", required = false, defaultValue = "FALSE") Boolean standardsOnly) {
+            @RequestParam(name = "std", required = false, defaultValue = "FALSE") Boolean onlyStandard) {
 
         List<ConceptRelationship> relationships = conceptService.getConceptRelationships(id, relationshipId,
-                standardsOnly);
+                onlyStandard);
         List<ConceptRelationshipDTO> resultList = converterUtils.convertList(relationships,
                 ConceptRelationshipDTO.class);
 

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,6 @@ package com.odysseusinc.athena.service;
 
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.License;
@@ -40,23 +39,23 @@ public interface VocabularyService {
 
     void saveContent(DownloadBundle bundle, AthenaUser user);
 
-    DownloadBundle saveBundle(String bundleName, List<Long> idV4s, AthenaUser currentUser, CDMVersion version);
+    DownloadBundle saveBundle(String bundleName, List<Integer> idV4s, AthenaUser currentUser, CDMVersion version);
 
     List<DownloadBundleDTO> getDownloadHistory(Long userId);
 
     DownloadBundle getDownloadBundle(String uuid);
 
-    DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Long> idV4s);
+    DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Integer> idV4s);
 
     void restoreDownloadBundle(DownloadBundle downloadBundle) throws PermissionDeniedException;
+
+    void checkBundleUser(AthenaUser user, DownloadBundle bundle);
 
     Iterable<License> saveLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, LicenseStatus status);
 
     Long requestLicenses(AthenaUser user, Integer vocabularyV4Id);
 
     void deleteLicense(Long licenseId);
-
-    List<VocabularyDTO> missingAvailableForDownloadingLicenses(Long userId, boolean withoutPending);
 
     void acceptLicense(Long id, Boolean accepted);
 
@@ -69,4 +68,6 @@ public interface VocabularyService {
     void notifyAboutUpdates(Long userId, Integer vocabularyId, boolean notify);
 
     List<Notification> getNotifications(Long userId);
-}
+
+    void checkBundleVocabularies(DownloadBundle bundle, Long userId);
+    }

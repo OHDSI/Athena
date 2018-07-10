@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,7 +36,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 
 public interface ConceptService {
 
-    ConceptV5 getById(Long id);
+    ConceptV5 getByIdWithLicenseCheck(Long conceptId);
 
     ConceptSearchResultDTO search(ConceptSearchDTO searchDTO) throws IOException, SolrServerException;
 
@@ -44,9 +44,11 @@ public interface ConceptService {
 
     String getSearchedConceptsFileName();
 
-    List<ConceptAncestorRelationV5> getRelations(Long id, Integer depth) throws ExecutionException;
+    List<ConceptAncestorRelationV5> getRelations(Long conceptId, Integer depth) throws ExecutionException;
 
-    List<ConceptRelationship> getConceptRelationships(Long id, String relationshipId, Boolean standardsOnly);
+    List<ConceptRelationship> getConceptRelationships(Long conceptId, String relationshipId, Boolean onlyStandard);
 
     List<RelationshipV5> getAllRelationships(Long conceptId);
+
+    void invalidateGraphCache(Long userId);
 }

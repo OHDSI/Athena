@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Observational Health Data Sciences and Informatics
+ * Copyright 2018 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,9 +29,11 @@ import static com.odysseusinc.athena.util.JsonResult.ErrorCode.PERMISSION_DENIED
 import static com.odysseusinc.athena.util.JsonResult.ErrorCode.SYSTEM_ERROR;
 import static com.odysseusinc.athena.util.JsonResult.ErrorCode.VALIDATION_ERROR;
 
+import com.odysseusinc.athena.api.v1.controller.dto.LicenseExceptionDTO;
 import com.odysseusinc.athena.exceptions.AlreadyExistException;
 import com.odysseusinc.athena.exceptions.FieldException;
 import com.odysseusinc.athena.exceptions.IORuntimeException;
+import com.odysseusinc.athena.exceptions.LicenseException;
 import com.odysseusinc.athena.exceptions.NotEmptyException;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
@@ -106,6 +108,13 @@ public class ExceptionHandlingController {
         JsonResult result = new JsonResult<>(PERMISSION_DENIED);
         result.setErrorMessage(ex.getMessage());
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @ExceptionHandler(LicenseException.class)
+    public ResponseEntity<LicenseExceptionDTO> exceptionHandler(LicenseException ex) {
+
+        LOGGER.error(ex.getMessage(), ex);
+        return new ResponseEntity<>(new LicenseExceptionDTO(ex.getVocabularyIdV4s()), HttpStatus.OK);
     }
 
     @ExceptionHandler(NotEmptyException.class)
