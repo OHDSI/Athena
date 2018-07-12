@@ -45,7 +45,7 @@ public class InvalidConceptCPT4V5Saver extends ConceptCPT4V5Saver {
     @Override
     protected String query() {
 
-        return "SELECT * FROM concept WHERE vocabulary_id in (?) AND invalid_reason is not null";
+        return "SELECT * FROM concept WHERE vocabulary_id in (?) AND valid_end_date <= now()";
     }
 
     @Override
