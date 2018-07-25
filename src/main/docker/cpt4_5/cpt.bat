@@ -10,6 +10,7 @@ if %_argcActual% NEQ %_argcExpected% (
   goto:_EOF
 )
 java -Dumls-user=%1 -Dumls-password=%2 --add-modules=java.xml.ws  -jar cpt4.jar 5
+set _exitStatus=%ERRORLEVEL%
 goto:_EOF
 :_ShowUsage  
 echo [USAGE]: %~1 login password 
