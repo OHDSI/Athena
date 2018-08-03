@@ -9,7 +9,13 @@ if %_argcActual% NEQ %_argcExpected% (
   set _exitStatus=1  
   goto:_EOF
 )
+
+FOR /f tokens^=2-5^ delims^=.-_^" %%j IN ('java -fullversion 2^>^&1') DO SET "jver=%%j%%k"
+IF %jver% GTR 18 (
 java -Dumls-user=%1 -Dumls-password=%2 --add-modules=java.xml.ws  -jar cpt4.jar 4
+) ELSE (
+java -Dumls-user=%1 -Dumls-password=%2 -jar cpt4.jar 4
+)
 set _exitStatus=%ERRORLEVEL%
 goto:_EOF
 :_ShowUsage  
