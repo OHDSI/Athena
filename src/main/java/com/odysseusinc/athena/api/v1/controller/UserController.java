@@ -71,6 +71,12 @@ public class UserController {
     @Value("${arachne.portal.professionalTypesPath}")
     private String professionalTypesPath;
 
+    @Value("${arachne.portal.countriesPath}")
+    private String countriesPath;
+
+    @Value("${arachne.portal.provincePath}")
+    private String provincePath;
+
     @Value("${arachne.portal.registerPath}")
     private String registerPath;
 
@@ -127,6 +133,51 @@ public class UserController {
 
         return responseEntity.getBody();
     }
+
+    @RequestMapping(value = "/countries", method = GET)
+    public JsonResult searchCountries(
+						@RequestParam("query") String query,
+						@RequestParam("limit") Integer limit,
+						@RequestParam(value = "includeId", required = false) Long includeId
+		) {
+    		String uri = UriComponentsBuilder
+								.fromUriString(arachneUrl)
+								.replacePath(countriesPath)
+								.queryParam("query", query)
+								.queryParam("limit", limit)
+								.queryParam("includeId", includeId)
+								.toUriString();
+    		ResponseEntity<JsonResult> responseEntity = restTemplate.exchange(
+    						uri,
+								HttpMethod.GET,
+								null,
+								JsonResult.class
+				);
+    		return responseEntity.getBody();
+		}
+
+		@RequestMapping(value = "/provinces", method = GET)
+		public JsonResult searchProvinces(
+						@RequestParam("countryId") String countryIdParam,
+						@RequestParam("query") String query,
+						@RequestParam("limit") Integer limit,
+						@RequestParam(value = "includeId", required = false) String includeIdParam
+		) {
+    		String uri = UriComponentsBuilder
+								.fromUriString(arachneUrl)
+								.replacePath(provincePath)
+								.queryParam("countryId", countryIdParam)
+								.queryParam("query", query)
+								.queryParam("limit", limit)
+								.queryParam("includeId", includeIdParam)
+								.toUriString();
+    		ResponseEntity<JsonResult> responseEntity = restTemplate.exchange(
+    						uri,
+								HttpMethod.GET,
+								null,
+								JsonResult.class);
+    		return responseEntity.getBody();
+		}
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity register(@RequestBody CommonUserRegistrationDTO dto) throws PermissionDeniedException {
