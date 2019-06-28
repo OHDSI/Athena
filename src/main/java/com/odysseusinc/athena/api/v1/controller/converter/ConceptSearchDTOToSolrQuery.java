@@ -76,12 +76,50 @@ public class ConceptSearchDTOToSolrQuery {
         String resultQuery = "*:*";
         String sourceQuery = source.getQuery().trim();
         if (!StringUtils.isEmpty(sourceQuery)) {
+
+            //escaping all special query chars except whitespace
             sourceQuery = sourceQuery.replaceAll("[\"+\\-!(){}\\[\\]^~*?:&\\\\/]", "\\\\$0");
+
+            boolean isExactMatch = sourceQuery.startsWith("\\\"") && sourceQuery.endsWith("\\\"");
+            if (isExactMatch) {
+                //this is "exact-matching" mode
+                sourceQuery = sourceQuery.substring(2, sourceQuery.length() - 2);
+                resultQuery = String.format(" concept_name:%1$s^3 OR concept_code:%1$s^2", sourceQuery);
+            } else {
+                //here we specify priorities of searching fields
+                resultQuery = String.format(" concept_name_ci:%1$s^4 OR concept_code_ci:%1$s^4", sourceQuery);
+            }
             List<String> splited = asList(StringUtils.split(sourceQuery));
-            splited = splited.stream().map(e -> " query:" + e + "* ").collect(Collectors.toList());
-            resultQuery = String.join(solrQueryOperator, splited);
+            splited = splited.stream()
+                    //here we specify priorities of searching fields 
+                    .map(e -> {
+                        String search = String.format(" (concept_code_text:%1$s^3 OR " +
+                                "concept_name_text:%1$s^3 OR " +
+                                "concept_code_text:*%1$s*^2 OR ", e);
+                        search += isExactMatch ? String.format("query:%1$s*) ", e) : String.format("query_wo_symbols:%1$s*) ", e);
+                        return search;
+                    })
+                    .collect(Collectors.toList());
+            //the query string will be as follow:
+
+            // concept_name_ci:aspirin^4 OR 
+            // concept_code_ci:aspirin^4 OR 
+            // (concept_code_text:aspirin^3 OR 
+            // concept_name_text:aspirin^3 OR 
+            // concept_code_text:*aspirin*^2 OR 
+            // query_wo_symbols:aspirin*)
+
+            //which means that the order of results will be:
+            //1) results with exact query string (but case insensitive) in "concept_name"
+            //2) results with exact query string (but case insensitive) in "concept_code"
+            //3) results with exact query string (but case insensitive) plus other words in "concept_code"
+            //4) results with exact query string (but case insensitive) plus other words in "concept_name"
+            //5) results with partial matching of query string plus other words in "concept_code"
+            //6) results with partial matching of query string (regardless of brackets, parentheses and braces in "non-exact-matching mode") in "query"
+            resultQuery = resultQuery + " OR " + String.join(solrQueryOperator, splited);
         }
         result.setQuery(resultQuery);
+        result.setSort("score", SolrQuery.ORDER.desc);
     }
 
     private void setFilters(ConceptSearchDTO source, SolrQuery result) {
