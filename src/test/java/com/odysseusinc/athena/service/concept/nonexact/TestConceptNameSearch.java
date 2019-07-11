@@ -4,7 +4,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.text.IsEqualIgnoringCase.equalToIgnoringCase;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
@@ -36,7 +35,7 @@ public class TestConceptNameSearch {
     private Environment environment;
     private ConceptSearchDTO searchDTO;
     private final static String ASPIRIN = "aspirin";
-    private final static String QUILLAIA = "Quillaia liquid extract";
+    private final static String QUILLAIA = "quillaia liquid extract";
 
     @Before
     public void init() {
@@ -60,8 +59,7 @@ public class TestConceptNameSearch {
                 .collect(Collectors.toList());
 
         //Assert
-        assertEquals(12, resultNames.size());
-        assertTrue(resultNames.stream().allMatch(name -> name.toLowerCase().contains(ASPIRIN)));
+        assertEquals(14, resultNames.stream().filter(r -> r.toLowerCase().contains(ASPIRIN)).count());
         //check that first results are the most relevant
         assertThat(resultNames.get(0), equalToIgnoringCase(ASPIRIN));
     }
@@ -82,8 +80,11 @@ public class TestConceptNameSearch {
                 .collect(Collectors.toList());
 
         //Assert
-        assertEquals(12, resultNames.size());
-        assertTrue(resultNames.stream().allMatch(name -> name.toLowerCase().contains(ASPIRIN)));
+        assertEquals(10, resultNames.stream().
+                filter(r ->
+                        r.contains("[") || r.contains("]") || r.contains("{") || r.contains("}") || r.contains("(") || r.contains(")"))
+                .count());
+        assertEquals(13, resultNames.size());
         //check that first results are the most relevant
         assertThat(resultNames.get(0), equalToIgnoringCase(query));
         assertThat(resultNames.get(1), equalToIgnoringCase(query));
@@ -152,15 +153,15 @@ public class TestConceptNameSearch {
                 .map(ConceptDTO::getName)
                 .collect(Collectors.toList());
         //Assert
-        assertEquals(13, resultNames.size());
-        assertEquals(12, resultNames.stream().filter(name -> name.toLowerCase().contains(ASPIRIN)).count());
+        assertEquals(14, resultNames.stream().filter(name -> name.toLowerCase().contains(ASPIRIN)).count());
+        assertEquals(1, resultNames.stream().filter(name -> name.toLowerCase().contains(QUILLAIA)).count());
         //check that first results are the most relevant
-        assertThat(resultNames.get(0), equalToIgnoringCase(QUILLAIA));
-        assertThat(resultNames.get(1), equalToIgnoringCase(ASPIRIN));
+        assertThat(resultNames.get(0), equalToIgnoringCase(ASPIRIN));
+        assertThat(resultNames.get(1), equalToIgnoringCase(QUILLAIA));
     }
 
     @Test
-    public void testSearchQueryWithLetterInTheBeginning() throws Exception {
+    public void testFuzzySearchWithTypo() throws Exception {
 
         //Arrange
         String query = "f" + ASPIRIN;
@@ -175,26 +176,7 @@ public class TestConceptNameSearch {
                 .collect(Collectors.toList());
 
         //Assert
-        assertEquals(0, resultNames.size());
-    }
-
-    @Test
-    public void testSearchQueryWithLetterInTheEnd() throws Exception {
-
-        //Arrange
-        String query = ASPIRIN + "f";
-        searchDTO.setQuery(query);
-
-        //Action
-        ConceptSearchResultDTO resultDTO = conceptService.search(searchDTO);
-
-        List<String> resultNames = resultDTO.getContent()
-                .stream()
-                .map(ConceptDTO::getName)
-                .collect(Collectors.toList());
-
-        //Assert
-        assertEquals(0, resultNames.size());
+        assertEquals(14, resultNames.size());
     }
 
     @Test
