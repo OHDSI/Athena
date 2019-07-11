@@ -137,6 +137,7 @@
 
 
     <copyField source="id" dest="query"/>
+    <copyField source="id" dest="query_wo_symbols"/>
     <copyField source="concept_code" dest="query"/>
     <copyField source="concept_code" dest="query_wo_symbols"/>
     <copyField source="concept_code" dest="concept_code_ci"/>
