@@ -1,0 +1,28 @@
+vocabulary_id	vocabulary_name	vocabulary_reference	vocabulary_version	vocabulary_concept_id
+Cost Type	OMOP Cost Type	OMOP generated		5029
+Concept Class	OMOP Concept Class	OMOP generated		44819233
+UCUM	Unified Code for Units of Measure (Regenstrief Institute)	http://aurora.regenstrief.org/~ucum/ucum.html#section-Alphabetic-Index	Version 1.8.2	44819107
+Drug Type	OMOP Drug Exposure Type	OMOP generated		44819126
+Plan Stop Reason	Plan Stop Reason - Reason for termination of the Health Plan	OMOP generated		32474
+Device Type	OMOP Device Type	OMOP generated		44819151
+Plan	Health Plan - contract to administer healthcare transactions by the payer                                                                                                      ,facilitated by the sponsor	OMOP generated		32471
+PHDSC	Source of Payment Typology (PHDSC)	http://www.phdsc.org/standards/payer-typology-source.asp	Version 3.0	32473
+Cohort Type	OMOP Cohort Type	OMOP generated		44819234
+UB04 Pri Typ of Adm	UB04 Claim Inpatient Admission Type Code (CMS)	https://www.resdac.org/cms-data/variables/Claim-Inpatient-Admission-Type-Code		32046
+Death Type	OMOP Death Type	OMOP generated		44819135
+Domain	OMOP Domain	OMOP generated		44819147
+Visit Type	OMOP Visit Type	OMOP generated		44819150
+Note Type	OMOP Note Type	OMOP generated		44819146
+Episode	OMOP Episode	OMOP generated		32523
+Visit	OMOP Visit	OMOP generated		44819119
+Condition Type	OMOP Condition Occurrence Type	OMOP generated		44819127
+Procedure Type	OMOP Procedure Occurrence Type	OMOP generated		44819128
+Meas Type	OMOP Measurement Type	OMOP generated		44819152
+Cost	OMOP Cost	OMOP generated		581457
+SNOMED	Systematic Nomenclature of Medicine - Clinical Terms (IHTSDO)	http://www.nlm.nih.gov/research/umls/licensedcontent/umlsknowledgesources.html	Snomed Release 20190131	44819097
+None	OMOP Standardized Vocabularies	OMOP generated	v5.0 17-JUN-19	44819096
+CDM	OMOP Common DataModel	https://github.com/OHDSI/CommonDataModel	CDM v6.0.0	32485
+UB04 Typ bill	UB04 Type of Bill - Institutional (USHIK)	https://ushik.ahrq.gov/ViewItemDetails?&system=apcd&itemKey=196987000		32044
+Vocabulary	OMOP Vocabulary	OMOP generated		44819232
+Relationship	OMOP Relationship	OMOP generated		44819235
+Obs Period Type	OMOP Observation Period Type	OMOP generated		44819149

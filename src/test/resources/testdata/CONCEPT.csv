@@ -1,0 +1,28 @@
+concept_id	concept_name	domain_id	vocabulary_id	concept_class_id	standard_concept	concept_code	valid_start_date	valid_end_date	invalid_reason
+45956931	Self-emulsifying glyceryl monostearate	Observation	SNOMED	Substance	S	3578611000001105	19700101	20991231	
+45956935	zaspirin	Observation	SNOMED	Substance	S	12345	19700101	20991231	
+45956943	zaspirbinw	Observation	SNOMED	Substance	S	0012345	19700101	20991231	
+45956945	[aspirin]	Observation	SNOMED	Substance	S	0012300	19700101	20991231	
+45956950	[Aspirin]	Observation	SNOMED	Substance	S	3563811000001107	19700101	20991231	
+45956951	[Aspirin	Observation	SNOMED	Substance	S	00123	19700101	20991231	
+45956953	Aspirin]	Observation	SNOMED	Substance	S	3331111000001106	19700101	20991231	
+45956958	(Aspirin)	Observation	SNOMED	Substance	S	123	19700101	20991231	
+45956966	Glucose anhydrous	Observation	SNOMED	Substance	S	3589411000001109	19700101	20991231	
+45956967	Rice powder pre-cooked	Observation	SNOMED	Substance	S	3541311000001106	19700101	20991231	
+45956968	(Aspirin	Observation	SNOMED	Substance	S	123-45	19700101	20991231	
+45956973	Aspirin)	Observation	SNOMED	Substance	S	14676611000001104	20081106	20991231	
+45956978	{Aspirin}	Observation	SNOMED	Substance	S	66 77 12345	19700101	20991231	
+45956984	Ammonia solution dilute	Observation	SNOMED	Substance	S	3732411000001107	19700101	20991231	
+45956987	{Aspirin	Observation	SNOMED	Substance	S	3755411000001103	19700101	20991231	
+45956988	Aspirin}	Observation	SNOMED	Substance	S	a12345	19700101	20991231	
+45956994	aspirin	Observation	SNOMED	Substance	S	16662511000001103	20100202	20991231	
+45957002	Isopentane	Observation	SNOMED	Substance	S	3899211000001107	19700101	20991231	
+45957005	aspin	Observation	SNOMED	Substance	S	3948711000001107	19700101	20991231	
+45957009	bdaspirin	Observation	SNOMED	Substance	S	4030111000001102	19700101	20991231	
+45957014	bdaspir	Observation	SNOMED	Substance	S	4034011000001105	19700101	20991231	
+45957015	ibuprofen	Observation	SNOMED	Substance	S	4032111000001103	19700101	20991231	
+45957020	ibup aspirin	Observation	SNOMED	Substance	S	4119611000001104	19700101	20991231	
+45957026	Cobaltous sulfate monohydrate	Observation	SNOMED	Substance	S	4173611000001105	19700101	20991231	
+45957031	Orotic acid anhydrous	Observation	SNOMED	Substance	S	4174711000001104	19700101	20991231	
+45957032	Potassium sulfate	Observation	SNOMED	Substance	S	4174911000001102	19700101	20991231	
+45957036	Quillaia liquid extract	Observation	SNOMED	Substance	S	4246811000001104	19700101	20991231	
