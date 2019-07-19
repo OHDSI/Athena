@@ -196,4 +196,27 @@ public class TestConceptNameSearch {
         //Assert
         assertEquals(0, resultNames.size());
     }
+
+    @Test
+    public void testSearchExactAndNonExact() throws Exception {
+
+        //test for solr.default.query.operator = OR
+        Assume.assumeThat(environment.getProperty("solr.default.query.operator"), is("OR"));
+
+        //Arrange
+        searchDTO.setQuery("\"f" + ASPIRIN + "\" " + QUILLAIA);
+
+        //Action
+        ConceptSearchResultDTO resultDTO = conceptService.search(searchDTO);
+
+        List<String> resultNames = resultDTO.getContent()
+                .stream()
+                .map(ConceptDTO::getName)
+                .collect(Collectors.toList());
+
+        //Assert
+        assertEquals(1, resultNames.size());
+        assertEquals(0, resultNames.stream().filter(r -> r.toLowerCase().contains(ASPIRIN)).count());
+        assertThat(resultNames.get(0), equalToIgnoringCase(QUILLAIA));
+    }
 }

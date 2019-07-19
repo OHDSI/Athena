@@ -22,17 +22,21 @@
 
 package com.odysseusinc.athena.api.v1.controller.converter;
 
-import static java.util.Arrays.asList;
 import static org.apache.solr.common.params.CommonParams.FQ;
 import static org.hibernate.validator.internal.util.StringHelper.join;
 
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.SortClause;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +52,7 @@ public class ConceptSearchDTOToSolrQuery {
     public static final String VOCABULARY_ID = "vocabulary_id";
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
+    private static final String REPLACEMENT_STRING = "replacementString";
 
     @Autowired
     LimitChecker limitChecker;
@@ -77,66 +82,78 @@ public class ConceptSearchDTOToSolrQuery {
         String resultQuery = "*:*";
         String sourceQuery = source.getQuery().trim();
         if (!StringUtils.isEmpty(sourceQuery)) {
+            String queryWoQuotes = ClientUtils.escapeQueryChars(StringUtils.remove(sourceQuery, "\""));
+            resultQuery = String.format(" concept_name_ci:%1$s^9 OR concept_code_ci:%1$s^8 OR " + getComponentsOfQueryField(8), queryWoQuotes);
 
-            //escaping all special query chars except whitespace
-            sourceQuery = ClientUtils.escapeQueryChars(sourceQuery);
-
-            boolean isExactMatch = sourceQuery.startsWith("\\\"") && sourceQuery.endsWith("\\\"");
-            if (isExactMatch) {
-                //this is "exact-matching" mode
-                sourceQuery = sourceQuery.substring(2, sourceQuery.length() - 2);
-                resultQuery = String.format(" concept_name:%1$s^3 OR concept_code:%1$s^2 OR id:%1$s " +
-                        "OR concept_class_id:%1$s OR domain_id:%1$s OR vocabulary_id:%1$s OR standard_concept:%1$s " +
-                        "OR invalid_reason:%1$s OR concept_synonym_name:%1$s", sourceQuery);
-            } else {
-                //here we specify priorities of searching fields
-                resultQuery = String.format(" concept_name_ci:%1$s^8 OR concept_code_ci:%1$s^8", sourceQuery);
-
-                List<String> split = asList(sourceQuery.split("\\\\ "));
-                List<String> fuzzyTerms = split.stream()
-                        .map(t -> t + "~")
-                        .collect(Collectors.toList());
-                resultQuery = resultQuery + " OR concept_name_text:(" + String.join(" AND ", fuzzyTerms) + ")^7";
-                split = split.stream()
-                        //here we specify priorities of searching fields 
-                        .map(e -> String.format("(concept_name_ci:%1$s^6 OR " +
-                                "concept_name_ci:%1$s~0.6^5 OR " +
-                                "concept_name_text:%1$s^4 OR " +
-                                "concept_name_text:%1$s~^3 OR " +
-                                "concept_code_text:%1$s^3 OR " +
-                                "concept_code_text:*%1$s*^2 OR query_wo_symbols:%1$s*)", e))
-                        .collect(Collectors.toList());
-
-                //the query string will be as follow:
-
-                // concept_name_ci:aspirin^8 OR 
-                // concept_code_ci:aspirin^8 OR 
-                // concept_name_text:(aspirin~)^7 OR 
-                // (concept_name_ci:aspirin^6 OR 
-                //      concept_name_ci:aspirin~0.6^5 OR 
-                //      concept_name_text:aspirin^4 OR 
-                //      concept_name_text:aspirin~^3 OR 
-                //      concept_code_text:aspirin^3 OR 
-                //      concept_code_text:*aspirin*^2 OR 
-                //      query_wo_symbols:aspirin*)
-
-                //which means that the order of results will be:
-                //for the whole phrase in query:
-                //1) results with exact query string (case insensitive) in "concept name"
-                //2) results with exact query string (case insensitive) in "concept code"
-                //3) results with possible typos (case insensitive) in "concept name"
-                //for split words in query:
-                //4) results with exact query string (case insensitive) in "concept name"
-                //5) results with possible typos (case insensitive) in "concept name"
-                //6) results with exact query string (case insensitive) plus other words in "concept name"
-                //7) results with exact query string (case insensitive) plus other words in "concept code"
-                //8) results with partial matching of query string plus other words in "concept code"
-                //9) results with partial matching of query string (regardless of brackets, parentheses and braces in "non-exact-matching mode") in "query"
-                resultQuery = resultQuery + " OR " + String.join(solrQueryOperator, split);
+            List<String> exacts = new ArrayList<>();
+            Matcher matcher = Pattern.compile("\".+?\"").matcher(sourceQuery);
+            while (matcher.find()) {
+                String exact = matcher.group();
+                exacts.add(ClientUtils.escapeQueryChars(exact.substring(1, exact.length() - 1)));
             }
+            String queryWoExact = sourceQuery.replaceAll("\".+?\"", REPLACEMENT_STRING);
+            queryWoExact = ClientUtils.escapeQueryChars(queryWoExact);
+            List<String> allTerms = Arrays.asList(queryWoExact.split("\\\\ "));
+            if (allTerms.stream().filter(s -> s.contains(REPLACEMENT_STRING)).count() < allTerms.size()) {
+                //there are "not exact" words in query
+                if (exacts.size() > 0) {
+                    for (int i = 0; i < exacts.size(); i++) {
+                        boolean isReplaced = false;
+                        for (int j = 0; j < allTerms.size(); j++) {
+                            if (allTerms.get(j).contains(REPLACEMENT_STRING) && !isReplaced) {
+                                allTerms.set(j, exacts.get(i));
+                                isReplaced = true;
+                            } else {
+                                allTerms.set(j, allTerms.get(j) + "~");
+                            }
+                        }
+                    }
+                } else {
+                    for (int j = 0; j < allTerms.size(); j++) {
+                        allTerms.set(j, allTerms.get(j) + "~");
+                    }
+                }
+                resultQuery = resultQuery + " OR concept_name_text:(" + String.join(" AND ", allTerms) + ")^7";
+            } else {
+                allTerms = exacts;
+            }
+            allTerms = allTerms.stream()
+                    //here we specify priorities of searching fields 
+                    .map(e -> {
+                        if (e.endsWith("~")) {
+                            e = e.substring(0, e.length() - 1);
+                            return String.format("(concept_name_ci:%1$s^6 OR " +
+                                    "concept_name_ci:%1$s~0.6^5 OR " +
+                                    "concept_name_text:%1$s^4 OR " +
+                                    "concept_name_text:%1$s~^3 OR " +
+                                    "concept_code_text:%1$s^3 OR " +
+                                    "concept_code_text:*%1$s*^2 OR " +
+                                    "query_wo_symbols:%1$s*)", e);
+                        } else {
+                            return String.format("(concept_name_ci:%1$s^6 OR concept_code_ci:%1$s^5 OR " + getComponentsOfQueryField(4) + ")", e);
+                        }
+                    })
+                    .collect(Collectors.toList());
+            resultQuery = resultQuery + " OR " + String.join(solrQueryOperator, allTerms);
         }
         result.setQuery(resultQuery);
-        result.setSort("score", SolrQuery.ORDER.desc);
+        SortClause sortByScore = new SortClause("score", SolrQuery.ORDER.desc);
+        SortClause sortByConceptName = new SortClause("concept_name_ci", SolrQuery.ORDER.asc);
+        result.setSort(sortByScore);
+        result.addSort(sortByConceptName);
+    }
+
+    private String getComponentsOfQueryField(int priority) {
+
+        return "id:%1$s^" + priority + " OR " +
+                "concept_code:%1$s^" + priority + " OR " +
+                "concept_name:%1$s^" + priority + " OR " +
+                "concept_class_id:%1$s^" + priority + " OR " +
+                "domain_id:%1$s^" + priority + " OR " +
+                "vocabulary_id:%1$s^" + priority + " OR " +
+                "standard_concept:%1$s^" + priority + " OR " +
+                "invalid_reason:%1$s^" + priority + " OR " +
+                "concept_synonym_name:%1$s^" + priority;
     }
 
     private void setFilters(ConceptSearchDTO source, SolrQuery result) {

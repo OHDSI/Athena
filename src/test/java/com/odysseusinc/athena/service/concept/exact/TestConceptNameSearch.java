@@ -27,8 +27,7 @@ public class TestConceptNameSearch {
     @Autowired
     private ConceptService conceptService;
     private ConceptSearchDTO searchDTO;
-    private final static String ASPIRIN_LOWER = "aspirin";
-    private final static String ASPIRIN_UPPER = "Aspirin";
+    private final static String ASPIRIN = "aspirin";
 
     @Before
     public void init() {
@@ -41,7 +40,7 @@ public class TestConceptNameSearch {
     public void testSearchWithoutBrackets() throws Exception {
 
         //Arrange
-        searchDTO.setQuery("\"" + ASPIRIN_LOWER + "\"");
+        searchDTO.setQuery("\"" + ASPIRIN + "\"");
 
         //Action
         ConceptSearchResultDTO resultDTO = conceptService.search(searchDTO);
@@ -53,14 +52,14 @@ public class TestConceptNameSearch {
 
         //Assert
         assertEquals(1, resultNames.size());
-        assertEquals(resultNames.get(0), ASPIRIN_LOWER);
+        assertEquals(resultNames.get(0), ASPIRIN);
     }
 
     @Test
-    public void testSearchLowerWithBrackets() throws Exception {
+    public void testSearchWithBrackets() throws Exception {
 
         //Arrange
-        searchDTO.setQuery("\"[" + ASPIRIN_LOWER + "]\"");
+        searchDTO.setQuery("\"[" + ASPIRIN + "]\"");
 
         //Action
         ConceptSearchResultDTO resultDTO = conceptService.search(searchDTO);
@@ -71,27 +70,9 @@ public class TestConceptNameSearch {
                 .collect(Collectors.toList());
 
         //Assert
-        assertEquals(1, resultNames.size());
+        assertEquals(2, resultNames.size());
         assertEquals(resultNames.get(0), "[aspirin]");
-    }
-
-    @Test
-    public void testSearchUpperWithBrackets() throws Exception {
-
-        //Arrange
-        searchDTO.setQuery("\"[" + ASPIRIN_UPPER + "]\"");
-
-        //Action
-        ConceptSearchResultDTO resultDTO = conceptService.search(searchDTO);
-
-        List<String> resultNames = resultDTO.getContent()
-                .stream()
-                .map(ConceptDTO::getName)
-                .collect(Collectors.toList());
-
-        //Assert
-        assertEquals(1, resultNames.size());
-        assertEquals(resultNames.get(0), "[Aspirin]");
+        assertEquals(resultNames.get(1), "[Aspirin]");
     }
 
     @Test
