@@ -97,11 +97,11 @@ public class ConceptSearchDTOToSolrQuery {
             if (allTerms.stream().filter(s -> s.contains(REPLACEMENT_STRING)).count() < allTerms.size()) {
                 //there are "not exact" words in query
                 if (exacts.size() > 0) {
-                    for (int i = 0; i < exacts.size(); i++) {
+                    for (String exact : exacts) {
                         boolean isReplaced = false;
                         for (int j = 0; j < allTerms.size(); j++) {
                             if (allTerms.get(j).contains(REPLACEMENT_STRING) && !isReplaced) {
-                                allTerms.set(j, exacts.get(i));
+                                allTerms.set(j, exact);
                                 isReplaced = true;
                             } else {
                                 allTerms.set(j, allTerms.get(j) + "~");
@@ -144,7 +144,9 @@ public class ConceptSearchDTOToSolrQuery {
     }
 
     private String getComponentsOfQueryField(int priority) {
-
+        //field "query" is specified in SOLR's managed-schema. It's type is "general text" which means that filters and tokenizers are applied to it
+        //and other words may surround our term. We need an exact match, so here components of "query" are listed. Their type is String in SOLR that
+        //guarantees an exact match.
         return "id:%1$s^" + priority + " OR " +
                 "concept_code:%1$s^" + priority + " OR " +
                 "concept_name:%1$s^" + priority + " OR " +
