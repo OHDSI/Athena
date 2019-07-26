@@ -48,7 +48,7 @@ import com.odysseusinc.athena.repositories.v5.VocabularyRepository;
 import com.odysseusinc.athena.service.ConceptService;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
-import com.odysseusinc.athena.service.mail.LicenseAcceptanceSender;
+import com.odysseusinc.athena.service.mail.EmailService;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
@@ -91,7 +91,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     private final DownloadBundleRepository downloadBundleRepository;
     private final DownloadShareRepository downloadShareRepository;
     private final DownloadItemRepository downloadItemRepository;
-    private final LicenseAcceptanceSender licenseAcceptanceSender;
+    private final EmailService emailService;
     private final LicenseRepository licenseRepository;
     private final NotificationRepository notificationRepository;
     private final UserService userService;
@@ -99,14 +99,13 @@ public class VocabularyServiceImpl implements VocabularyService {
     private final VocabularyRepository vocabularyRepository;
     private final GenericConversionService conversionService;
 
-    @Autowired
-    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadShareRepository downloadShareRepository,DownloadItemRepository downloadItemRepository, LicenseAcceptanceSender licenseAcceptanceSender, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyRepository vocabularyRepository, GenericConversionService conversionService) {
+    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, EmailService emailService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyRepository vocabularyRepository) {
         this.asyncVocabularyService = asyncVocabularyService;
         this.conceptService = conceptService;
         this.converterUtils = converterUtils;
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadItemRepository = downloadItemRepository;
-        this.licenseAcceptanceSender = licenseAcceptanceSender;
+        this.emailService = emailService;
         this.licenseRepository = licenseRepository;
         this.notificationRepository = notificationRepository;
         this.userService = userService;
@@ -330,7 +329,7 @@ public class VocabularyServiceImpl implements VocabularyService {
             licenseRepository.delete(id);
         }
         conceptService.invalidateGraphCache(user.getId());
-        licenseAcceptanceSender.send(user, accepted, vocabularyName);
+        emailService.sendLicenseAcceptance(user, accepted, vocabularyName);
     }
 
     @Override
@@ -349,20 +348,6 @@ public class VocabularyServiceImpl implements VocabularyService {
     public License get(Long licenseId, String token) {
 
         return licenseRepository.findByIdAndToken(licenseId, token);
-    }
-
-
-    public void notifyAboutUpdates(Long userId, Integer vocabularyId, boolean notify) {
-
-        Optional<Notification> current = notificationRepository.findByUserIdAndVocabularyV4Id(userId, vocabularyId);
-        if (notify == current.isPresent()) {
-            return;
-        }
-        if (notify) {
-            notificationRepository.save(new Notification(userId, new VocabularyConversion(vocabularyId)));
-        } else {
-            notificationRepository.delete(current.get());
-        }
     }
 
     public List<Notification> getNotifications(Long userId) {

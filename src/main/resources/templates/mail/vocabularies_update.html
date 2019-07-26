@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div>
+    New version for the following vocabularies has been released:
+    <table>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+        </tr>
+        <tr th:each="vocabulary : ${UPDATED_VOCABULARIES}">
+            <td  th:text="${vocabulary.key}"></td>
+            <td  th:text="${vocabulary.value}">Normal User</td>
+        </tr>
+    </table>
+    <br/>
+<br/>
+Regards,<br/>
+Odysseus Data Services, Inc.
+</div>
+</body>
+</html>

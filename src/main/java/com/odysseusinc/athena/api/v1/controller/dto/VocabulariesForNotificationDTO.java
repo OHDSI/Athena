@@ -15,8 +15,8 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Vitaly Koulakov, Maria Pozhidaeva
- * Created: April 4, 2018
+ * Authors: Alexandr Cumarav
+ * Created: July 27, 2019
  *
  */
 
@@ -24,39 +24,25 @@ package com.odysseusinc.athena.api.v1.controller.dto;
 
 import javax.validation.constraints.NotNull;
 
-public class VocabularyForNotificationDTO implements DTO {
+public class VocabulariesForNotificationDTO {
+
     @NotNull
     private Boolean notify;
-    @NotNull
-    private Integer vocabularyV4Id;
-
-    public VocabularyForNotificationDTO() {
-        //empty
-    }
-
-    public VocabularyForNotificationDTO(Boolean notify, Integer vocabularyV4Id) {
-
-        this.notify = notify;
-        this.vocabularyV4Id = vocabularyV4Id;
-    }
+    private String[] vocabularyCodes;
 
     public Boolean getNotify() {
-
         return notify;
     }
 
     public void setNotify(Boolean notify) {
-
         this.notify = notify;
     }
 
-    public Integer getVocabularyV4Id() {
-
-        return vocabularyV4Id;
+    public String[] getVocabularyCodes() {
+        return vocabularyCodes;
     }
 
-    public void setVocabularyV4Id(Integer vocabularyV4Id) {
-
-        this.vocabularyV4Id = vocabularyV4Id;
+    public void setVocabularyCodes(String[] vocabularyCodes) {
+        this.vocabularyCodes = vocabularyCodes;
     }
 }

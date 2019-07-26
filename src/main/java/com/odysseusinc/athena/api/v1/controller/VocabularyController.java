@@ -22,11 +22,19 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
+import static com.odysseusinc.athena.util.CDMVersion.getByValue;
+import static com.odysseusinc.athena.util.CDMVersion.notExist;
+import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
+import static java.lang.System.currentTimeMillis;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.CustomPageImpl;
 import com.odysseusinc.athena.api.v1.controller.dto.LicenseExceptionDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.PageDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.VocabularyForNotificationDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.AcceptDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.AddingUserLicensesDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
@@ -41,14 +49,13 @@ import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.License;
-import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.service.DownloadShareService;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.impl.UserService;
-import com.odysseusinc.athena.service.mail.LicenseRequestSender;
+import com.odysseusinc.athena.service.mail.EmailService;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import io.swagger.annotations.Api;
@@ -97,26 +104,25 @@ public class VocabularyController {
 
     private final ConverterUtils converterUtils;
     private final DownloadBundleService downloadBundleService;
-    private DownloadShareService downloadShareService;
+    private final DownloadShareService downloadShareService;
     private final FileHelper fileHelper;
-    private final LicenseRequestSender licenseRequestSender;
+    private final EmailService emailService;
     private final UserService userService;
     private final VocabularyConversionService vocabularyConversionService;
     private final VocabularyService vocabularyService;
 
     @Autowired
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, DownloadShareService downloadShareService, FileHelper fileHelper, LicenseRequestSender licenseRequestSender, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService) {
+    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, FileHelper fileHelper, EmailService emailService, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService) {
+
         this.converterUtils = converterUtils;
         this.downloadBundleService = downloadBundleService;
         this.fileHelper = fileHelper;
-        this.licenseRequestSender = licenseRequestSender;
+        this.emailService = emailService;
         this.userService = userService;
         this.vocabularyConversionService = vocabularyConversionService;
         this.vocabularyService = vocabularyService;
         this.downloadShareService = downloadShareService;
     }
-
 
     @ApiOperation("Get vocabularies.")
     @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
@@ -284,7 +290,7 @@ public class VocabularyController {
             throw new AlreadyExistException("License already exists");
         }
         Long licenseId = vocabularyService.requestLicenses(user, dto.getVocabularyId());
-        licenseRequestSender.sendToAdmins(vocabularyService.get(licenseId));
+        emailService.sendLicenseRequestToAdmins(vocabularyService.get(licenseId));
         return ResponseEntity.ok().build();
     }
 
@@ -319,26 +325,6 @@ public class VocabularyController {
         } else if (LicenseStatus.APPROVED == license.getStatus()) {
             throw new AlreadyExistException("License has already been approved");
         }
-    }
-
-    @RequestMapping(value = "/notifications", method = POST)
-    public ResponseEntity notifyAboutUpdates(
-            @Valid @RequestBody VocabularyForNotificationDTO dto, Principal principal)
-            throws PermissionDeniedException {
-
-        final AthenaUser user = userService.getUser(principal);
-        vocabularyService.notifyAboutUpdates(user.getId(), dto.getVocabularyV4Id(), dto.getNotify());
-        return ResponseEntity.ok().build();
-    }
-
-    @RequestMapping(value = "/notifications", method = GET)
-    public ResponseEntity<List<VocabularyDTO>> getVocabulariesForNotification(Principal principal)
-            throws PermissionDeniedException {
-
-        final AthenaUser user = userService.getUser(principal);
-        List<Notification> notifications = vocabularyService.getNotifications(user.getId());
-        List<VocabularyDTO> vocabularyDTOs = converterUtils.convertList(notifications, VocabularyDTO.class);
-        return ResponseEntity.ok(vocabularyDTOs);
     }
 
     @GetMapping(value = "/release-version")
