@@ -35,6 +35,7 @@ public enum EmailType {
     private final String template;
 
     EmailType(String subject, String template) {
+
         this.subject = subject;
         this.template = template;
     }

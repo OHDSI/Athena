@@ -25,24 +25,33 @@ package com.odysseusinc.athena.service.job;
 
 import com.odysseusinc.athena.repositories.athena.NotificationRepository;
 import com.odysseusinc.athena.service.NotificationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.Map;
 
+
+@ConditionalOnProperty(name = "scheduled.vocabulary.checker")
 @Component
 public class VocabularyUpdatesChecker {
 
     private final NotificationRepository notificationRepository;
     private final NotificationService notificationService;
 
+    @Value("${scheduled.vocabulary.checker}")
+    private String param;
+
+    @Autowired
     public VocabularyUpdatesChecker(NotificationRepository notificationRepository, NotificationService notificationService) {
         this.notificationRepository = notificationRepository;
         this.notificationService = notificationService;
     }
 
-    @Scheduled(cron = "0 1/2 * * * *")
+    @Scheduled(cron = "${scheduled.vocabulary.checker}")
     public void triggerCheckVocabularyUpdates() {
 
         notificationService.ensureVocabularyVersionAndCodeAreSet();
@@ -56,7 +65,6 @@ public class VocabularyUpdatesChecker {
 
         for (Long subscribedUserId : notificationRepository.getSubscribedUserIds()) {
             notificationService.processUsersVocabularyUpdateSubscriptions(subscribedUserId, vocabularyVersionMap);
-
         }
     }
 }

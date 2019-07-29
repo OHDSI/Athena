@@ -90,6 +90,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendFailedSaving(AthenaUser user) {
+
         emailSenderService.send(EmailType.FAILED_SAVING, Collections.emptyMap(), user.getEmail());
     }
 
@@ -119,6 +120,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     private String[] getAdminEmails() {
+
         return userService.getAdmins().stream()
                 .map(AthenaUser::getEmail).toArray(size -> new String[size]);
     }
