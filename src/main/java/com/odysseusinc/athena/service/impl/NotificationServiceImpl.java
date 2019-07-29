@@ -39,22 +39,26 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void updateNotificationSubscriptions(Long userId, String[] vocabularyCodes, boolean notify) {
+    public void createNotificationSubscriptions(Long userId, String[] vocabularyCodes) {
 
         for (String vocabularyCode : vocabularyCodes) {
             Notification current = notificationRepository.findByUserIdAndVocabularyCode(userId, vocabularyCode);
-            if (current == null && notify) {
+            if (current == null) {
                 final VocabularyV5 vocabulary = vocabularyRepository.findOne(vocabularyCode);
                 if (vocabulary != null) {
                     final VocabularyConversion vocabularyConversion = vocabularyConversionRepository.findByIdV5(vocabularyCode);
                     final Notification newNotification = new Notification(userId, vocabularyConversion, vocabularyCode, vocabulary.getVersion());
                     notificationRepository.save(newNotification);
                 }
-
-            } else if (current != null && !notify) {
-                notificationRepository.delete(current);
             }
+        }
+    }
 
+    @Override
+    public void deleteNotificationSubscription(Long userId, String vocabularyCode) {
+        Notification current = notificationRepository.findByUserIdAndVocabularyCode(userId, vocabularyCode);
+        if (current != null) {
+            notificationRepository.delete(current);
         }
     }
 

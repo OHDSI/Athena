@@ -25,7 +25,6 @@ package com.odysseusinc.athena.api.v1.controller;
 
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
-import com.odysseusinc.athena.api.v1.controller.dto.VocabulariesForNotificationDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
@@ -33,9 +32,13 @@ import com.odysseusinc.athena.service.NotificationService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.impl.UserService;
 import io.swagger.annotations.Api;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,6 +53,8 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/api/v1/notifications")
 public class NotificationController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationController.class);
+
 
     private final ConverterUtils converterUtils;
     private final NotificationService notificationService;
@@ -58,6 +63,7 @@ public class NotificationController {
 
     @Autowired
     public NotificationController(ConverterUtils converterUtils, NotificationService notificationService, UserService userService, VocabularyService vocabularyService) {
+
         this.converterUtils = converterUtils;
         this.notificationService = notificationService;
         this.userService = userService;
@@ -65,11 +71,11 @@ public class NotificationController {
     }
 
     @PostMapping
-    public ResponseEntity notifyAboutUpdates(
-            @Valid @RequestBody VocabulariesForNotificationDTO dto, Principal principal) {
+    public ResponseEntity subscribeToVocabularyUpdates(
+            @Valid @RequestBody String[] vocabularyCodes, Principal principal) {
 
         final AthenaUser user = userService.getUser(principal);
-        notificationService.updateNotificationSubscriptions(user.getId(), dto.getVocabularyCodes(), dto.getNotify());
+        notificationService.createNotificationSubscriptions(user.getId(), vocabularyCodes);
 
         return ResponseEntity.ok().build();
     }
@@ -81,5 +87,16 @@ public class NotificationController {
         List<Notification> notifications = vocabularyService.getNotifications(user.getId());
         List<VocabularyDTO> vocabularyDTOs = converterUtils.convertList(notifications, VocabularyDTO.class);
         return ResponseEntity.ok(vocabularyDTOs);
+    }
+
+    @DeleteMapping("/{vocabularyCode}")
+    public ResponseEntity unsubscribeFromVocabularyUpdate(@PathVariable String vocabularyCode, Principal principal) {
+
+        final AthenaUser user = userService.getUser(principal);
+
+        LOGGER.debug("Delete user's [{}] vocabulary update subscription  - {}", user.getId(), vocabularyCode);
+        notificationService.deleteNotificationSubscription(user.getId(), vocabularyCode);
+
+        return ResponseEntity.ok().build();
     }
 }

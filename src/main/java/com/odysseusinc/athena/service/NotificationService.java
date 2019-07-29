@@ -10,5 +10,7 @@ public interface NotificationService {
 
     void processUsersVocabularyUpdateSubscriptions(Long userId, Map<String,String> vocabularyVersionMap);
 
-    void updateNotificationSubscriptions(Long userId, String[] vocabularyCodes, boolean notify);
+    void createNotificationSubscriptions(Long userId, String[] vocabularyCodes);
+
+    void deleteNotificationSubscription(Long userId, String vocabularyCode);
 }
