@@ -22,7 +22,7 @@
 
 package com.odysseusinc.athena.model.athena;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import java.util.Date;
@@ -76,6 +76,9 @@ public class DownloadBundle {
 
     @Column
     private String name;
+
+    @Column(name = "release_version")
+    private String releaseVersion;
 
     @NotNull
     @Column
@@ -202,10 +205,18 @@ public class DownloadBundle {
                 .collect(Collectors.toList());
     }
 
+    public String getReleaseVersion() {
+        return releaseVersion;
+    }
+
+    public void setReleaseVersion(String releaseVersion) {
+        this.releaseVersion = releaseVersion;
+    }
+
     @Override
     public String toString() {
 
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("uuid", uuid)
                 .add("cdmVersion", cdmVersion)
@@ -216,6 +227,7 @@ public class DownloadBundle {
                 .add("name", name)
                 .add("cpt4", cpt4)
                 .add("status", status)
+                .add("releaseVersion", releaseVersion)
                 .toString();
     }
 }

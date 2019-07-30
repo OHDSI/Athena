@@ -22,16 +22,6 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
-import static com.odysseusinc.athena.util.CDMVersion.getByValue;
-import static com.odysseusinc.athena.util.CDMVersion.notExist;
-import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
-import static java.lang.System.currentTimeMillis;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static org.apache.commons.lang.StringUtils.isEmpty;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.CustomPageImpl;
 import com.odysseusinc.athena.api.v1.controller.dto.LicenseExceptionDTO;
@@ -44,6 +34,7 @@ import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.LicenseRequestDTO
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserLicensesDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyVersionDTO;
 import com.odysseusinc.athena.exceptions.AlreadyExistException;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
@@ -60,23 +51,16 @@ import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.List;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -85,44 +69,55 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.List;
+
+import static com.odysseusinc.athena.util.CDMVersion.getByValue;
+import static com.odysseusinc.athena.util.CDMVersion.notExist;
+import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
+import static java.lang.System.currentTimeMillis;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+
 @Api
 @RestController
 @RequestMapping(value = "/api/v1/vocabularies")
 public class VocabularyController {
     private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyController.class);
 
-    private VocabularyService vocabularyService;
-    private VocabularyConversionService vocabularyConversionService;
-    private LicenseRequestSender licenseRequestSender;
-    private UserService userService;
-    private DownloadBundleService downloadBundleService;
-    private FileHelper fileHelper;
-    private ConverterUtils converterUtils;
+    private final ConverterUtils converterUtils;
+    private final DownloadBundleService downloadBundleService;
+    private final FileHelper fileHelper;
+    private final LicenseRequestSender licenseRequestSender;
+    private final UserService userService;
+    private final VocabularyConversionService vocabularyConversionService;
+    private final VocabularyService vocabularyService;
 
     @Autowired
     @SuppressWarnings("SpringJavaAutowiringInspection")
-    public VocabularyController(VocabularyService vocabularyService,
-                                VocabularyConversionService vocabularyConversionService,
-                                UserService userService,
-                                DownloadBundleService downloadBundleService,
-                                FileHelper fileHelper,
-                                ConverterUtils converterUtils,
-                                LicenseRequestSender licenseRequestSender) {
-
-        this.vocabularyService = vocabularyService;
-        this.vocabularyConversionService = vocabularyConversionService;
-        this.userService = userService;
+    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, FileHelper fileHelper, LicenseRequestSender licenseRequestSender, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService) {
+        this.converterUtils = converterUtils;
         this.downloadBundleService = downloadBundleService;
         this.fileHelper = fileHelper;
-        this.converterUtils = converterUtils;
         this.licenseRequestSender = licenseRequestSender;
+        this.userService = userService;
+        this.vocabularyConversionService = vocabularyConversionService;
+        this.vocabularyService = vocabularyService;
     }
+
 
     @ApiOperation("Get vocabularies.")
     @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
-    public ResponseEntity<List<UserVocabularyDTO>> getAllForCurrentUser() throws Exception {
+    public ResponseEntity<List<UserVocabularyDTO>> getAllForCurrentUser() {
 
-        return new ResponseEntity<>(vocabularyService.getAllForCurrentUser(), OK);
+        return ResponseEntity.ok(vocabularyService.getAllForCurrentUser());
     }
 
     @ApiOperation("Save vocabularies.")
@@ -164,30 +159,32 @@ public class VocabularyController {
         response.setHeader("Content-Disposition",
                 "attachment; filename=" + archiveName);
         response.setContentLengthLong(new File(fileHelper.getZipPath(uuid)).length());
-        IOUtils.copy(new FileInputStream(fileHelper.getZipPath(uuid)), response.getOutputStream());
+        try(FileInputStream is = new FileInputStream(fileHelper.getZipPath(uuid))){
+            IOUtils.copy(is, response.getOutputStream());
+        }
         response.flushBuffer();
     }
 
     @ApiOperation("Get download history.")
     @RequestMapping(value = "/downloads", method = RequestMethod.GET)
-    public ResponseEntity<List<DownloadBundleDTO>> getDownloadHistory(Principal principal)
+    public List<DownloadBundleDTO> getDownloadHistory(Principal principal)
             throws PermissionDeniedException {
 
         final AthenaUser user = userService.getUser(principal);
-        return new ResponseEntity<>(vocabularyService.getDownloadHistory(user.getId()), OK);
+        return vocabularyService.getDownloadHistory(user.getId());
     }
 
     @ApiOperation("Archive download history item.")
     @RequestMapping(value = "/downloads/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> archive(@PathVariable("id") Long bundleId, Principal principal)
-            throws NotExistException, IOException, PermissionDeniedException {
+            throws NotExistException, PermissionDeniedException {
 
         final AthenaUser user = userService.getUser(principal);
         if (!user.getId().equals(downloadBundleService.getUserId(bundleId))) {
             throw new PermissionDeniedException();
         }
         downloadBundleService.archive(bundleId);
-        return new ResponseEntity<>(Boolean.TRUE, OK);
+        return ResponseEntity.ok(Boolean.TRUE);
     }
 
     @ApiOperation("Restore download history item.")
@@ -197,25 +194,25 @@ public class VocabularyController {
 
         DownloadBundle downloadBundle = downloadBundleService.get(bundleId);
         vocabularyService.restoreDownloadBundle(downloadBundle);
-        return new ResponseEntity<>(OK);
+        return ResponseEntity.ok().build();
     }
 
     @ApiOperation("Check bundle.")
     @RequestMapping(value = "/check/{id}", method = RequestMethod.GET)
-    public ResponseEntity checkBundle(@PathVariable("id") Long bundleId)
+    public LicenseExceptionDTO checkBundle(@PathVariable("id") Long bundleId)
             throws PermissionDeniedException {
 
         DownloadBundle bundle = downloadBundleService.get(bundleId);
         AthenaUser currentUser = userService.getCurrentUser();
         vocabularyService.checkBundleUser(currentUser, bundle);
         vocabularyService.checkBundleVocabularies(bundle, currentUser.getId());
-        return new ResponseEntity<>(new LicenseExceptionDTO(true), HttpStatus.OK);
+        return new LicenseExceptionDTO(true);
     }
 
     @Secured("ROLE_ADMIN")
     @ApiOperation("Get users' licenses.")
     @RequestMapping(value = "licenses", method = RequestMethod.GET)
-    public ResponseEntity<CustomPageImpl<UserLicensesDTO>> getLicenses(
+    public Page<UserLicensesDTO> getLicenses(
             @ModelAttribute PageDTO pageDTO, @RequestParam(name = "queryUser", defaultValue = "") String query,
             @RequestParam(name = "pendingOnly", defaultValue = "false") Boolean pendingOnly) {
 
@@ -223,18 +220,16 @@ public class VocabularyController {
         final Page<AthenaUser> users = userService.getUsersWithLicenses(pageRequest, query, pendingOnly);
 
         List<UserLicensesDTO> dtos = converterUtils.convertList(users.getContent(), UserLicensesDTO.class);
-        CustomPageImpl<UserLicensesDTO> resultPage = new CustomPageImpl<>(dtos, pageRequest, users.getTotalElements());
-
-        return new ResponseEntity<>(resultPage, OK);
+        return new CustomPageImpl(dtos, pageRequest, users.getTotalElements());
     }
 
     @Secured("ROLE_ADMIN")
     @ApiOperation("Suggest licenses.")
     @RequestMapping(value = "licenses/suggest", method = RequestMethod.GET)
-    public ResponseEntity<List<VocabularyDTO>> suggestLicenses(@RequestParam("userId") Long userId) {
+    public List<VocabularyDTO> suggestLicenses(@RequestParam("userId") Long userId) {
         //PENDING licenses are added -> do not need to suggest
         final List<VocabularyDTO> vocabularies = vocabularyConversionService.getUnavailableVocabularies(userId, true);
-        return new ResponseEntity<>(vocabularies, OK);
+        return vocabularies;
     }
 
     @Secured("ROLE_ADMIN")
@@ -243,7 +238,7 @@ public class VocabularyController {
     public ResponseEntity saveLicenses(@RequestBody @Valid AddingUserLicensesDTO dto) {
 
         vocabularyService.saveLicenses(userService.get(dto.getUserId()), dto.getVocabularyV4Ids(), APPROVED);
-        return new ResponseEntity(OK);
+        return ResponseEntity.ok().build();
     }
 
     @Secured("ROLE_ADMIN")
@@ -252,7 +247,7 @@ public class VocabularyController {
     public ResponseEntity removeLicenses(@PathVariable("id") Long licenseId) {
 
         vocabularyService.deleteLicense(licenseId);
-        return new ResponseEntity(OK);
+        return ResponseEntity.ok().build();
     }
 
     @ApiOperation("Request user's license.")
@@ -267,7 +262,7 @@ public class VocabularyController {
         }
         Long licenseId = vocabularyService.requestLicenses(user, dto.getVocabularyId());
         licenseRequestSender.sendToAdmins(vocabularyService.get(licenseId));
-        return new ResponseEntity(OK);
+        return ResponseEntity.ok().build();
     }
 
     @Secured("ROLE_ADMIN")
@@ -278,7 +273,7 @@ public class VocabularyController {
 
         checkLicense(vocabularyService.get(acceptDTO.getId()));
         vocabularyService.acceptLicense(acceptDTO.getId(), acceptDTO.getAccepted());
-        return new ResponseEntity(OK);
+        return ResponseEntity.ok().build();
     }
 
     @ApiOperation("Accept user's license via mail.")
@@ -310,7 +305,7 @@ public class VocabularyController {
 
         final AthenaUser user = userService.getUser(principal);
         vocabularyService.notifyAboutUpdates(user.getId(), dto.getVocabularyV4Id(), dto.getNotify());
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     @RequestMapping(value = "/notifications", method = GET)
@@ -320,6 +315,14 @@ public class VocabularyController {
         final AthenaUser user = userService.getUser(principal);
         List<Notification> notifications = vocabularyService.getNotifications(user.getId());
         List<VocabularyDTO> vocabularyDTOs = converterUtils.convertList(notifications, VocabularyDTO.class);
-        return new ResponseEntity<>(vocabularyDTOs, HttpStatus.OK);
+        return ResponseEntity.ok(vocabularyDTOs);
+    }
+
+    @GetMapping(value = "/releaseVersion")
+    public VocabularyVersionDTO releaseVersion() {
+
+        String vocabularyVersion = vocabularyService.getOMOPVocabularyVersion();
+
+        return converterUtils.convert(vocabularyVersion, VocabularyVersionDTO.class);
     }
 }

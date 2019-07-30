@@ -34,6 +34,7 @@ public class DownloadBundleDTO {
     private String name;
     private Float cdmVersion;
     private DownloadBundleStatus status;
+    private String releaseVersion;
 
     private List<VocabularyDTO> vocabularies;
 
@@ -106,4 +107,13 @@ public class DownloadBundleDTO {
 
         this.status = status;
     }
+
+    public String getReleaseVersion() {
+        return releaseVersion;
+    }
+
+    public void setReleaseVersion(String releaseVersion) {
+        this.releaseVersion = releaseVersion;
+    }
+
 }

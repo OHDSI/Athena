@@ -22,12 +22,6 @@
 
 package com.odysseusinc.athena.service.impl;
 
-import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
-import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections.ListUtils.intersection;
-import static org.thymeleaf.util.ListUtils.isEmpty;
-
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyToUserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
@@ -41,26 +35,20 @@ import com.odysseusinc.athena.model.athena.DownloadItem;
 import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.athena.VocabularyConversion;
+import com.odysseusinc.athena.model.athenav5.VocabularyV5;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadItemRepository;
 import com.odysseusinc.athena.repositories.athena.LicenseRepository;
 import com.odysseusinc.athena.repositories.athena.NotificationRepository;
+import com.odysseusinc.athena.repositories.v5.VocabularyRepository;
 import com.odysseusinc.athena.service.ConceptService;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.mail.LicenseAcceptanceSender;
-import com.odysseusinc.athena.service.mail.LicenseRequestSender;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +56,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static com.odysseusinc.athena.model.common.AthenaConstants.OMOP_VOCABULARY_ID;
+import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections.ListUtils.intersection;
+import static org.thymeleaf.util.ListUtils.isEmpty;
 
 @Service
 @Transactional
@@ -77,42 +80,31 @@ public class VocabularyServiceImpl implements VocabularyService {
     private static final String DEFAULT_SORT_COLUMN = "idV4";
     public static final Integer CPT4_ID_V4 = 4;
 
-    private VocabularyConversionService vocabularyConversionService;
-    private DownloadBundleRepository downloadBundleRepository;
-    private DownloadItemRepository downloadItemRepository;
-    private LicenseRepository licenseRepository;
-    private LicenseRequestSender licenseRequestSender;
-    private UserService userService;
-    private ConverterUtils converterUtils;
-    private AsyncVocabularyService asyncVocabularyService;
-    private NotificationRepository notificationRepository;
-    private LicenseAcceptanceSender licenseAcceptanceSender;
-    private ConceptService conceptService;
+    private final AsyncVocabularyService asyncVocabularyService;
+    private final ConceptService conceptService;
+    private final ConverterUtils converterUtils;
+    private final DownloadBundleRepository downloadBundleRepository;
+    private final DownloadItemRepository downloadItemRepository;
+    private final LicenseAcceptanceSender licenseAcceptanceSender;
+    private final LicenseRepository licenseRepository;
+    private final NotificationRepository notificationRepository;
+    private final UserService userService;
+    private final VocabularyConversionService vocabularyConversionService;
+    private final VocabularyRepository vocabularyRepository;
 
     @Autowired
-    public VocabularyServiceImpl(VocabularyConversionService vocabularyConversionService,
-                                 DownloadBundleRepository downloadBundleRepository,
-                                 DownloadItemRepository downloadItemRepository,
-                                 LicenseRepository licenseRepository,
-                                 LicenseRequestSender licenseRequestSender,
-                                 UserService userService,
-                                 ConverterUtils converterUtils,
-                                 AsyncVocabularyService asyncVocabularyService,
-                                 NotificationRepository notificationRepository,
-                                 ConceptService conceptService,
-                                 LicenseAcceptanceSender licenseAcceptanceSender) {
-
-        this.vocabularyConversionService = vocabularyConversionService;
+    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, LicenseAcceptanceSender licenseAcceptanceSender, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyRepository vocabularyRepository) {
+        this.asyncVocabularyService = asyncVocabularyService;
+        this.conceptService = conceptService;
+        this.converterUtils = converterUtils;
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadItemRepository = downloadItemRepository;
-        this.licenseRepository = licenseRepository;
-        this.licenseRequestSender = licenseRequestSender;
-        this.userService = userService;
-        this.converterUtils = converterUtils;
-        this.asyncVocabularyService = asyncVocabularyService;
-        this.notificationRepository = notificationRepository;
         this.licenseAcceptanceSender = licenseAcceptanceSender;
-        this.conceptService = conceptService;
+        this.licenseRepository = licenseRepository;
+        this.notificationRepository = notificationRepository;
+        this.userService = userService;
+        this.vocabularyConversionService = vocabularyConversionService;
+        this.vocabularyRepository = vocabularyRepository;
     }
 
     @Override
@@ -142,7 +134,7 @@ public class VocabularyServiceImpl implements VocabularyService {
 
         DownloadBundle bundle = buildDownloadBundle(version, uuid, bundleName, currentUser);
         bundle = saveDownloadItems(bundle, withOmopReqIdV4s);
-        LOGGER.info("Download items are added, bundle: [{}]", bundle.toString());
+        LOGGER.info("Download items are added, bundle: [{}]", bundle);
         return bundle;
     }
 
@@ -169,6 +161,19 @@ public class VocabularyServiceImpl implements VocabularyService {
         checkBundleVocabularies(bundleVocabularyV4Ids, userId);
     }
 
+    @Override
+    public String getOMOPVocabularyVersion() {
+
+        final VocabularyV5 omopVocabularyVersion = vocabularyRepository.findOne(OMOP_VOCABULARY_ID);
+        if (omopVocabularyVersion != null) {
+            LOGGER.debug("Current Vocabularies Release: {} {}: {}", omopVocabularyVersion.getId(), omopVocabularyVersion.getName(), omopVocabularyVersion.getVersion());
+
+            return omopVocabularyVersion.getVersion();
+        }
+        LOGGER.warn("OMOP Vocabulary not found");
+        return null;
+    }
+
     private DownloadBundle buildDownloadBundle(CDMVersion version, String uuid, String name, AthenaUser user) {
 
         DownloadBundle bundle = new DownloadBundle();
@@ -178,6 +183,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         bundle.setCdmVersion(version);
         bundle.setName(name);
         bundle.setStatus(DownloadBundleStatus.PENDING);
+        bundle.setReleaseVersion(getOMOPVocabularyVersion());
         return bundle;
     }
 
