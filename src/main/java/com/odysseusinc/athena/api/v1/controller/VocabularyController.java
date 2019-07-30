@@ -22,15 +22,6 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
-import static com.odysseusinc.athena.util.CDMVersion.getByValue;
-import static com.odysseusinc.athena.util.CDMVersion.notExist;
-import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
-import static java.lang.System.currentTimeMillis;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static org.apache.commons.lang.StringUtils.isEmpty;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.CustomPageImpl;
 import com.odysseusinc.athena.api.v1.controller.dto.LicenseExceptionDTO;
@@ -60,15 +51,6 @@ import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.List;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +68,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.List;
+
+import static com.odysseusinc.athena.util.CDMVersion.getByValue;
+import static com.odysseusinc.athena.util.CDMVersion.notExist;
+import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
+import static java.lang.System.currentTimeMillis;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Api
 @RestController
@@ -168,11 +167,11 @@ public class VocabularyController {
 
     @ApiOperation("Get download history.")
     @RequestMapping(value = "/downloads", method = RequestMethod.GET)
-    public ResponseEntity<List<DownloadBundleDTO>> getDownloadHistory(Principal principal)
+    public List<DownloadBundleDTO> getDownloadHistory(Principal principal)
             throws PermissionDeniedException {
 
         final AthenaUser user = userService.getUser(principal);
-        return ResponseEntity.ok(vocabularyService.getDownloadHistory(user.getId()));
+        return vocabularyService.getDownloadHistory(user.getId());
     }
 
     @ApiOperation("Archive download history item.")
@@ -213,7 +212,7 @@ public class VocabularyController {
     @Secured("ROLE_ADMIN")
     @ApiOperation("Get users' licenses.")
     @RequestMapping(value = "licenses", method = RequestMethod.GET)
-    public ResponseEntity<Page<UserLicensesDTO>> getLicenses(
+    public Page<UserLicensesDTO> getLicenses(
             @ModelAttribute PageDTO pageDTO, @RequestParam(name = "queryUser", defaultValue = "") String query,
             @RequestParam(name = "pendingOnly", defaultValue = "false") Boolean pendingOnly) {
 
@@ -221,18 +220,16 @@ public class VocabularyController {
         final Page<AthenaUser> users = userService.getUsersWithLicenses(pageRequest, query, pendingOnly);
 
         List<UserLicensesDTO> dtos = converterUtils.convertList(users.getContent(), UserLicensesDTO.class);
-        CustomPageImpl<UserLicensesDTO> resultPage = new CustomPageImpl<>(dtos, pageRequest, users.getTotalElements());
-
-        return ResponseEntity.ok(resultPage);
+        return new CustomPageImpl(dtos, pageRequest, users.getTotalElements());
     }
 
     @Secured("ROLE_ADMIN")
     @ApiOperation("Suggest licenses.")
     @RequestMapping(value = "licenses/suggest", method = RequestMethod.GET)
-    public ResponseEntity<List<VocabularyDTO>> suggestLicenses(@RequestParam("userId") Long userId) {
+    public List<VocabularyDTO> suggestLicenses(@RequestParam("userId") Long userId) {
         //PENDING licenses are added -> do not need to suggest
         final List<VocabularyDTO> vocabularies = vocabularyConversionService.getUnavailableVocabularies(userId, true);
-        return ResponseEntity.ok(vocabularies);
+        return vocabularies;
     }
 
     @Secured("ROLE_ADMIN")
