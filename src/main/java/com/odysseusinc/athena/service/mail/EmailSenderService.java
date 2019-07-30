@@ -22,7 +22,6 @@
 
 package com.odysseusinc.athena.service.mail;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +38,7 @@ import java.util.Map;
 
 @Service
 public class EmailSenderService {
-    private static Logger LOGGER = LoggerFactory.getLogger(EmailSenderService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmailSenderService.class);
 
     private final MailContentBuilder contentBuilder;
     private final JavaMailSender mailSender;
@@ -52,6 +51,7 @@ public class EmailSenderService {
 
     @Autowired
     public EmailSenderService(MailContentBuilder contentBuilder, JavaMailSender mailSender) {
+
         this.contentBuilder = contentBuilder;
         this.mailSender = mailSender;
     }
