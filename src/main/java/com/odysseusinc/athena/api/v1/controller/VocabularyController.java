@@ -213,7 +213,7 @@ public class VocabularyController {
     @Secured("ROLE_ADMIN")
     @ApiOperation("Get users' licenses.")
     @RequestMapping(value = "licenses", method = RequestMethod.GET)
-    public ResponseEntity<CustomPageImpl<UserLicensesDTO>> getLicenses(
+    public ResponseEntity<Page<UserLicensesDTO>> getLicenses(
             @ModelAttribute PageDTO pageDTO, @RequestParam(name = "queryUser", defaultValue = "") String query,
             @RequestParam(name = "pendingOnly", defaultValue = "false") Boolean pendingOnly) {
 
