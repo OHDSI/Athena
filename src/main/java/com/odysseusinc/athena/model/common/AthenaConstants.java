@@ -5,5 +5,5 @@ public class AthenaConstants {
     private AthenaConstants() {
     }
 
-    public static final String VOCABULARY_RELEASE_VERSION_ID = "None";
+    public static final String OMOP_VOCABULARY_ID = "None";
 }

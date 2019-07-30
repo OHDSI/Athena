@@ -22,13 +22,6 @@
 
 package com.odysseusinc.athena.service.impl;
 
-import static com.odysseusinc.athena.model.common.AthenaConstants.VOCABULARY_RELEASE_VERSION_ID;
-import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
-import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections.ListUtils.intersection;
-import static org.thymeleaf.util.ListUtils.isEmpty;
-
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyToUserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
@@ -56,13 +49,6 @@ import com.odysseusinc.athena.service.mail.LicenseAcceptanceSender;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +56,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static com.odysseusinc.athena.model.common.AthenaConstants.OMOP_VOCABULARY_ID;
+import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections.ListUtils.intersection;
+import static org.thymeleaf.util.ListUtils.isEmpty;
 
 @Service
 @Transactional
@@ -161,12 +162,16 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public String getVocabularyReleaseVersion() {
+    public String getOMOPVocabularyVersion() {
 
-        final VocabularyV5 releaseVersion = vocabularyRepository.findOne(VOCABULARY_RELEASE_VERSION_ID);
-        LOGGER.debug("Current Vocabularies Release: {} {}: {}", releaseVersion.getId(), releaseVersion.getName(), releaseVersion.getVersion());
+        final VocabularyV5 omopVocabularyVersion = vocabularyRepository.findOne(OMOP_VOCABULARY_ID);
+        if (omopVocabularyVersion != null) {
+            LOGGER.debug("Current Vocabularies Release: {} {}: {}", omopVocabularyVersion.getId(), omopVocabularyVersion.getName(), omopVocabularyVersion.getVersion());
 
-        return releaseVersion.getVersion();
+            return omopVocabularyVersion.getVersion();
+        }
+        LOGGER.warn("OMOP Vocabulary not found");
+        return null;
     }
 
     private DownloadBundle buildDownloadBundle(CDMVersion version, String uuid, String name, AthenaUser user) {
@@ -178,7 +183,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         bundle.setCdmVersion(version);
         bundle.setName(name);
         bundle.setStatus(DownloadBundleStatus.PENDING);
-        bundle.setReleaseVersion(getVocabularyReleaseVersion());
+        bundle.setReleaseVersion(getOMOPVocabularyVersion());
         return bundle;
     }
 

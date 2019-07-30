@@ -71,5 +71,5 @@ public interface VocabularyService {
 
     void checkBundleVocabularies(DownloadBundle bundle, Long userId);
 
-    String getVocabularyReleaseVersion();
+    String getOMOPVocabularyVersion();
     }

@@ -78,8 +78,9 @@ public abstract class MailSender {
             helper.setSubject(getSubject());
             helper.setFrom(from, notifier);
             helper.setTo(email);
-            final String emailBody = contentBuilder.build(getTemplateName(), parameters);
-            helper.setText(emailBody, true);
+            final String emailMessage = contentBuilder.build(getTemplateName(), parameters);
+            LOGGER.debug("Email to: {} message: \n\n\n{}\n\n\n", email, emailMessage);
+            helper.setText(emailMessage, true);
 
             mailSender.send(message);
         } catch (MessagingException | MailException | UnsupportedEncodingException ex) {

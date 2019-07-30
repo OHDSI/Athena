@@ -324,7 +324,7 @@ public class VocabularyController {
     @GetMapping(value = "/releaseVersion")
     public ResponseEntity<VocabularyVersionDTO> releaseVersion() {
 
-        String vocabularyVersion = vocabularyService.getVocabularyReleaseVersion();
+        String vocabularyVersion = vocabularyService.getOMOPVocabularyVersion();
 
         return ResponseEntity.ok(new VocabularyVersionDTO(vocabularyVersion));
     }
