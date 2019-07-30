@@ -199,14 +199,14 @@ public class VocabularyController {
 
     @ApiOperation("Check bundle.")
     @RequestMapping(value = "/check/{id}", method = RequestMethod.GET)
-    public ResponseEntity checkBundle(@PathVariable("id") Long bundleId)
+    public LicenseExceptionDTO checkBundle(@PathVariable("id") Long bundleId)
             throws PermissionDeniedException {
 
         DownloadBundle bundle = downloadBundleService.get(bundleId);
         AthenaUser currentUser = userService.getCurrentUser();
         vocabularyService.checkBundleUser(currentUser, bundle);
         vocabularyService.checkBundleVocabularies(bundle, currentUser.getId());
-        return ResponseEntity.ok(new LicenseExceptionDTO(true));
+        return new LicenseExceptionDTO(true);
     }
 
     @Secured("ROLE_ADMIN")
@@ -319,10 +319,10 @@ public class VocabularyController {
     }
 
     @GetMapping(value = "/releaseVersion")
-    public ResponseEntity<VocabularyVersionDTO> releaseVersion() {
+    public VocabularyVersionDTO releaseVersion() {
 
         String vocabularyVersion = vocabularyService.getOMOPVocabularyVersion();
 
-        return ResponseEntity.ok(converterUtils.convert(vocabularyVersion, VocabularyVersionDTO.class));
+        return converterUtils.convert(vocabularyVersion, VocabularyVersionDTO.class);
     }
 }
