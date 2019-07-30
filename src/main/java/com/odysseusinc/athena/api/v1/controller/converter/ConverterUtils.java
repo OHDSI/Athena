@@ -22,16 +22,17 @@
 
 package com.odysseusinc.athena.api.v1.controller.converter;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 public class ConverterUtils {
 
-    private GenericConversionService conversionService;
+    private final GenericConversionService conversionService;
 
     @Autowired
     public ConverterUtils(GenericConversionService conversionService) {
@@ -44,5 +45,10 @@ public class ConverterUtils {
         return source.stream()
                 .map(item -> conversionService.convert(item, targetClass))
                 .collect(Collectors.toList());
+    }
+
+    public <S, R> R convert(S source, Class<R> targetClass) {
+
+        return conversionService.convert(source, targetClass);
     }
 }

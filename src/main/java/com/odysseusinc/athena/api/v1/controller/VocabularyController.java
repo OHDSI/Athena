@@ -326,6 +326,6 @@ public class VocabularyController {
 
         String vocabularyVersion = vocabularyService.getOMOPVocabularyVersion();
 
-        return ResponseEntity.ok(new VocabularyVersionDTO(vocabularyVersion));
+        return ResponseEntity.ok(converterUtils.convert(vocabularyVersion, VocabularyVersionDTO.class));
     }
 }
