@@ -22,6 +22,7 @@
 
 package com.odysseusinc.athena.service.mail;
 
+import com.opencsv.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,7 @@ public class EmailSenderService {
 
     public void send(EmailType messageType, Map<String, Object> parameters, String... emails) {
 
-        if (emails == null || emails.length == 0) {
+        if (emails == null || emails.length == 0 || StringUtils.isBlank(emails[0])) {
             return;
         }
 

@@ -20,9 +20,7 @@
  *
  */
 
-
 package com.odysseusinc.athena.api.v1.controller;
-
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
@@ -35,7 +33,6 @@ import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,7 +44,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
-
 
 @Api
 @RestController
@@ -71,32 +67,26 @@ public class NotificationController {
     }
 
     @PostMapping
-    public ResponseEntity subscribeToVocabularyUpdates(
+    public void subscribeToVocabularyUpdates(
             @Valid @RequestBody String[] vocabularyCodes, Principal principal) {
 
         final AthenaUser user = userService.getUser(principal);
         notificationService.createNotificationSubscriptions(user.getId(), vocabularyCodes);
-
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping
-    public ResponseEntity<List<VocabularyDTO>> getVocabulariesForNotification(Principal principal) {
+    public List<VocabularyDTO> getVocabulariesForNotification(Principal principal) {
 
         final AthenaUser user = userService.getUser(principal);
         List<Notification> notifications = vocabularyService.getNotifications(user.getId());
-        List<VocabularyDTO> vocabularyDTOs = converterUtils.convertList(notifications, VocabularyDTO.class);
-        return ResponseEntity.ok(vocabularyDTOs);
+        return converterUtils.convertList(notifications, VocabularyDTO.class);
     }
 
     @DeleteMapping("/{vocabularyCode}")
-    public ResponseEntity unsubscribeFromVocabularyUpdate(@PathVariable String vocabularyCode, Principal principal) {
+    public void unsubscribeFromVocabularyUpdate(@PathVariable String vocabularyCode, Principal principal) {
 
         final AthenaUser user = userService.getUser(principal);
-
         LOGGER.debug("Delete user's [{}] vocabulary update subscription  - {}", user.getId(), vocabularyCode);
         notificationService.deleteNotificationSubscription(user.getId(), vocabularyCode);
-
-        return ResponseEntity.ok().build();
     }
 }
