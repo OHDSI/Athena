@@ -164,11 +164,11 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public String getOMOPVocabularyVersion() {
 
-        final VocabularyV5 omopVocabularyVersion = vocabularyRepository.findOne(OMOP_VOCABULARY_ID);
-        if (omopVocabularyVersion != null) {
-            LOGGER.debug("Current Vocabularies Release: {} {}: {}", omopVocabularyVersion.getId(), omopVocabularyVersion.getName(), omopVocabularyVersion.getVersion());
+        final VocabularyV5 omopVocabulary = vocabularyRepository.findOne(OMOP_VOCABULARY_ID);
+        if (omopVocabulary != null) {
+            LOGGER.debug("Current OMOP Vocabulary: {} {}: {}", omopVocabulary.getId(), omopVocabulary.getName(), omopVocabulary.getVersion());
 
-            return omopVocabularyVersion.getVersion();
+            return omopVocabulary.getVersion();
         }
         LOGGER.warn("OMOP Vocabulary not found");
         return null;
