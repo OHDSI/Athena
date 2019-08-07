@@ -22,16 +22,6 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
-import static com.odysseusinc.athena.util.CDMVersion.getByValue;
-import static com.odysseusinc.athena.util.CDMVersion.notExist;
-import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
-import static java.lang.System.currentTimeMillis;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static org.apache.commons.lang.StringUtils.isEmpty;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.CustomPageImpl;
 import com.odysseusinc.athena.api.v1.controller.dto.LicenseExceptionDTO;
@@ -52,6 +42,7 @@ import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.service.DownloadBundleService;
+import com.odysseusinc.athena.service.DownloadShareService;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.impl.UserService;
@@ -60,13 +51,6 @@ import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.List;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,11 +63,30 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.List;
+
+import static com.odysseusinc.athena.util.CDMVersion.getByValue;
+import static com.odysseusinc.athena.util.CDMVersion.notExist;
+import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
+import static java.lang.System.currentTimeMillis;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Api
 @RestController
@@ -96,6 +99,7 @@ public class VocabularyController {
     private LicenseRequestSender licenseRequestSender;
     private UserService userService;
     private DownloadBundleService downloadBundleService;
+    private DownloadShareService downloadShareService;
     private FileHelper fileHelper;
     private ConverterUtils converterUtils;
 
@@ -105,6 +109,7 @@ public class VocabularyController {
                                 VocabularyConversionService vocabularyConversionService,
                                 UserService userService,
                                 DownloadBundleService downloadBundleService,
+                                DownloadShareService downloadShareService,
                                 FileHelper fileHelper,
                                 ConverterUtils converterUtils,
                                 LicenseRequestSender licenseRequestSender) {
@@ -116,6 +121,7 @@ public class VocabularyController {
         this.fileHelper = fileHelper;
         this.converterUtils = converterUtils;
         this.licenseRequestSender = licenseRequestSender;
+        this.downloadShareService = downloadShareService;
     }
 
     @ApiOperation("Get vocabularies.")
@@ -174,7 +180,25 @@ public class VocabularyController {
             throws PermissionDeniedException {
 
         final AthenaUser user = userService.getUser(principal);
-        return new ResponseEntity<>(vocabularyService.getDownloadHistory(user.getId()), OK);
+        return new ResponseEntity<>(vocabularyService.getDownloadHistory(user), OK);
+    }
+
+    @ApiOperation("Share bundle")
+    @PostMapping(value = "/downloads/{id}/share")
+    public ResponseEntity<Boolean> shareBundle(@PathVariable("id") Long bundleId,
+                                               @RequestBody String emailList,
+                                               Principal principal)
+            throws PermissionDeniedException {
+
+        final AthenaUser user = userService.getUser(principal);
+        DownloadBundle bundle = downloadBundleService.get(bundleId);
+        if (!user.getId().equals(bundle.getUserId())) {
+            throw new PermissionDeniedException();
+        }
+
+        downloadShareService.change(bundleId, emailList, user);
+
+        return new ResponseEntity<>(Boolean.TRUE, OK);
     }
 
     @ApiOperation("Archive download history item.")
@@ -207,7 +231,7 @@ public class VocabularyController {
 
         DownloadBundle bundle = downloadBundleService.get(bundleId);
         AthenaUser currentUser = userService.getCurrentUser();
-        vocabularyService.checkBundleUser(currentUser, bundle);
+        vocabularyService.checkBundleAndSharedUser(currentUser, bundle);
         vocabularyService.checkBundleVocabularies(bundle, currentUser.getId());
         return new ResponseEntity<>(new LicenseExceptionDTO(true), HttpStatus.OK);
     }

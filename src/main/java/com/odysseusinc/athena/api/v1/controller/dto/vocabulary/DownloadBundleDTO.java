@@ -23,6 +23,7 @@
 package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
 import com.odysseusinc.athena.util.DownloadBundleStatus;
+
 import java.util.Date;
 import java.util.List;
 
@@ -34,6 +35,7 @@ public class DownloadBundleDTO {
     private String name;
     private Float cdmVersion;
     private DownloadBundleStatus status;
+    private DownloadShareDTO downloadShareDTO;
 
     private List<VocabularyDTO> vocabularies;
 
@@ -105,5 +107,13 @@ public class DownloadBundleDTO {
     public void setStatus(DownloadBundleStatus status) {
 
         this.status = status;
+    }
+
+    public DownloadShareDTO getDownloadShareDTO() {
+        return downloadShareDTO;
+    }
+
+    public void setDownloadShareDTO(DownloadShareDTO downloadShareDTO) {
+        this.downloadShareDTO = downloadShareDTO;
     }
 }
