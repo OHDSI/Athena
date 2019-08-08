@@ -67,6 +67,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -217,11 +218,19 @@ public class VocabularyServiceImpl implements VocabularyService {
 
         Sort sort = new Sort(Sort.Direction.DESC, "created");
         List<DownloadBundle> history = downloadBundleRepository.findByUserId(user.getId(), sort);
+        Set<Long> bundleIds = history.stream()
+                .map(b -> b.getId())
+                .collect(Collectors.toSet());
+
         List<DownloadShare> shares = downloadShareRepository.findByDownloadShareIdUserEmail(user.getEmail());
         List<DownloadBundleDTO> sharedDTOs = new ArrayList<>();
         // add shared bundles to list of available downloads
         if (!shares.isEmpty()) {
             for(DownloadShare share: shares) {
+                // do not add to shared list dto with author equals to current user
+                if(bundleIds.contains(share.getBundleId())) {
+                    continue;
+                }
                 DownloadBundle bundle = downloadBundleRepository.getOne(share.getBundleId());
 
                 DownloadBundleDTO bundleDTO = conversionService.convert(bundle, DownloadBundleDTO.class);
