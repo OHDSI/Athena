@@ -3,3 +3,8 @@
 athena.iml
 target/
 src/main/resources/public/
+
+### Developer's personal properties ###
+**/resources/config/application*-dev-*.properties
+**/resources/config/application*-dev-*.yaml
+**/resources/config/application*-dev-*.yml

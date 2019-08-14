@@ -28,16 +28,10 @@ import static org.hibernate.validator.internal.util.StringHelper.join;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.SortClause;
-import org.apache.solr.client.solrj.util.ClientUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,10 +48,12 @@ public class ConceptSearchDTOToSolrQuery {
     private static final String STANDARD_CONCEPT = "standard_concept";
     private static final String REPLACEMENT_STRING = "replacementString";
 
+    private ConceptSolrQueryCreator conceptSolrQueryCreator = new ConceptSolrQueryCreator();
+
     @Autowired
-    LimitChecker limitChecker;
+    private LimitChecker limitChecker;
     @Autowired
-    VocabularyConversionService vocabularyConversionService;
+    private VocabularyConversionService vocabularyConversionService;
 
     @Value("${solr.default.query.operator:AND}")
     private String solrQueryOperator;
@@ -79,83 +75,13 @@ public class ConceptSearchDTOToSolrQuery {
 
     private void setQuery(ConceptSearchDTO source, SolrQuery result) {
 
-        String resultQuery = "*:*";
-        String sourceQuery = source.getQuery().trim();
-        if (!StringUtils.isEmpty(sourceQuery)) {
-            String queryWoQuotes = ClientUtils.escapeQueryChars(StringUtils.remove(sourceQuery, "\""));
-            resultQuery = String.format(" concept_name_ci:%1$s^9 OR concept_code_ci:%1$s^8 OR " + getComponentsOfQueryField(8), queryWoQuotes);
+        String resultQuery = conceptSolrQueryCreator.createSolrQueryString(source);
 
-            List<String> exacts = new ArrayList<>();
-            Matcher matcher = Pattern.compile("\".+?\"").matcher(sourceQuery);
-            while (matcher.find()) {
-                String exact = matcher.group();
-                exacts.add(ClientUtils.escapeQueryChars(exact.substring(1, exact.length() - 1)));
-            }
-            String queryWoExact = sourceQuery.replaceAll("\".+?\"", REPLACEMENT_STRING);
-            queryWoExact = ClientUtils.escapeQueryChars(queryWoExact);
-            List<String> allTerms = Arrays.asList(queryWoExact.split("\\\\ "));
-            if (allTerms.stream().filter(s -> s.contains(REPLACEMENT_STRING)).count() < allTerms.size()) {
-                //there are "not exact" words in query
-                if (exacts.size() > 0) {
-                    for (String exact : exacts) {
-                        boolean isReplaced = false;
-                        for (int j = 0; j < allTerms.size(); j++) {
-                            if (allTerms.get(j).contains(REPLACEMENT_STRING) && !isReplaced) {
-                                allTerms.set(j, exact);
-                                isReplaced = true;
-                            } else {
-                                allTerms.set(j, allTerms.get(j) + "~");
-                            }
-                        }
-                    }
-                } else {
-                    for (int j = 0; j < allTerms.size(); j++) {
-                        allTerms.set(j, allTerms.get(j) + "~");
-                    }
-                }
-                resultQuery = resultQuery + " OR concept_name_text:(" + String.join(" AND ", allTerms) + ")^7";
-            } else {
-                allTerms = exacts;
-            }
-            allTerms = allTerms.stream()
-                    //here we specify priorities of searching fields 
-                    .map(e -> {
-                        if (e.endsWith("~")) {
-                            e = e.substring(0, e.length() - 1);
-                            return String.format("(concept_name_ci:%1$s^6 OR " +
-                                    "concept_name_ci:%1$s~0.6^5 OR " +
-                                    "concept_name_text:%1$s^4 OR " +
-                                    "concept_name_text:%1$s~^3 OR " +
-                                    "concept_code_text:%1$s^3 OR " +
-                                    "concept_code_text:*%1$s*^2 OR " +
-                                    "query_wo_symbols:%1$s*)", e);
-                        } else {
-                            return String.format("(concept_name_ci:%1$s^6 OR concept_code_ci:%1$s^5 OR " + getComponentsOfQueryField(4) + ")", e);
-                        }
-                    })
-                    .collect(Collectors.toList());
-            resultQuery = resultQuery + " OR " + String.join(solrQueryOperator, allTerms);
-        }
         result.setQuery(resultQuery);
         SortClause sortByScore = new SortClause("score", SolrQuery.ORDER.desc);
         SortClause sortByConceptName = new SortClause("concept_name_ci", SolrQuery.ORDER.asc);
         result.setSort(sortByScore);
         result.addSort(sortByConceptName);
-    }
-
-    private String getComponentsOfQueryField(int priority) {
-        //field "query" is specified in SOLR's managed-schema. It's type is "general text" which means that filters and tokenizers are applied to it
-        //and other words may surround our term. We need an exact match, so here components of "query" are listed. Their type is String in SOLR that
-        //guarantees an exact match.
-        return "id:%1$s^" + priority + " OR " +
-                "concept_code:%1$s^" + priority + " OR " +
-                "concept_name:%1$s^" + priority + " OR " +
-                "concept_class_id:%1$s^" + priority + " OR " +
-                "domain_id:%1$s^" + priority + " OR " +
-                "vocabulary_id:%1$s^" + priority + " OR " +
-                "standard_concept:%1$s^" + priority + " OR " +
-                "invalid_reason:%1$s^" + priority + " OR " +
-                "concept_synonym_name:%1$s^" + priority;
     }
 
     private void setFilters(ConceptSearchDTO source, SolrQuery result) {
