@@ -31,9 +31,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.Map;
-
 
 @ConditionalOnProperty(name = "scheduled.vocabulary.checker")
 @Component
@@ -61,10 +58,8 @@ public class VocabularyUpdatesChecker {
 
     public void sendVocabularyUpdatesNotification() {
 
-        Map<String, String> vocabularyVersionMap = Collections.unmodifiableMap(notificationService.buildVocabularyVersionMap());
-
         for (Long subscribedUserId : notificationRepository.getSubscribedUserIds()) {
-            notificationService.processUsersVocabularyUpdateSubscriptions(subscribedUserId, vocabularyVersionMap);
+            notificationService.processUsersVocabularyUpdateSubscriptions(subscribedUserId);
         }
     }
 }

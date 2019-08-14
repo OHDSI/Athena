@@ -80,8 +80,9 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void processUsersVocabularyUpdateSubscriptions(Long userId, Map<String, String> vocabularyVersionMap) {
+    public void processUsersVocabularyUpdateSubscriptions(Long userId) {
 
+        Map<String, String> vocabularyVersionMap = buildVocabularyVersionMap();
         final List<Notification> notificationsSubscriptions = notificationRepository.findByUserId(userId);
 
         List<Notification> changedSubscriptions = new ArrayList<>();
@@ -103,8 +104,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     }
 
-    @Override
-    public Map<String, String> buildVocabularyVersionMap() {
+    private Map<String, String> buildVocabularyVersionMap() {
         final List<VocabularyV5> allVersions = vocabularyRepository.findAll();
 
         return allVersions.stream()
