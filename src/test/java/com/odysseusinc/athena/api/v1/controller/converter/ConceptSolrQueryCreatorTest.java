@@ -1,9 +1,10 @@
-package com.odysseusinc.athena.api.v1.controller.conceptSolrQueryCreator;
+package com.odysseusinc.athena.api.v1.controller.converter;
 
 import static org.junit.Assert.assertEquals;
 
-import com.odysseusinc.athena.api.v1.controller.converter.ConceptSolrQueryCreator;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Test;
 
 public class ConceptSolrQueryCreatorTest {
@@ -86,5 +87,68 @@ public class ConceptSolrQueryCreatorTest {
                         "(concept_name_ci:java\\ is\\ awesome^6 OR concept_code_ci:java\\ is\\ awesome^5 OR id:java\\ is\\ awesome^4 OR concept_code:java\\ is\\ awesome^4 OR concept_name:java\\ is\\ awesome^4 OR concept_class_id:java\\ is\\ awesome^4 OR domain_id:java\\ is\\ awesome^4 OR vocabulary_id:java\\ is\\ awesome^4 OR standard_concept:java\\ is\\ awesome^4 OR invalid_reason:java\\ is\\ awesome^4 OR concept_synonym_name:java\\ is\\ awesome^4)" +
                         ")",
                 queryString);
+    }
+
+    @Test
+    public void extractTermsFromPhrase_FirstWordIsExactTerm() {
+        String phraseString = "\"May\" the Force be with you";
+        assertEquals(Collections.singletonList("May"), this.conceptSolrQueryCreator.findExactTerms(phraseString));
+        assertEquals(Arrays.asList("the", "Force", "be", "with", "you"), this.conceptSolrQueryCreator.findNotExactTerms(phraseString));        
+    }
+
+    @Test
+    public void extractTermsFromPhrase_FirsTwoWordIsExactTerm() {
+        String phraseString = "\"May the\" Force be with you";
+        assertEquals(Collections.singletonList("May\\ the"), this.conceptSolrQueryCreator.findExactTerms(phraseString));
+        assertEquals(Arrays.asList("Force", "be", "with", "you"), this.conceptSolrQueryCreator.findNotExactTerms(phraseString));
+    }
+
+    @Test
+    public void extractTermsFromPhrase_FirsTwoWordWithExtraSpaceIsExactTerm() {
+        String phraseString = "\"May the \" Force be with you";
+        assertEquals(Collections.singletonList("May\\ the\\ "), this.conceptSolrQueryCreator.findExactTerms(phraseString));
+        assertEquals(Arrays.asList( "Force", "be", "with", "you"), this.conceptSolrQueryCreator.findNotExactTerms(phraseString));
+    }
+
+    @Test
+    public void extractTermsFromPhrase_WordInTheMiddleIsExactTerm() {
+        String phraseString = "May the \"Force\" be with you";
+        assertEquals(Collections.singletonList("Force"), this.conceptSolrQueryCreator.findExactTerms(phraseString));
+        assertEquals(Arrays.asList("May", "the",  "be", "with", "you"), this.conceptSolrQueryCreator.findNotExactTerms(phraseString));
+    }
+
+    @Test
+    public void extractTermsFromPhrase_LastWordIsExactTerm() {
+        String phraseString = "May the Force be with \"you\"";
+        assertEquals(Collections.singletonList("you"), this.conceptSolrQueryCreator.findExactTerms(phraseString));
+        assertEquals(Arrays.asList("May", "the", "Force", "be", "with"), this.conceptSolrQueryCreator.findNotExactTerms(phraseString));
+    }
+
+    @Test
+    public void extractTermsFromPhrase_AllWorksAreExactTerms() {
+        String phraseString = "\"May\" \"the\" \"Force\" \"be\" \"with\" \"you\"";
+        assertEquals(Arrays.asList("May", "the", "Force", "be", "with", "you"), this.conceptSolrQueryCreator.findExactTerms(phraseString));
+        assertEquals(Collections.emptyList(), this.conceptSolrQueryCreator.findNotExactTerms(phraseString));
+    }
+
+    @Test
+    public void extractTermsFromPhrase_escapeChars() {
+        String phraseString = "\"!May-the-Force-be\" with - y^ou! ";
+        assertEquals(Collections.singletonList("\\!May\\-the\\-Force\\-be"), this.conceptSolrQueryCreator.findExactTerms(phraseString));
+        assertEquals(Arrays.asList("with", "y\\^ou"), this.conceptSolrQueryCreator.findNotExactTerms(phraseString));
+    }
+
+    @Test
+    public void extractTermsFromPhrase_emptyTerm() {
+        String phraseString = "\"May\" \"\" the Force be with you";
+        assertEquals(Collections.singletonList("May"), this.conceptSolrQueryCreator.findExactTerms(phraseString));
+        assertEquals(Arrays.asList("the", "Force", "be", "with", "you"), this.conceptSolrQueryCreator.findNotExactTerms(phraseString));
+
+    }
+    @Test
+    public void extractTermsFromPhrase_oddAmountOfQuotes() {
+        String phraseString = "\"May\" the Fo\"rce be with you";
+        assertEquals(Collections.singletonList("May"), this.conceptSolrQueryCreator.findExactTerms(phraseString));
+        assertEquals(Arrays.asList("the", "Fo\\\"rce", "be", "with", "you"), this.conceptSolrQueryCreator.findNotExactTerms(phraseString));
     }
 }

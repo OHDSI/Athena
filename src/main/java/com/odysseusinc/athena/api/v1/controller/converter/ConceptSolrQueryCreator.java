@@ -14,8 +14,8 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 
 public class ConceptSolrQueryCreator {
 
-    public static final String EXACT_TERM_REGEX = "\".+?\"";
-    public static final String WHITESPACE_REGEX = "\\s+";
+    public static final String EXACT_TERM_REGEX = "\".*?\"";
+    public static final String WORD_DELIMITER_REGEX = "(\\s|\\/|\\-|\\(|\\)|\\?|!|,|;|\\.\\s|\\*)+";
     public static final String FUZZY_SEARCH_FORMAT = "%s~";
 
     public String createSolrQueryString(ConceptSearchDTO source) {
@@ -58,25 +58,29 @@ public class ConceptSolrQueryCreator {
 
     }
 
-    private List<String> findExactTerms(String queryString) {
+    protected List<String> findExactTerms(String phraseString) {
 
-        if (StringUtils.isEmpty(queryString) || StringUtils.isEmpty(queryString)) {
+        if (StringUtils.isEmpty(phraseString) || StringUtils.isEmpty(phraseString)) {
             return Collections.emptyList();
         }
-        return findAllMatches(queryString, EXACT_TERM_REGEX).stream()
-                .map(term -> term.substring(1, term.length() - 1)) //term is this best way to trim "
+        return findAllMatches(phraseString, EXACT_TERM_REGEX).stream()
+                .map(term -> term.substring(1, term.length() - 1))
+                .filter(StringUtils::isNotEmpty)
                 .map(ClientUtils::escapeQueryChars)
                 .collect(Collectors.toList());
     }
 
-    private List<String> findNotExactTerms(String queryString) {
+    protected List<String> findNotExactTerms(String phraseString) {
 
-        if (StringUtils.isEmpty(queryString) || StringUtils.isEmpty(queryString)) {
+        if (StringUtils.isEmpty(phraseString) || StringUtils.isEmpty(phraseString)) {
             return Collections.emptyList();
         }
-        String stringWithoutExactTerms = queryString.replaceAll(EXACT_TERM_REGEX, StringUtils.EMPTY);
-        return Arrays.stream(stringWithoutExactTerms.split(WHITESPACE_REGEX))
+        String stringWithoutExactTerms = phraseString.replaceAll(EXACT_TERM_REGEX, StringUtils.EMPTY);
+
+
+        return Arrays.stream(stringWithoutExactTerms.split(WORD_DELIMITER_REGEX))
                 .filter(StringUtils::isNotEmpty)
+                .map(ClientUtils::escapeQueryChars)
                 .collect(Collectors.toList());
     }
 
