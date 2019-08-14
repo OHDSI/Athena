@@ -39,27 +39,26 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void createNotificationSubscriptions(Long userId, String[] vocabularyCodes) {
+    public void createSubscriptions(Long userId, String[] vocabularyCodes) {
 
         for (String vocabularyCode : vocabularyCodes) {
-            Notification current = notificationRepository.findByUserIdAndVocabularyCode(userId, vocabularyCode);
-            if (current == null) {
-                final VocabularyV5 vocabulary = vocabularyRepository.findOne(vocabularyCode);
-                if (vocabulary != null) {
-                    final VocabularyConversion vocabularyConversion = vocabularyConversionRepository.findByIdV5(vocabularyCode);
-                    final Notification newNotification = new Notification(userId, vocabularyConversion, vocabularyCode, vocabulary.getVersion());
-                    notificationRepository.save(newNotification);
-                }
-            }
+            notificationRepository.findByUserIdAndVocabularyCode(userId, vocabularyCode)
+                    .ifPresent(subscription -> {
+                        final VocabularyV5 vocabulary = vocabularyRepository.findOne(vocabularyCode);
+                        if (vocabulary != null) {
+                            final VocabularyConversion vocabularyConversion = vocabularyConversionRepository.findByIdV5(vocabularyCode);
+                            final Notification newNotification = new Notification(userId, vocabularyConversion, vocabularyCode, vocabulary.getVersion());
+                            notificationRepository.save(newNotification);
+                        }
+
+                    });
         }
     }
 
     @Override
-    public void deleteNotificationSubscription(Long userId, String vocabularyCode) {
-        Notification current = notificationRepository.findByUserIdAndVocabularyCode(userId, vocabularyCode);
-        if (current != null) {
-            notificationRepository.delete(current);
-        }
+    public void deleteSubscription(Long userId, String vocabularyCode) {
+        notificationRepository.findByUserIdAndVocabularyCode(userId, vocabularyCode)
+                .ifPresent(notificationRepository::delete);
     }
 
     /**

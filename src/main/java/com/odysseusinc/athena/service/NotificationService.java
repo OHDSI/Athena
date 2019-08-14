@@ -10,7 +10,7 @@ public interface NotificationService {
 
     void processUsersVocabularyUpdateSubscriptions(Long userId, Map<String,String> vocabularyVersionMap);
 
-    void createNotificationSubscriptions(Long userId, String[] vocabularyCodes);
+    void createSubscriptions(Long userId, String[] vocabularyCodes);
 
-    void deleteNotificationSubscription(Long userId, String vocabularyCode);
+    void deleteSubscription(Long userId, String vocabularyCode);
 }

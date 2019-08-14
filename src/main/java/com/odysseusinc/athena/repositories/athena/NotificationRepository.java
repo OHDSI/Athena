@@ -49,6 +49,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Long> getSubscribedUserIds();
 
 
-    Notification findByUserIdAndVocabularyCode(Long userId, String vocabularyCode);
+    Optional<Notification> findByUserIdAndVocabularyCode(Long userId, String vocabularyCode);
 
 }

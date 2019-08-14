@@ -71,7 +71,7 @@ public class NotificationController {
             @Valid @RequestBody String[] vocabularyCodes, Principal principal) {
 
         final AthenaUser user = userService.getUser(principal);
-        notificationService.createNotificationSubscriptions(user.getId(), vocabularyCodes);
+        notificationService.createSubscriptions(user.getId(), vocabularyCodes);
     }
 
     @GetMapping
@@ -87,6 +87,6 @@ public class NotificationController {
 
         final AthenaUser user = userService.getUser(principal);
         LOGGER.debug("Delete user's [{}] vocabulary update subscription  - {}", user.getId(), vocabularyCode);
-        notificationService.deleteNotificationSubscription(user.getId(), vocabularyCode);
+        notificationService.deleteSubscription(user.getId(), vocabularyCode);
     }
 }
