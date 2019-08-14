@@ -16,7 +16,8 @@ public class ConceptSolrQueryCreator {
 
     public static final String EXACT_TERM_REGEX = "\".*?\"";
     public static final String WORD_DELIMITER_REGEX = "(\\s|\\/|\\-|\\(|\\)|\\?|!|,|;|\\.\\s|\\*)+";
-    public static final String FUZZY_SEARCH_FORMAT = "%s~";
+    public static final String FUZZY_FORMAT = "%s~";
+    public static final String EXACT_FORMAT = "\"%s\"";
 
     public String createSolrQueryString(ConceptSearchDTO source) {
 
@@ -31,8 +32,8 @@ public class ConceptSolrQueryCreator {
         List<String> notExactTerms = findNotExactTerms(phraseForQuery);
 
         String allTermsForWholePhraseQuery = Stream.concat(
-                exactTerms.stream(),
-                notExactTerms.stream().map(term -> String.format(FUZZY_SEARCH_FORMAT, term))
+                exactTerms.stream().map(term -> String.format(EXACT_FORMAT, term)),
+                notExactTerms.stream().map(term -> String.format(FUZZY_FORMAT, term))
         ).collect(Collectors.joining(" AND "));
 
         String phraseWithoutQuotes = ClientUtils.escapeQueryChars(StringUtils.remove(phraseForQuery, "\""));
