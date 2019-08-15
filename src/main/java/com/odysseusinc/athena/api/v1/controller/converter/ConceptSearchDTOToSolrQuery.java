@@ -46,9 +46,8 @@ public class ConceptSearchDTOToSolrQuery {
     public static final String VOCABULARY_ID = "vocabulary_id";
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
-    private static final String REPLACEMENT_STRING = "replacementString";
 
-    private ConceptSolrQueryCreator conceptSolrQueryCreator = new ConceptSolrQueryCreator();
+    private ConceptSearchPhraseToSolrQueryConverter conceptSearchPhraseToSolrQueryConverter = new ConceptSearchPhraseToSolrQueryConverter();
 
     @Autowired
     private LimitChecker limitChecker;
@@ -75,7 +74,7 @@ public class ConceptSearchDTOToSolrQuery {
 
     private void setQuery(ConceptSearchDTO source, SolrQuery result) {
 
-        String resultQuery = conceptSolrQueryCreator.createSolrQueryString(source);
+        String resultQuery = conceptSearchPhraseToSolrQueryConverter.createSolrQueryString(source);
 
         result.setQuery(resultQuery);
         SortClause sortByScore = new SortClause("score", SolrQuery.ORDER.desc);

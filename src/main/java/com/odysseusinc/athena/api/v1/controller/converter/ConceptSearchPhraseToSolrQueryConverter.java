@@ -9,14 +9,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
 
-public class ConceptSolrQueryCreator {
+public class ConceptSearchPhraseToSolrQueryConverter {
 
     public static final String EXACT_TERM_REGEX = "\".*?\"";
-    public static final String WORD_DELIMITER_REGEX = "(\\s|\\/|\\-|\\(|\\)|\\?|!|,|;|\\.\\s|\\*)+";
-    public static final String FUZZY_FORMAT = "%s~";
+    public static final String WORD_DELIMITER_REGEX = "(\\s|\\/|\\-|\\(|\\)|\\[|\\]\\{|\\}|\\?|!|,|;|\\.\\s|\\*)+";
+    public static final String FUZZY_FORMAT = "%s~0.6";
     public static final String EXACT_FORMAT = "\"%s\"";
 
     public String createSolrQueryString(ConceptSearchDTO source) {
@@ -31,19 +32,39 @@ public class ConceptSolrQueryCreator {
         List<String> exactTerms = findExactTerms(phraseForQuery);
         List<String> notExactTerms = findNotExactTerms(phraseForQuery);
 
-        String allTermsForWholePhraseQuery = Stream.concat(
-                exactTerms.stream().map(term -> String.format(EXACT_FORMAT, term)),
-                notExactTerms.stream().map(term -> String.format(FUZZY_FORMAT, term))
-        ).collect(Collectors.joining(" AND "));
+        return Stream.of(
+                getQueryToFindDocWithWholePhrase(phraseForQuery),
+                getQueryToFindDocWithAllTermsFromQuery(exactTerms, notExactTerms),
+                getQueryToFindDocWithAnyOfTermFromPhrase(exactTerms, notExactTerms)
+        )
+                .filter(StringUtils::isNotEmpty)
+                .map(queryPart -> String.format("(%s)", queryPart))
+                .collect(Collectors.joining(" OR "));
+    }
+
+    private String getQueryToFindDocWithWholePhrase(String phraseForQuery) {
+        if (StringUtils.isEmpty(phraseForQuery)) {
+            return StringUtils.EMPTY;
+        }
 
         String phraseWithoutQuotes = ClientUtils.escapeQueryChars(StringUtils.remove(phraseForQuery, "\""));
-        String queryForWholePhrase = String.format(
-                "%s OR concept_name_text:(%s)^7",
-                getQueryForExactTerm(phraseWithoutQuotes, 9, 8, 8),
-                allTermsForWholePhraseQuery
-        );
+        return getQueryForExactTerm(phraseWithoutQuotes, 9, 8, 8);
+    }
 
-        String queryForTermsFromPhrase = Stream
+    private String getQueryToFindDocWithAllTermsFromQuery(List<String> exactTerms, List<String> notExactTerms) {
+        if (CollectionUtils.isNotEmpty(notExactTerms)) {
+            String allTermsForWholePhraseQuery = Stream.concat(
+                    exactTerms.stream().map(term -> String.format(EXACT_FORMAT, term)),
+                    notExactTerms.stream().map(term -> String.format(FUZZY_FORMAT, term))
+            ).collect(Collectors.joining(" AND "));
+            return String.format("concept_name_text:(%s)^7", allTermsForWholePhraseQuery);
+        }
+        return StringUtils.EMPTY;
+    }
+
+    private String getQueryToFindDocWithAnyOfTermFromPhrase(List<String> exactTerms, List<String> notExactTerms) {
+
+        return Stream
                 .concat(
                         exactTerms.stream()
                                 .map(term -> getQueryForExactTerm(term, 6, 5, 4)),
@@ -52,11 +73,6 @@ public class ConceptSolrQueryCreator {
                 )
                 .map(queryPart -> String.format("(%s)", queryPart))
                 .collect(Collectors.joining(" AND "));
-
-        return String.format("(%s) OR (%s)",
-                queryForWholePhrase,
-                queryForTermsFromPhrase);
-
     }
 
     protected List<String> findExactTerms(String phraseString) {
@@ -103,7 +119,7 @@ public class ConceptSolrQueryCreator {
         return String.format("concept_name_ci:%1$s^6 OR " +
                 "concept_name_ci:%1$s~0.6^5 OR " +
                 "concept_name_text:%1$s^4 OR " +
-                "concept_name_text:%1$s~^3 OR " +
+                "concept_name_text:%1$s~0.6^3 OR " +
                 "concept_code_text:%1$s^3 OR " +
                 "concept_code_text:*%1$s*^2 OR " +
                 "query_wo_symbols:%1$s*", term);
@@ -113,9 +129,11 @@ public class ConceptSolrQueryCreator {
         //field "query" is specified in SOLR's managed-schema. It's type is "general text" which means that filters and tokenizers are applied to it
         //and other words may surround our term. We need an exact match, so here components of "query" are listed. Their type is String in SOLR that
         //guarantees an exact match.
+        
         return String.format(
                 "concept_name_ci:%1$s^" + conceptNameCiPriority + " OR " +
                         "concept_code_ci:%1$s^" + conceptCodeCiPriority + " OR " +
+
                         "id:%1$s^" + priority + " OR " +
                         "concept_code:%1$s^" + priority + " OR " +
                         "concept_name:%1$s^" + priority + " OR " +
