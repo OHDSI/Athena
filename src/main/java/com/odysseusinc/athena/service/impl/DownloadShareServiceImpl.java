@@ -23,6 +23,7 @@
 package com.odysseusinc.athena.service.impl;
 
 import com.google.common.base.Splitter;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareChangeDTO;
 import com.odysseusinc.athena.model.athena.DownloadShare;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadShareRepository;
@@ -63,12 +64,12 @@ public class DownloadShareServiceImpl implements DownloadShareService {
     }
 
     @Override
-    public List<DownloadShare> change(Long bundleId, String emailList, AthenaUser user) {
-        if (emailList == null || emailList.isEmpty()) {
+    public List<DownloadShare> change(Long bundleId, DownloadShareChangeDTO changeDTO, AthenaUser user) {
+        if (changeDTO == null || changeDTO.getEmailList() == null || changeDTO.getEmailList().isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<String> emails = Splitter.on(",").trimResults().splitToList(emailList);
+        List<String> emails = Splitter.on(",").trimResults().splitToList(changeDTO.getEmailList());
 
         List<DownloadShare> sharedBundles = emails.stream()
                 .map(email -> new DownloadShare(bundleId, email, user))

@@ -30,6 +30,7 @@ import com.odysseusinc.athena.api.v1.controller.dto.VocabularyForNotificationDTO
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.AcceptDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.AddingUserLicensesDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareChangeDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.LicenseRequestDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserLicensesDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
@@ -186,7 +187,7 @@ public class VocabularyController {
     @ApiOperation("Share bundle")
     @PostMapping(value = "/downloads/{id}/share")
     public ResponseEntity<Boolean> shareBundle(@PathVariable("id") Long bundleId,
-                                               @RequestBody String emailList,
+                                               @RequestBody DownloadShareChangeDTO changeDTO,
                                                Principal principal)
             throws PermissionDeniedException {
 
@@ -196,7 +197,7 @@ public class VocabularyController {
             throw new PermissionDeniedException();
         }
 
-        downloadShareService.change(bundleId, emailList, user);
+        downloadShareService.change(bundleId, changeDTO, user);
 
         return new ResponseEntity<>(Boolean.TRUE, OK);
     }

@@ -20,22 +20,16 @@
  *
  */
 
-package com.odysseusinc.athena.service;
+package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
-import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareChangeDTO;
-import com.odysseusinc.athena.model.athena.DownloadShare;
-import com.odysseusinc.athena.model.security.AthenaUser;
+public class DownloadShareChangeDTO {
+    private String emailList;
 
-import java.util.List;
+    public String getEmailList() {
+        return emailList;
+    }
 
-public interface DownloadShareService {
-    List<DownloadShare> getBundleShares(Long downloadBundleId);
-
-    List<DownloadShare> getBundleShares(String shareUserEmail);
-
-    List<String> getUserEmails(Long downloadBundleId);
-
-    void deleteByDownloadBundleId(Long downloadBundleId);
-
-    List<DownloadShare> change(Long bundleId, DownloadShareChangeDTO changeDTO, AthenaUser user);
+    public void setEmailList(String emailList) {
+        this.emailList = emailList;
+    }
 }
