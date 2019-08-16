@@ -65,7 +65,12 @@ public class DownloadShareServiceImpl implements DownloadShareService {
 
     @Override
     public List<DownloadShare> change(Long bundleId, DownloadShareChangeDTO changeDTO, AthenaUser user) {
-        if (changeDTO == null || changeDTO.getEmailList() == null || changeDTO.getEmailList().isEmpty()) {
+        if (changeDTO == null) {
+            return Collections.emptyList();
+        }
+
+        if (changeDTO.getEmailList() == null || changeDTO.getEmailList().isEmpty()) {
+            deleteByDownloadBundleId(bundleId);
             return Collections.emptyList();
         }
 
