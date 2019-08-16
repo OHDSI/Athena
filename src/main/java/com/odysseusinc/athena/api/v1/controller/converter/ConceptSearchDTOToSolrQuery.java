@@ -33,12 +33,16 @@ import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.SortClause;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ConceptSearchDTOToSolrQuery {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConceptSearchDTOToSolrQuery.class);
 
     private static final String ID = "id";
     private static final String CLASS_ID = "concept_class_id";
@@ -75,6 +79,8 @@ public class ConceptSearchDTOToSolrQuery {
     private void setQuery(ConceptSearchDTO source, SolrQuery result) {
 
         String resultQuery = conceptSearchPhraseToSolrQueryConverter.createSolrQueryString(source);
+
+        LOGGER.debug("Concept search query: {}", resultQuery);
 
         result.setQuery(resultQuery);
         SortClause sortByScore = new SortClause("score", SolrQuery.ORDER.desc);
