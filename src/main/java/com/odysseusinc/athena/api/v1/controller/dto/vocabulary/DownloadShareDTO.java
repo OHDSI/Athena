@@ -26,6 +26,7 @@ import com.odysseusinc.athena.util.DownloadShareStatus;
 
 public class DownloadShareDTO {
     private Long bundleId;
+    private String email;
     private String ownerUsername;
     private DownloadShareStatus downloadShareStatus;
 
@@ -51,5 +52,13 @@ public class DownloadShareDTO {
 
     public void setDownloadShareStatus(DownloadShareStatus downloadShareStatus) {
         this.downloadShareStatus = downloadShareStatus;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

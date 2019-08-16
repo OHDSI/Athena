@@ -260,11 +260,18 @@ public class VocabularyServiceImpl implements VocabularyService {
         List<DownloadShareDTO> ownerShareDtos = converterUtils.convertList(ownerShares, DownloadShareDTO.class);
         dtos.stream()
                 .forEach(dto -> {
-                    ownerShareDtos.stream()
+                    String emails = ownerShareDtos.stream()
                             .filter(o -> o.getBundleId() == dto.getId())
-                            .findFirst().ifPresent(o -> {
-                                dto.setDownloadShareDTO(o);
-                            });
+                            .map(o -> o.getEmail())
+                            .collect(Collectors.joining(", "));
+                    // if we get list of users with whom this bundle was shared
+                    // then the current user is the owner of this bundle
+                    if (emails != null && !emails.isEmpty()) {
+                        DownloadShareDTO ownerDto = new DownloadShareDTO();
+                        ownerDto.setBundleId(dto.getId());
+                        ownerDto.setEmail(emails);
+                        ownerDto.setOwnerUsername(user.getEmail());
+                    }
                 });
 
         dtos.addAll(sharedDTOs);

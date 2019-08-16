@@ -59,6 +59,7 @@ public class DownloadShareToDTO implements Converter<DownloadShare, DownloadShar
         DownloadShareDTO dto = new DownloadShareDTO();
 
         dto.setBundleId(bundle.getBundleId());
+        dto.setEmail(bundle.getUserEmail());
         dto.setOwnerUsername(bundle.getOwner().getUsername());
         return dto;
     }
