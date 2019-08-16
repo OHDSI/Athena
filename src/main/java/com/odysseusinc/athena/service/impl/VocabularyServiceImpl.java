@@ -257,12 +257,11 @@ public class VocabularyServiceImpl implements VocabularyService {
 
         // Get list of shared bundles where owner is current user
         List<DownloadShare> ownerShares = downloadShareRepository.findByOwnerId(user.getId());
-        List<DownloadShareDTO> ownerShareDtos = converterUtils.convertList(ownerShares, DownloadShareDTO.class);
         dtos.stream()
                 .forEach(dto -> {
-                    String emails = ownerShareDtos.stream()
+                    String emails = ownerShares.stream()
                             .filter(o -> o.getBundleId() == dto.getId())
-                            .map(o -> o.getEmail())
+                            .map(o -> o.getUserEmail())
                             .collect(Collectors.joining(", "));
                     // if we get list of users with whom this bundle was shared
                     // then the current user is the owner of this bundle
@@ -271,6 +270,7 @@ public class VocabularyServiceImpl implements VocabularyService {
                         ownerDto.setBundleId(dto.getId());
                         ownerDto.setEmail(emails);
                         ownerDto.setOwnerUsername(user.getEmail());
+                        dto.setDownloadShareDTO(ownerDto);
                     }
                 });
 
