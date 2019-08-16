@@ -38,6 +38,8 @@ public interface DownloadShareRepository extends JpaRepository<DownloadShare, Lo
 
     List<DownloadShare> findByDownloadShareIdUserEmail(String userEmail);
 
+    List<DownloadShare> findByOwnerId(Long ownerId);
+
     @Transactional
     @Modifying
     void deleteByDownloadShareIdBundleId(Long bundleId);

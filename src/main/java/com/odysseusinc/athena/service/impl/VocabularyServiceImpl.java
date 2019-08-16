@@ -252,7 +252,21 @@ public class VocabularyServiceImpl implements VocabularyService {
                 }
             }
         }
+
         List<DownloadBundleDTO> dtos = converterUtils.convertList(history, DownloadBundleDTO.class);
+
+        // Get list of shared bundles where owner is current user
+        List<DownloadShare> ownerShares = downloadShareRepository.findByOwnerId(user.getId());
+        List<DownloadShareDTO> ownerShareDtos = converterUtils.convertList(ownerShares, DownloadShareDTO.class);
+        dtos.stream()
+                .forEach(dto -> {
+                    ownerShareDtos.stream()
+                            .filter(o -> o.getBundleId() == dto.getId())
+                            .findFirst().ifPresent(o -> {
+                                dto.setDownloadShareDTO(o);
+                            });
+                });
+
         dtos.addAll(sharedDTOs);
         return dtos;
     }
