@@ -28,6 +28,7 @@ import static org.hibernate.validator.internal.util.StringHelper.join;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
+import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -51,7 +52,7 @@ public class ConceptSearchDTOToSolrQuery {
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
 
-    private ConceptSearchPhraseToSolrQueryConverter conceptSearchPhraseToSolrQueryConverter = new ConceptSearchPhraseToSolrQueryConverter();
+    private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService();
 
     @Autowired
     private LimitChecker limitChecker;
@@ -78,7 +79,7 @@ public class ConceptSearchDTOToSolrQuery {
 
     private void setQuery(ConceptSearchDTO source, SolrQuery result) {
 
-        String resultQuery = conceptSearchPhraseToSolrQueryConverter.createSolrQueryString(source);
+        String resultQuery = conceptSearchPhraseToSolrQueryService.createSolrQueryString(source);
 
         LOGGER.debug("Concept search query: {}", resultQuery);
 

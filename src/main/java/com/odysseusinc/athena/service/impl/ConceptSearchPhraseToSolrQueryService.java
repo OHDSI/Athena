@@ -1,4 +1,4 @@
-package com.odysseusinc.athena.api.v1.controller.converter;
+package com.odysseusinc.athena.service.impl;
 
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import java.util.ArrayList;
@@ -13,10 +13,12 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
 
-public class ConceptSearchPhraseToSolrQueryConverter {
+public class ConceptSearchPhraseToSolrQueryService {
 
     public static final String EXACT_TERM_REGEX = "\".*?\"";
     public static final String WORD_DELIMITER_REGEX = "(\\s|\\/|\\-|\\(|\\)|\\[|\\]\\{|\\}|\\?|!|,|;|\\.\\s|\\*)+";
+    public static final String FUZZY_FORMAT = "%s~0.6";
+    public static final String EXACT_FORMAT = "\"%s\"";
 
     public static final String ID = "id";
     public static final String CONCEPT_NAME_CI = "concept_name_ci";
@@ -32,6 +34,7 @@ public class ConceptSearchPhraseToSolrQueryConverter {
 
     public static final String CONCEPT_NAME_TEXT = "concept_name_text";
     public static final String CONCEPT_CODE_TEXT = "concept_code_text";
+    public static final String QUERY_SYMBOLS = "query_symbols";
     public static final String QUERY_WO_SYMBOLS = "query_wo_symbols";
 
 
@@ -52,6 +55,7 @@ public class ConceptSearchPhraseToSolrQueryConverter {
         }
         return Stream.of(
                 getQueryToFindDocsWithWholePhrase(phraseForQuery),
+                getQueryToFindDocWithAllTermsFromQuery(exactTerms, notExactTerms),
                 getQueryToFindDocsWithAnyOfTermFromPhrase(exactTerms, notExactTerms)
         )
                 .filter(StringUtils::isNotEmpty)
@@ -66,6 +70,17 @@ public class ConceptSearchPhraseToSolrQueryConverter {
 
         String phraseWithoutQuotes = ClientUtils.escapeQueryChars(StringUtils.remove(phraseForQuery, "\""));
         return getQueryForExactPhrase(phraseWithoutQuotes);
+    }
+
+    private String getQueryToFindDocWithAllTermsFromQuery(List<String> exactTerms, List<String> notExactTerms) {
+        if (CollectionUtils.isNotEmpty(notExactTerms)) {
+            String allTermsForWholePhraseQuery = Stream.concat(
+                    exactTerms.stream().map(term -> String.format(EXACT_FORMAT, term)),
+                    notExactTerms.stream().map(term -> String.format(FUZZY_FORMAT, term))
+            ).collect(Collectors.joining(" AND "));
+            return String.format("%s:(%s)^%s", CONCEPT_NAME_TEXT, allTermsForWholePhraseQuery, 7);
+        }
+        return StringUtils.EMPTY;
     }
 
     private String getQueryToFindDocsWithAnyOfTermFromPhrase(List<String> exactTerms, List<String> notExactTerms) {
@@ -147,7 +162,7 @@ public class ConceptSearchPhraseToSolrQueryConverter {
         return String.join(" OR ",
                 String.format("%s:\"%s\"^%s", CONCEPT_NAME_TEXT, term, 4),
                 String.format("%s:\"%s\"^%s", CONCEPT_CODE_TEXT, term, 3),
-                String.format("%s:\"%s\"", QUERY_WO_SYMBOLS, term));
+                String.format("%s:\"%s\"", QUERY_SYMBOLS, term));
     }
 
 
