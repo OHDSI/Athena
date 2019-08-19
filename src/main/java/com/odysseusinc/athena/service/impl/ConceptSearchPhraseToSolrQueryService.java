@@ -162,7 +162,7 @@ public class ConceptSearchPhraseToSolrQueryService {
         return String.join(" OR ",
                 String.format("%s:\"%s\"^%s", CONCEPT_NAME_TEXT, term, 4),
                 String.format("%s:\"%s\"^%s", CONCEPT_CODE_TEXT, term, 3),
-                String.format("%s:\"%s\"", QUERY_SYMBOLS, term));
+                String.format("%s:\"%s\"", QUERY_WO_SYMBOLS, term));
     }
 
 
