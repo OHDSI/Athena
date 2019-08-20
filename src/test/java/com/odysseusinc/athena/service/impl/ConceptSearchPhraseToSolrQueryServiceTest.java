@@ -1,9 +1,28 @@
-package com.odysseusinc.athena.service.impl;
+/*
+ *
+ * Copyright 2018 Odysseus Data Services, inc.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Company: Odysseus Data Services, Inc.
+ * Product Owner/Architecture: Gregory Klebanov
+ * Authors: Yaroslav Molodkov
+ *
+ */
 
+package com.odysseusinc.athena.service.impl;
 
 import static org.junit.Assert.assertEquals;
 
-import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
@@ -11,69 +30,6 @@ import org.junit.Test;
 public class ConceptSearchPhraseToSolrQueryServiceTest {
 
     private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService();
-    @Test
-    public void createSolrQueryString_withoutExactTerms() {
-
-        ConceptSearchDTO searchDTO = new ConceptSearchDTO();
-        searchDTO.setQuery("java is awesome");
-        String queryString = conceptSearchPhraseToSolrQueryService.createSolrQueryString(searchDTO);
-        assertEquals(
-                "(concept_name_ci:java\\ is\\ awesome^9 OR concept_code_ci:java\\ is\\ awesome^8 OR id:java\\ is\\ awesome^8 OR concept_code:java\\ is\\ awesome^8 OR concept_name:java\\ is\\ awesome^8 OR concept_class_id:java\\ is\\ awesome^8 OR domain_id:java\\ is\\ awesome^8 OR vocabulary_id:java\\ is\\ awesome^8 OR standard_concept:java\\ is\\ awesome^8 OR invalid_reason:java\\ is\\ awesome^8 OR concept_synonym_name:java\\ is\\ awesome^8) OR " +
-                        "(concept_name_text:(java~0.6 AND is~0.6 AND awesome~0.6)^7) OR " +
-                        "((concept_name_text:java^4 OR concept_name_text:java~0.6^3 OR concept_code_text:java^3 OR concept_code_text:*java*~0.6^2 OR query_wo_symbols:java*) OR (concept_name_text:is^4 OR concept_name_text:is~0.6^3 OR concept_code_text:is^3 OR concept_code_text:*is*~0.6^2 OR query_wo_symbols:is*) OR (concept_name_text:awesome^4 OR concept_name_text:awesome~0.6^3 OR concept_code_text:awesome^3 OR concept_code_text:*awesome*~0.6^2 OR query_wo_symbols:awesome*))",
-                queryString);
-    }
-
-    @Test
-    public void createSolrQueryString_exactTermIsFirst() {
-
-        ConceptSearchDTO searchDTO = new ConceptSearchDTO();
-        searchDTO.setQuery("\"java\" is awesome");
-        String queryString = conceptSearchPhraseToSolrQueryService.createSolrQueryString(searchDTO);
-        assertEquals(
-                "(concept_name_ci:java\\ is\\ awesome^9 OR concept_code_ci:java\\ is\\ awesome^8 OR id:java\\ is\\ awesome^8 OR concept_code:java\\ is\\ awesome^8 OR concept_name:java\\ is\\ awesome^8 OR concept_class_id:java\\ is\\ awesome^8 OR domain_id:java\\ is\\ awesome^8 OR vocabulary_id:java\\ is\\ awesome^8 OR standard_concept:java\\ is\\ awesome^8 OR invalid_reason:java\\ is\\ awesome^8 OR concept_synonym_name:java\\ is\\ awesome^8) OR " +
-                        "(concept_name_text:(\"java\" AND is~0.6 AND awesome~0.6)^7) OR " +
-                        "(((concept_name_text:\"java\"^4 OR concept_code_text:\"java\"^3 OR query_symbols:\"java\")) OR (((concept_name_text:\"java\"^4 OR concept_code_text:\"java\"^3 OR query_symbols:\"java\")) AND ((concept_name_text:is^4 OR concept_name_text:is~0.6^3 OR concept_code_text:is^3 OR concept_code_text:*is*~0.6^2 OR query_wo_symbols:is*) OR (concept_name_text:awesome^4 OR concept_name_text:awesome~0.6^3 OR concept_code_text:awesome^3 OR concept_code_text:*awesome*~0.6^2 OR query_wo_symbols:awesome*))))",
-                queryString);
-    }
-
-    @Test
-    public void createSolrQueryString_exactTermIsInTheMiddle() {
-
-        ConceptSearchDTO searchDTO = new ConceptSearchDTO();
-        searchDTO.setQuery("java \"is\" awesome");
-        String queryString = conceptSearchPhraseToSolrQueryService.createSolrQueryString(searchDTO);
-        assertEquals(
-                "(concept_name_ci:java\\ is\\ awesome^9 OR concept_code_ci:java\\ is\\ awesome^8 OR id:java\\ is\\ awesome^8 OR concept_code:java\\ is\\ awesome^8 OR concept_name:java\\ is\\ awesome^8 OR concept_class_id:java\\ is\\ awesome^8 OR domain_id:java\\ is\\ awesome^8 OR vocabulary_id:java\\ is\\ awesome^8 OR standard_concept:java\\ is\\ awesome^8 OR invalid_reason:java\\ is\\ awesome^8 OR concept_synonym_name:java\\ is\\ awesome^8) OR " +
-                        "(concept_name_text:(\"is\" AND java~0.6 AND awesome~0.6)^7) OR " +
-                        "(((concept_name_text:\"is\"^4 OR concept_code_text:\"is\"^3 OR query_symbols:\"is\")) OR (((concept_name_text:\"is\"^4 OR concept_code_text:\"is\"^3 OR query_symbols:\"is\")) AND ((concept_name_text:java^4 OR concept_name_text:java~0.6^3 OR concept_code_text:java^3 OR concept_code_text:*java*~0.6^2 OR query_wo_symbols:java*) OR (concept_name_text:awesome^4 OR concept_name_text:awesome~0.6^3 OR concept_code_text:awesome^3 OR concept_code_text:*awesome*~0.6^2 OR query_wo_symbols:awesome*))))",
-                queryString);
-    }
-
-    @Test
-    public void createSolrQueryString_exactTermIsLast() {
-
-        ConceptSearchDTO searchDTO = new ConceptSearchDTO();
-        searchDTO.setQuery("java is \"awesome\"");
-        String queryString = conceptSearchPhraseToSolrQueryService.createSolrQueryString(searchDTO);
-        assertEquals(
-                "(concept_name_ci:java\\ is\\ awesome^9 OR concept_code_ci:java\\ is\\ awesome^8 OR id:java\\ is\\ awesome^8 OR concept_code:java\\ is\\ awesome^8 OR concept_name:java\\ is\\ awesome^8 OR concept_class_id:java\\ is\\ awesome^8 OR domain_id:java\\ is\\ awesome^8 OR vocabulary_id:java\\ is\\ awesome^8 OR standard_concept:java\\ is\\ awesome^8 OR invalid_reason:java\\ is\\ awesome^8 OR concept_synonym_name:java\\ is\\ awesome^8) OR " +
-                        "(concept_name_text:(\"awesome\" AND java~0.6 AND is~0.6)^7) OR " +
-                        "(((concept_name_text:\"awesome\"^4 OR concept_code_text:\"awesome\"^3 OR query_symbols:\"awesome\")) OR (((concept_name_text:\"awesome\"^4 OR concept_code_text:\"awesome\"^3 OR query_symbols:\"awesome\")) AND ((concept_name_text:java^4 OR concept_name_text:java~0.6^3 OR concept_code_text:java^3 OR concept_code_text:*java*~0.6^2 OR query_wo_symbols:java*) OR (concept_name_text:is^4 OR concept_name_text:is~0.6^3 OR concept_code_text:is^3 OR concept_code_text:*is*~0.6^2 OR query_wo_symbols:is*))))",
-                queryString);
-    }
-
-    @Test
-    public void createSolrQueryString_wholePhraseIsExactTerm() {
-
-        ConceptSearchDTO searchDTO = new ConceptSearchDTO();
-        searchDTO.setQuery("\"java is awesome\"");
-        String queryString = conceptSearchPhraseToSolrQueryService.createSolrQueryString(searchDTO);
-        assertEquals(
-                "(concept_name_ci:java\\ is\\ awesome^9 OR concept_code_ci:java\\ is\\ awesome^8 OR id:java\\ is\\ awesome^8 OR concept_code:java\\ is\\ awesome^8 OR concept_name:java\\ is\\ awesome^8 OR concept_class_id:java\\ is\\ awesome^8 OR domain_id:java\\ is\\ awesome^8 OR vocabulary_id:java\\ is\\ awesome^8 OR standard_concept:java\\ is\\ awesome^8 OR invalid_reason:java\\ is\\ awesome^8 OR concept_synonym_name:java\\ is\\ awesome^8) OR " +
-                        "((concept_name_text:\"java\\ is\\ awesome\"^4 OR concept_code_text:\"java\\ is\\ awesome\"^3 OR query_symbols:\"java\\ is\\ awesome\"))",
-                queryString);
-    }
 
     @Test
     public void extractTermsFromPhrase_FirstWordIsExactTerm() {
@@ -137,4 +93,26 @@ public class ConceptSearchPhraseToSolrQueryServiceTest {
         assertEquals(Collections.singletonList("May"), this.conceptSearchPhraseToSolrQueryService.findExactTerms(phraseString));
         assertEquals(Arrays.asList("the", "Fo\\\"rce", "be", "with", "you"), this.conceptSearchPhraseToSolrQueryService.findNotExactTerms(phraseString));
     }
+
+    @Test
+    public void extractTermsFromPhrase_bracketsQuotes() {
+        String phraseString = "{May} {the} [Force] (be) with you";
+        assertEquals(Collections.emptyList(), this.conceptSearchPhraseToSolrQueryService.findExactTerms(phraseString));
+        assertEquals(Arrays.asList("\\{May\\}", "\\{the\\}", "\\[Force\\]", "\\(be\\)", "with", "you"), this.conceptSearchPhraseToSolrQueryService.findNotExactTerms(phraseString));
+    }
+
+    @Test
+    public void extractTermsFromPhrase_bracketsInExactTermQuotes() {
+        String phraseString = "\"{May}\" \"{the}\" \"[Force]\" \"(be)\" with you";
+        assertEquals(Arrays.asList("\\{May\\}", "\\{the\\}", "\\[Force\\]", "\\(be\\)"), this.conceptSearchPhraseToSolrQueryService.findExactTerms(phraseString));
+        assertEquals(Arrays.asList("with", "you"), this.conceptSearchPhraseToSolrQueryService.findNotExactTerms(phraseString));
+    }
+
+    @Test
+    public void extractTermsFromPhrase_splitByDash() {
+        String phraseString = "Winnie-the-Pooh - piglet";
+        assertEquals(Collections.emptyList(), this.conceptSearchPhraseToSolrQueryService.findExactTerms(phraseString));
+        assertEquals(Arrays.asList("Winnie\\-the\\-Pooh", "piglet"), this.conceptSearchPhraseToSolrQueryService.findNotExactTerms(phraseString));
+    }
+
 }

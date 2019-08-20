@@ -16,7 +16,8 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 public class ConceptSearchPhraseToSolrQueryService {
 
     public static final String EXACT_TERM_REGEX = "\".*?\"";
-    public static final String WORD_DELIMITER_REGEX = "(\\s|\\/|\\-|\\(|\\)|\\[|\\]\\{|\\}|\\?|!|,|;|\\.\\s|\\*)+";
+    public static final String WORD_DELIMITER_REGEX = "(\\s|\\/|\\?|!|,|;|\\.\\s|\\*)+";
+    public static final List<String> SPEC_CHARS = Arrays.asList("\\", "+", "-", "!", "(", ")", ":", "^", "[", "]", "\"", "{", "}", "~", "*", "?", "|", "&", ";", "/");
     public static final String FUZZY_FORMAT = "%s~0.6";
     public static final String EXACT_FORMAT = "\"%s\"";
 
@@ -34,7 +35,7 @@ public class ConceptSearchPhraseToSolrQueryService {
 
     public static final String CONCEPT_NAME_TEXT = "concept_name_text";
     public static final String CONCEPT_CODE_TEXT = "concept_code_text";
-    public static final String QUERY_SYMBOLS = "query_symbols";
+    public static final String QUERY_SYMBOLS = "query";
     public static final String QUERY_WO_SYMBOLS = "query_wo_symbols";
 
 
@@ -90,6 +91,7 @@ public class ConceptSearchPhraseToSolrQueryService {
                 .map(this::getQueryForExactTerm)
                 .map(queryPart -> String.format("(%s)", queryPart))
                 .collect(Collectors.joining(" AND "));
+
         String notExactQueryPart = notExactTerms.stream()
                 .filter(StringUtils::isNotEmpty)
                 .map(this::getQueryForNotExactTerm)
@@ -113,6 +115,7 @@ public class ConceptSearchPhraseToSolrQueryService {
         if (StringUtils.isEmpty(phraseString) || StringUtils.isEmpty(phraseString)) {
             return Collections.emptyList();
         }
+
         return findAllMatches(phraseString, EXACT_TERM_REGEX).stream()
                 .map(term -> term.substring(1, term.length() - 1))
                 .filter(StringUtils::isNotEmpty)
@@ -130,6 +133,7 @@ public class ConceptSearchPhraseToSolrQueryService {
 
         return Arrays.stream(stringWithoutExactTerms.split(WORD_DELIMITER_REGEX))
                 .filter(StringUtils::isNotEmpty)
+                .filter(term -> !SPEC_CHARS.contains(term))
                 .map(ClientUtils::escapeQueryChars)
                 .collect(Collectors.toList());
     }
@@ -162,7 +166,7 @@ public class ConceptSearchPhraseToSolrQueryService {
         return String.join(" OR ",
                 String.format("%s:\"%s\"^%s", CONCEPT_NAME_TEXT, term, 4),
                 String.format("%s:\"%s\"^%s", CONCEPT_CODE_TEXT, term, 3),
-                String.format("%s:\"%s\"", QUERY_WO_SYMBOLS, term));
+                String.format("%s:\"%s\"", QUERY_SYMBOLS, term));
     }
 
 
