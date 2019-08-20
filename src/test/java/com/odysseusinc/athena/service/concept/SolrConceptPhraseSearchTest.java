@@ -44,7 +44,7 @@ public class SolrConceptPhraseSearchTest {
     private ConceptSearchDTOToSolrQuery conceptSearchDTOToSolrQuery = new ConceptSearchDTOToSolrQuery();
 
     @Test
-    public void query_phrase() throws Exception {
+    public void query_wholePhrase() throws Exception {
 
         ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Pooh eats honey");
 
@@ -76,7 +76,7 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_allWordFromPhrase() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("honey eats pooh");
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("eats honey pooh");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         QueryResponse response = SolrInitializer.server.query(query);
@@ -104,6 +104,35 @@ public class SolrConceptPhraseSearchTest {
     }
 
     @Test
+    public void query_fewWords() throws Exception {
+
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Pooh raspberries");
+
+        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
+        QueryResponse response = SolrInitializer.server.query(query);
+        SolrDocumentList docList = response.getResults();
+
+        assertEquals(12, docList.size());
+        assertEquals(
+                Arrays.asList(
+                        "Pooh eats raspberries",
+                        "Pooh eats raspberries and honey",
+                        "Pooh eats raspberries and me",
+                        "pooh",
+                        "Pooh",
+                        "pooh eats pooh",
+                        "pooh eats",
+                        "honey eats Pooh",
+                        "Pooh eats honey",
+                        "pooh eats nothing",
+                        "Pooh steals honey",
+                        "pooo"
+                ),
+                docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
+        );
+    }
+
+    @Test
     public void query_exactPhrase() throws Exception {
 
         ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"Pooh eats honey\"");
@@ -118,6 +147,8 @@ public class SolrConceptPhraseSearchTest {
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
     }
+
+
 
     @Test
     public void query_phraseWithFirstExactWord() throws Exception {

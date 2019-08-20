@@ -74,14 +74,18 @@ public class ConceptSearchPhraseToSolrQueryService {
     }
 
     private String getQueryToFindDocWithAllTermsFromQuery(List<String> exactTerms, List<String> notExactTerms) {
-        if (CollectionUtils.isNotEmpty(notExactTerms)) {
-            String allTermsForWholePhraseQuery = Stream.concat(
-                    exactTerms.stream().map(term -> String.format(EXACT_FORMAT, term)),
-                    notExactTerms.stream().map(term -> String.format(FUZZY_FORMAT, term))
-            ).collect(Collectors.joining(" AND "));
-            return String.format("%s:(%s)^%s", CONCEPT_NAME_TEXT, allTermsForWholePhraseQuery, 7);
+        if (CollectionUtils.isEmpty(notExactTerms)) {
+            return StringUtils.EMPTY;
         }
-        return StringUtils.EMPTY;
+        String allTermsForWholePhraseQuery = Stream
+                .concat(
+                        exactTerms.stream().map(term -> String.format(EXACT_FORMAT, term)),
+                        notExactTerms.stream().map(term -> String.format(FUZZY_FORMAT, term))
+                )
+                .collect(Collectors.joining(" AND "));
+
+        return String.format("%s:(%s)^%s", CONCEPT_NAME_TEXT, allTermsForWholePhraseQuery, 7);
+
     }
 
     private String getQueryToFindDocsWithAnyOfTermFromPhrase(List<String> exactTerms, List<String> notExactTerms) {
