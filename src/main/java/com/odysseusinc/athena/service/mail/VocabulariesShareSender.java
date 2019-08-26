@@ -45,10 +45,11 @@ public class VocabulariesShareSender extends VocabulariesSender {
         super(mailSender, contentBuilder, failedSendingToAdminSender);
     }
 
-    public void send(AthenaUser user, AthenaUser owner, String url, CDMVersion version) throws MessagingException, MailException {
+    public void send(AthenaUser user, AthenaUser owner, String url, CDMVersion version,
+                     String vocabularyReleaseVersion) throws MessagingException, MailException {
 
         try {
-            super.send(user, getParameters(user, owner, url, version));
+            super.send(user, buildParameters(user, owner, url, version, vocabularyReleaseVersion));
             LOGGER.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]",
                     user.getId(), url);
 
@@ -63,9 +64,10 @@ public class VocabulariesShareSender extends VocabulariesSender {
         return "mail/vocabularies_share_download";
     }
 
-    protected Map<String, Object> getParameters(AthenaUser user, AthenaUser owner, String url, CDMVersion version) {
+    protected Map<String, Object> buildParameters(AthenaUser user, AthenaUser owner, String url, CDMVersion version,
+                                                String vocabularyReleaseVersion) {
 
-        Map<String, Object> parameters = super.getParameters(url, version);
+        Map<String, Object> parameters = super.buildParameters(url, version, vocabularyReleaseVersion);
         parameters.put("name", user.getUsername());
         parameters.put("owner_name", owner.getUsername());
         return parameters;

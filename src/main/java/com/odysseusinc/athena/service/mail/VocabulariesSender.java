@@ -24,9 +24,6 @@ package com.odysseusinc.athena.service.mail;
 
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.CDMVersion;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +32,6 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,7 +80,7 @@ public class VocabulariesSender extends MailSender {
         return "mail/vocabularies_download";
     }
 
-    private Map<String, Object> buildParameters(String url, CDMVersion version, String vocabularyReleaseVersion) {
+    protected Map<String, Object> buildParameters(String url, CDMVersion version, String vocabularyReleaseVersion) {
 
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("forumUrl", forumUrl);

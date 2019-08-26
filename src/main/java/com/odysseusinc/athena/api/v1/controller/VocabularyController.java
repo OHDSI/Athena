@@ -176,7 +176,7 @@ public class VocabularyController {
             throws PermissionDeniedException {
 
         final AthenaUser user = userService.getUser(principal);
-        return vocabularyService.getDownloadHistory(user.getId());
+        return vocabularyService.getDownloadHistory(user);
     }
 
     @ApiOperation("Share bundle")
@@ -194,7 +194,7 @@ public class VocabularyController {
 
         downloadShareService.change(bundle, changeDTO, user);
 
-        return new ResponseEntity<>(Boolean.TRUE, OK);
+        return ResponseEntity.ok(Boolean.TRUE);
     }
 
     @ApiOperation("Archive download history item.")

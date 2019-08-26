@@ -105,7 +105,7 @@ public class DownloadShareServiceImpl implements DownloadShareService {
                         try {
                             vocabulariesShareSender.send(shareUser, user,
                                     urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
-                                    bundle.getCdmVersion());
+                                    bundle.getCdmVersion(), bundle.getReleaseVersion());
                         } catch (Exception e) {
                             // ignore
                         }
