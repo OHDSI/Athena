@@ -22,15 +22,10 @@
 
 package com.odysseusinc.athena.service.impl;
 
-import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
-import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections.ListUtils.intersection;
-import static org.thymeleaf.util.ListUtils.isEmpty;
-
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyToUserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.exceptions.LicenseException;
@@ -38,12 +33,14 @@ import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.DownloadItem;
+import com.odysseusinc.athena.model.athena.DownloadShare;
 import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.athena.VocabularyConversion;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadItemRepository;
+import com.odysseusinc.athena.repositories.athena.DownloadShareRepository;
 import com.odysseusinc.athena.repositories.athena.LicenseRepository;
 import com.odysseusinc.athena.repositories.athena.NotificationRepository;
 import com.odysseusinc.athena.service.ConceptService;
@@ -53,21 +50,32 @@ import com.odysseusinc.athena.service.mail.LicenseAcceptanceSender;
 import com.odysseusinc.athena.service.mail.LicenseRequestSender;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
+import com.odysseusinc.athena.util.DownloadShareStatus;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.ObjectUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections.ListUtils.intersection;
+import static org.thymeleaf.util.ListUtils.isEmpty;
 
 @Service
 @Transactional
@@ -79,6 +87,7 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     private VocabularyConversionService vocabularyConversionService;
     private DownloadBundleRepository downloadBundleRepository;
+    private DownloadShareRepository downloadShareRepository;
     private DownloadItemRepository downloadItemRepository;
     private LicenseRepository licenseRepository;
     private LicenseRequestSender licenseRequestSender;
@@ -88,10 +97,12 @@ public class VocabularyServiceImpl implements VocabularyService {
     private NotificationRepository notificationRepository;
     private LicenseAcceptanceSender licenseAcceptanceSender;
     private ConceptService conceptService;
+    private GenericConversionService conversionService;
 
     @Autowired
     public VocabularyServiceImpl(VocabularyConversionService vocabularyConversionService,
                                  DownloadBundleRepository downloadBundleRepository,
+                                 DownloadShareRepository downloadShareRepository,
                                  DownloadItemRepository downloadItemRepository,
                                  LicenseRepository licenseRepository,
                                  LicenseRequestSender licenseRequestSender,
@@ -100,7 +111,8 @@ public class VocabularyServiceImpl implements VocabularyService {
                                  AsyncVocabularyService asyncVocabularyService,
                                  NotificationRepository notificationRepository,
                                  ConceptService conceptService,
-                                 LicenseAcceptanceSender licenseAcceptanceSender) {
+                                 LicenseAcceptanceSender licenseAcceptanceSender,
+                                 GenericConversionService conversionService) {
 
         this.vocabularyConversionService = vocabularyConversionService;
         this.downloadBundleRepository = downloadBundleRepository;
@@ -113,6 +125,8 @@ public class VocabularyServiceImpl implements VocabularyService {
         this.notificationRepository = notificationRepository;
         this.licenseAcceptanceSender = licenseAcceptanceSender;
         this.conceptService = conceptService;
+        this.downloadShareRepository = downloadShareRepository;
+        this.conversionService = conversionService;
     }
 
     @Override
@@ -200,11 +214,68 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public List<DownloadBundleDTO> getDownloadHistory(Long userId) {
+    public List<DownloadBundleDTO> getDownloadHistory(AthenaUser user) {
 
         Sort sort = new Sort(Sort.Direction.DESC, "created");
-        List<DownloadBundle> history = downloadBundleRepository.findByUserId(userId, sort);
-        return converterUtils.convertList(history, DownloadBundleDTO.class);
+        List<DownloadBundle> history = downloadBundleRepository.findByUserId(user.getId(), sort);
+        Set<Long> bundleIds = history.stream()
+                .map(b -> b.getId())
+                .collect(Collectors.toSet());
+
+        List<DownloadShare> shares = downloadShareRepository.findByDownloadShareIdUserEmail(user.getEmail());
+        List<DownloadBundleDTO> sharedDTOs = new ArrayList<>();
+        // add shared bundles to list of available downloads
+        if (!shares.isEmpty()) {
+            for(DownloadShare share: shares) {
+                // do not add to shared list dto with author equals to current user
+                if(bundleIds.contains(share.getBundleId())) {
+                    continue;
+                }
+                DownloadBundle bundle = downloadBundleRepository.getOne(share.getBundleId());
+
+                DownloadBundleDTO bundleDTO = conversionService.convert(bundle, DownloadBundleDTO.class);
+                DownloadShareDTO sharedBundleDTO = conversionService.convert(share, DownloadShareDTO.class);
+
+                bundleDTO.setDownloadShareDTO(sharedBundleDTO);
+                sharedDTOs.add(bundleDTO);
+
+                try {
+                    checkBundleVocabularies(bundle, user.getId());
+                    sharedBundleDTO.setDownloadShareStatus(DownloadShareStatus.OK);
+                } catch (LicenseException e) {
+                    // if some vocabularies require licence and current user does not have it -
+                    // clear list of vocabularies and link to zip file
+                    bundleDTO.setVocabularies(Collections.emptyList());
+                    bundleDTO.setLink(StringUtils.EMPTY);
+                    sharedBundleDTO.setDownloadShareStatus(DownloadShareStatus.LICENCE_REQUIRED);
+                    LOGGER.error("user can not access shared bundle due to licence exception");
+                }
+            }
+        }
+
+        List<DownloadBundleDTO> dtos = converterUtils.convertList(history, DownloadBundleDTO.class);
+
+        // Get list of shared bundles where owner is current user
+        List<DownloadShare> ownerShares = downloadShareRepository.findByOwnerId(user.getId());
+        dtos.stream()
+                .forEach(dto -> {
+                    String emails = ownerShares.stream()
+                            .filter(o -> o.getBundleId() == dto.getId())
+                            .map(o -> o.getUserEmail())
+                            .collect(Collectors.joining(", "));
+                    // if we get list of users with whom this bundle was shared
+                    // then the current user is the owner of this bundle
+                    if (emails != null && !emails.isEmpty()) {
+                        DownloadShareDTO ownerDto = new DownloadShareDTO();
+                        ownerDto.setBundleId(dto.getId());
+                        ownerDto.setEmail(emails);
+                        ownerDto.setOwnerUsername(user.getEmail());
+                        dto.setDownloadShareDTO(ownerDto);
+                    }
+                });
+
+        dtos.addAll(sharedDTOs);
+        return dtos;
     }
 
     @Override
@@ -236,6 +307,17 @@ public class VocabularyServiceImpl implements VocabularyService {
 
         if (ObjectUtils.notEqual(user.getId(), bundle.getUserId())) {
             throw new PermissionDeniedException();
+        }
+    }
+
+    public void checkBundleAndSharedUser(AthenaUser user, DownloadBundle bundle){
+        if (ObjectUtils.notEqual(user.getId(), bundle.getUserId())) {
+            // check whether this bundle was chared with current user
+            List<DownloadShare> shares = downloadShareRepository.findByDownloadShareIdBundleId(bundle.getId());
+            shares.stream()
+                    .filter(s -> user.getEmail().equals(s.getUserEmail()))
+                    .findAny()
+                    .orElseThrow(() -> new PermissionDeniedException());
         }
     }
 

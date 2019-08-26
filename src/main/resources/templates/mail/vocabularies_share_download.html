@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<p>
+
+<p>Dear %name%,</p>
+
+<p>%owner_name% has shared vocabularies with you.</p>
+
+<ol>
+    <li>You can download these vocabularies from <a th:href="${url}">link</a> once you are logged in.
+        Typical file sizes, depending on the number of vocabularies selected, are between 30 and 250 MB.
+    </li>
+    <li>Unpack.</li>
+    <li>Reconstitute CPT-4. See below for details.</li>
+    <li>If needed, create the tables.</li>
+    <li>Load the unpacked files into the tables.</li>
+</ol>
+
+<p> Important: All vocabularies are fully represented in the downloaded files with the exception of CPT-4:
+    OHDSI does not have a distribution license to ship CPT-4 codes together with the descriptions.
+    Therefore, we provide you with a utility that downloads the descriptions separately and merges them together
+    with everything else. After unpacking, simply open a command line in the directory you unpacked all
+    the files into and run "java -Dumls-user=xxx -Dumls-password=xxx -jar cpt4.jar <span th:text="${version}"></span>".
+    Please replace "xxx" with <a th:href="${umlsUrl}">UMLS</a> username and password.
+</p>
+
+<p>The control files can be found
+    <a th:href="${controlFilesUrl}"
+       target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en
+&amp;q=th:text=${controlFilesUrl}&amp;source=gmail&amp;ust=1488877772753000
+&amp;usg=AFQjCNHUnjcPwtc4s4UqX9f-iS-EUfocJw">here</a>.
+
+    They are provided in the folders Oracle/, PostgreSQL/ and SQL Server/ for the respective SQL dialect. The loading
+    scripts are inside the subfolder VocabImport/.</p>
+
+<p>If you hit problems please use the <a th:href="${forumUrl}"
+                                         target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en
+&amp;q=th:text=${forumUrl}&amp;source=gmail&amp;ust=1488877772753000
+&amp;usg=AFQjCNHTlB0rs1HpEwZjvho6sUaciuSA5w">OHDSI Forum pages</a>,
+    and somebody will help you. You will need to register.</p>
+
+Regards,<br/>
+Odysseus Data Services, Inc.
+</p></body>
+</html>

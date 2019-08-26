@@ -27,40 +27,28 @@ import com.odysseusinc.athena.util.CDMVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class VocabulariesSender extends MailSender {
-    private static final Logger LOGGER = LoggerFactory.getLogger(VocabulariesSender.class);
+public class VocabulariesShareSender extends VocabulariesSender {
+    private static final Logger LOGGER = LoggerFactory.getLogger(VocabulariesShareSender.class);
 
     @Autowired
-    public VocabulariesSender(JavaMailSender mailSender, MailContentBuilder contentBuilder,
-                              FailedSendingToAdminSender failedSendingToAdminSender) {
+    public VocabulariesShareSender(JavaMailSender mailSender, MailContentBuilder contentBuilder,
+                                   FailedSendingToAdminSender failedSendingToAdminSender) {
 
-        super(mailSender, contentBuilder);
-        this.failedSendingToAdminSender = failedSendingToAdminSender;
+        super(mailSender, contentBuilder, failedSendingToAdminSender);
     }
 
-    @Value("${vocabularies.download.control.files.url}")
-    private String controlFilesUrl;
-    @Value("${vocabularies.download.forum.url}")
-    private String forumUrl;
-    @Value("${vocabularies.download.umls.url}")
-    private String umlsUrl;
-
-    protected FailedSendingToAdminSender failedSendingToAdminSender;
-
-    public void send(AthenaUser user, String url, CDMVersion version) throws MessagingException, MailException {
+    public void send(AthenaUser user, AthenaUser owner, String url, CDMVersion version) throws MessagingException, MailException {
 
         try {
-            super.send(user, getParameters(url, version));
+            super.send(user, getParameters(user, owner, url, version));
             LOGGER.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]",
                     user.getId(), url);
 
@@ -70,27 +58,16 @@ public class VocabulariesSender extends MailSender {
     }
 
     @Override
-    public String getSubject() {
-
-        return "OMOP Vocabularies. Your download link";
-    }
-
-    @Override
     public String getTemplateName() {
 
-        return "mail/vocabularies_download";
+        return "mail/vocabularies_share_download";
     }
 
-    protected Map<String, Object> getParameters(String url, CDMVersion version) {
+    protected Map<String, Object> getParameters(AthenaUser user, AthenaUser owner, String url, CDMVersion version) {
 
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("forumUrl", forumUrl);
-        parameters.put("controlFilesUrl", controlFilesUrl);
-        parameters.put("url", url);
-        parameters.put("umlsUrl", umlsUrl);
-        parameters.put("version", String.valueOf((int) version.getValue()));
+        Map<String, Object> parameters = super.getParameters(url, version);
+        parameters.put("name", user.getUsername());
+        parameters.put("owner_name", owner.getUsername());
         return parameters;
     }
-
-
 }

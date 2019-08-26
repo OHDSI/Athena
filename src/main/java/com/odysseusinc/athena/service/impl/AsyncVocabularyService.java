@@ -31,6 +31,7 @@ import com.odysseusinc.athena.repositories.athena.VocabularyConversionRepository
 import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.service.mail.FailedSavingSender;
 import com.odysseusinc.athena.service.mail.VocabulariesSender;
+import com.odysseusinc.athena.service.mail.VocabulariesShareSender;
 import com.odysseusinc.athena.service.saver.ISaver;
 import com.odysseusinc.athena.service.saver.SaverV4;
 import com.odysseusinc.athena.service.saver.SaverV5;
@@ -38,17 +39,18 @@ import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.service.writer.ZipWriter;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.util.Collections;
-import java.util.List;
-import java.util.zip.ZipOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.zip.ZipOutputStream;
 
 @Service
 @Transactional
@@ -63,6 +65,7 @@ public class AsyncVocabularyService {
     private DownloadBundleService downloadBundleService;
     private UrlBuilder urlBuilder;
     private VocabulariesSender vocabulariesSender;
+    private VocabulariesShareSender vocabulariesShareSender;
     private FailedSavingSender failedSavingSender;
     private FileHelper fileHelper;
 
@@ -74,6 +77,7 @@ public class AsyncVocabularyService {
                                   DownloadBundleService downloadBundleService,
                                   UrlBuilder urlBuilder,
                                   VocabulariesSender vocabulariesSender,
+                                  VocabulariesShareSender vocabulariesShareSender,
                                   FailedSavingSender failedSavingSender,
                                   FileHelper fileHelper) {
 
@@ -85,6 +89,7 @@ public class AsyncVocabularyService {
         this.downloadBundleService = downloadBundleService;
         this.urlBuilder = urlBuilder;
         this.vocabulariesSender = vocabulariesSender;
+        this.vocabulariesShareSender = vocabulariesShareSender;
         this.failedSavingSender = failedSavingSender;
         this.fileHelper = fileHelper;
     }
