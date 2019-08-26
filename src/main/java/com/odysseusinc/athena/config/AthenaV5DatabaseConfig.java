@@ -59,7 +59,7 @@ public class AthenaV5DatabaseConfig {
 
         LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
 
-        factoryBean.setDataSource(cdmDataSource());
+        factoryBean.setDataSource(dataSource);
         factoryBean.setJpaVendorAdapter(jpaVendorAdapter);
         factoryBean.setPackagesToScan("com.odysseusinc.athena.model.athenav5", "com.odysseusinc.athena.model.common");
 

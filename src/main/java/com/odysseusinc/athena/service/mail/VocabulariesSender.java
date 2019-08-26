@@ -24,6 +24,9 @@ package com.odysseusinc.athena.service.mail;
 
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.CDMVersion;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,10 +60,10 @@ public class VocabulariesSender extends MailSender {
 
     protected FailedSendingToAdminSender failedSendingToAdminSender;
 
-    public void send(AthenaUser user, String url, CDMVersion version) throws MessagingException, MailException {
+    public void send(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion) throws MailException {
 
         try {
-            super.send(user, getParameters(url, version));
+            super.send(user, buildParameters(url, version, vocabularyReleaseVersion));
             LOGGER.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]",
                     user.getId(), url);
 
@@ -81,7 +84,7 @@ public class VocabulariesSender extends MailSender {
         return "mail/vocabularies_download";
     }
 
-    protected Map<String, Object> getParameters(String url, CDMVersion version) {
+    private Map<String, Object> buildParameters(String url, CDMVersion version, String vocabularyReleaseVersion) {
 
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("forumUrl", forumUrl);
@@ -89,6 +92,7 @@ public class VocabulariesSender extends MailSender {
         parameters.put("url", url);
         parameters.put("umlsUrl", umlsUrl);
         parameters.put("version", String.valueOf((int) version.getValue()));
+        parameters.put("vocabularyReleaseVersion", vocabularyReleaseVersion);
         return parameters;
     }
 

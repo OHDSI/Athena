@@ -72,4 +72,6 @@ public interface VocabularyService {
     List<Notification> getNotifications(Long userId);
 
     void checkBundleVocabularies(DownloadBundle bundle, Long userId);
+
+    String getOMOPVocabularyVersion();
     }

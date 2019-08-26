@@ -119,10 +119,10 @@ public class AsyncVocabularyService {
             bundle = saver.save(zos, bundle, savers);
             zipWriter.addCPT4Utility(zos, bundle);
 
-            LOGGER.info("Bundle is saved in zip: {}", bundle.toString());
+            LOGGER.info("Bundle is saved in zip: {}", bundle);
             updateStatus(bundle, DownloadBundleStatus.READY);
             vocabulariesSender.send(user, urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
-                    bundle.getCdmVersion());
+                    bundle.getCdmVersion(), bundle.getReleaseVersion());
 
         } catch (Exception ex) {
             updateStatus(bundle, DownloadBundleStatus.FAILED);
