@@ -23,10 +23,8 @@
 package com.odysseusinc.athena.service.job;
 
 
-import com.odysseusinc.athena.repositories.athena.NotificationRepository;
-import com.odysseusinc.athena.service.NotificationService;
+import com.odysseusinc.athena.service.impl.VocabularyUpdatesChecker;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -34,32 +32,19 @@ import org.springframework.stereotype.Component;
 
 @ConditionalOnProperty(name = "scheduled.vocabulary.checker")
 @Component
-public class VocabularyUpdatesChecker {
+public class VocabularyUpdatesJob {
 
-    private final NotificationRepository notificationRepository;
-    private final NotificationService notificationService;
-
-    @Value("${scheduled.vocabulary.checker}")
-    private String param;
+    private final VocabularyUpdatesChecker vocabularyUpdatesChecker;
 
     @Autowired
-    public VocabularyUpdatesChecker(NotificationRepository notificationRepository, NotificationService notificationService) {
-        this.notificationRepository = notificationRepository;
-        this.notificationService = notificationService;
+    public VocabularyUpdatesJob(VocabularyUpdatesChecker vocabularyUpdatesChecker) {
+
+        this.vocabularyUpdatesChecker = vocabularyUpdatesChecker;
     }
 
     @Scheduled(cron = "${scheduled.vocabulary.checker}")
     public void triggerCheckVocabularyUpdates() {
 
-        notificationService.ensureVocabularyVersionAndCodeAreSet();
-        sendVocabularyUpdatesNotification();
-
-    }
-
-    public void sendVocabularyUpdatesNotification() {
-
-        for (Long subscribedUserId : notificationRepository.getSubscribedUserIds()) {
-            notificationService.processUsersVocabularyUpdateSubscriptions(subscribedUserId);
-        }
+        vocabularyUpdatesChecker.sendVocabularyUpdatesNotification();
     }
 }

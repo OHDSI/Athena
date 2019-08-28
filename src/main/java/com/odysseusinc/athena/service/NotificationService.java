@@ -1,6 +1,5 @@
 package com.odysseusinc.athena.service;
 
-import java.util.Map;
 
 public interface NotificationService {
 
