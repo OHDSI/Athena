@@ -55,12 +55,11 @@ public class DownloadShareToDTO implements Converter<DownloadShare, DownloadShar
     }
 
     @Override
-    public DownloadShareDTO convert(@NotNull DownloadShare bundle) {
+    public DownloadShareDTO convert(@NotNull DownloadShare downloadShare) {
         DownloadShareDTO dto = new DownloadShareDTO();
-
-        dto.setBundleId(bundle.getBundleId());
-        dto.setEmail(bundle.getUserEmail());
-        dto.setOwnerUsername(bundle.getOwner().getUsername());
+        dto.setBundleId(downloadShare.getBundleId());
+        dto.setEmail(downloadShare.getUserEmail());
+        dto.setOwnerUsername(downloadShare.getOwnerName());
         return dto;
     }
 }

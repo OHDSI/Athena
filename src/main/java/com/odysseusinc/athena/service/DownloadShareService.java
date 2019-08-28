@@ -22,7 +22,6 @@
 
 package com.odysseusinc.athena.service;
 
-import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareChangeDTO;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.DownloadShare;
 import com.odysseusinc.athena.model.security.AthenaUser;
@@ -30,13 +29,9 @@ import com.odysseusinc.athena.model.security.AthenaUser;
 import java.util.List;
 
 public interface DownloadShareService {
-    List<DownloadShare> getBundleShares(Long downloadBundleId);
+    List<DownloadShare> getBundleShares(DownloadBundle downloadBundle);
 
-    List<DownloadShare> getBundleShares(String shareUserEmail);
+    void deleteByDownloadBundle(DownloadBundle downloadBundle);
 
-    List<String> getUserEmails(Long downloadBundleId);
-
-    void deleteByDownloadBundleId(Long downloadBundleId);
-
-    List<DownloadShare> change(DownloadBundle bundle, DownloadShareChangeDTO changeDTO, AthenaUser user);
+    void change(DownloadBundle bundle, String emails, AthenaUser user);
 }

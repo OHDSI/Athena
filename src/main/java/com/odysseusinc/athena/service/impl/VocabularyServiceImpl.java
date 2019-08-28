@@ -51,7 +51,6 @@ import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.mail.LicenseAcceptanceSender;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
-import com.odysseusinc.athena.util.DownloadShareStatus;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -68,7 +67,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -221,62 +219,30 @@ public class VocabularyServiceImpl implements VocabularyService {
 
         Sort sort = new Sort(Sort.Direction.DESC, "created");
         List<DownloadBundle> history = downloadBundleRepository.findByUserId(user.getId(), sort);
-        Set<Long> bundleIds = history.stream()
-                .map(b -> b.getId())
-                .collect(Collectors.toSet());
 
-        List<DownloadShare> shares = downloadShareRepository.findByDownloadShareIdUserEmail(user.getEmail());
+        List<DownloadShare> shares = downloadShareRepository.findByUserEmail(user.getEmail());
         List<DownloadBundleDTO> sharedDTOs = new ArrayList<>();
         // add shared bundles to list of available downloads
         if (!shares.isEmpty()) {
             for(DownloadShare share: shares) {
-                // do not add to shared list dto with author equals to current user
-                if(bundleIds.contains(share.getBundleId())) {
-                    continue;
-                }
-                DownloadBundle bundle = downloadBundleRepository.getOne(share.getBundleId());
-
-                DownloadBundleDTO bundleDTO = conversionService.convert(bundle, DownloadBundleDTO.class);
-                DownloadShareDTO sharedBundleDTO = conversionService.convert(share, DownloadShareDTO.class);
-
-                bundleDTO.setDownloadShareDTO(sharedBundleDTO);
-                sharedDTOs.add(bundleDTO);
-
+                DownloadBundleDTO bundleDTO = conversionService.convert(share.getBundle(), DownloadBundleDTO.class);
+                // remove from shares all references to shares with other users
+                List<DownloadShareDTO> filteredShares = bundleDTO.getDownloadShareDTOs().stream()
+                        .filter(s -> s.getEmail().equals(user.getEmail()))
+                        .collect(toList());
+                bundleDTO.setDownloadShareDTOs(filteredShares);
                 try {
-                    checkBundleVocabularies(bundle, user.getId());
-                    sharedBundleDTO.setDownloadShareStatus(DownloadShareStatus.OK);
+                    checkBundleVocabularies(share.getBundle(), user.getId());
                 } catch (LicenseException e) {
                     // if some vocabularies require licence and current user does not have it -
-                    // clear list of vocabularies and link to zip file
-                    bundleDTO.setVocabularies(Collections.emptyList());
+                    // clear link to zip file
                     bundleDTO.setLink(StringUtils.EMPTY);
-                    sharedBundleDTO.setDownloadShareStatus(DownloadShareStatus.LICENCE_REQUIRED);
-                    LOGGER.error("user can not access shared bundle due to licence exception");
                 }
+                sharedDTOs.add(bundleDTO);
             }
         }
 
         List<DownloadBundleDTO> dtos = converterUtils.convertList(history, DownloadBundleDTO.class);
-
-        // Get list of shared bundles where owner is current user
-        List<DownloadShare> ownerShares = downloadShareRepository.findByOwnerId(user.getId());
-        dtos.stream()
-                .forEach(dto -> {
-                    String emails = ownerShares.stream()
-                            .filter(o -> o.getBundleId() == dto.getId())
-                            .map(o -> o.getUserEmail())
-                            .collect(Collectors.joining(", "));
-                    // if we get list of users with whom this bundle was shared
-                    // then the current user is the owner of this bundle
-                    if (emails != null && !emails.isEmpty()) {
-                        DownloadShareDTO ownerDto = new DownloadShareDTO();
-                        ownerDto.setBundleId(dto.getId());
-                        ownerDto.setEmail(emails);
-                        ownerDto.setOwnerUsername(user.getEmail());
-                        dto.setDownloadShareDTO(ownerDto);
-                    }
-                });
-
         dtos.addAll(sharedDTOs);
         return dtos;
     }
@@ -316,7 +282,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     public void checkBundleAndSharedUser(AthenaUser user, DownloadBundle bundle){
         if (ObjectUtils.notEqual(user.getId(), bundle.getUserId())) {
             // check whether this bundle was chared with current user
-            List<DownloadShare> shares = downloadShareRepository.findByDownloadShareIdBundleId(bundle.getId());
+            List<DownloadShare> shares = downloadShareRepository.findByBundle(bundle);
             shares.stream()
                     .filter(s -> user.getEmail().equals(s.getUserEmail()))
                     .findAny()

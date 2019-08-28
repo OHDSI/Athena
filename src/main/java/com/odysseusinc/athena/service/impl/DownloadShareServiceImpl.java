@@ -24,7 +24,6 @@ package com.odysseusinc.athena.service.impl;
 
 import com.google.common.base.Splitter;
 import com.odysseusinc.athena.api.v1.controller.converter.UrlBuilder;
-import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareChangeDTO;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.DownloadShare;
 import com.odysseusinc.athena.model.security.AthenaUser;
@@ -33,8 +32,8 @@ import com.odysseusinc.athena.service.DownloadShareService;
 import com.odysseusinc.athena.service.mail.VocabulariesShareSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,51 +54,42 @@ public class DownloadShareServiceImpl implements DownloadShareService {
     private UrlBuilder urlBuilder;
 
     @Override
-    public List<DownloadShare> getBundleShares(Long downloadBundleId) {
-        return bundleShareRepository.findByDownloadShareIdBundleId(downloadBundleId);
+    public List<DownloadShare> getBundleShares(DownloadBundle downloadBundle) {
+        return bundleShareRepository.findByBundle(downloadBundle);
     }
 
     @Override
-    public List<DownloadShare> getBundleShares(String shareUserEmail) {
-        return bundleShareRepository.findByDownloadShareIdUserEmail(shareUserEmail);
-    }
-
-    @Override
-    public List<String> getUserEmails(Long downloadBundleId) {
-        List<DownloadShare> downloadShares = bundleShareRepository.findByDownloadShareIdBundleId(downloadBundleId);
-        if (downloadShares == null || downloadShares.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return downloadShares.stream()
-                .map(bs -> bs.getUserEmail())
-                .collect(toList());
-    }
-
-    @Override
-    public List<DownloadShare> change(DownloadBundle bundle, DownloadShareChangeDTO changeDTO, AthenaUser user) {
-        if (changeDTO == null) {
-            return Collections.emptyList();
+    @Transactional
+    public void change(DownloadBundle bundle, String emails, AthenaUser user) {
+        if (emails == null || emails.isEmpty()) {
+            deleteByDownloadBundle(bundle);
+            return;
         }
 
-        if (changeDTO.getEmailList() == null || changeDTO.getEmailList().isEmpty()) {
-            deleteByDownloadBundleId(bundle.getId());
-            return Collections.emptyList();
-        }
+        List<String> emailsList = Splitter.on(",").trimResults().splitToList(emails)
+                .stream().distinct().collect(Collectors.toList());
 
-        List<String> emails = Splitter.on(",").trimResults().splitToList(changeDTO.getEmailList());
-
-        List<DownloadShare> sharedBundles = emails.stream()
-                .map(email -> new DownloadShare(bundle.getId(), email, user))
+        List<DownloadShare> sharedBundles = emailsList.stream()
+                .map(email -> new DownloadShare(bundle, email, user))
                 .collect(Collectors.toList());
 
-        List<DownloadShare> existingSharedBundles = getBundleShares(bundle.getId());
+        List<DownloadShare> existingSharedBundles = getBundleShares(bundle);
 
         List<DownloadShare> newSharedBundles = sharedBundles.stream()
                 .filter(bs -> !existingSharedBundles.contains(bs))
                 .collect(toList());
         bundleShareRepository.save(newSharedBundles);
-        newSharedBundles.stream()
-                .forEach(downloadShare -> {
+
+        List<DownloadShare> unusedSharedBundles = existingSharedBundles.stream()
+                .filter(existingBS -> !sharedBundles.contains(existingBS))
+                .collect(toList());
+        bundleShareRepository.delete(unusedSharedBundles);
+
+        sendNotification(newSharedBundles, bundle, user);
+    }
+
+    private void sendNotification(List<DownloadShare> newSharedBundles, DownloadBundle bundle, AthenaUser user) {
+        newSharedBundles.forEach(downloadShare -> {
                     AthenaUser shareUser = userService.getUser(downloadShare.getUserEmail());
                     if (shareUser != null) {
                         try {
@@ -111,17 +101,11 @@ public class DownloadShareServiceImpl implements DownloadShareService {
                         }
                     }
                 });
-
-        List<DownloadShare> unusedSharedBundles = existingSharedBundles.stream()
-                .filter(existingBS -> !sharedBundles.contains(existingBS))
-                .collect(toList());
-        bundleShareRepository.delete(unusedSharedBundles);
-
-        return getBundleShares(bundle.getId());
     }
 
     @Override
-    public void deleteByDownloadBundleId(Long downloadBundleId) {
-        bundleShareRepository.deleteByDownloadShareIdBundleId(downloadBundleId);
+    @Transactional
+    public void deleteByDownloadBundle(DownloadBundle downloadBundle) {
+        bundleShareRepository.deleteByBundle(downloadBundle);
     }
 }

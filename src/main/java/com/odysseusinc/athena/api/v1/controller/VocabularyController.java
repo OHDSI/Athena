@@ -192,7 +192,7 @@ public class VocabularyController {
             throw new PermissionDeniedException();
         }
 
-        downloadShareService.change(bundle, changeDTO, user);
+        downloadShareService.change(bundle, changeDTO.getEmailList(), user);
 
         return ResponseEntity.ok(Boolean.TRUE);
     }

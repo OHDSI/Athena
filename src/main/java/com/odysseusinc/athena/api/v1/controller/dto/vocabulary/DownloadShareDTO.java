@@ -22,13 +22,10 @@
 
 package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
-import com.odysseusinc.athena.util.DownloadShareStatus;
-
 public class DownloadShareDTO {
     private Long bundleId;
     private String email;
     private String ownerUsername;
-    private DownloadShareStatus downloadShareStatus;
 
     public Long getBundleId() {
         return bundleId;
@@ -44,14 +41,6 @@ public class DownloadShareDTO {
 
     public void setOwnerUsername(String ownerUsername) {
         this.ownerUsername = ownerUsername;
-    }
-
-    public DownloadShareStatus getDownloadShareStatus() {
-        return downloadShareStatus;
-    }
-
-    public void setDownloadShareStatus(DownloadShareStatus downloadShareStatus) {
-        this.downloadShareStatus = downloadShareStatus;
     }
 
     public String getEmail() {

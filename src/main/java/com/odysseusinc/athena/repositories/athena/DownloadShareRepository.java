@@ -22,6 +22,7 @@
 
 package com.odysseusinc.athena.repositories.athena;
 
+import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.DownloadShare;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -34,13 +35,11 @@ import java.util.List;
 @Repository
 @PersistenceContext(unitName = "athenaEntityManagerFactory")
 public interface DownloadShareRepository extends JpaRepository<DownloadShare, Long> {
-    List<DownloadShare> findByDownloadShareIdBundleId(Long bundleId);
+    List<DownloadShare> findByBundle(DownloadBundle downloadBundle);
 
-    List<DownloadShare> findByDownloadShareIdUserEmail(String userEmail);
-
-    List<DownloadShare> findByOwnerId(Long ownerId);
+    List<DownloadShare> findByUserEmail(String userEmail);
 
     @Transactional
     @Modifying
-    void deleteByDownloadShareIdBundleId(Long bundleId);
+    void deleteByBundle(DownloadBundle downloadBundle);
 }
