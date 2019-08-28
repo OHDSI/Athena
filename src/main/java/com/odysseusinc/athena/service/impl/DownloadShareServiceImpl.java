@@ -66,6 +66,8 @@ public class DownloadShareServiceImpl implements DownloadShareService {
             return;
         }
 
+        // User emails are not validated to avoid the possibility
+        // for the current user to get the real emails of other users registered in the system
         List<String> emailsList = Splitter.on(",").trimResults().splitToList(emails)
                 .stream().distinct().collect(Collectors.toList());
 
