@@ -24,11 +24,8 @@ package com.odysseusinc.athena.api.v1.controller.converter.vocabulary;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.converter.UrlBuilder;
-import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
-import com.odysseusinc.athena.model.athena.DownloadBundle;
-import com.odysseusinc.athena.util.DownloadBundleStatus;
+import com.odysseusinc.athena.model.athena.DownloadShare;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
@@ -36,52 +33,33 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Component
-public class DownloadBundleToDTO implements Converter<DownloadBundle, DownloadBundleDTO>, InitializingBean {
+public class DownloadShareToDTO implements Converter<DownloadShare, DownloadShareDTO>, InitializingBean {
 
     private GenericConversionService conversionService;
-    private UrlBuilder urlBuilder;
     private ConverterUtils converterUtils;
 
     @Autowired
-    public DownloadBundleToDTO(GenericConversionService conversionService,
-                               UrlBuilder urlBuilder,
-                               ConverterUtils converterUtils) {
+    public DownloadShareToDTO(GenericConversionService conversionService,
+                              UrlBuilder urlBuilder,
+                              ConverterUtils converterUtils) {
 
         this.conversionService = conversionService;
-        this.urlBuilder = urlBuilder;
         this.converterUtils = converterUtils;
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-
         conversionService.addConverter(this);
     }
 
     @Override
-    public DownloadBundleDTO convert(@NotNull DownloadBundle bundle) {
-
-        DownloadBundleDTO dto = new DownloadBundleDTO();
-
-        dto.setDate(bundle.getCreated());
-        if (DownloadBundleStatus.READY == bundle.getStatus()) {
-            dto.setLink(urlBuilder.downloadVocabulariesLink(bundle.getUuid()));
-        }
-        dto.setCdmVersion(bundle.getCdmVersion().getValue());
-        dto.setName(bundle.getName());
-        dto.setId(bundle.getId());
-        dto.setStatus(bundle.getStatus());
-        dto.setReleaseVersion(bundle.getReleaseVersion());
-        List<VocabularyDTO> dtos = converterUtils.convertList(bundle.getVocabulariesWithoutOmopReq(),
-                VocabularyDTO.class);
-        dto.setVocabularies(dtos);
-        List<DownloadShareDTO> shareDTOS = converterUtils.convertList(bundle.getDownloadShares(),
-                DownloadShareDTO.class);
-        dto.setDownloadShareDTOs(shareDTOS);
+    public DownloadShareDTO convert(@NotNull DownloadShare downloadShare) {
+        DownloadShareDTO dto = new DownloadShareDTO();
+        dto.setBundleId(downloadShare.getBundleId());
+        dto.setEmail(downloadShare.getUserEmail());
+        dto.setOwnerUsername(downloadShare.getOwnerName());
         return dto;
     }
-
 }

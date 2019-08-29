@@ -30,13 +30,6 @@ import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.AthenaRoleRepository;
 import com.odysseusinc.athena.repositories.athena.AthenaUserRepository;
 import com.odysseusinc.athena.util.UserProfileUtil;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import net.minidev.json.JSONArray;
 import org.pac4j.core.authorization.generator.AuthorizationGenerator;
 import org.pac4j.core.context.WebContext;
@@ -54,6 +47,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements ProfileCreator<TokenCredentials, CommonProfile>, AuthorizationGenerator<CommonProfile> {
@@ -175,6 +176,14 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
             userId = currentUser.getId();
         }
         return userId;
+    }
+
+    public AthenaUser getUser(String email) {
+        List<AthenaUser> users = athenaUserRepository.findByEmail(email);
+        if (!users.isEmpty()) {
+            return users.get(0);
+        }
+        return null;
     }
 
     public AthenaUser getUser(Principal principal) throws PermissionDeniedException {

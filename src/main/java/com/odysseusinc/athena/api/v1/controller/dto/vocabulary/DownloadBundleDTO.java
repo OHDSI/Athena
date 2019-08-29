@@ -22,9 +22,12 @@
 
 package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
+
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DownloadBundleDTO {
 
@@ -35,6 +38,8 @@ public class DownloadBundleDTO {
     private Float cdmVersion;
     private DownloadBundleStatus status;
     private String releaseVersion;
+    private List<DownloadShareDTO> downloadShareDTOs;
+    private String shareEmails;
 
     private List<VocabularyDTO> vocabularies;
 
@@ -116,4 +121,30 @@ public class DownloadBundleDTO {
         this.releaseVersion = releaseVersion;
     }
 
+    @JsonIgnore
+    public List<DownloadShareDTO> getDownloadShareDTOs() {
+        return downloadShareDTOs;
+    }
+
+    public void setDownloadShareDTOs(List<DownloadShareDTO> downloadShareDTOs) {
+        this.downloadShareDTOs = downloadShareDTOs;
+    }
+
+    // user will never have access to all shares because it will be filtered first
+    public DownloadShareDTO getDownloadShareDTO() {
+        if (downloadShareDTOs != null && !downloadShareDTOs.isEmpty()) {
+            return downloadShareDTOs.get(0);
+        }
+        return null;
+    }
+
+    public String getShareEmails() {
+        if (downloadShareDTOs != null) {
+            return downloadShareDTOs.stream()
+                    .filter(o -> o.getBundleId() == id)
+                    .map(o -> o.getEmail())
+                    .collect(Collectors.joining(", "));
+        }
+        return null;
+    }
 }

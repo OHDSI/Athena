@@ -30,6 +30,7 @@ import com.odysseusinc.athena.api.v1.controller.dto.VocabularyForNotificationDTO
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.AcceptDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.AddingUserLicensesDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareChangeDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.LicenseRequestDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserLicensesDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
@@ -43,6 +44,7 @@ import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.service.DownloadBundleService;
+import com.odysseusinc.athena.service.DownloadShareService;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.impl.UserService;
@@ -63,6 +65,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -94,6 +97,7 @@ public class VocabularyController {
 
     private final ConverterUtils converterUtils;
     private final DownloadBundleService downloadBundleService;
+    private DownloadShareService downloadShareService;
     private final FileHelper fileHelper;
     private final LicenseRequestSender licenseRequestSender;
     private final UserService userService;
@@ -102,7 +106,7 @@ public class VocabularyController {
 
     @Autowired
     @SuppressWarnings("SpringJavaAutowiringInspection")
-    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, FileHelper fileHelper, LicenseRequestSender licenseRequestSender, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService) {
+    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, DownloadShareService downloadShareService, FileHelper fileHelper, LicenseRequestSender licenseRequestSender, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService) {
         this.converterUtils = converterUtils;
         this.downloadBundleService = downloadBundleService;
         this.fileHelper = fileHelper;
@@ -110,6 +114,7 @@ public class VocabularyController {
         this.userService = userService;
         this.vocabularyConversionService = vocabularyConversionService;
         this.vocabularyService = vocabularyService;
+        this.downloadShareService = downloadShareService;
     }
 
 
@@ -171,7 +176,25 @@ public class VocabularyController {
             throws PermissionDeniedException {
 
         final AthenaUser user = userService.getUser(principal);
-        return vocabularyService.getDownloadHistory(user.getId());
+        return vocabularyService.getDownloadHistory(user);
+    }
+
+    @ApiOperation("Share bundle")
+    @PostMapping(value = "/downloads/{id}/share")
+    public ResponseEntity<Boolean> shareBundle(@PathVariable("id") Long bundleId,
+                                               @RequestBody DownloadShareChangeDTO changeDTO,
+                                               Principal principal)
+            throws PermissionDeniedException {
+
+        final AthenaUser user = userService.getUser(principal);
+        DownloadBundle bundle = downloadBundleService.get(bundleId);
+        if (!user.getId().equals(bundle.getUserId())) {
+            throw new PermissionDeniedException();
+        }
+
+        downloadShareService.change(bundle, changeDTO.getEmailList(), user);
+
+        return ResponseEntity.ok(Boolean.TRUE);
     }
 
     @ApiOperation("Archive download history item.")
@@ -204,7 +227,7 @@ public class VocabularyController {
 
         DownloadBundle bundle = downloadBundleService.get(bundleId);
         AthenaUser currentUser = userService.getCurrentUser();
-        vocabularyService.checkBundleUser(currentUser, bundle);
+        vocabularyService.checkBundleAndSharedUser(currentUser, bundle);
         vocabularyService.checkBundleVocabularies(bundle, currentUser.getId());
         return new LicenseExceptionDTO(true);
     }
