@@ -22,6 +22,7 @@
 
 package com.odysseusinc.athena.service.mail;
 
+import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
@@ -40,4 +41,6 @@ public interface EmailService {
     void sendFailedSaving(AthenaUser user);
 
     void sendLicenseAcceptance(AthenaUser user, boolean accepted, String vocabularyName);
+
+    void sendVocabulariesWereSharedNotification(AthenaUser recipient, AthenaUser bundleOwner, DownloadBundle bundle);
 }

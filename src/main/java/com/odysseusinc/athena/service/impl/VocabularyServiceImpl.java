@@ -66,7 +66,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -89,30 +88,31 @@ public class VocabularyServiceImpl implements VocabularyService {
     private final ConceptService conceptService;
     private final ConverterUtils converterUtils;
     private final DownloadBundleRepository downloadBundleRepository;
-    private final DownloadShareRepository downloadShareRepository;
     private final DownloadItemRepository downloadItemRepository;
+    private final DownloadShareRepository downloadShareRepository;
     private final EmailService emailService;
+    private final GenericConversionService conversionService;
     private final LicenseRepository licenseRepository;
     private final NotificationRepository notificationRepository;
     private final UserService userService;
     private final VocabularyConversionService vocabularyConversionService;
     private final VocabularyRepository vocabularyRepository;
-    private final GenericConversionService conversionService;
 
-    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, EmailService emailService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyRepository vocabularyRepository) {
+    @Autowired
+    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyRepository vocabularyRepository) {
         this.asyncVocabularyService = asyncVocabularyService;
         this.conceptService = conceptService;
         this.converterUtils = converterUtils;
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadItemRepository = downloadItemRepository;
+        this.downloadShareRepository = downloadShareRepository;
         this.emailService = emailService;
+        this.conversionService = conversionService;
         this.licenseRepository = licenseRepository;
         this.notificationRepository = notificationRepository;
         this.userService = userService;
         this.vocabularyConversionService = vocabularyConversionService;
         this.vocabularyRepository = vocabularyRepository;
-        this.downloadShareRepository = downloadShareRepository;
-        this.conversionService = conversionService;
     }
 
     @Override

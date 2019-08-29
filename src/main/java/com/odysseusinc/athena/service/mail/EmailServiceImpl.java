@@ -24,6 +24,7 @@ package com.odysseusinc.athena.service.mail;
 
 import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.athena.api.v1.controller.converter.UrlBuilder;
+import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
@@ -119,6 +120,21 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+    @Override
+    public void sendVocabulariesWereSharedNotification(AthenaUser recipient, AthenaUser bundleOwner, DownloadBundle bundle) {
+
+        final String bundleUrl = urlBuilder.downloadVocabulariesLink(bundle.getUuid());
+        final Map<String, Object> emailParameters = getParameters(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(), bundle.getReleaseVersion());
+
+        try {
+            emailSenderService.send(EmailType.VOCABULARIES_SHARED_DOWNLOAD, emailParameters, recipient.getEmail());
+            LOGGER.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]",
+                    recipient.getId(), bundleUrl);
+        } catch (Exception ex) {
+            emailSenderService.send(EmailType.FAILED_SENDING_TO_ADMIN, getParameters(ex), getAdminEmails());
+        }
+    }
+
     private String[] getAdminEmails() {
 
         return userService.getAdmins().stream()
@@ -161,6 +177,15 @@ public class EmailServiceImpl implements EmailService {
         parameters.put("vocabularyname", license.getVocabularyConversion().getName());
         parameters.put("approveUrl", urlBuilder.acceptLicenseRequestLink(license.getId(), TRUE, license.getToken()));
         parameters.put("declineUrl", urlBuilder.acceptLicenseRequestLink(license.getId(), FALSE, license.getToken()));
+        return parameters;
+    }
+
+    protected Map<String, Object> getParameters(AthenaUser recipient, AthenaUser owner, String url, CDMVersion version,
+                                                String vocabularyReleaseVersion) {
+
+        Map<String, Object> parameters = buildParameters(url, version, vocabularyReleaseVersion);
+        parameters.put("name", recipient.getUsername());
+        parameters.put("owner_name", owner.getUsername());
         return parameters;
     }
 }

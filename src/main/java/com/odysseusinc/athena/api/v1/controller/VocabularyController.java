@@ -105,23 +105,22 @@ public class VocabularyController {
     private final ConverterUtils converterUtils;
     private final DownloadBundleService downloadBundleService;
     private final DownloadShareService downloadShareService;
-    private final FileHelper fileHelper;
     private final EmailService emailService;
+    private final FileHelper fileHelper;
     private final UserService userService;
     private final VocabularyConversionService vocabularyConversionService;
     private final VocabularyService vocabularyService;
 
     @Autowired
-    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, FileHelper fileHelper, EmailService emailService, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService) {
-
+    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, DownloadShareService downloadShareService, EmailService emailService, FileHelper fileHelper, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService) {
         this.converterUtils = converterUtils;
         this.downloadBundleService = downloadBundleService;
-        this.fileHelper = fileHelper;
+        this.downloadShareService = downloadShareService;
         this.emailService = emailService;
+        this.fileHelper = fileHelper;
         this.userService = userService;
         this.vocabularyConversionService = vocabularyConversionService;
         this.vocabularyService = vocabularyService;
-        this.downloadShareService = downloadShareService;
     }
 
     @ApiOperation("Get vocabularies.")

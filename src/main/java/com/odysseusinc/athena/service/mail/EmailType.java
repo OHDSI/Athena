@@ -29,7 +29,8 @@ public enum EmailType {
     LICENSE_ACCEPTANCE("Licensing acceptance", "mail/license_acceptance"),
     LICENSE_REQUEST("License request", "mail/license_request"),
     VOCABULARIES_LINK("OMOP Vocabularies. Your download link", "mail/vocabularies_download"),
-    VOCABULARIES_UPDATE_NOTIFICATION("Vocabulary version update", "mail/vocabularies_update");
+    VOCABULARIES_UPDATE_NOTIFICATION("Vocabulary version update", "mail/vocabularies_update"),
+    VOCABULARIES_SHARED_DOWNLOAD("OMOP Vocabularies. Your download link", "mail/vocabularies_share_download");
 
     private final String subject;
     private final String template;
