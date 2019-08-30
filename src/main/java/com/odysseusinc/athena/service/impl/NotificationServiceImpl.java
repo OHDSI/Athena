@@ -49,14 +49,11 @@ public class NotificationServiceImpl implements NotificationService {
         final String[] newVocabulariesToSubscribe = Stream.of(vocabularyCodes)
                 .filter(code -> !subscribedVocabularies.contains(code)).toArray(String[]::new);
 
-        for (String vocabularyCode : newVocabulariesToSubscribe) {
-            final VocabularyV5 vocabulary = vocabularyRepository.findOne(vocabularyCode);
-            if (vocabulary != null) {
-                final VocabularyConversion vocabularyConversion = vocabularyConversionRepository.findByIdV5(vocabularyCode);
-                final Notification newNotification = new Notification(userId, vocabularyConversion, vocabularyCode, vocabulary.getVersion());
-                notificationRepository.save(newNotification);
-            }
-        }
+        vocabularyRepository.findByIdIn(newVocabulariesToSubscribe).forEach(vocabulary -> {
+            final VocabularyConversion vocabularyConversion = vocabularyConversionRepository.findByIdV5(vocabulary.getId());
+            final Notification newNotification = new Notification(userId, vocabularyConversion, vocabulary.getId(), vocabulary.getVersion());
+            notificationRepository.save(newNotification);
+        });
     }
 
     @Override
