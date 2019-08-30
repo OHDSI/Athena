@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.apache.commons.lang.StringUtils.equalsIgnoreCase;
 
@@ -41,15 +43,18 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void createSubscriptions(Long userId, String[] vocabularyCodes) {
 
-        for (String vocabularyCode : vocabularyCodes) {
+        final List<String> subscribedVocabularies = notificationRepository.findByUserId(userId).stream()
+                .map(Notification::getVocabularyCode).collect(Collectors.toList());
 
-            if (!notificationRepository.findByUserIdAndVocabularyCode(userId, vocabularyCode).isPresent()) {
-                final VocabularyV5 vocabulary = vocabularyRepository.findOne(vocabularyCode);
-                if (vocabulary != null) {
-                    final VocabularyConversion vocabularyConversion = vocabularyConversionRepository.findByIdV5(vocabularyCode);
-                    final Notification newNotification = new Notification(userId, vocabularyConversion, vocabularyCode, vocabulary.getVersion());
-                    notificationRepository.save(newNotification);
-                }
+        final String[] newVocabulariesToSubscribe = Stream.of(vocabularyCodes)
+                .filter(code -> !subscribedVocabularies.contains(code)).toArray(String[]::new);
+
+        for (String vocabularyCode : newVocabulariesToSubscribe) {
+            final VocabularyV5 vocabulary = vocabularyRepository.findOne(vocabularyCode);
+            if (vocabulary != null) {
+                final VocabularyConversion vocabularyConversion = vocabularyConversionRepository.findByIdV5(vocabularyCode);
+                final Notification newNotification = new Notification(userId, vocabularyConversion, vocabularyCode, vocabulary.getVersion());
+                notificationRepository.save(newNotification);
             }
         }
     }

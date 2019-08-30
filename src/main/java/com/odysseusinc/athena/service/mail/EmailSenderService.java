@@ -76,7 +76,7 @@ public class EmailSenderService {
 
             mailSender.send(message);
         } catch (MessagingException | MailException | UnsupportedEncodingException ex) {
-            LOGGER.error("{} [user email: {}, subject: {2}]", ex.getMessage(), emails, messageType.getSubject(), ex);
+            LOGGER.error("{} [user email: {}, subject: {}]", ex.getMessage(), emails, messageType.getSubject(), ex);
             throw new RuntimeException(ex);
         }
     }
