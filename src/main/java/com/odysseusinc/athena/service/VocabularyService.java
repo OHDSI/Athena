@@ -67,8 +67,6 @@ public interface VocabularyService {
 
     License get(Long licenseId, String token);
 
-    void notifyAboutUpdates(Long userId, Integer vocabularyId, boolean notify);
-
     List<Notification> getNotifications(Long userId);
 
     void checkBundleVocabularies(DownloadBundle bundle, Long userId);

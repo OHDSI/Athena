@@ -41,10 +41,11 @@ public class Notification {
         //empty
     }
 
-    public Notification(Long userId, VocabularyConversion vocabularyConversion) {
-
+    public Notification(Long userId, VocabularyConversion vocabularyConversion, String vocabularyCode, String actualVersion) {
         this.userId = userId;
         this.vocabularyConversion = vocabularyConversion;
+        this.vocabularyCode = vocabularyCode;
+        this.actualVersion = actualVersion;
     }
 
     @Id
@@ -59,6 +60,12 @@ public class Notification {
     @ManyToOne(optional = false, targetEntity = VocabularyConversion.class)
     @JoinColumn(name = "vocabulary_id_v4")
     private VocabularyConversion vocabularyConversion;
+
+    @Column(name = "vocabulary_code")
+    private String vocabularyCode;
+
+    @Column(name = "actual_version")
+    private String actualVersion;
 
     public Long getId() {
 
@@ -88,5 +95,25 @@ public class Notification {
     public void setVocabularyConversion(VocabularyConversion vocabularyConversion) {
 
         this.vocabularyConversion = vocabularyConversion;
+    }
+
+    public String getActualVersion() {
+
+        return actualVersion;
+    }
+
+    public void setActualVersion(String actualVersion) {
+
+        this.actualVersion = actualVersion;
+    }
+
+    public String getVocabularyCode() {
+
+        return vocabularyCode;
+    }
+
+    public void setVocabularyCode(String vocabularyCode) {
+
+        this.vocabularyCode = vocabularyCode;
     }
 }

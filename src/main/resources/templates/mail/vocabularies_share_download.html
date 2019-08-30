@@ -4,9 +4,9 @@
 <body>
 <p>
 
-<p>Dear %name%,</p>
+<p>Dear <span  th:text="${name}"></span>,</p>
 
-<p>%owner_name% has shared vocabularies with you.</p>
+<p><span th:text="${owner_name}"></span> has shared vocabularies with you.</p>
 
 <ol>
     <li>You can download these vocabularies from <a th:href="${url}">link</a> once you are logged in.

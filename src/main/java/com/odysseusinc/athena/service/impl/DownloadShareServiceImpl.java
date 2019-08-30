@@ -23,13 +23,12 @@
 package com.odysseusinc.athena.service.impl;
 
 import com.google.common.base.Splitter;
-import com.odysseusinc.athena.api.v1.controller.converter.UrlBuilder;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.DownloadShare;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadShareRepository;
 import com.odysseusinc.athena.service.DownloadShareService;
-import com.odysseusinc.athena.service.mail.VocabulariesShareSender;
+import com.odysseusinc.athena.service.mail.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,17 +40,17 @@ import static java.util.stream.Collectors.toList;
 
 @Service
 public class DownloadShareServiceImpl implements DownloadShareService {
-    @Autowired
-    private DownloadShareRepository bundleShareRepository;
+
+    private final DownloadShareRepository bundleShareRepository;
+    private final EmailService emailService;
+    private final UserService userService;
 
     @Autowired
-    private VocabulariesShareSender vocabulariesShareSender;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private UrlBuilder urlBuilder;
+    public DownloadShareServiceImpl(DownloadShareRepository bundleShareRepository, EmailService emailService, UserService userService) {
+        this.bundleShareRepository = bundleShareRepository;
+        this.emailService = emailService;
+        this.userService = userService;
+    }
 
     @Override
     public List<DownloadShare> getBundleShares(DownloadBundle downloadBundle) {
@@ -90,19 +89,13 @@ public class DownloadShareServiceImpl implements DownloadShareService {
         sendNotification(newSharedBundles, bundle, user);
     }
 
-    private void sendNotification(List<DownloadShare> newSharedBundles, DownloadBundle bundle, AthenaUser user) {
+    private void sendNotification(List<DownloadShare> newSharedBundles, DownloadBundle bundle, AthenaUser bundleOwner) {
         newSharedBundles.forEach(downloadShare -> {
-                    AthenaUser shareUser = userService.getUser(downloadShare.getUserEmail());
-                    if (shareUser != null) {
-                        try {
-                            vocabulariesShareSender.send(shareUser, user,
-                                    urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
-                                    bundle.getCdmVersion(), bundle.getReleaseVersion());
-                        } catch (Exception e) {
-                            // ignore
-                        }
-                    }
-                });
+            AthenaUser recepient = userService.getUser(downloadShare.getUserEmail());
+            if (recepient != null) {
+                emailService.sendVocabulariesWereSharedNotification(recepient, bundleOwner, bundle);
+            }
+        });
     }
 
     @Override
