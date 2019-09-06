@@ -36,7 +36,7 @@ Using quotation marks forces an exact-match search.
 For an exact search, the following conditions are met
 - the word must be present
 - not case sensitive, the number of spaces between words does not matter
-- stemming is disabled(the word/words must be present exactly as it is in quotation marks )
+- stemming is disabled(the word/words must be present exactly as it is in quotation marks)
 
 Example 1:
 
@@ -64,9 +64,11 @@ Pooh eats raspberries and me |
 #3 Special symbols
 
 For special symbols, the following conditions are met
-- If the character is not part of the word, it is ignored.
-- These characters are ignored: / ? ! , | ; | \ .
-- For all other characters, the first funded result will be with characters and then without
+- These special symbols are always ignored and treated as words separation symbols: / \ | ? ! , ;   .
+  e.g. "Pooh.eats?honey!" equals "Pooh eats honey" 
+- All other special symbols ignored only if it is a separate word: + - ( ) : ^ [ ] { } ~ * ? | & ;
+  e.g. "Pooh ` eats raspberries - honey" equals "Pooh eats honey", but "Pooh'eats raspberries-honey" will remain the same  
+- the first funded result will be with characters and then without
 
 Search phrase: **[piglet]**
 
