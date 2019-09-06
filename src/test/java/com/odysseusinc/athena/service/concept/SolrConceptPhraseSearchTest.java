@@ -46,7 +46,7 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_wholePhrase() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Pooh eats honey");
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Stroke Myocardial Infarction Gastrointestinal Bleeding");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         QueryResponse response = SolrInitializer.server.query(query);
@@ -55,19 +55,19 @@ public class SolrConceptPhraseSearchTest {
         assertEquals(13, docList.size());
         assertEquals(
                 Arrays.asList(
-                        "Pooh eats honey",
-                        "honey eats Pooh",
-                        "Pooh eats raspberries and honey",
-                        "Pooh steals honey",
-                        "pooh eats",
-                        "pooh eats pooh",
-                        "pooh eats nothing",
-                        "Pooh eats raspberries",
-                        "Pooh eats raspberries and me",
-                        "Piglet hates honey",
-                        "pooh",
-                        "Pooh",
-                        "pooo"
+                        "Stroke Myocardial Infarction Gastrointestinal Bleeding",
+                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
+                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
+                        "Stroke Myocardial Infarction Bleeding in Back",
+                        "Bleeding in Back Gastrointestinal Bleeding",
+                        "Stroke Myocardial Infarction",
+                        "Stroke Myocardial Infarction Strok",
+                        "Stroke Myocardial Infarction Stroke Nothin",
+                        "Stroke Myocardial Infarction  Renal Dysfunction",
+                        "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
+                        "stroke",
+                        "Stroke",
+                        "Strook"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
@@ -76,7 +76,7 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_allWordFromPhrase() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("eats honey pooh");
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Stroke Bleeding Infarction Myocardial Gastrointestinal");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         QueryResponse response = SolrInitializer.server.query(query);
@@ -85,19 +85,19 @@ public class SolrConceptPhraseSearchTest {
         assertEquals(13, docList.size());
         assertEquals(
                 Arrays.asList(
-                        "honey eats Pooh",
-                        "Pooh eats honey",
-                        "Pooh eats raspberries and honey",
-                        "Pooh steals honey",
-                        "pooh eats",
-                        "pooh eats pooh",
-                        "pooh eats nothing",
-                        "Pooh eats raspberries",
-                        "Pooh eats raspberries and me",
-                        "Piglet hates honey",
-                        "pooh",
-                        "Pooh",
-                        "pooo"
+                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
+                        "Stroke Myocardial Infarction Gastrointestinal Bleeding",
+                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
+                        "Stroke Myocardial Infarction Bleeding in Back",
+                        "Bleeding in Back Gastrointestinal Bleeding",
+                        "Stroke Myocardial Infarction",
+                        "Stroke Myocardial Infarction Strok",
+                        "Stroke Myocardial Infarction Stroke Nothin",
+                        "Stroke Myocardial Infarction  Renal Dysfunction",
+                        "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
+                        "stroke",
+                        "Stroke",
+                        "Strook"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
@@ -106,27 +106,40 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_fewWords() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Pooh raspberries");
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Renal Dysfunction");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         QueryResponse response = SolrInitializer.server.query(query);
         SolrDocumentList docList = response.getResults();
 
-        assertEquals(12, docList.size());
+        assertEquals(3, docList.size());
         assertEquals(
                 Arrays.asList(
-                        "Pooh eats raspberries",
-                        "Pooh eats raspberries and honey",
-                        "Pooh eats raspberries and me",
-                        "pooh",
-                        "Pooh",
-                        "pooh eats pooh",
-                        "pooh eats",
-                        "honey eats Pooh",
-                        "Pooh eats honey",
-                        "pooh eats nothing",
-                        "Pooh steals honey",
-                        "pooo"
+                        "Stroke Myocardial Infarction  Renal Dysfunction",
+                        "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
+                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction"
+                ),
+                docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
+        );
+    }
+
+    @Test
+    public void query_word() throws Exception {
+
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Gastrointestinal Bleeding");
+
+        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
+        QueryResponse response = SolrInitializer.server.query(query);
+        SolrDocumentList docList = response.getResults();
+
+        assertEquals(5, docList.size());
+        assertEquals(
+                Arrays.asList(
+                        "Bleeding in Back Gastrointestinal Bleeding",
+                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
+                        "Stroke Myocardial Infarction Gastrointestinal Bleeding",
+                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
+                        "Stroke Myocardial Infarction Bleeding in Back"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
@@ -135,25 +148,26 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_exactPhrase() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"Pooh eats honey\"");
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"Bleeding in Back\"");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         QueryResponse response = SolrInitializer.server.query(query);
         SolrDocumentList docList = response.getResults();
-
-        assertEquals(1, docList.size());
+        assertEquals(2, docList.size());
         assertEquals(
-                Arrays.asList("Pooh eats honey"),
+                Arrays.asList(
+                        "Bleeding in Back Gastrointestinal Bleeding",
+                        "Stroke Myocardial Infarction Bleeding in Back"
+                ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
     }
 
 
-
     @Test
     public void query_phraseWithFirstExactWord() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"pooh\" eats honey");
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"Stroke\" Myocardial Infarction Gastrointestinal Bleeding");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         QueryResponse response = SolrInitializer.server.query(query);
@@ -162,42 +176,17 @@ public class SolrConceptPhraseSearchTest {
         assertEquals(11, docList.size());
         assertEquals(
                 Arrays.asList(
-                        "Pooh eats honey",
-                        "honey eats Pooh",
-                        "Pooh eats raspberries and honey",
-                        "pooh eats pooh",
-                        "Pooh steals honey",
-                        "pooh eats",
-                        "pooh eats nothing",
-                        "Pooh eats raspberries",
-                        "Pooh eats raspberries and me",
-                        "pooh",
-                        "Pooh"
-                ),
-                docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
-        );
-    }
-
-    @Test
-    public void query_phraseWithOneExactWord() throws Exception {
-
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Pooh \"eats\" honey");
-
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
-
-        assertEquals(8, docList.size());
-        assertEquals(
-                Arrays.asList(
-                        "Pooh eats honey",
-                        "honey eats Pooh",
-                        "Pooh eats raspberries and honey",
-                        "pooh eats",
-                        "pooh eats pooh",
-                        "pooh eats nothing",
-                        "Pooh eats raspberries",
-                        "Pooh eats raspberries and me"
+                        "Stroke Myocardial Infarction Gastrointestinal Bleeding",
+                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
+                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
+                        "Stroke Myocardial Infarction Bleeding in Back",
+                        "Stroke Myocardial Infarction",
+                        "Stroke Myocardial Infarction Stroke Nothin",
+                        "Stroke Myocardial Infarction Strok",
+                        "Stroke Myocardial Infarction  Renal Dysfunction",
+                        "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
+                        "stroke",
+                        "Stroke"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
@@ -206,27 +195,23 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_phraseWithExactSubPhrase() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"Pooh eats\" honey");
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Stroke Myocardial Infarction \"Gastrointestinal Bleeding\"");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         QueryResponse response = SolrInitializer.server.query(query);
         SolrDocumentList docList = response.getResults();
 
-        assertEquals(7, docList.size());
+
+        assertEquals(4, docList.size());
         assertEquals(
                 Arrays.asList(
-                        "Pooh eats honey",
-                        "Pooh eats raspberries and honey",
-                        "pooh eats",
-                        "pooh eats nothing",
-                        "pooh eats pooh",
-                        "Pooh eats raspberries",
-                        "Pooh eats raspberries and me"
+                        "Stroke Myocardial Infarction Gastrointestinal Bleeding",
+                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
+                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
+                        "Bleeding in Back Gastrointestinal Bleeding"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
     }
-
-
 
 }

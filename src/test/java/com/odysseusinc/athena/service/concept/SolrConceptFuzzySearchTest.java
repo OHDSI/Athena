@@ -44,7 +44,7 @@ public class SolrConceptFuzzySearchTest {
     @Test
     public void query_fuzzy() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Poo8 ets honny");
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Strok Myocardi8 Infarctiin Gastrointestinal Bleedi");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         QueryResponse response = SolrInitializer.server.query(query);
@@ -53,19 +53,19 @@ public class SolrConceptFuzzySearchTest {
         assertEquals(13, docList.size());
         assertEquals(
                 Arrays.asList(
-                        "honey eats Pooh",
-                        "Pooh eats honey",
-                        "Pooh eats raspberries and honey",
-                        "Pooh steals honey",
-                        "pooh eats pooh",
-                        "pooh eats",
-                        "pooh eats nothing",
-                        "Pooh eats raspberries",
-                        "Piglet hates honey",
-                        "Pooh eats raspberries and me",
-                        "pooh",
-                        "Pooh",
-                        "pooo"
+                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
+                        "Stroke Myocardial Infarction Gastrointestinal Bleeding",
+                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
+                        "Stroke Myocardial Infarction Strok",
+                        "Bleeding in Back Gastrointestinal Bleeding",
+                        "Stroke Myocardial Infarction Bleeding in Back",
+                        "Stroke Myocardial Infarction",
+                        "Stroke Myocardial Infarction Stroke Nothin",
+                        "Stroke Myocardial Infarction  Renal Dysfunction",
+                        "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
+                        "stroke",
+                        "Stroke",
+                        "Strook"
                         ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );

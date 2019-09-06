@@ -45,28 +45,26 @@ public class SolrConceptBracketsSearchTest {
     @Test
     public void query_wordWithoutBrackets() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("[piglet]");
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("[hip]");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         QueryResponse response = SolrInitializer.server.query(query);
         SolrDocumentList docList = response.getResults();
 
-        assertEquals(13, docList.size());
+        assertEquals(11, docList.size());
         assertEquals(
                 Arrays.asList(
-                        "[piglet] loves balloon",
-                        "[Piglet] loves balloon",
-                        "[piglet loves balloon",
-                        "piglet] loves balloon",
-                        "(piglet) loves balloon",
-                        "{piglet} loves balloon",
-                        "(piglet loves balloon",
-                        "piglet) loves balloon",
-                        "piglet} loves balloon",
-                        "{piglet loves balloon",
-                        "Piglet hates honey",
-                        "piglet loves balloo",
-                        "piglet loves balloon"
+                        "[hip] fracture risk",
+                        "[Hip] fracture risk",
+                        "[hip fracture risk",
+                        "hip] fracture risk",
+                        "(hip fracture risk",
+                        "(hip) fracture risk",
+                        "hip fracture risk",
+                        "hip) fracture risk",
+                        "hip} fracture risk",
+                        "hip} fracture risk",
+                        "{hip fracture risk"
                         ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
@@ -75,7 +73,7 @@ public class SolrConceptBracketsSearchTest {
     @Test
     public void query_exactWordWithSquareBrackets() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"[piglet]\"");
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"[hip]\"");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         QueryResponse response = SolrInitializer.server.query(query);
@@ -84,25 +82,9 @@ public class SolrConceptBracketsSearchTest {
         assertEquals(2, docList.size());
         assertEquals(
                 Arrays.asList(
-                        "[piglet] loves balloon",
-                        "[Piglet] loves balloon"
+                        "[hip] fracture risk",
+                        "[Hip] fracture risk"
                 ),
-                docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
-        );
-    }
-
-    @Test
-    public void query_exactWordWithBrackets() throws Exception {
-
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"(piglet)\"");
-
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
-
-        assertEquals(1, docList.size());
-        assertEquals(
-                Arrays.asList("(piglet) loves balloon"),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
     }

@@ -75,7 +75,7 @@ public class SolrInitializer extends ExternalResource {
 
     private List<SolrInputDocument> getSolrDocsFromResource() throws Exception {
 
-        try (CSVReader csvReader = new CSVReader(new FileReader(SolrConceptPhraseSearchTest.class.getResource(CONCEPTS_CSV).getPath()))) {
+        try (CSVReader csvReader = new CSVReader(new FileReader(SolrConceptPhraseSearchTest.class.getResource(CONCEPTS_CSV).getPath()), ';')) {
             return csvReader.readAll().stream()
                     .map(strings -> {
                         SolrInputDocument doc = new SolrInputDocument();

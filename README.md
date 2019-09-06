@@ -8,23 +8,23 @@ Search provides the ability to search by phrase. All results are sorted by defau
 
 Example:
 
-Search phrase: **honey eats pooh**
+Search phrase: **Stroke Myocardial Infarction Gastrointestinal Bleeding**
 
 Name | sort priority explanation |
---- | ---|
-honey eats Pooh | full match  |
-Pooh eats honey | all words |
-Pooh eats raspberries and honey | 3 words |
-Pooh steals honey | 2 words |
-pooh eats |2 word |
-pooh eats pooh |2 word |
-pooh eats nothing |2 words |
-Pooh eats raspberries |2 words |
-Pooh eats raspberries and me | 2 words |
-Piglet hates honey | 1 words |
-pooh | 1 words |
-Pooh | 1 words |
-pooo | 1 words |
+---- | ---- |
+Stroke Myocardial Infarction Gastrointestinal Bleeding| full match  |
+Gastrointestinal Bleeding Myocardial Infarction Stroke| all words |
+Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction| 3 words |
+Stroke Myocardial Infarction Bleeding in Back| 2 words |
+Bleeding in Back Gastrointestinal Bleeding| 2 word |
+Stroke Myocardial Infarction| 2 word |
+Stroke Myocardial Infarction Strok| 2 words |
+Stroke Myocardial Infarction Stroke Nothin| 2 words |
+Stroke Myocardial Infarction  Renal Dysfunction| 2 words |
+Stroke Myocardial Infarction Renal Dysfunction and Nothing| 1 words |
+stroke| 1 words |
+Stroke| 1 words |
+Strook| 1 words |
 
 
 NB: the search goes through all concept fields, but the highest priority is given to CONCEPT_NAME and CONCEPT_CODE
@@ -40,26 +40,23 @@ For an exact search, the following conditions are met
 
 Example 1:
 
-Search phrase: **"Pooh eats honey"**
+Search phrase: **"Stroke Myocardial Infarction Gastrointestinal Bleeding"**
 
 Name |
 --- | 
-Pooh eats honey |
+Stroke Myocardial Infarction Gastrointestinal Bleeding |
+Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction |
 
-Example 1:
+Example 2:
 
-Search phrase:  **"Pooh eats" honey**
+Search phrase:  **"Stroke Myocardial Infarction "Gastrointestinal Bleeding"**
 
 Name |
 --- |
-Pooh eats honey |
-Pooh eats raspberries and honey |
-pooh eats |
-pooh eats nothing |
-pooh eats pooh |
-Pooh eats raspberries |
-Pooh eats raspberries and me |
-
+Stroke Myocardial Infarction Gastrointestinal Bleeding |
+Gastrointestinal Bleeding Myocardial Infarction Stroke |
+Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction |
+Bleeding in Back Gastrointestinal Bleeding |
 
 #3 Special symbols
 
@@ -70,53 +67,51 @@ For special symbols, the following conditions are met
   e.g. "Pooh ` eats raspberries - honey" equals "Pooh eats honey", but "Pooh'eats raspberries-honey" will remain the same  
 - the first funded result will be with characters and then without
 
-Search phrase: **[piglet]**
+Search phrase: **[hip]**
 
 Name |
 --- |
-[piglet] loves balloon |
-[Piglet] loves balloon |
-[piglet loves balloon |
-piglet] loves balloon |
-(piglet) loves balloon |
-{piglet} loves balloon |
-(piglet loves balloon |
-piglet) loves balloon |
-piglet} loves balloon |
-{piglet loves balloon |
-Piglet hates honey |
-piglet loves balloo |
-piglet loves balloon |
+[hip] fracture risk |
+[Hip] fracture risk |
+[hip fracture risk |
+hip] fracture risk |
+(hip fracture risk |
+(hip) fracture risk |
+hip fracture risk |
+hip) fracture risk |
+hip} fracture risk |
+hip} fracture risk |
+{hip fracture risk |
 
 
 A special character becomes mandatory if the word is surrounded by quotation marks.
 
-Search phrase:  **"[piglet]"**
+Search phrase:  **"[hip]"**
 
 Name |
 --- |
-[piglet] loves balloon |
-[Piglet] loves balloon |
+[hip] fracture risk | 
+[Hip] fracture risk | 
 
 
 #4 Approximate matching(fuzzy searching)
 
 In case of a typo, or if there is a similar spelling of the word, the most similar result will be found
 
-Search phrase: **Poo8 ets honny**
+Search phrase: **Strok Myocardi8 Infarctiin Gastrointestinal Bleedi**
 
 Name |
 --- | 
-honey eats Pooh|
-Pooh eats honey|
-Pooh eats raspberries and honey|
-Pooh steals honey|
-pooh eats pooh|
-pooh eats|
-pooh eats nothing|
-Pooh eats raspberries|
-Piglet hates honey|
-Pooh eats raspberries and me|
-pooh|
-Pooh|
-pooo|
+Gastrointestinal Bleeding Myocardial Infarction Stroke|
+Stroke Myocardial Infarction Gastrointestinal Bleeding|
+Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction|
+Stroke Myocardial Infarction Strok|
+Bleeding in Back Gastrointestinal Bleeding|
+Stroke Myocardial Infarction Bleeding in Back|
+Stroke Myocardial Infarction|
+Stroke Myocardial Infarction Stroke Nothin|
+Stroke Myocardial Infarction  Renal Dysfunction|
+Stroke Myocardial Infarction Renal Dysfunction and Nothing|
+stroke|
+Stroke|
+Stroo |
