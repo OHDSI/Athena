@@ -156,8 +156,8 @@ public class SolrConceptPhraseSearchTest {
         assertEquals(2, docList.size());
         assertEquals(
                 Arrays.asList(
-                        "Bleeding in Back Gastrointestinal Bleeding",
-                        "Stroke Myocardial Infarction Bleeding in Back"
+                        "Stroke Myocardial Infarction Bleeding in Back",
+                        "Bleeding in Back Gastrointestinal Bleeding"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
@@ -181,12 +181,12 @@ public class SolrConceptPhraseSearchTest {
                         "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
                         "Stroke Myocardial Infarction Bleeding in Back",
                         "Stroke Myocardial Infarction",
-                        "Stroke Myocardial Infarction Stroke Nothin",
                         "Stroke Myocardial Infarction Strok",
+                        "Stroke Myocardial Infarction Stroke Nothin",
                         "Stroke Myocardial Infarction  Renal Dysfunction",
                         "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
-                        "stroke",
-                        "Stroke"
+                        "Stroke",
+                        "stroke"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
@@ -210,6 +210,46 @@ public class SolrConceptPhraseSearchTest {
                         "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
                         "Bleeding in Back Gastrointestinal Bleeding"
                 ),
+                docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
+        );
+    }
+
+    @Test
+    public void query_phraseWithComma() throws Exception {
+
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("ibuprofen");
+
+        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
+        QueryResponse response = SolrInitializer.server.query(query);
+        SolrDocumentList docList = response.getResults();
+
+
+        assertEquals(2, docList.size());
+        assertEquals(
+                Arrays.asList(
+                        "aspirin paracetamol ibuprofen",
+                        "aspirin, paracetamol, ibuprofen"
+                ),
+                docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
+        );
+    }
+
+    @Test
+    public void query_phraseWithExactCommaSearch() throws Exception {
+
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"aspirin, paracetamol\"");
+
+        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
+        QueryResponse response = SolrInitializer.server.query(query);
+        SolrDocumentList docList = response.getResults();
+
+
+        assertEquals(2, docList.size());
+        assertEquals(
+                Arrays.asList(
+                        "aspirin paracetamol ibuprofen",
+                        "aspirin, paracetamol, ibuprofen"
+                        ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
     }

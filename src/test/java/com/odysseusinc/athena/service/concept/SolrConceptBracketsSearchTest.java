@@ -79,7 +79,6 @@ public class SolrConceptBracketsSearchTest {
         QueryResponse response = SolrInitializer.server.query(query);
         SolrDocumentList docList = response.getResults();
 
-        assertEquals(2, docList.size());
         assertEquals(
                 Arrays.asList(
                         "[hip] fracture risk",
