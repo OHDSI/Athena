@@ -347,6 +347,7 @@
 	  -->
     <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100" multiValued="true">
       <analyzer type="index">
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(\s|\/|\?|!|,|;|\.\s|\*)+" replacement=" "/>
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
         <!-- in this example, we will only use synonyms at query time
@@ -356,6 +357,7 @@
         <filter class="solr.LowerCaseFilterFactory"/>
       </analyzer>
       <analyzer type="query">
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(\s|\/|\?|!|,|;|\.\s|\*)+" replacement=" "/>
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
         <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>

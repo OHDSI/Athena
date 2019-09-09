@@ -455,7 +455,6 @@
   <field name="domain_name" type="string" omitNorms="true" indexed="true" stored="true"/>
   <field name="id" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
   <field name="invalid_reason" type="string" omitNorms="true" indexed="true" stored="true"/>
-  <field name="name" type="text_general"/>
   <field name="query" type="text_general" multiValued="true" indexed="true" stored="true"/>
   <field name="query_wo_symbols" type="text_wo_symbols" multiValued="true" indexed="true" stored="true"/>
   <field name="standard_concept" type="string" omitNorms="true" indexed="true" stored="true"/>
@@ -545,6 +544,5 @@
   <copyField source="standard_concept" dest="query_wo_symbols"/>
   <copyField source="vocabulary_id" dest="query"/>
   <copyField source="vocabulary_id" dest="query_wo_symbols"/>
-  <copyField source="name" dest="name_str" maxChars="256"/>
   <copyField source="concept_synonym_n" dest="concept_synonym_n_str" maxChars="256"/>
 </schema>
