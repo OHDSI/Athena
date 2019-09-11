@@ -22,25 +22,28 @@
 
 package com.odysseusinc.athena.api.v1.controller.converter;
 
-import static java.util.Arrays.asList;
 import static org.apache.solr.common.params.CommonParams.FQ;
 import static org.hibernate.validator.internal.util.StringHelper.join;
 
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
+import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.client.solrj.SolrQuery.SortClause;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ConceptSearchDTOToSolrQuery {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConceptSearchDTOToSolrQuery.class);
 
     private static final String ID = "id";
     private static final String CLASS_ID = "concept_class_id";
@@ -49,10 +52,12 @@ public class ConceptSearchDTOToSolrQuery {
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
 
+    private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService();
+
     @Autowired
-    LimitChecker limitChecker;
+    private LimitChecker limitChecker;
     @Autowired
-    VocabularyConversionService vocabularyConversionService;
+    private VocabularyConversionService vocabularyConversionService;
 
     @Value("${solr.default.query.operator:AND}")
     private String solrQueryOperator;
@@ -74,69 +79,15 @@ public class ConceptSearchDTOToSolrQuery {
 
     private void setQuery(ConceptSearchDTO source, SolrQuery result) {
 
-        String resultQuery = "*:*";
-        String sourceQuery = source.getQuery().trim();
-        if (!StringUtils.isEmpty(sourceQuery)) {
+        String resultQuery = conceptSearchPhraseToSolrQueryService.createSolrQueryString(source);
 
-            //escaping all special query chars except whitespace
-            sourceQuery = ClientUtils.escapeQueryChars(sourceQuery);
+        LOGGER.debug("Concept search query: {}", resultQuery);
 
-            boolean isExactMatch = sourceQuery.startsWith("\\\"") && sourceQuery.endsWith("\\\"");
-            if (isExactMatch) {
-                //this is "exact-matching" mode
-                sourceQuery = sourceQuery.substring(2, sourceQuery.length() - 2);
-                resultQuery = String.format(" concept_name:%1$s^3 OR concept_code:%1$s^2 OR id:%1$s " +
-                        "OR concept_class_id:%1$s OR domain_id:%1$s OR vocabulary_id:%1$s OR standard_concept:%1$s " +
-                        "OR invalid_reason:%1$s OR concept_synonym_name:%1$s", sourceQuery);
-            } else {
-                //here we specify priorities of searching fields
-                resultQuery = String.format(" concept_name_ci:%1$s^8 OR concept_code_ci:%1$s^8", sourceQuery);
-
-                List<String> split = asList(sourceQuery.split("\\\\ "));
-                List<String> fuzzyTerms = split.stream()
-                        .map(t -> t + "~")
-                        .collect(Collectors.toList());
-                resultQuery = resultQuery + " OR concept_name_text:(" + String.join(" AND ", fuzzyTerms) + ")^7";
-                split = split.stream()
-                        //here we specify priorities of searching fields 
-                        .map(e -> String.format("(concept_name_ci:%1$s^6 OR " +
-                                "concept_name_ci:%1$s~0.6^5 OR " +
-                                "concept_name_text:%1$s^4 OR " +
-                                "concept_name_text:%1$s~^3 OR " +
-                                "concept_code_text:%1$s^3 OR " +
-                                "concept_code_text:*%1$s*^2 OR query_wo_symbols:%1$s*)", e))
-                        .collect(Collectors.toList());
-
-                //the query string will be as follow:
-
-                // concept_name_ci:aspirin^8 OR 
-                // concept_code_ci:aspirin^8 OR 
-                // concept_name_text:(aspirin~)^7 OR 
-                // (concept_name_ci:aspirin^6 OR 
-                //      concept_name_ci:aspirin~0.6^5 OR 
-                //      concept_name_text:aspirin^4 OR 
-                //      concept_name_text:aspirin~^3 OR 
-                //      concept_code_text:aspirin^3 OR 
-                //      concept_code_text:*aspirin*^2 OR 
-                //      query_wo_symbols:aspirin*)
-
-                //which means that the order of results will be:
-                //for the whole phrase in query:
-                //1) results with exact query string (case insensitive) in "concept name"
-                //2) results with exact query string (case insensitive) in "concept code"
-                //3) results with possible typos (case insensitive) in "concept name"
-                //for split words in query:
-                //4) results with exact query string (case insensitive) in "concept name"
-                //5) results with possible typos (case insensitive) in "concept name"
-                //6) results with exact query string (case insensitive) plus other words in "concept name"
-                //7) results with exact query string (case insensitive) plus other words in "concept code"
-                //8) results with partial matching of query string plus other words in "concept code"
-                //9) results with partial matching of query string (regardless of brackets, parentheses and braces in "non-exact-matching mode") in "query"
-                resultQuery = resultQuery + " OR " + String.join(solrQueryOperator, split);
-            }
-        }
         result.setQuery(resultQuery);
-        result.setSort("score", SolrQuery.ORDER.desc);
+        SortClause sortByScore = new SortClause("score", SolrQuery.ORDER.desc);
+        SortClause sortByConceptName = new SortClause("concept_name_ci", SolrQuery.ORDER.asc);
+        result.setSort(sortByScore);
+        result.addSort(sortByConceptName);
     }
 
     private void setFilters(ConceptSearchDTO source, SolrQuery result) {
