@@ -22,15 +22,34 @@
 package com.odysseusinc.athena.service.concept;
 
 import com.opencsv.CSVReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.CoreContainer;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TestRule;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Solr have to be initialized only ONCE for all unit tests!!
@@ -40,8 +59,13 @@ import org.junit.rules.TestRule;
  */
 public class SolrInitializer extends ExternalResource {
 
-    public static final String CONCEPTS_CSV = "/testdata/concepts-from-import-query.csv";
-    public static final String TEST_SOLR_RESOURCES = "src/test/resources/testdata/solr";
+    private static final String CONCEPTS_CSV = "/testdata/concepts-from-import-query.csv";
+
+    private static final String TEST_SOLR_RESOURCES = "src/test/resources/testdata/solr";
+
+    private static final String MAIN_SOLR_CONF_RESOURCES = "src/main/resources/solr";
+    private static final String TEST_SOLR_CONF_RESOURCES = TEST_SOLR_RESOURCES  + "/concepts/conf";
+
 
     public static EmbeddedSolrServer server;
 
@@ -53,11 +77,17 @@ public class SolrInitializer extends ExternalResource {
         if (!started.compareAndSet(false, true)) {
             return;
         }
-
         this.initSolr();
     }
 
     private void initSolr() throws Exception {
+
+        this.copySolrConfigurationToTestResources();
+        this.removeUnnecessarySolrConfigurations();
+        this.runEmbeddedSolr();
+    }
+
+    private void runEmbeddedSolr() throws Exception {
 
         CoreContainer container = new CoreContainer(TEST_SOLR_RESOURCES);
         container.load();
@@ -65,6 +95,34 @@ public class SolrInitializer extends ExternalResource {
         reindexTestConcepts();
     }
 
+    private void removeUnnecessarySolrConfigurations() throws ParserConfigurationException, SAXException, IOException, TransformerException {
+
+        final String solrConfig = TEST_SOLR_CONF_RESOURCES + "/solrconfig.xml";
+
+        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File(solrConfig));
+        final Node config = doc.getElementsByTagName("config").item(0);
+        this.removeElementByAttributeValue(config, "name", "/dataimport");
+
+        TransformerFactory.newInstance().newTransformer()
+                .transform(
+                        new DOMSource(doc),
+                        new StreamResult(new File(solrConfig)));
+    }
+
+    private void removeElementByAttributeValue(Node config, String attribute, String attributeValue) {
+
+        final NodeList configNodes = config.getChildNodes();
+        IntStream.range(0, configNodes.getLength()).mapToObj(configNodes::item)
+                .filter(Element.class::isInstance)
+                .map(Element.class::cast)
+                .filter(element -> StringUtils.equals(element.getAttribute(attribute), attributeValue))
+                .findAny()
+                .ifPresent(config::removeChild);
+    }
+
+    private void copySolrConfigurationToTestResources() throws IOException {
+        FileUtils.copyDirectory(new File(MAIN_SOLR_CONF_RESOURCES), new File(TEST_SOLR_CONF_RESOURCES));
+    }
 
     private void reindexTestConcepts() throws Exception {
 
