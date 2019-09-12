@@ -1,32 +1,117 @@
-#**Launching tests:**
+#1 Phrase search
 
-1. Create databases:\
-    `CREATE DATABASE athena_db_test OWNER ohdsi;`\
-    `GRANT ALL PRIVILEGES ON DATABASE athena_db_test TO ohdsi;`
-      
-    `CREATE DATABASE athena_cdm_v5_test OWNER ohdsi;`\
-    `GRANT ALL PRIVILEGES ON DATABASE athena_cdm_v5_test TO ohdsi;`
+Search provides the ability to search by phrase. All results are sorted by default according to the following criteria:
 
-2. Launch any test from `service.concept.nonexact` folder so Flyway migrations will pass
+ -full phrase match 
+- concepts contain all the words from the search phrase
+- result based on two parameters, the number of searched words in the result and importance of each word (importance is calculated for each word, the words that are rearer among all documents are more important)
 
-3. Load test data:\
-    `COPY DRUG_STRENGTH FROM 'C:\projects\Athena\src\test\resources\testdata\DRUG_STRENGTH.csv' WITH DELIMITER E'\t' CSV HEADER QUOTE E'\b' ;`\
-    `COPY CONCEPT FROM 'C:\projects\Athena\src\test\resources\testdata\CONCEPT.csv' WITH DELIMITER E'\t' CSV HEADER QUOTE E'\b' ;`\
-    `COPY CONCEPT_RELATIONSHIP FROM 'C:\projects\Athena\src\test\resources\testdata\CONCEPT_RELATIONSHIP.csv' WITH DELIMITER E'\t' CSV HEADER QUOTE E'\b' ;`\
-    `COPY CONCEPT_ANCESTOR FROM 'C:\projects\Athena\src\test\resources\testdata\CONCEPT_ANCESTOR.csv' WITH DELIMITER E'\t' CSV HEADER QUOTE E'\b' ;`\
-    `COPY CONCEPT_SYNONYM FROM 'C:\projects\Athena\src\test\resources\testdata\CONCEPT_SYNONYM.csv' WITH DELIMITER E'\t' CSV HEADER QUOTE E'\b' ;`\
-    `COPY VOCABULARY FROM 'C:\projects\Athena\src\test\resources\testdata\VOCABULARY.csv' WITH DELIMITER E'\t' CSV HEADER QUOTE E'\b' ;`\
-    `COPY RELATIONSHIP FROM 'C:\projects\Athena\src\test\resources\testdata\RELATIONSHIP.csv' WITH DELIMITER E'\t' CSV HEADER QUOTE E'\b' ;`\
-    `COPY CONCEPT_CLASS FROM 'C:\projects\Athena\src\test\resources\testdata\CONCEPT_CLASS.csv' WITH DELIMITER E'\t' CSV HEADER QUOTE E'\b' ;`\
-    `COPY DOMAIN FROM 'C:\projects\Athena\src\test\resources\testdata\DOMAIN.csv' WITH DELIMITER E'\t' CSV HEADER QUOTE E'\b' ;`
+Example:
 
-    `REFRESH MATERIALIZED VIEW concepts_view;`
+Search phrase: **Stroke Myocardial Infarction Gastrointestinal Bleeding**
 
-4. Start SOLR:
-    + in `solrconfig.xml` in `<requestHandler name="/dataimport" class="solr.DataImportHandler">` section change 
-   `<str name="url">jdbc:postgresql://localhost:5432/athena_cdm_v5</str>` to `<str name="url">jdbc:postgresql://localhost:5432/athena_cdm_v5_test</str>`
-   
-    + Launch reindex via web-console
-    + Restart SOLR container if it is running in Docker
-   
-5. Launch tests
+Name | sort priority explanation |
+---- | ---- |
+Stroke Myocardial Infarction Gastrointestinal Bleeding| full match  |
+Gastrointestinal Bleeding Myocardial Infarction Stroke| all words |
+Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction| 3 words |
+Stroke Myocardial Infarction Bleeding in Back| 2 words |
+Bleeding in Back Gastrointestinal Bleeding| 2 word |
+Stroke Myocardial Infarction| 2 word |
+Stroke Myocardial Infarction Strok| 2 words |
+Stroke Myocardial Infarction Stroke Nothin| 2 words |
+Stroke Myocardial Infarction  Renal Dysfunction| 2 words |
+Stroke Myocardial Infarction Renal Dysfunction and Nothing| 1 words |
+stroke| 1 words |
+Stroke| 1 words |
+Strook| 1 words |
+
+
+NB: the search goes through all concept fields, but the highest priority is given to CONCEPT_NAME and CONCEPT_CODE
+
+#2 Exact search
+
+Using quotation marks forces an exact-match search. 
+
+For an exact search, the following conditions are met
+- the word must be present
+- not case sensitive, the number of spaces between words does not matter
+- stemming is disabled(the word/words must be present exactly as it is in quotation marks)
+
+Example 1:
+
+Search phrase: **"Stroke Myocardial Infarction Gastrointestinal Bleeding"**
+
+Name |
+--- | 
+Stroke Myocardial Infarction Gastrointestinal Bleeding |
+Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction |
+
+Example 2:
+
+Search phrase:  **"Stroke Myocardial Infarction "Gastrointestinal Bleeding"**
+
+Name |
+--- |
+Stroke Myocardial Infarction Gastrointestinal Bleeding |
+Gastrointestinal Bleeding Myocardial Infarction Stroke |
+Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction |
+Bleeding in Back Gastrointestinal Bleeding |
+
+#3 Special symbols
+
+For special symbols, the following conditions are met
+- These special symbols are always ignored and treated as words separation symbols: / \ | ? ! , ;   .
+  e.g. "Pooh.eats?honey!" equals "Pooh eats honey" 
+- All other special symbols ignored only if it is a separate word: + - ( ) : ^ [ ] { } ~ * ? | & ;
+  e.g. "Pooh ` eats raspberries - honey" equals "Pooh eats honey", but "Pooh'eats raspberries-honey" will remain the same  
+- the first funded result will be with characters and then without
+
+Search phrase: **[hip]**
+
+Name |
+--- |
+[hip] fracture risk |
+[Hip] fracture risk |
+[hip fracture risk |
+hip] fracture risk |
+(hip fracture risk |
+(hip) fracture risk |
+hip fracture risk |
+hip) fracture risk |
+hip} fracture risk |
+hip} fracture risk |
+{hip fracture risk |
+
+
+A special character becomes mandatory if the word is surrounded by quotation marks.
+
+Search phrase:  **"[hip]"**
+
+Name |
+--- |
+[hip] fracture risk | 
+[Hip] fracture risk | 
+
+
+#4 Approximate matching(fuzzy searching)
+
+In case of a typo, or if there is a similar spelling of the word, the most similar result will be found
+
+Search phrase: **Strok Myocardi8 Infarctiin Gastrointestinal Bleedi**
+
+Name |
+--- | 
+Gastrointestinal Bleeding Myocardial Infarction Stroke|
+Stroke Myocardial Infarction Gastrointestinal Bleeding|
+Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction|
+Stroke Myocardial Infarction Strok|
+Bleeding in Back Gastrointestinal Bleeding|
+Stroke Myocardial Infarction Bleeding in Back|
+Stroke Myocardial Infarction|
+Stroke Myocardial Infarction Stroke Nothin|
+Stroke Myocardial Infarction  Renal Dysfunction|
+Stroke Myocardial Infarction Renal Dysfunction and Nothing|
+stroke|
+Stroke|
+Stroo |
