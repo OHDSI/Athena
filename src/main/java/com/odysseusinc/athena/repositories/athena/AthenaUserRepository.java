@@ -23,12 +23,13 @@
 package com.odysseusinc.athena.repositories.athena;
 
 import com.odysseusinc.athena.model.security.AthenaUser;
-import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 public interface AthenaUserRepository extends PagingAndSortingRepository<AthenaUser, Long> {
 
@@ -53,5 +54,7 @@ public interface AthenaUserRepository extends PagingAndSortingRepository<AthenaU
     List<AthenaUser> suggestUsers(@Param("suggestRequest") String suggestRequest);
 
     List<AthenaUser> findByRoles_name(String role);
+
+    List<AthenaUser> findByEmail(String email);
 
 }

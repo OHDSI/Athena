@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Odysseus Data Services, inc.
+ * Copyright 2019 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,21 +15,14 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Vitaly Koulakov, Maria Pozhidaeva
- * Created: April 4, 2018
+ * Authors: Alexandr Cumarav
+ * Created: July 27, 2019
  *
  */
 
 package com.odysseusinc.athena.service.mail;
 
-import static java.text.MessageFormat.format;
-
-import com.odysseusinc.athena.model.security.AthenaUser;
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-import java.util.Map;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import com.opencsv.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,12 +32,17 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-@Service
-public abstract class MailSender {
-    private static Logger LOGGER = LoggerFactory.getLogger(MailSender.class);
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
-    private final JavaMailSender mailSender;
+@Service
+public class EmailSenderService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmailSenderService.class);
+
     private final MailContentBuilder contentBuilder;
+    private final JavaMailSender mailSender;
 
     @Value("${athena.mail.notifier}")
     private String notifier;
@@ -53,51 +51,34 @@ public abstract class MailSender {
     private String from;
 
     @Autowired
-    public MailSender(JavaMailSender mailSender, MailContentBuilder contentBuilder) {
+    public EmailSenderService(MailContentBuilder contentBuilder, JavaMailSender mailSender) {
 
-        this.mailSender = mailSender;
         this.contentBuilder = contentBuilder;
+        this.mailSender = mailSender;
     }
 
-    public void send(AthenaUser user, Map<String, Object> parameters) throws MessagingException,
-            UnsupportedEncodingException {
+    public void send(EmailType messageType, Map<String, Object> parameters, String... emails) {
 
-        send(user.getEmail(), parameters);
-    }
-
-    public void send(String email, Map<String, Object> parameters) throws MessagingException, MailException,
-            UnsupportedEncodingException {
-
-        if (email == null) {
+        if (emails == null || emails.length == 0 || StringUtils.isBlank(emails[0])) {
             return;
         }
+
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper;
         try {
+            final String emailBody = contentBuilder.build(messageType.getTemplate(), parameters);
+            LOGGER.debug("Sending  [{}] email: \n\n\n{}\n\n\n", messageType, emailBody);
             helper = new MimeMessageHelper(message, true);
-            helper.setSubject(getSubject());
+            helper.setSubject(messageType.getSubject());
             helper.setFrom(from, notifier);
-            helper.setTo(email);
-            helper.setText(contentBuilder.build(getTemplateName(), parameters), true);
+            helper.setTo(emails);
+            helper.setText(emailBody, true);
 
             mailSender.send(message);
         } catch (MessagingException | MailException | UnsupportedEncodingException ex) {
-            LOGGER.error(format("{0}[user email [{1}], subject [{2}]]", ex.getMessage(), email,
-                    getSubject()), ex);
-            throw ex;
+            LOGGER.error("{} [user email: {}, subject: {}]", ex.getMessage(), emails, messageType.getSubject(), ex);
+            throw new RuntimeException(ex);
         }
     }
-
-    public void send(List<String> emails, Map<String, Object> parameters) throws MessagingException, MailException,
-            UnsupportedEncodingException {
-
-        for (String email : emails) {
-            send(email, parameters);
-        }
-    }
-
-    protected abstract String getSubject();
-
-    protected abstract String getTemplateName();
 
 }

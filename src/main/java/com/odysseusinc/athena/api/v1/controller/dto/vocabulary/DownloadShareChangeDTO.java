@@ -20,43 +20,16 @@
  *
  */
 
-package com.odysseusinc.athena.api.v1.controller.dto;
+package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
-import javax.validation.constraints.NotNull;
+public class DownloadShareChangeDTO {
+    private String emailList;
 
-public class VocabularyForNotificationDTO implements DTO {
-    @NotNull
-    private Boolean notify;
-    @NotNull
-    private Integer vocabularyV4Id;
-
-    public VocabularyForNotificationDTO() {
-        //empty
+    public String getEmailList() {
+        return emailList;
     }
 
-    public VocabularyForNotificationDTO(Boolean notify, Integer vocabularyV4Id) {
-
-        this.notify = notify;
-        this.vocabularyV4Id = vocabularyV4Id;
-    }
-
-    public Boolean getNotify() {
-
-        return notify;
-    }
-
-    public void setNotify(Boolean notify) {
-
-        this.notify = notify;
-    }
-
-    public Integer getVocabularyV4Id() {
-
-        return vocabularyV4Id;
-    }
-
-    public void setVocabularyV4Id(Integer vocabularyV4Id) {
-
-        this.vocabularyV4Id = vocabularyV4Id;
+    public void setEmailList(String emailList) {
+        this.emailList = emailList;
     }
 }
