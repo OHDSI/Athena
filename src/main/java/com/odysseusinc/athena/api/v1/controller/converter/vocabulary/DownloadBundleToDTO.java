@@ -25,16 +25,18 @@ package com.odysseusinc.athena.api.v1.controller.converter.vocabulary;
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.converter.UrlBuilder;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
-import java.util.List;
-import javax.validation.constraints.NotNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
+
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Component
 public class DownloadBundleToDTO implements Converter<DownloadBundle, DownloadBundleDTO>, InitializingBean {
@@ -72,9 +74,13 @@ public class DownloadBundleToDTO implements Converter<DownloadBundle, DownloadBu
         dto.setName(bundle.getName());
         dto.setId(bundle.getId());
         dto.setStatus(bundle.getStatus());
+        dto.setReleaseVersion(bundle.getReleaseVersion());
         List<VocabularyDTO> dtos = converterUtils.convertList(bundle.getVocabulariesWithoutOmopReq(),
                 VocabularyDTO.class);
         dto.setVocabularies(dtos);
+        List<DownloadShareDTO> shareDTOS = converterUtils.convertList(bundle.getDownloadShares(),
+                DownloadShareDTO.class);
+        dto.setDownloadShareDTOs(shareDTOS);
         return dto;
     }
 

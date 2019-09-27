@@ -22,24 +22,28 @@
 
 package com.odysseusinc.athena.api.v1.controller.converter;
 
-import static java.util.Arrays.asList;
 import static org.apache.solr.common.params.CommonParams.FQ;
 import static org.hibernate.validator.internal.util.StringHelper.join;
 
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
+import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.SortClause;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ConceptSearchDTOToSolrQuery {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConceptSearchDTOToSolrQuery.class);
 
     private static final String ID = "id";
     private static final String CLASS_ID = "concept_class_id";
@@ -48,10 +52,12 @@ public class ConceptSearchDTOToSolrQuery {
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
 
+    private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService();
+
     @Autowired
-    LimitChecker limitChecker;
+    private LimitChecker limitChecker;
     @Autowired
-    VocabularyConversionService vocabularyConversionService;
+    private VocabularyConversionService vocabularyConversionService;
 
     @Value("${solr.default.query.operator:AND}")
     private String solrQueryOperator;
@@ -73,15 +79,15 @@ public class ConceptSearchDTOToSolrQuery {
 
     private void setQuery(ConceptSearchDTO source, SolrQuery result) {
 
-        String resultQuery = "*:*";
-        String sourceQuery = source.getQuery().trim();
-        if (!StringUtils.isEmpty(sourceQuery)) {
-            sourceQuery = sourceQuery.replaceAll("[\"+\\-!(){}\\[\\]^~*?:&\\\\/]", "\\\\$0");
-            List<String> splited = asList(StringUtils.split(sourceQuery));
-            splited = splited.stream().map(e -> " query:" + e + "* ").collect(Collectors.toList());
-            resultQuery = String.join(solrQueryOperator, splited);
-        }
+        String resultQuery = conceptSearchPhraseToSolrQueryService.createSolrQueryString(source);
+
+        LOGGER.debug("Concept search query: {}", resultQuery);
+
         result.setQuery(resultQuery);
+        SortClause sortByScore = new SortClause("score", SolrQuery.ORDER.desc);
+        SortClause sortByConceptName = new SortClause("concept_name_ci", SolrQuery.ORDER.asc);
+        result.setSort(sortByScore);
+        result.addSort(sortByConceptName);
     }
 
     private void setFilters(ConceptSearchDTO source, SolrQuery result) {

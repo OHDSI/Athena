@@ -137,16 +137,35 @@
 
 
     <copyField source="id" dest="query"/>
+    <copyField source="id" dest="query_wo_symbols"/>
     <copyField source="concept_code" dest="query"/>
+    <copyField source="concept_code" dest="query_wo_symbols"/>
+    <copyField source="concept_code" dest="concept_code_ci"/>
+    <copyField source="concept_code" dest="concept_code_text"/>
     <copyField source="concept_name" dest="query"/>
+    <copyField source="concept_name" dest="query_wo_symbols"/>
+    <copyField source="concept_name" dest="concept_name_ci"/>
+    <copyField source="concept_name" dest="concept_name_text"/>
     <copyField source="concept_class_id" dest="query"/>
+    <copyField source="concept_class_id" dest="query_wo_symbols"/>
     <copyField source="domain_id" dest="query"/>
+    <copyField source="domain_id" dest="query_wo_symbols"/>
     <copyField source="vocabulary_id" dest="query"/>
+    <copyField source="vocabulary_id" dest="query_wo_symbols"/>
     <copyField source="standard_concept" dest="query"/>
+    <copyField source="standard_concept" dest="query_wo_symbols"/>
     <copyField source="invalid_reason" dest="query"/>
+    <copyField source="invalid_reason" dest="query_wo_symbols"/>
     <copyField source="concept_synonym_name" dest="query"/>
+    <copyField source="concept_synonym_name" dest="query_wo_symbols"/>
 
     <field name="query" type="text_general" multiValued="true" indexed="true" stored="true" />
+    <field name="query_wo_symbols" type="text_wo_symbols" multiValued="true" indexed="true" stored="true"/>
+    <field name="concept_name_ci" type="string_case_insensitive" indexed="true" stored="true"/>
+    <field name="concept_name_text" type="text_general" indexed="true" stored="true"/>
+    <field name="concept_code_ci" type="string_case_insensitive" indexed="true" stored="true"/>
+    <field name="concept_code_text" type="text_general" indexed="true" stored="true"/>
+
 
     <!-- Dynamic field definitions allow using convention over configuration
        for fields via the specification of patterns to match field names.
@@ -294,6 +313,32 @@
       </analyzer>
     </fieldType>
 
+    <!-- A text field which replaces special characters from "mapping-solr.txt"-->
+    <fieldType name="text_wo_symbols" class="solr.TextField" positionIncrementGap="100">
+        <analyzer type="index">
+            <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-solr.txt"/>
+            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+        <analyzer type="query">
+            <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-solr.txt"/>
+            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+    </fieldType>
+
+    <!-- A text field which simulates string but is case-insensitive -->
+    <fieldType name="string_case_insensitive" class="solr.TextField" positionIncrementGap="100">
+        <analyzer type="index">
+            <tokenizer class="solr.KeywordTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+        <analyzer type="query">
+            <tokenizer class="solr.KeywordTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+    </fieldType>
+
     <!-- A general text field that has reasonable, generic
          cross-language defaults: it tokenizes with StandardTokenizer,
 	       removes stop words from case-insensitive "stopwords.txt"
@@ -302,6 +347,7 @@
 	  -->
     <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100" multiValued="true">
       <analyzer type="index">
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(\s|\/|\?|!|,|;|\.\s|\*)+" replacement=" "/>
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
         <!-- in this example, we will only use synonyms at query time
@@ -311,6 +357,7 @@
         <filter class="solr.LowerCaseFilterFactory"/>
       </analyzer>
       <analyzer type="query">
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(\s|\/|\?|!|,|;|\.\s|\*)+" replacement=" "/>
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
         <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>

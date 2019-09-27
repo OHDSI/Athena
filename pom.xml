@@ -6,9 +6,8 @@
 
     <groupId>com.odysseusinc.athena</groupId>
     <artifactId>athena</artifactId>
-    <version>1.9.1</version>
+    <version>1.10.0</version>
     <packaging>jar</packaging>
-
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -23,7 +22,7 @@
         <swagger.springmvc.version>1.0.2</swagger.springmvc.version>
         <springfox.swagger2.version>2.6.1</springfox.swagger2.version>
         <jjwt.version>0.7.0</jjwt.version>
-        <postgresql.version>9.4.1208-jdbc42-atlassian-hosted</postgresql.version>
+        <postgresql.version>42.2.5</postgresql.version>
         <spring.hateoas.version>0.23.0.RELEASE</spring.hateoas.version>
         <opensaml.version>2.6.6-patched</opensaml.version>
         <solr.version>7.2.1</solr.version>
@@ -154,7 +153,7 @@
             <version>${jjwt.version}</version>
         </dependency>
         <dependency>
-            <groupId>postgresql</groupId>
+            <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
             <scope>runtime</scope>
@@ -251,6 +250,28 @@
             <groupId>org.pac4j</groupId>
             <artifactId>j2e-pac4j</artifactId>
             <version>${j2e-pac4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20190722</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-core</artifactId>
+            <version>${solr.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

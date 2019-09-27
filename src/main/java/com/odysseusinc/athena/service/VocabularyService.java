@@ -41,7 +41,7 @@ public interface VocabularyService {
 
     DownloadBundle saveBundle(String bundleName, List<Integer> idV4s, AthenaUser currentUser, CDMVersion version);
 
-    List<DownloadBundleDTO> getDownloadHistory(Long userId);
+    List<DownloadBundleDTO> getDownloadHistory(AthenaUser user);
 
     DownloadBundle getDownloadBundle(String uuid);
 
@@ -50,6 +50,8 @@ public interface VocabularyService {
     void restoreDownloadBundle(DownloadBundle downloadBundle) throws PermissionDeniedException;
 
     void checkBundleUser(AthenaUser user, DownloadBundle bundle);
+
+    void checkBundleAndSharedUser(AthenaUser user, DownloadBundle bundle);
 
     Iterable<License> saveLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, LicenseStatus status);
 
@@ -65,9 +67,9 @@ public interface VocabularyService {
 
     License get(Long licenseId, String token);
 
-    void notifyAboutUpdates(Long userId, Integer vocabularyId, boolean notify);
-
     List<Notification> getNotifications(Long userId);
 
     void checkBundleVocabularies(DownloadBundle bundle, Long userId);
+
+    String getOMOPVocabularyVersion();
     }

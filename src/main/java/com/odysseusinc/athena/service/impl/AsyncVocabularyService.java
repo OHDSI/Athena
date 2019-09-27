@@ -29,8 +29,7 @@ import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.VocabularyConversionRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
-import com.odysseusinc.athena.service.mail.FailedSavingSender;
-import com.odysseusinc.athena.service.mail.VocabulariesSender;
+import com.odysseusinc.athena.service.mail.EmailService;
 import com.odysseusinc.athena.service.saver.ISaver;
 import com.odysseusinc.athena.service.saver.SaverV4;
 import com.odysseusinc.athena.service.saver.SaverV5;
@@ -40,53 +39,40 @@ import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 @Service
 @Transactional
 public class AsyncVocabularyService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncVocabularyService.class);
 
-    private VocabularyConversionRepository vocabularyConversionRepository;
-    private DownloadBundleRepository downloadBundleRepository;
-    private List<SaverV4> saversV4;
-    private List<SaverV5> saversV5;
-    private ZipWriter zipWriter;
-    private DownloadBundleService downloadBundleService;
-    private UrlBuilder urlBuilder;
-    private VocabulariesSender vocabulariesSender;
-    private FailedSavingSender failedSavingSender;
-    private FileHelper fileHelper;
+    private final DownloadBundleRepository downloadBundleRepository;
+    private final DownloadBundleService downloadBundleService;
+    private final EmailService emailService;
+    private final FileHelper fileHelper;
+    private final List<SaverV4> saversV4;
+    private final List<SaverV5> saversV5;
+    private final UrlBuilder urlBuilder;
+    private final VocabularyConversionRepository vocabularyConversionRepository;
+    private final ZipWriter zipWriter;
 
-    @Autowired
-    public AsyncVocabularyService(VocabularyConversionRepository vocabularyConversionRepository,
-                                  DownloadBundleRepository downloadBundleRepository,
-                                  List<SaverV4> saversV4, List<SaverV5> saversV5,
-                                  ZipWriter zipWriter,
-                                  DownloadBundleService downloadBundleService,
-                                  UrlBuilder urlBuilder,
-                                  VocabulariesSender vocabulariesSender,
-                                  FailedSavingSender failedSavingSender,
-                                  FileHelper fileHelper) {
-
-        this.vocabularyConversionRepository = vocabularyConversionRepository;
+    public AsyncVocabularyService(DownloadBundleRepository downloadBundleRepository, DownloadBundleService downloadBundleService, EmailService emailService, FileHelper fileHelper, List<SaverV4> saversV4, List<SaverV5> saversV5, UrlBuilder urlBuilder, VocabularyConversionRepository vocabularyConversionRepository, ZipWriter zipWriter) {
         this.downloadBundleRepository = downloadBundleRepository;
+        this.downloadBundleService = downloadBundleService;
+        this.emailService = emailService;
+        this.fileHelper = fileHelper;
         this.saversV4 = saversV4;
         this.saversV5 = saversV5;
-        this.zipWriter = zipWriter;
-        this.downloadBundleService = downloadBundleService;
         this.urlBuilder = urlBuilder;
-        this.vocabulariesSender = vocabulariesSender;
-        this.failedSavingSender = failedSavingSender;
-        this.fileHelper = fileHelper;
+        this.vocabularyConversionRepository = vocabularyConversionRepository;
+        this.zipWriter = zipWriter;
     }
 
     @Async
@@ -114,15 +100,15 @@ public class AsyncVocabularyService {
             bundle = saver.save(zos, bundle, savers);
             zipWriter.addCPT4Utility(zos, bundle);
 
-            LOGGER.info("Bundle is saved in zip: {}", bundle.toString());
+            LOGGER.info("Bundle is saved in zip: {}", bundle);
             updateStatus(bundle, DownloadBundleStatus.READY);
-            vocabulariesSender.send(user, urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
-                    bundle.getCdmVersion());
+            emailService.sendVocabularyDownloadLink(user, urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
+                    bundle.getCdmVersion(), bundle.getReleaseVersion());
 
         } catch (Exception ex) {
             updateStatus(bundle, DownloadBundleStatus.FAILED);
             LOGGER.error(ex.getMessage(), ex);
-            failedSavingSender.send(user, Collections.emptyMap());
+            emailService.sendFailedSaving(user);
         }
     }
 

@@ -22,12 +22,13 @@
 
 package com.odysseusinc.athena.model.athena;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
+import org.hibernate.validator.constraints.NotBlank;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -40,9 +41,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
-import org.hibernate.validator.constraints.NotBlank;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "download_bundle")
@@ -74,8 +75,15 @@ public class DownloadBundle {
     @LazyCollection(LazyCollectionOption.FALSE)
     private List<DownloadItem> vocabularies;
 
+    @OneToMany(mappedBy = "bundle", targetEntity = DownloadShare.class)
+    @LazyCollection(LazyCollectionOption.FALSE)
+    private List<DownloadShare> downloadShares;
+
     @Column
     private String name;
+
+    @Column(name = "release_version")
+    private String releaseVersion;
 
     @NotNull
     @Column
@@ -202,10 +210,26 @@ public class DownloadBundle {
                 .collect(Collectors.toList());
     }
 
+    public String getReleaseVersion() {
+        return releaseVersion;
+    }
+
+    public void setReleaseVersion(String releaseVersion) {
+        this.releaseVersion = releaseVersion;
+    }
+
+    public List<DownloadShare> getDownloadShares() {
+        return downloadShares;
+    }
+
+    public void setDownloadShares(List<DownloadShare> downloadShares) {
+        this.downloadShares = downloadShares;
+    }
+
     @Override
     public String toString() {
 
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("uuid", uuid)
                 .add("cdmVersion", cdmVersion)
@@ -213,9 +237,11 @@ public class DownloadBundle {
                 .add("files", files)
                 .add("userId", userId)
                 .add("vocabularies", vocabularies)
+                .add("downloadShares", downloadShares)
                 .add("name", name)
                 .add("cpt4", cpt4)
                 .add("status", status)
+                .add("releaseVersion", releaseVersion)
                 .toString();
     }
 }

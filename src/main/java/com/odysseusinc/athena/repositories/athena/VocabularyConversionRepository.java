@@ -55,6 +55,8 @@ public interface VocabularyConversionRepository extends CrudRepository<Vocabular
 
     VocabularyConversion findByIdV4(Integer idV4);
 
+    VocabularyConversion findByIdV5(String vocabularyCode);
+
     List<VocabularyConversion> findByOmopReqIsNull(Sort sort);
 
     List<VocabularyConversion> findByOmopReqIsNotNull();
