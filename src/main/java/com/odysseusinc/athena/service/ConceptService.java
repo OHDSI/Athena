@@ -28,11 +28,12 @@ import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
 import com.odysseusinc.athena.model.athenav5.RelationshipV5;
+import org.apache.solr.client.solrj.SolrServerException;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import org.apache.solr.client.solrj.SolrServerException;
 
 public interface ConceptService {
 
@@ -51,4 +52,6 @@ public interface ConceptService {
     List<RelationshipV5> getAllRelationships(Long conceptId);
 
     void invalidateGraphCache(Long userId);
+
+    boolean hasAnyRelations(Long conceptId);
 }
