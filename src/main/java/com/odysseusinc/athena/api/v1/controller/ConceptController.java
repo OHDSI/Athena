@@ -49,6 +49,7 @@ import com.odysseusinc.athena.model.athenav5.RelationshipV5;
 import com.odysseusinc.athena.service.ConceptService;
 import com.odysseusinc.athena.service.checker.CheckResult;
 import com.odysseusinc.athena.service.checker.LimitChecker;
+import com.odysseusinc.athena.util.JsonResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
@@ -141,6 +142,18 @@ public class ConceptController {
         List<ConceptAncestorRelationV5> relations = conceptService.getRelations(id, depth);
         ConceptAncestorRelationsDTO dto = getRelationshipGraph(zoomLevel, id, conversionService, relations).build();
         return new ResponseEntity<>(dto, OK);
+    }
+
+    @ApiOperation("Is any relations for the concept exists")
+    @RequestMapping(value = "/{id}/relations/any", method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<JsonResult> hasAnyRelations(
+            @PathVariable Long id) {
+
+        final boolean hasRelations = conceptService.hasAnyRelations(id);
+        final JsonResult<Boolean> hasRelationsResult = new JsonResult<>();
+        hasRelationsResult.setResult(hasRelations);
+        return ResponseEntity.ok(hasRelationsResult);
     }
 
     @ApiOperation("Get concept relationships")

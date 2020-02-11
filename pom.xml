@@ -6,25 +6,23 @@
 
     <groupId>com.odysseusinc.athena</groupId>
     <artifactId>athena</artifactId>
-    <version>1.10.0-SNAPSHOT</version>
+    <version>1.11.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.4.4.RELEASE</version>
+        <version>1.5.22.RELEASE</version>
         <relativePath/>
     </parent>
 
     <properties>
         <java.version>1.8</java.version>
-        <spring.boot.version>1.4.4.RELEASE</spring.boot.version>
-        <swagger.springmvc.version>1.0.2</swagger.springmvc.version>
-        <springfox.swagger2.version>2.6.1</springfox.swagger2.version>
+        <spring.boot.version>1.5.22.RELEASE</spring.boot.version>
+        <springfox.swagger2.version>2.9.2</springfox.swagger2.version>
         <jjwt.version>0.7.0</jjwt.version>
-        <postgresql.version>42.2.5</postgresql.version>
-        <spring.hateoas.version>0.23.0.RELEASE</spring.hateoas.version>
+        <postgresql.version>42.2.9</postgresql.version>
         <opensaml.version>2.6.6-patched</opensaml.version>
         <solr.version>7.2.1</solr.version>
         <spring-security-pac4j.version>3.0.0</spring-security-pac4j.version>
@@ -34,9 +32,9 @@
         <javax.mail.version>1.4</javax.mail.version>
         <spring.context.support>4.3.7.RELEASE</spring.context.support>
         <dockerImagePrefix>hub.arachnenetwork.com</dockerImagePrefix>
-        <arachne.version>1.13.0</arachne.version>
-        <disruptor.version>3.3.6</disruptor.version>
-        <commons-lang3.version>3.0</commons-lang3.version>
+        <arachne.version>1.15.0</arachne.version>
+        <disruptor.version>3.4.2</disruptor.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
     </properties>
@@ -103,11 +101,6 @@
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>com.mangofactory</groupId>
-            <artifactId>swagger-springmvc</artifactId>
-            <version>${swagger.springmvc.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
             <version>${springfox.swagger2.version}</version>
@@ -157,7 +150,6 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.jtds</groupId>
@@ -180,7 +172,6 @@
         <dependency>
             <groupId>org.springframework.hateoas</groupId>
             <artifactId>spring-hateoas</artifactId>
-            <version>${spring.hateoas.version}</version>
         </dependency>
 
         <dependency>
@@ -296,7 +287,7 @@
             <resource>
                 <directory>properties/${env}</directory>
                 <includes>
-                    <include>**</include>
+                    <include>*.properties</include>
                 </includes>
                 <filtering>true</filtering>
             </resource>
@@ -387,6 +378,7 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>2.17</version>
                 <configuration>
+                    <skip>true</skip>
                     <configLocation>google_checks.xml</configLocation>
                 </configuration>
                 <dependencies>

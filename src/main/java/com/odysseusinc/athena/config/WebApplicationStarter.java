@@ -23,7 +23,6 @@
 package com.odysseusinc.athena.config;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -35,15 +34,14 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class,
+        HibernateJpaAutoConfiguration.class,
+        FlywayAutoConfiguration.class
+})
 @Configuration
 @EnableScheduling
 @EnableAsync
 @EnableAspectJAutoProxy
-@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class,
-        HibernateJpaAutoConfiguration.class,
-        FlywayAutoConfiguration.class
-})
 @ComponentScan(basePackages = {"com.odysseusinc.athena.api.v1.controller",
         "com.odysseusinc.athena.config",
         "com.odysseusinc.athena.service.**",

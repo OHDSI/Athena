@@ -139,6 +139,12 @@ public class ConceptServiceImpl implements ConceptService {
     }
 
     @Override
+    public boolean hasAnyRelations(Long conceptId) {
+
+        return conceptRelationshipV5Repository.findFirstBySourceConceptIdIsAndTargetConceptIdNot(conceptId, conceptId).isPresent();
+    }
+
+    @Override
     @LicenseCheck
     public ConceptV5 getByIdWithLicenseCheck(Long id) {
 
