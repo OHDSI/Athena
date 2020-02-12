@@ -173,7 +173,7 @@
     <field name="concept_class_id_ci" type="string_case_insensitive" indexed="true" stored="true"/>
     <field name="domain_id_ci" type="string_case_insensitive" indexed="true" stored="true"/>
     <field name="vocabulary_id_ci" type="string_case_insensitive" indexed="true" stored="true"/>
-    <field name="concept_synonym_name_ci" type="text_general" indexed="true" stored="true"/>
+    <field name="concept_synonym_name_ci" type="string_case_insensitive" indexed="true" stored="true"/>
     <field name="concept_synonym_name_text" type="text_general" indexed="true" stored="true"/>
 
 
