@@ -32,9 +32,11 @@ public class ConceptSearchPhraseToSolrQueryService {
     public static final String STANDARD_CONCEPT = "standard_concept";
     public static final String INVALID_REASON = "invalid_reason";
     public static final String CONCEPT_SYNONYM_NAME = "concept_synonym_name";
+    public static final String CONCEPT_SYNONYM_NAME_CI = "concept_synonym_name_ci";
 
     public static final String CONCEPT_NAME_TEXT = "concept_name_text";
     public static final String CONCEPT_CODE_TEXT = "concept_code_text";
+    public static final String CONCEPT_SYNONYM_NAME_TEXT = "concept_synonym_name_text";
     public static final String QUERY_SYMBOLS = "query";
     public static final String QUERY_WO_SYMBOLS = "query_wo_symbols";
 
@@ -56,7 +58,6 @@ public class ConceptSearchPhraseToSolrQueryService {
         }
         return Stream.of(
                 getQueryToFindDocsWithWholePhrase(phraseForQuery),
-                getQueryToFindDocWithAllTermsFromQuery(exactTerms, notExactTerms),
                 getQueryToFindDocsWithAnyOfTermFromPhrase(exactTerms, notExactTerms)
         )
                 .filter(StringUtils::isNotEmpty)
@@ -71,21 +72,6 @@ public class ConceptSearchPhraseToSolrQueryService {
 
         String phraseWithoutQuotes = ClientUtils.escapeQueryChars(StringUtils.remove(phraseForQuery, "\""));
         return getQueryForExactPhrase(phraseWithoutQuotes);
-    }
-
-    private String getQueryToFindDocWithAllTermsFromQuery(List<String> exactTerms, List<String> notExactTerms) {
-        if (CollectionUtils.isEmpty(notExactTerms)) {
-            return StringUtils.EMPTY;
-        }
-        String allTermsForWholePhraseQuery = Stream
-                .concat(
-                        exactTerms.stream().map(term -> String.format(EXACT_FORMAT, term)),
-                        notExactTerms.stream().map(term -> String.format(FUZZY_FORMAT, term))
-                )
-                .collect(Collectors.joining(" AND "));
-
-        return String.format("%s:(%s)^%s", CONCEPT_NAME_TEXT, allTermsForWholePhraseQuery, 7);
-
     }
 
     private String getQueryToFindDocsWithAnyOfTermFromPhrase(List<String> exactTerms, List<String> notExactTerms) {
@@ -157,19 +143,22 @@ public class ConceptSearchPhraseToSolrQueryService {
 
 
     private String getQueryForNotExactTerm(String term) {
+        //0.7 - the required similarity of fuzzyness, see http://lucene.apache.org/core/3_6_0/queryparsersyntax.html#Fuzzy%20Searches
         return String.join(" OR ",
-                String.format("%s:%s^%s", CONCEPT_NAME_TEXT, term, 4),
-                String.format("%s:%s~0.6^%s", CONCEPT_NAME_TEXT, term, 3),
-                String.format("%s:%s^%s", CONCEPT_CODE_TEXT, term, 3),
-                String.format("%s:*%s*~0.6^%s", CONCEPT_CODE_TEXT, term, 2),
-                String.format("%s:%s*", QUERY_WO_SYMBOLS, term));
+                String.format("%s:%s^%s", CONCEPT_CODE_TEXT, term, 100),
+                String.format("%s:%s~0.7^%s", CONCEPT_CODE_TEXT, term, 100),
+                String.format("%s:%s^%s", CONCEPT_NAME_TEXT, term, 50),
+                String.format("%s:%s~0.7^%s", CONCEPT_NAME_TEXT, term, 50),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_TEXT, term, 25));
     }
 
     private String getQueryForExactTerm(String term) {
 
         return String.join(" OR ",
-                String.format("%s:\"%s\"^%s", CONCEPT_NAME, term, 4),
-                String.format("%s:\"%s\"^%s", CONCEPT_CODE, term, 3),
+                String.format("%s:\"%s\"^%s", ID, term, 100000),
+                String.format("%s:\"%s\"^%s", CONCEPT_CODE, term, 10000),
+                String.format("%s:\"%s\"^%s", CONCEPT_NAME, term, 1000),
+                String.format("%s:\"%s\"^%s", CONCEPT_SYNONYM_NAME, term, 500),
                 String.format("%s:\"%s\"", QUERY_SYMBOLS, term));
     }
 
@@ -179,17 +168,18 @@ public class ConceptSearchPhraseToSolrQueryService {
         //and other words may surround our term. We need an exact match, so here components of "query" are listed. Their type is String in SOLR that
         //guarantees an exact match.
         return String.join(" OR ",
-                String.format("%s:%s^%s", CONCEPT_NAME_CI, term, 9),
-                String.format("%s:%s^%s", CONCEPT_CODE_CI, term, 8),
-                String.format("%s:%s^%s", ID, term, 8),
-                String.format("%s:%s^%s", CONCEPT_CODE, term, 8),
-                String.format("%s:%s^%s", CONCEPT_NAME, term, 8),
-                String.format("%s:%s^%s", CONCEPT_CLASS_ID, term, 8),
-                String.format("%s:%s^%s", DOMAIN_ID, term, 8),
-                String.format("%s:%s^%s", VOCABULARY_ID, term, 8),
-                String.format("%s:%s^%s", STANDARD_CONCEPT, term, 8),
-                String.format("%s:%s^%s", INVALID_REASON, term, 8),
-                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, 8));
+                String.format("%s:%s^%s", ID, term, 100000),
+                String.format("%s:%s^%s", CONCEPT_CODE_CI, term, 80000),
+                String.format("%s:%s^%s", CONCEPT_NAME_CI, term, 60000),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_CI, term, 40000),
+                String.format("%s:%s^%s", CONCEPT_CODE, term, 10000),
+                String.format("%s:%s^%s", CONCEPT_NAME, term, 1000),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, 500),
+                String.format("%s:%s^%s", CONCEPT_CLASS_ID, term, 100),
+                String.format("%s:%s^%s", DOMAIN_ID, term, 100),
+                String.format("%s:%s^%s", VOCABULARY_ID, term, 100),
+                String.format("%s:%s^%s", STANDARD_CONCEPT, term, 100),
+                String.format("%s:%s^%s", INVALID_REASON, term, 100));
     }
 
 }

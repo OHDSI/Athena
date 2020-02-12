@@ -177,6 +177,7 @@ public class SolrConceptPhraseSearchTest {
         assertEquals(
                 Arrays.asList(
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
+                        "Stroke",
                         "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
                         "Stroke Myocardial Infarction Bleeding in Back",
@@ -185,7 +186,6 @@ public class SolrConceptPhraseSearchTest {
                         "Stroke Myocardial Infarction Stroke Nothin",
                         "Stroke Myocardial Infarction  Renal Dysfunction",
                         "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
-                        "Stroke",
                         "stroke"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
