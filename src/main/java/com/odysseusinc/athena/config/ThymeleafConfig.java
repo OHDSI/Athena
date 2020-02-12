@@ -22,26 +22,30 @@
 
 package com.odysseusinc.athena.config;
 
-import java.util.Collections;
+import com.google.common.collect.ImmutableSet;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.spring4.SpringTemplateEngine;
+import org.thymeleaf.spring4.templateresolver.SpringResourceTemplateResolver;
+import org.thymeleaf.spring4.view.ThymeleafViewResolver;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
-@Configuration
-public class MailConfig {
+import java.util.Collections;
 
-    @Bean
-    public TemplateEngine emailTemplateEngine() {
+@Configuration
+public class ThymeleafConfig {
+
+    private SpringTemplateEngine commonTemplateEngine() {
 
         final SpringTemplateEngine templateEngine = new SpringTemplateEngine();
         templateEngine.addTemplateResolver(htmlTemplateResolver());
+        templateEngine.addTemplateResolver(publicTemplateResolver());
         return templateEngine;
     }
 
-    private ITemplateResolver htmlTemplateResolver() {
+    @Bean
+    public ITemplateResolver htmlTemplateResolver() {
 
         final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setOrder(1);
@@ -49,5 +53,27 @@ public class MailConfig {
         templateResolver.setSuffix(".html");
         templateResolver.setCacheable(false);
         return templateResolver;
+    }
+
+    @Bean
+    public ITemplateResolver publicTemplateResolver() {
+
+        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
+        templateResolver.setResolvablePatterns(ImmutableSet.of("index"));
+        templateResolver.setPrefix("classpath:/public/");
+        templateResolver.setSuffix(".html");
+        templateResolver.setTemplateMode("HTML5");
+        templateResolver.setOrder(2);
+        return templateResolver;
+    }
+
+    @Bean
+    public ThymeleafViewResolver viewResolver() {
+
+        ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
+        viewResolver.setTemplateEngine(commonTemplateEngine());
+        viewResolver.setOrder(1);
+        viewResolver.setViewNames(new String[]{"index", "html/**"});
+        return viewResolver;
     }
 }
