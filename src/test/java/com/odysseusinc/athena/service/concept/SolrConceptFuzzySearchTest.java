@@ -55,8 +55,8 @@ public class SolrConceptFuzzySearchTest {
                 Arrays.asList(
                         "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
-                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
                         "Stroke Myocardial Infarction Strok",
+                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
                         "Bleeding in Back Gastrointestinal Bleeding",
                         "Stroke Myocardial Infarction Bleeding in Back",
                         "Stroke Myocardial Infarction",
