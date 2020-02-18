@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Configuration;
 import org.thymeleaf.spring4.SpringTemplateEngine;
 import org.thymeleaf.spring4.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring4.view.ThymeleafViewResolver;
+import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
@@ -51,6 +52,7 @@ public class ThymeleafConfig {
         templateResolver.setOrder(1);
         templateResolver.setResolvablePatterns(Collections.singleton("html/*"));
         templateResolver.setSuffix(".html");
+        templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setCacheable(false);
         return templateResolver;
     }
@@ -62,7 +64,7 @@ public class ThymeleafConfig {
         templateResolver.setResolvablePatterns(ImmutableSet.of("index"));
         templateResolver.setPrefix("classpath:/public/");
         templateResolver.setSuffix(".html");
-        templateResolver.setTemplateMode("HTML5");
+        templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setOrder(2);
         return templateResolver;
     }
