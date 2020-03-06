@@ -28,7 +28,6 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.request.QueryRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +53,7 @@ public class SolrServiceImpl implements SolrService {
     public QueryResponse search(SolrQuery solrQuery) throws IOException, SolrServerException {
 
         SolrRequest<QueryResponse> req = new QueryRequest(solrQuery);
+        req.setMethod(SolrRequest.METHOD.POST);
         req.setBasicAuthCredentials(solrUser, solrPassword);
         return req.process(solrClient);
     }
