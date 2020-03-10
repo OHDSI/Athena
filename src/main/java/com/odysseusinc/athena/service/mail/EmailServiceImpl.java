@@ -70,17 +70,17 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendVocabularyUpdateNotification(AthenaUser user, List<Notification> updatedVocabularies) {
 
-        Map<String, String> vocabularyDetails = new HashMap<>();
+        final Map<String, String> vocabularyDetails = new HashMap<>();
         updatedVocabularies.forEach(v -> vocabularyDetails.put(v.getVocabularyCode(), v.getVocabularyConversion().getName()));
 
         emailSenderService.send(EmailType.VOCABULARIES_UPDATE_NOTIFICATION, ImmutableMap.of("UPDATED_VOCABULARIES", vocabularyDetails), user.getEmail());
     }
 
     @Override
-    public void sendVocabularyDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion) {
+    public void sendVocabularyDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion, String bundleName, Map<String, String> requestedVocabularies) {
 
         try {
-            emailSenderService.send(EmailType.VOCABULARIES_LINK, buildParameters(url, version, vocabularyReleaseVersion), user.getEmail());
+            emailSenderService.send(EmailType.VOCABULARIES_LINK, buildParameters(url, version, vocabularyReleaseVersion, bundleName, requestedVocabularies), user.getEmail());
             LOGGER.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]",
                     user.getId(), url);
 
@@ -141,9 +141,17 @@ public class EmailServiceImpl implements EmailService {
                 .map(AthenaUser::getEmail).toArray(size -> new String[size]);
     }
 
+    private Map<String, Object> buildParameters(String url, CDMVersion version, String vocabularyReleaseVersion, String bundleName, Map<String, String> requestedVocabularies) {
+
+        final Map<String, Object> parameters = buildParameters(url, version, vocabularyReleaseVersion);
+        parameters.put("vocabularies", requestedVocabularies);
+        parameters.put("bundleName", bundleName);
+        return parameters;
+    }
+
     private Map<String, Object> buildParameters(String url, CDMVersion version, String vocabularyReleaseVersion) {
 
-        Map<String, Object> parameters = new HashMap<>();
+        final Map<String, Object> parameters = new HashMap<>();
         parameters.put("forumUrl", forumUrl);
         parameters.put("controlFilesUrl", controlFilesUrl);
         parameters.put("url", url);
@@ -155,7 +163,7 @@ public class EmailServiceImpl implements EmailService {
 
     private Map<String, Object> getParameters(@NotNull Boolean accepted, String vocabularyName) {
 
-        Map<String, Object> parameters = new HashMap<>();
+        final Map<String, Object> parameters = new HashMap<>();
         parameters.put("downloadVocabulariesPageUrl", urlBuilder.downloadVocabulariesPageUrl());
         parameters.put("accepted", accepted);
         parameters.put("vocabularyName", vocabularyName);
@@ -164,14 +172,14 @@ public class EmailServiceImpl implements EmailService {
 
     private Map<String, Object> getParameters(Exception exception) {
 
-        Map<String, Object> parameters = new HashMap<>();
+        final Map<String, Object> parameters = new HashMap<>();
         parameters.put("exception", exception.toString());
         return parameters;
     }
 
     private Map<String, Object> getParameters(License license) {
 
-        Map<String, Object> parameters = new HashMap<>();
+        final Map<String, Object> parameters = new HashMap<>();
         parameters.put("username", license.getUser().getFirstName() + ' ' + license.getUser().getLastName());
         parameters.put("email", license.getUser().getEmail());
         parameters.put("vocabularyname", license.getVocabularyConversion().getName());
@@ -183,7 +191,7 @@ public class EmailServiceImpl implements EmailService {
     protected Map<String, Object> getParameters(AthenaUser recipient, AthenaUser owner, String url, CDMVersion version,
                                                 String vocabularyReleaseVersion) {
 
-        Map<String, Object> parameters = buildParameters(url, version, vocabularyReleaseVersion);
+        final Map<String, Object> parameters = buildParameters(url, version, vocabularyReleaseVersion);
         parameters.put("name", recipient.getUsername());
         parameters.put("owner_name", owner.getUsername());
         return parameters;
