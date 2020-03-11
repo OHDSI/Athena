@@ -265,7 +265,8 @@ public class VocabularyController {
     @RequestMapping(value = "licenses", method = RequestMethod.POST)
     public ResponseEntity saveLicenses(@RequestBody @Valid AddingUserLicensesDTO dto) {
 
-        vocabularyService.saveLicenses(userService.get(dto.getUserId()), dto.getVocabularyV4Ids(), APPROVED);
+        final AthenaUser user = userService.get(dto.getUserId());
+        vocabularyService.saveLicenses(user, dto.getVocabularyV4Ids(), APPROVED);
         return ResponseEntity.ok().build();
     }
 

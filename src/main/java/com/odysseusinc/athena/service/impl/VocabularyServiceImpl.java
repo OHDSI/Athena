@@ -63,7 +63,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -72,6 +71,7 @@ import java.util.stream.Collectors;
 import static com.odysseusinc.athena.model.common.AthenaConstants.OMOP_VOCABULARY_ID;
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
 import static java.lang.String.format;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.ListUtils.intersection;
 import static org.thymeleaf.util.ListUtils.isEmpty;
@@ -100,6 +100,7 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     @Autowired
     public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyRepository vocabularyRepository) {
+
         this.asyncVocabularyService = asyncVocabularyService;
         this.conceptService = conceptService;
         this.converterUtils = converterUtils;
@@ -116,7 +117,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public List<UserVocabularyDTO> getAllForCurrentUser() throws PermissionDeniedException {
+    public List<UserVocabularyDTO> getAllForCurrentUser() {
 
         Sort sort = new Sort(Sort.Direction.ASC, DEFAULT_SORT_COLUMN);
         AthenaUser user = userService.getCurrentUser();
@@ -257,7 +258,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public void restoreDownloadBundle(DownloadBundle downloadBundle) throws PermissionDeniedException {
+    public void restoreDownloadBundle(DownloadBundle downloadBundle) {
 
         AthenaUser currentUser = userService.getCurrentUser();
         checkBundleUser(currentUser, downloadBundle);
@@ -292,20 +293,36 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public List<License> saveLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, LicenseStatus status) {
 
-        Iterable<License> licenses = vocabularyV4Ids.stream()
-                .map(vocabularyV4Id -> new License(user, new VocabularyConversion(vocabularyV4Id), status))
-                .collect(toList());
-        List<License> result = new ArrayList<>();
-        licenseRepository.save(licenses).iterator().forEachRemaining(result::add);
+        final List<License> newLicenses = buildLicenses(user, vocabularyV4Ids, status);
+        final List<License> savedLicenses = licenseRepository.save(newLicenses);
 
         conceptService.invalidateGraphCache(user.getId());
-        return result;
+        return savedLicenses;
+    }
+
+    @Override
+    public List<License> saveLicenses(AthenaUser user, List<License> licenses) {
+
+        final List<License> savedLicenses = licenseRepository.save(licenses);
+
+        conceptService.invalidateGraphCache(user.getId());
+        return savedLicenses;
+    }
+
+    private List<License> buildLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, LicenseStatus status) {
+
+        return vocabularyV4Ids.stream()
+                .map(VocabularyConversion::new)
+                .map(conversion -> new License(user, conversion, status))
+                .collect(toList());
     }
 
     @Override
     public Long requestLicenses(AthenaUser user, Integer vocabularyV4Id) {
 
-        return saveLicenses(user, Collections.singletonList(vocabularyV4Id), PENDING).get(0).getId();
+        final List<License> requestedLicenses = buildLicenses(user, singletonList(vocabularyV4Id), PENDING);
+        requestedLicenses.forEach(license -> license.setRequestDate(new Date()));
+        return saveLicenses(user, requestedLicenses).get(0).getId();
     }
 
     @Override
@@ -317,7 +334,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public void acceptLicense(Long id, Boolean accepted) {
+    public void acceptLicense(Long id, boolean accepted) {
 
         License userLicense = licenseRepository.findOne(id);
         String vocabularyName = userLicense.getVocabularyConversion().getName();

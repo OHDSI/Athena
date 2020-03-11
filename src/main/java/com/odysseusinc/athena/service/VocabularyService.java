@@ -35,7 +35,7 @@ import java.util.List;
 
 public interface VocabularyService {
 
-    List<UserVocabularyDTO> getAllForCurrentUser() throws PermissionDeniedException;
+    List<UserVocabularyDTO> getAllForCurrentUser();
 
     void saveContent(DownloadBundle bundle, AthenaUser user);
 
@@ -47,7 +47,7 @@ public interface VocabularyService {
 
     DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Integer> idV4s);
 
-    void restoreDownloadBundle(DownloadBundle downloadBundle) throws PermissionDeniedException;
+    void restoreDownloadBundle(DownloadBundle downloadBundle);
 
     void checkBundleUser(AthenaUser user, DownloadBundle bundle);
 
@@ -55,11 +55,13 @@ public interface VocabularyService {
 
     Iterable<License> saveLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, LicenseStatus status);
 
+    List<License> saveLicenses(AthenaUser user, List<License> licenses);
+
     Long requestLicenses(AthenaUser user, Integer vocabularyV4Id);
 
     void deleteLicense(Long licenseId);
 
-    void acceptLicense(Long id, Boolean accepted);
+    void acceptLicense(Long id, boolean accepted);
 
     License get(AthenaUser user, Integer vocabularyId);
 
