@@ -1,4 +1,4 @@
-#1 Phrase search
+# 1 Phrase search
 
 Search provides the ability to search by phrase. All results are sorted by default according to the following criteria:
 
@@ -29,7 +29,7 @@ Strook| 1 words |
 
 NB: the search goes through all concept fields, but the highest priority is given to CONCEPT_NAME and CONCEPT_CODE
 
-#2 Exact search
+# 2 Exact search
 
 Using quotation marks forces an exact-match search. 
 
@@ -58,7 +58,7 @@ Gastrointestinal Bleeding Myocardial Infarction Stroke |
 Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction |
 Bleeding in Back Gastrointestinal Bleeding |
 
-#3 Special symbols
+# 3 Special symbols
 
 For special symbols, the following conditions are met
 - These special symbols are always ignored and treated as words separation symbols: / \ | ? ! , ;   .
@@ -94,7 +94,7 @@ Name |
 [Hip] fracture risk | 
 
 
-#4 Approximate matching(fuzzy searching)
+# 4 Approximate matching (fuzzy searching)
 
 In case of a typo, or if there is a similar spelling of the word, the most similar result will be found
 
