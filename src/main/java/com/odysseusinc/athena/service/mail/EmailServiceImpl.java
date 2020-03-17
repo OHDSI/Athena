@@ -44,6 +44,7 @@ import java.util.Map;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static java.util.Arrays.asList;
 
 @Transactional(readOnly = true)
 @Service
@@ -62,6 +63,7 @@ public class EmailServiceImpl implements EmailService {
     private String umlsUrl;
 
     public EmailServiceImpl(EmailSenderService emailSenderService, UrlBuilder urlBuilder, UserService userService) {
+
         this.emailSenderService = emailSenderService;
         this.urlBuilder = urlBuilder;
         this.userService = userService;
@@ -98,10 +100,10 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendLicenseRequestToAdmins(License license) {
 
-        final Map<String, Object> licenceRequestEmailParametes = getParameters(license);
+        final Map<String, Object> licenceRequestEmailParameters = getParameters(license);
 
         try {
-            emailSenderService.send(EmailType.LICENSE_REQUEST, licenceRequestEmailParametes, getAdminEmails());
+            emailSenderService.send(EmailType.LICENSE_REQUEST, licenceRequestEmailParameters, getAdminEmails());
         } catch (Exception ex) {
             emailSenderService.send(EmailType.FAILED_SENDING_TO_ADMIN, getParameters(ex), getAdminEmails());
         }
@@ -111,7 +113,7 @@ public class EmailServiceImpl implements EmailService {
     public void sendLicenseAcceptance(AthenaUser user, boolean accepted, String vocabularyName) {
 
         try {
-            emailSenderService.send(EmailType.LICENSE_ACCEPTANCE, getParameters(accepted, vocabularyName), user.getEmail());
+            emailSenderService.send(EmailType.LICENSE_ACCEPTANCE, getParameters(accepted, vocabularyName), asList(user.getEmail()), asList(getAdminEmails()));
             LOGGER.info("Notification with acceptance solution [{}] is sent to user with id: [{}]",
                     accepted, user.getId());
 
@@ -182,6 +184,7 @@ public class EmailServiceImpl implements EmailService {
         final Map<String, Object> parameters = new HashMap<>();
         parameters.put("username", license.getUser().getFirstName() + ' ' + license.getUser().getLastName());
         parameters.put("email", license.getUser().getEmail());
+        parameters.put("organization", license.getUser().getOrganization());
         parameters.put("vocabularyname", license.getVocabularyConversion().getName());
         parameters.put("approveUrl", urlBuilder.acceptLicenseRequestLink(license.getId(), TRUE, license.getToken()));
         parameters.put("declineUrl", urlBuilder.acceptLicenseRequestLink(license.getId(), FALSE, license.getToken()));

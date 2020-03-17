@@ -22,7 +22,8 @@
 
 package com.odysseusinc.athena.service.mail;
 
-import com.opencsv.util.StringUtils;
+import com.odysseusinc.athena.exceptions.AthenaException;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,31 +36,43 @@ import org.springframework.stereotype.Service;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+
+import static com.google.common.collect.Iterables.toArray;
+import static java.util.Collections.emptyList;
 
 @Service
 public class EmailSenderService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EmailSenderService.class);
+    private static final Logger log = LoggerFactory.getLogger(EmailSenderService.class);
 
-    private final MailContentBuilder contentBuilder;
     private final JavaMailSender mailSender;
-
-    @Value("${athena.mail.notifier}")
-    private String notifier;
-
-    @Value("${spring.mail.username}")
-    private String from;
+    private final MailContentBuilder contentBuilder;
+    private final String from;
+    private final String notifier;
 
     @Autowired
-    public EmailSenderService(MailContentBuilder contentBuilder, JavaMailSender mailSender) {
+    public EmailSenderService(MailContentBuilder contentBuilder,
+                              JavaMailSender mailSender,
+                              @Value("${athena.mail.notifier}") String notifier,
+                              @Value("${spring.mail.username}") String from) {
 
         this.contentBuilder = contentBuilder;
         this.mailSender = mailSender;
+        this.notifier = notifier;
+        this.from = from;
     }
 
-    public void send(EmailType messageType, Map<String, Object> parameters, String... emails) {
+    public void send(EmailType messageType, Map<String, Object> parameters, String... toEmails) {
 
-        if (emails == null || emails.length == 0 || StringUtils.isBlank(emails[0])) {
+        this.send(messageType, parameters, Arrays.asList(toEmails), emptyList());
+    }
+
+
+    public void send(EmailType messageType, Map<String, Object> parameters, List<String> toEmails, List<String> bccEmails) {
+
+        if (CollectionUtils.isEmpty(toEmails) && CollectionUtils.isEmpty(bccEmails)) {
             return;
         }
 
@@ -67,18 +80,18 @@ public class EmailSenderService {
         MimeMessageHelper helper;
         try {
             final String emailBody = contentBuilder.build(messageType.getTemplate(), parameters);
-            LOGGER.debug("Sending  [{}] email: \n\n\n{}\n\n\n", messageType, emailBody);
+            log.debug("Sending  [{}] email: \n\n\n{}\n\n\n", messageType, emailBody);
             helper = new MimeMessageHelper(message, true);
             helper.setSubject(messageType.getSubject());
             helper.setFrom(from, notifier);
-            helper.setTo(emails);
+            helper.setTo(toArray(toEmails, String.class));
+            helper.setBcc(toArray(bccEmails, String.class));
             helper.setText(emailBody, true);
 
             mailSender.send(message);
         } catch (MessagingException | MailException | UnsupportedEncodingException ex) {
-            LOGGER.error("{} [user email: {}, subject: {}]", ex.getMessage(), emails, messageType.getSubject(), ex);
-            throw new RuntimeException(ex);
+            log.error("{} [user email: {}, subject: {}]", ex.getMessage(), String.join(",", toEmails), messageType.getSubject(), ex);
+            throw new AthenaException();
         }
     }
-
 }

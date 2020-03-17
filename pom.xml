@@ -19,7 +19,6 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <spring.boot.version>1.5.22.RELEASE</spring.boot.version>
         <springfox.swagger2.version>2.9.2</springfox.swagger2.version>
         <jjwt.version>0.7.0</jjwt.version>
         <postgresql.version>42.2.9</postgresql.version>
@@ -32,13 +31,14 @@
         <javax.mail.version>1.4</javax.mail.version>
         <spring.context.support>4.3.7.RELEASE</spring.context.support>
         <dockerImagePrefix>hub.arachnenetwork.com</dockerImagePrefix>
-        <arachne.version>1.15.0</arachne.version>
+        <arachne.version>1.16.0</arachne.version>
         <disruptor.version>3.4.2</disruptor.version>
         <commons-lang3.version>3.9</commons-lang3.version>
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
         <thymeleaf.version>3.0.11.RELEASE</thymeleaf.version>
         <thymeleaf-layout-dialect.version>2.2.1</thymeleaf-layout-dialect.version>
+        <guava.verson>28.2-jre</guava.verson>
     </properties>
 
     <profiles>
@@ -52,22 +52,6 @@
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
-                        <!--<configuration>-->
-                            <!--<excludes>-->
-                                <!--<exclude>-->
-                                    <!--<groupId>org.springframework.boot</groupId>-->
-                                    <!--<artifactId>spring-boot-starter-tomcat</artifactId>-->
-                                <!--</exclude>-->
-                            <!--</excludes>-->
-                        <!--</configuration>-->
-                        <!--<dependencies>-->
-                            <!--&lt;!&ndash; Including emdedded Tomcat &ndash;&gt;-->
-                            <!--<dependency>-->
-                                <!--<groupId>org.springframework.boot</groupId>-->
-                                <!--<artifactId>spring-boot-starter-tomcat</artifactId>-->
-                                <!--<version>${spring.boot.version}</version>-->
-                            <!--</dependency>-->
-                        <!--</dependencies>-->
                     </plugin>
                 </plugins>
             </build>
@@ -115,33 +99,26 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
-            <version>${spring.boot.version}</version>
-            <!--<scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -280,7 +257,11 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/src/main/resources/opencsv.jar</systemPath>
         </dependency>
-
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.verson}</version>
+        </dependency>
     </dependencies>
 
     <build>

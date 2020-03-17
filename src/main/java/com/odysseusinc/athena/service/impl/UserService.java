@@ -81,6 +81,8 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
     private String lastNameAttributeName = "lastName";
     @Value("${athena.security.saml.attributes.middle_name}")
     private String middleNameAttributeName;
+    @Value("${athena.security.saml.attributes.organization}")
+    private String organizationAttributeName;
 
     @Override
     public CommonProfile create(TokenCredentials credentials, WebContext webContext) throws HttpAction {
@@ -129,6 +131,7 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
         user.setFirstName(UserProfileUtil.getAttribute(profile, firstNameAttributeName));
         user.setLastName(UserProfileUtil.getAttribute(profile, lastNameAttributeName));
         user.setMiddleName(UserProfileUtil.getAttribute(profile, middleNameAttributeName));
+        user.setOrganization(UserProfileUtil.getAttribute(profile, organizationAttributeName));
     }
 
     private String getAuthenticationMethod(CommonProfile profile) {

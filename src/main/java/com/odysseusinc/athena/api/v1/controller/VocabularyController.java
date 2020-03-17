@@ -24,7 +24,6 @@ package com.odysseusinc.athena.api.v1.controller;
 
 import static com.odysseusinc.athena.util.CDMVersion.getByValue;
 import static com.odysseusinc.athena.util.CDMVersion.notExist;
-import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
 import static java.lang.System.currentTimeMillis;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.apache.commons.lang.StringUtils.isEmpty;
@@ -265,7 +264,8 @@ public class VocabularyController {
     @RequestMapping(value = "licenses", method = RequestMethod.POST)
     public ResponseEntity saveLicenses(@RequestBody @Valid AddingUserLicensesDTO dto) {
 
-        vocabularyService.saveLicenses(userService.get(dto.getUserId()), dto.getVocabularyV4Ids(), APPROVED);
+        final AthenaUser user = userService.get(dto.getUserId());
+        vocabularyService.grantLicenses(user, dto.getVocabularyV4Ids());
         return ResponseEntity.ok().build();
     }
 
@@ -288,7 +288,7 @@ public class VocabularyController {
         if (license != null) {
             throw new AlreadyExistException("License already exists");
         }
-        Long licenseId = vocabularyService.requestLicenses(user, dto.getVocabularyId());
+        Long licenseId = vocabularyService.requestLicense(user, dto.getVocabularyId());
         emailService.sendLicenseRequestToAdmins(vocabularyService.get(licenseId));
         return ResponseEntity.ok().build();
     }
