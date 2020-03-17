@@ -38,6 +38,7 @@
         <build.id>${BUILD_TIMESTAMP}</build.id>
         <thymeleaf.version>3.0.11.RELEASE</thymeleaf.version>
         <thymeleaf-layout-dialect.version>2.2.1</thymeleaf-layout-dialect.version>
+        <guava.verson>28.2-jre</guava.verson>
     </properties>
 
     <profiles>
@@ -51,21 +52,6 @@
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
-                        <!--<configuration>-->
-                            <!--<excludes>-->
-                                <!--<exclude>-->
-                                    <!--<groupId>org.springframework.boot</groupId>-->
-                                    <!--<artifactId>spring-boot-starter-tomcat</artifactId>-->
-                                <!--</exclude>-->
-                            <!--</excludes>-->
-                        <!--</configuration>-->
-                        <!--<dependencies>-->
-                            <!--&lt;!&ndash; Including emdedded Tomcat &ndash;&gt;-->
-                            <!--<dependency>-->
-                                <!--<groupId>org.springframework.boot</groupId>-->
-                                <!--<artifactId>spring-boot-starter-tomcat</artifactId>-->
-                            <!--</dependency>-->
-                        <!--</dependencies>-->
                     </plugin>
                 </plugins>
             </build>
@@ -121,7 +107,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
-            <!--<scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -275,7 +260,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>28.2-jre</version>
+            <version>${guava.verson}</version>
         </dependency>
     </dependencies>
 

@@ -24,13 +24,11 @@ package com.odysseusinc.athena.service;
 
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
-import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.CDMVersion;
-import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import java.util.List;
 
 public interface VocabularyService {
@@ -53,11 +51,9 @@ public interface VocabularyService {
 
     void checkBundleAndSharedUser(AthenaUser user, DownloadBundle bundle);
 
-    Iterable<License> saveLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, LicenseStatus status);
+    Iterable<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids);
 
-    List<License> saveLicenses(AthenaUser user, List<License> licenses);
-
-    Long requestLicenses(AthenaUser user, Integer vocabularyV4Id);
+    Long requestLicense(AthenaUser user, Integer vocabularyV4Id);
 
     void deleteLicense(Long licenseId);
 
