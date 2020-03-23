@@ -125,7 +125,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendVocabulariesWereSharedNotification(AthenaUser recipient, AthenaUser bundleOwner, DownloadBundle bundle) {
 
-        final String bundleUrl = urlBuilder.downloadVocabulariesLink(bundle.getUuid());
+        final String bundleUrl = urlBuilder.downloadVocabulariesPage(bundle.getUuid());
         final Map<String, Object> emailParameters = getParameters(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(), bundle.getReleaseVersion());
 
         try {

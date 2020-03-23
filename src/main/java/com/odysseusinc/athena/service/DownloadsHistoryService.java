@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Odysseus Data Services, inc.
+ * Copyright 2020 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,30 +15,18 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Vitaly Koulakov, Maria Pozhidaeva
- * Created: April 4, 2018
+ * Authors: Alexandr Cumarav
+ * Created: March 20, 2020
  *
  */
 
 package com.odysseusinc.athena.service;
 
 import com.odysseusinc.athena.model.athena.DownloadBundle;
-import com.odysseusinc.athena.model.athena.SavedFile;
-import java.util.Date;
+import com.odysseusinc.athena.model.security.AthenaUser;
 
-public interface DownloadBundleService {
 
-    DownloadBundle get(Long bundleId);
+public interface DownloadsHistoryService {
 
-    DownloadBundle get(String uuid);
-
-    Long getUserId(Long bundleId);
-
-    DownloadBundle save(DownloadBundle bundle);
-
-    SavedFile save(SavedFile file);
-
-    void archiveBefore(Date before);
-
-    void archive(Long id);
+    void updateStatistics(DownloadBundle bundle, AthenaUser currentUser);
 }

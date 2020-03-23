@@ -24,11 +24,8 @@ package com.odysseusinc.athena.api.v1.controller;
 
 import static com.odysseusinc.athena.util.CDMVersion.getByValue;
 import static com.odysseusinc.athena.util.CDMVersion.notExist;
-import static java.lang.System.currentTimeMillis;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.apache.commons.lang.StringUtils.isEmpty;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.CustomPageImpl;
@@ -55,11 +52,9 @@ import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.impl.UserService;
 import com.odysseusinc.athena.service.mail.EmailService;
-import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,20 +75,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
-
-import static com.odysseusinc.athena.util.CDMVersion.getByValue;
-import static com.odysseusinc.athena.util.CDMVersion.notExist;
-import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
-import static java.lang.System.currentTimeMillis;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static org.apache.commons.lang.StringUtils.isEmpty;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Api
 @RestController
@@ -105,18 +89,16 @@ public class VocabularyController {
     private final DownloadBundleService downloadBundleService;
     private final DownloadShareService downloadShareService;
     private final EmailService emailService;
-    private final FileHelper fileHelper;
     private final UserService userService;
     private final VocabularyConversionService vocabularyConversionService;
     private final VocabularyService vocabularyService;
 
     @Autowired
-    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, DownloadShareService downloadShareService, EmailService emailService, FileHelper fileHelper, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService) {
+    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, DownloadShareService downloadShareService, EmailService emailService, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService) {
         this.converterUtils = converterUtils;
         this.downloadBundleService = downloadBundleService;
         this.downloadShareService = downloadShareService;
         this.emailService = emailService;
-        this.fileHelper = fileHelper;
         this.userService = userService;
         this.vocabularyConversionService = vocabularyConversionService;
         this.vocabularyService = vocabularyService;
@@ -148,30 +130,6 @@ public class VocabularyController {
         DownloadBundle bundle = vocabularyService.saveBundle(bundleName, idV4s, currentUser, getByValue(version));
         vocabularyService.saveContent(bundle, currentUser);
         LOGGER.info("Vocabulary saving is started, bundle name: {}, user id: {}", bundleName, currentUser.getId());
-    }
-
-    @ApiOperation("Get zip.")
-    @RequestMapping(value = "/zip/{uuid}", method = RequestMethod.GET)
-    public void getAllFiles(
-            @PathVariable("uuid") String uuid,
-            HttpServletResponse response) throws NotExistException, IOException {
-
-        DownloadBundle bundle = vocabularyService.getDownloadBundle(uuid);
-        vocabularyService.checkBundleVocabularies(bundle, bundle.getUserId());
-        String version = bundle.getCdmVersion().name().toLowerCase().replace(".", "_");
-        String archiveName = String.format("vocabulary_download_%s_{%s}_%s.zip",
-                version, uuid, Long.toString(currentTimeMillis()));
-
-        String contentType = "application/zip, application/octet-stream";
-        response.setContentType(contentType);
-        response.setHeader("Content-type", contentType);
-        response.setHeader("Content-Disposition",
-                "attachment; filename=" + archiveName);
-        response.setContentLengthLong(new File(fileHelper.getZipPath(uuid)).length());
-        try(FileInputStream is = new FileInputStream(fileHelper.getZipPath(uuid))){
-            IOUtils.copy(is, response.getOutputStream());
-        }
-        response.flushBuffer();
     }
 
     @ApiOperation("Get download history.")
@@ -231,9 +189,17 @@ public class VocabularyController {
 
         DownloadBundle bundle = downloadBundleService.get(bundleId);
         AthenaUser currentUser = userService.getCurrentUser();
-        vocabularyService.checkBundleAndSharedUser(currentUser, bundle);
-        vocabularyService.checkBundleVocabularies(bundle, currentUser.getId());
-        return new LicenseExceptionDTO(true);
+        return checkBundleLicenses(bundle, currentUser);
+    }
+
+    @ApiOperation("Check bundle by uuid.")
+    @RequestMapping(value = "/checkbundle/{uuid}", method = RequestMethod.GET)
+    public LicenseExceptionDTO checkBundleUuid(@PathVariable("uuid") String uuid)
+            throws PermissionDeniedException {
+
+        DownloadBundle bundle = downloadBundleService.get(uuid);
+        AthenaUser currentUser = userService.getCurrentUser();
+        return checkBundleLicenses(bundle, currentUser);
     }
 
     @Secured("ROLE_ADMIN")
@@ -332,5 +298,11 @@ public class VocabularyController {
         String vocabularyVersion = vocabularyService.getOMOPVocabularyVersion();
 
         return converterUtils.convert(vocabularyVersion, VocabularyVersionDTO.class);
+    }
+
+    private LicenseExceptionDTO checkBundleLicenses(DownloadBundle bundle, AthenaUser currentUser) {
+
+        vocabularyService.checkBundleVocabularies(bundle, currentUser.getId());
+        return new LicenseExceptionDTO(true);
     }
 }

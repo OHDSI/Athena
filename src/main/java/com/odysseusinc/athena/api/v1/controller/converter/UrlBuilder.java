@@ -34,7 +34,12 @@ public class UrlBuilder {
 
     public String downloadVocabulariesLink(String uuid) {
 
-        return athenaUrl + "/api/v1/vocabularies/zip/" + uuid;
+        return athenaUrl + "/api/v1/vocabularies/zipped/" + uuid;
+    }
+
+    public String downloadVocabulariesPage(String uuid) {
+
+        return athenaUrl + "/vocabulary/download-bundle/" + uuid;
     }
 
     public String acceptLicenseRequestLink(Long id, Boolean accept, String uuid) {

@@ -78,6 +78,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         registry.addViewController("/search-terms/terms/**").setViewName("index");
         registry.addViewController("/vocabulary/list**").setViewName("index");
         registry.addViewController("/vocabulary/download-history**").setViewName("index");
+        registry.addViewController("/vocabulary/download-bundle/**").setViewName("index");
         registry.addViewController("/admin/licenses**").setViewName("index");
     }
 

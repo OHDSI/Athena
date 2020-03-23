@@ -254,18 +254,6 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public void checkBundleAndSharedUser(AthenaUser user, DownloadBundle bundle){
-        if (ObjectUtils.notEqual(user.getId(), bundle.getUserId())) {
-            // check whether this bundle was chared with current user
-            List<DownloadShare> shares = downloadShareRepository.findByBundle(bundle);
-            shares.stream()
-                    .filter(s -> user.getEmail().equals(s.getUserEmail()))
-                    .findAny()
-                    .orElseThrow(() -> new PermissionDeniedException());
-        }
-    }
-
-    @Override
     public List<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids) {
 
         final List<License> newLicenses = vocabularyV4Ids.stream()

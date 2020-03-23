@@ -113,7 +113,7 @@ public class AsyncVocabularyService {
                     .filter(vocab -> !vocab.getOmopReqValue())
                     .collect(toMap(VocabularyConversion::getIdV5, VocabularyConversion::getName));
 
-            emailService.sendVocabularyDownloadLink(user, urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
+            emailService.sendVocabularyDownloadLink(user, urlBuilder.downloadVocabulariesPage(bundle.getUuid()),
                     bundle.getCdmVersion(), bundle.getReleaseVersion(), bundle.getName(), includedVocabularies);
 
         } catch (Exception ex) {

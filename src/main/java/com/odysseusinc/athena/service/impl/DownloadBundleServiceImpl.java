@@ -52,6 +52,12 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
     }
 
     @Override
+    public DownloadBundle get(String bundleUuid) {
+
+        return bundleRepository.findByUuid(bundleUuid);
+    }
+
+    @Override
     public Long getUserId(Long bundleId) {
 
         return bundleRepository.getUserId(bundleId);

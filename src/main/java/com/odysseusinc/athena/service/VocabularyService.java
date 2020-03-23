@@ -49,8 +49,6 @@ public interface VocabularyService {
 
     void checkBundleUser(AthenaUser user, DownloadBundle bundle);
 
-    void checkBundleAndSharedUser(AthenaUser user, DownloadBundle bundle);
-
     Iterable<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids);
 
     Long requestLicense(AthenaUser user, Integer vocabularyV4Id);
