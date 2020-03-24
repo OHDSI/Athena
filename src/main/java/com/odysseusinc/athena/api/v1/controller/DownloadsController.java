@@ -70,7 +70,7 @@ public class DownloadsController {
 
         DownloadBundle bundle = vocabularyService.getDownloadBundle(uuid);
 
-        final Long userId = userService.getCurrentUserId() == null ? bundle.getUserId() : userService.getCurrentUserId();
+        final Long userId = userService.getCurrentUserId() != null ? userService.getCurrentUserId() : bundle.getUserId();
 
         vocabularyService.checkBundleVocabularies(bundle, userId);
         downloadsHistoryService.updateStatistics(bundle, userId);
