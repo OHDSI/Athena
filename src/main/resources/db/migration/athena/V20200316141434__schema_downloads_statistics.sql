@@ -8,3 +8,6 @@ CREATE TABLE download_history (
 );
 
 CREATE SEQUENCE download_history_seq;
+
+CREATE INDEX download_history_user_id ON download_history (bundle_id);
+CREATE INDEX download_history_download_bundle_id ON download_history (user_id);
