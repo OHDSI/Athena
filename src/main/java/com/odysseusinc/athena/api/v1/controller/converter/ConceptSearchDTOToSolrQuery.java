@@ -58,6 +58,7 @@ public class ConceptSearchDTOToSolrQuery {
     private LimitChecker limitChecker;
     @Autowired
     private VocabularyConversionService vocabularyConversionService;
+    private static final String CASE_INSENSITIVE_SUFFIX = "_ci";
 
     @Value("${solr.default.query.operator:AND}")
     private String solrQueryOperator;
@@ -65,7 +66,7 @@ public class ConceptSearchDTOToSolrQuery {
     private void setSorting(ConceptSearchDTO source, SolrQuery result) {
 
         if (source.getSort() != null && source.getOrder() != null) {
-            result.setSort(source.getSort(), SolrQuery.ORDER.valueOf(source.getOrder()));
+            result.setSort(source.getSort() + CASE_INSENSITIVE_SUFFIX, SolrQuery.ORDER.valueOf(source.getOrder()));
         }
     }
 
