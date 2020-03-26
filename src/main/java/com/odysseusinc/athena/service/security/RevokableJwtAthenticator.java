@@ -42,11 +42,6 @@ public class RevokableJwtAthenticator extends JwtAuthenticator {
         this.tokenStore = tokenStore;
     }
 
-    public RevokableJwtAthenticator(List<SignatureConfiguration> signatureConfigurations, RevokedTokenStore tokenStore) {
-
-        super(signatureConfigurations);
-        this.tokenStore = tokenStore;
-    }
 
     public RevokableJwtAthenticator(List<SignatureConfiguration> signatureConfigurations,
                                     List<EncryptionConfiguration> encryptionConfigurations, RevokedTokenStore tokenStore) {

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2018 Odysseus Data Services, inc.
+ * Copyright 2020 Odysseus Data Services, inc.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,20 +15,22 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Vitaly Koulakov, Maria Pozhidaeva
- * Created: April 4, 2018
+ * Authors: Alexandr Cumarav
+ * Created: March 24, 2020
  *
  */
 
-package com.odysseusinc.athena.repositories.v5;
+package com.odysseusinc.athena.service;
 
-import com.odysseusinc.athena.model.athenav5.SolrConcept;
-import java.util.List;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
+import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchResultDTO;
+import org.apache.solr.client.solrj.SolrServerException;
 
-@Repository
-public interface ConceptViewRepository extends CrudRepository<SolrConcept, Integer> {
+import java.io.IOException;
+import java.io.OutputStream;
 
-    List<SolrConcept> findByIdIn(List<Integer> ids);
+public interface SearchService {
+    ConceptSearchResultDTO search(ConceptSearchDTO searchDTO) throws IOException, SolrServerException;
+
+    void generateCSV(ConceptSearchDTO searchDTO, OutputStream osw) throws IOException, SolrServerException;
 }

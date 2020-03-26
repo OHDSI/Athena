@@ -59,7 +59,6 @@ public class AthenaDatabaseConfig {
     }
 
     @Bean(name = "athenaEntityManagerFactory")
-    @Primary
     LocalContainerEntityManagerFactoryBean athenaEntityManagerFactory(@Qualifier("athenaDataSource")
                                                                               DataSource dataSource) {
 
@@ -83,7 +82,6 @@ public class AthenaDatabaseConfig {
     }
 
     @Bean(name = "athenaDataSource")
-    @Primary
     @ConfigurationProperties(prefix = "spring.datasource")
     DataSource athenaDataSource() {
 
