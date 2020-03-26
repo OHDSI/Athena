@@ -247,9 +247,17 @@ public class ConceptServiceImpl implements ConceptService {
 
         List<String> v5Ids = conversionService.getUnavailableVocabularies();
         SolrQuery solrQuery = converterToSolrQuery.createQuery(searchDTO, v5Ids);
+
+        solrQuery.setParam("fl", "*,score");
+        solrQuery.set("debugQuery", "on");
+
         QueryResponse solrResponse = solrService.search(solrQuery);
         List<SolrDocument> solrDocumentList = solrResponse.getResults();
-        return converter.convert(new SearchResult<>(solrQuery, solrResponse, solrDocumentList), v5Ids);
+
+        String query = solrQuery.toString();
+        String debug = solrResponse.getExplainMap().toString();
+
+        return converter.convert(new SearchResult<>(solrQuery, solrResponse, solrDocumentList), v5Ids, debug, query);
     }
 
     @Override

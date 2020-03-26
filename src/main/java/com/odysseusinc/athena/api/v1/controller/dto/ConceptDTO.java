@@ -35,6 +35,7 @@ public class ConceptDTO {
     private String invalidReason;
     private String domain;
     private String vocabulary;
+    private String score;
 
     private ConceptDTO() {
 
@@ -123,6 +124,16 @@ public class ConceptDTO {
     public void setInvalidReason(String invalidReason) {
 
         this.invalidReason = invalidReason;
+    }
+
+    public String getScore() {
+
+        return score;
+    }
+
+    public void setScore(String score) {
+
+        this.score = score;
     }
 
     public class ConceptDTOBuilder {

@@ -1,6 +1,8 @@
 package com.odysseusinc.athena.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,6 +45,9 @@ public class ConceptSearchPhraseToSolrQueryService {
 
     public String createSolrQueryString(ConceptSearchDTO source) {
 
+        QueryBoosts queryBoosts = getQueryBoosts(source.getBoosts());
+
+
         if (source.getQuery() == null || StringUtils.isEmpty(source.getQuery())) {
             return "*:*";
         }
@@ -57,34 +62,48 @@ public class ConceptSearchPhraseToSolrQueryService {
             return "*:*";
         }
         return Stream.of(
-                getQueryToFindDocsWithWholePhrase(phraseForQuery),
-                getQueryToFindDocsWithAnyOfTermFromPhrase(exactTerms, notExactTerms)
+                getQueryToFindDocsWithWholePhrase(phraseForQuery,  queryBoosts),
+                getQueryToFindDocsWithAnyOfTermFromPhrase(exactTerms, notExactTerms,  queryBoosts)
         )
                 .filter(StringUtils::isNotEmpty)
                 .map(queryPart -> String.format("(%s)", queryPart))
                 .collect(Collectors.joining(" OR "));
     }
 
-    private String getQueryToFindDocsWithWholePhrase(String phraseForQuery) {
+    private QueryBoosts getQueryBoosts(String boostJson) {
+
+        if (StringUtils.isEmpty(boostJson)) {
+            return new QueryBoosts();
+        }
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(boostJson, QueryBoosts.class);
+        } catch (IOException e) {
+            return new QueryBoosts();
+        }
+    }
+
+    private String getQueryToFindDocsWithWholePhrase(String phraseForQuery, QueryBoosts queryBoosts) {
         if (StringUtils.isEmpty(phraseForQuery)) {
             return StringUtils.EMPTY;
         }
 
         String phraseWithoutQuotes = ClientUtils.escapeQueryChars(StringUtils.remove(phraseForQuery, "\""));
-        return getQueryForExactPhrase(phraseWithoutQuotes);
+        return getQueryForExactPhrase(phraseWithoutQuotes, queryBoosts);
     }
 
-    private String getQueryToFindDocsWithAnyOfTermFromPhrase(List<String> exactTerms, List<String> notExactTerms) {
+    private String getQueryToFindDocsWithAnyOfTermFromPhrase(List<String> exactTerms, List<String> notExactTerms, QueryBoosts queryBoosts) {
 
         String exactQueryPart = exactTerms.stream()
                 .filter(StringUtils::isNotEmpty)
-                .map(this::getQueryForExactTerm)
+                .map(term -> getQueryForExactTerm(term, queryBoosts))
                 .map(queryPart -> String.format("(%s)", queryPart))
                 .collect(Collectors.joining(" AND "));
 
         String notExactQueryPart = notExactTerms.stream()
                 .filter(StringUtils::isNotEmpty)
-                .map(this::getQueryForNotExactTerm)
+                .map(term -> getQueryForNotExactTerm(term, queryBoosts))
                 .map(queryPart -> String.format("(%s)", queryPart))
                 .collect(Collectors.joining(" OR "));
 
@@ -142,44 +161,48 @@ public class ConceptSearchPhraseToSolrQueryService {
     }
 
 
-    private String getQueryForNotExactTerm(String term) {
+    private String getQueryForNotExactTerm(String term, QueryBoosts queryBoosts) {
         //0.7 - the required similarity of fuzzyness, see http://lucene.apache.org/core/3_6_0/queryparsersyntax.html#Fuzzy%20Searches
+        QueryBoosts.NotExactTermBoosts boosts = queryBoosts.getNotExactTerm();
         return String.join(" OR ",
-                String.format("%s:%s^%s", CONCEPT_CODE_TEXT, term, 100),
-                String.format("%s:%s~0.7^%s", CONCEPT_CODE_TEXT, term, 100),
-                String.format("%s:%s^%s", CONCEPT_NAME_TEXT, term, 50),
-                String.format("%s:%s~0.7^%s", CONCEPT_NAME_TEXT, term, 50),
-                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_TEXT, term, 25));
+                String.format("%s:%s^%s", CONCEPT_CODE_TEXT, term, boosts.getConceptCodeText()),
+                String.format("%s:%s~0.7^%s", CONCEPT_CODE_TEXT, term, boosts.getConceptCodeTextFuzzy()),
+                String.format("%s:%s^%s", CONCEPT_NAME_TEXT, term, boosts.getConceptNameText()),
+                String.format("%s:%s~0.7^%s", CONCEPT_NAME_TEXT, term, boosts.getConceptNameTextFuzzy()),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_TEXT, term, boosts.getConceptSynonymName())
+        );
     }
 
-    private String getQueryForExactTerm(String term) {
+    private String getQueryForExactTerm(String term, QueryBoosts queryBoosts) {
 
+        QueryBoosts.ExactTermBoosts boosts = queryBoosts.getExactTerm();
         return String.join(" OR ",
-                String.format("%s:\"%s\"^%s", ID, term, 100000),
-                String.format("%s:\"%s\"^%s", CONCEPT_CODE, term, 10000),
-                String.format("%s:\"%s\"^%s", CONCEPT_NAME, term, 1000),
-                String.format("%s:\"%s\"^%s", CONCEPT_SYNONYM_NAME, term, 500),
-                String.format("%s:\"%s\"", QUERY_SYMBOLS, term));
+                String.format("%s:\"%s\"^%s", ID, term, boosts.getId()),
+                String.format("%s:\"%s\"^%s", CONCEPT_CODE, term, boosts.getConceptCode()),
+                String.format("%s:\"%s\"^%s", CONCEPT_NAME, term, boosts.getConceptName()),
+                String.format("%s:\"%s\"^%s", CONCEPT_SYNONYM_NAME, term, boosts.getConceptSynonymName()),
+                String.format("%s:\"%s\"^%s", QUERY_SYMBOLS, term, boosts.getQuerySymbols()));
     }
 
 
-    private String getQueryForExactPhrase(String term) {
+    private String getQueryForExactPhrase(String term, QueryBoosts queryBoosts) {
         //field "query" is specified in SOLR's managed-schema. It's type is "general text" which means that filters and tokenizers are applied to it
         //and other words may surround our term. We need an exact match, so here components of "query" are listed. Their type is String in SOLR that
         //guarantees an exact match.
+        QueryBoosts.ExactPhaseBoosts query = queryBoosts.getExactPhase();
         return String.join(" OR ",
-                String.format("%s:%s^%s", ID, term, 100000),
-                String.format("%s:%s^%s", CONCEPT_CODE_CI, term, 80000),
-                String.format("%s:%s^%s", CONCEPT_NAME_CI, term, 60000),
-                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_CI, term, 40000),
-                String.format("%s:%s^%s", CONCEPT_CODE, term, 10000),
-                String.format("%s:%s^%s", CONCEPT_NAME, term, 1000),
-                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, 500),
-                String.format("%s:%s^%s", CONCEPT_CLASS_ID, term, 100),
-                String.format("%s:%s^%s", DOMAIN_ID, term, 100),
-                String.format("%s:%s^%s", VOCABULARY_ID, term, 100),
-                String.format("%s:%s^%s", STANDARD_CONCEPT, term, 100),
-                String.format("%s:%s^%s", INVALID_REASON, term, 100));
+                String.format("%s:%s^%s", ID, term, query.getId()),
+                String.format("%s:%s^%s", CONCEPT_CODE_CI, term, query.getConceptCodeCi()),
+                String.format("%s:%s^%s", CONCEPT_NAME_CI, term, query.getConceptNameCi()),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_CI, term, query.getConceptSynonymNameCi()),
+                String.format("%s:%s^%s", CONCEPT_CODE, term, query.getConceptCode()),
+                String.format("%s:%s^%s", CONCEPT_NAME, term, query.getConceptName()),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, query.getConceptSynonymName()),
+                String.format("%s:%s^%s", CONCEPT_CLASS_ID, term, query.getConceptClassId()),
+                String.format("%s:%s^%s", DOMAIN_ID, term, query.getDomainId()),
+                String.format("%s:%s^%s", VOCABULARY_ID, term, query.getVocabularyId()),
+                String.format("%s:%s^%s", STANDARD_CONCEPT, term, query.getStandardConcept()),
+                String.format("%s:%s^%s", INVALID_REASON, term, query.getInvalidReason()));
     }
 
 }
