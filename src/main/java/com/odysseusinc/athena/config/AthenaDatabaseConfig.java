@@ -52,15 +52,14 @@ public class AthenaDatabaseConfig {
 
     @Bean(name = "athenaTransactionManager")
     @Primary
-    PlatformTransactionManager athenaTransactionManager(@Qualifier("athenaEntityManagerFactory")
+    public PlatformTransactionManager athenaTransactionManager(@Qualifier("athenaEntityManagerFactory")
                                                                 EntityManagerFactory entityManagerFactory) {
 
         return new JpaTransactionManager(entityManagerFactory);
     }
 
     @Bean(name = "athenaEntityManagerFactory")
-    @Primary
-    LocalContainerEntityManagerFactoryBean athenaEntityManagerFactory(@Qualifier("athenaDataSource")
+    public LocalContainerEntityManagerFactoryBean athenaEntityManagerFactory(@Qualifier("athenaDataSource")
                                                                               DataSource dataSource) {
 
         HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
@@ -83,9 +82,8 @@ public class AthenaDatabaseConfig {
     }
 
     @Bean(name = "athenaDataSource")
-    @Primary
     @ConfigurationProperties(prefix = "spring.datasource")
-    DataSource athenaDataSource() {
+    public DataSource athenaDataSource() {
 
         return DataSourceBuilder.create().build();
     }

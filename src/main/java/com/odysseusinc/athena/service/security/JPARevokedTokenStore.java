@@ -41,7 +41,6 @@ public class JPARevokedTokenStore implements RevokedTokenStore {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean contains(String token) {
 
         return repository.findByToken(token).isPresent();
