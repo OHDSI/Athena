@@ -21,7 +21,7 @@ public class ConceptSearchPhraseToSolrQueryService {
     public static final String FUZZY_FORMAT = "%s~0.6";
     public static final String EXACT_FORMAT = "\"%s\"";
 
-    public static final String ID = "id";
+    public static final String CONCEPT_ID = "concept_id";
     public static final String CONCEPT_NAME_CI = "concept_name_ci";
     public static final String CONCEPT_CODE_CI = "concept_code_ci";
     public static final String CONCEPT_CODE = "concept_code";
@@ -178,10 +178,9 @@ public class ConceptSearchPhraseToSolrQueryService {
         //field "query" is specified in SOLR's managed-schema. It's type is "general text" which means that filters and tokenizers are applied to it
         //and other words may surround our term. We need an exact match, so here components of "query" are listed. Their type is String in SOLR that
         //guarantees an exact match.
-        return String.join(" OR ",
+        String query = String.join(" OR ",
                 String.format("%s:%s^%s", CONCEPT_NAME_CI, term, 9),
                 String.format("%s:%s^%s", CONCEPT_CODE_CI, term, 8),
-                String.format("%s:%s^%s", ID, term, 8),
                 String.format("%s:%s^%s", CONCEPT_CODE, term, 8),
                 String.format("%s:%s^%s", CONCEPT_NAME, term, 8),
                 String.format("%s:%s^%s", CONCEPT_CLASS_ID, term, 8),
@@ -190,6 +189,10 @@ public class ConceptSearchPhraseToSolrQueryService {
                 String.format("%s:%s^%s", STANDARD_CONCEPT, term, 8),
                 String.format("%s:%s^%s", INVALID_REASON, term, 8),
                 String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, 8));
+        if (StringUtils.isNumeric(term)) {
+            query += " OR " + String.format("%s:%s^%s", CONCEPT_ID, term, 8);
+        }
+        return query;
     }
 
 }
