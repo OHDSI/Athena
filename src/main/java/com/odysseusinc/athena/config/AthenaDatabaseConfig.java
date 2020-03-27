@@ -26,6 +26,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.flyway.FlywayDataSource;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -81,6 +82,7 @@ public class AthenaDatabaseConfig {
         return new JdbcTemplate(dataSource);
     }
 
+    @FlywayDataSource
     @Bean(name = "athenaDataSource")
     @ConfigurationProperties(prefix = "spring.datasource")
     public DataSource athenaDataSource() {
