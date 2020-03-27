@@ -22,6 +22,9 @@
 
 package com.odysseusinc.athena.api.v1.controller.converter;
 
+import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_CLASS_ID;
+import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_CODE;
+import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_NAME;
 import static org.apache.solr.common.params.CommonParams.FQ;
 import static org.hibernate.validator.internal.util.StringHelper.join;
 
@@ -29,6 +32,7 @@ import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
 import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -59,6 +63,7 @@ public class ConceptSearchDTOToSolrQuery {
     @Autowired
     private VocabularyConversionService vocabularyConversionService;
     private static final String CASE_INSENSITIVE_SUFFIX = "_ci";
+    private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME, CONCEPT_CLASS_ID, DOMAIN_ID, VOCABULARY_ID);
 
     @Value("${solr.default.query.operator:AND}")
     private String solrQueryOperator;
@@ -66,7 +71,8 @@ public class ConceptSearchDTOToSolrQuery {
     private void setSorting(ConceptSearchDTO source, SolrQuery result) {
 
         if (source.getSort() != null && source.getOrder() != null) {
-            result.setSort(source.getSort() + CASE_INSENSITIVE_SUFFIX, SolrQuery.ORDER.valueOf(source.getOrder()));
+            String sortField = source.getSort() + (CASE_INSENSITIVE_FIELDS.contains(source.getSort()) ? CASE_INSENSITIVE_SUFFIX : "");
+            result.setSort(sortField, SolrQuery.ORDER.valueOf(source.getOrder()));
         }
     }
 
