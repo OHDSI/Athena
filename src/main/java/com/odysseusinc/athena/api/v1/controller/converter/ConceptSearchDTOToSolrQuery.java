@@ -41,7 +41,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -65,15 +64,19 @@ public class ConceptSearchDTOToSolrQuery {
     private static final String CASE_INSENSITIVE_SUFFIX = "_ci";
     private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME, CONCEPT_CLASS_ID, DOMAIN_ID, VOCABULARY_ID);
 
-    @Value("${solr.default.query.operator:AND}")
-    private String solrQueryOperator;
-
     private void setSorting(ConceptSearchDTO source, SolrQuery result) {
 
         if (source.getSort() != null && source.getOrder() != null) {
-            String sortField = source.getSort() + (CASE_INSENSITIVE_FIELDS.contains(source.getSort()) ? CASE_INSENSITIVE_SUFFIX : "");
-            result.setSort(sortField, SolrQuery.ORDER.valueOf(source.getOrder()));
+            result.setSort(getSortFieldWithSuffix(source.getSort()), SolrQuery.ORDER.valueOf(source.getOrder()));
         }
+    }
+
+    private String getSortFieldWithSuffix(String field) {
+
+        if (CASE_INSENSITIVE_FIELDS.contains(field)) {
+            return field + CASE_INSENSITIVE_SUFFIX;
+        }
+        return field;
     }
 
     private void setPagination(ConceptSearchDTO source, SolrQuery result) {
