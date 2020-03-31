@@ -22,26 +22,17 @@
 
 package com.odysseusinc.athena.service;
 
-import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchResultDTO;
 import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
 import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
 import com.odysseusinc.athena.model.athenav5.RelationshipV5;
-import org.apache.solr.client.solrj.SolrServerException;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public interface ConceptService {
 
     ConceptV5 getByIdWithLicenseCheck(Long conceptId);
-
-    ConceptSearchResultDTO search(ConceptSearchDTO searchDTO) throws IOException, SolrServerException;
-
-    void generateCSV(ConceptSearchDTO searchDTO, OutputStream osw) throws IOException, SolrServerException;
 
     String getSearchedConceptsFileName();
 

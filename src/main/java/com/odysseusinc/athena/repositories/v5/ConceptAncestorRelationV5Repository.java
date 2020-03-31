@@ -25,14 +25,12 @@ package com.odysseusinc.athena.repositories.v5;
 import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
 import java.util.Collection;
 import java.util.List;
-import javax.persistence.PersistenceContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@PersistenceContext(unitName = "athenaEntityManagerFactory")
 public interface ConceptAncestorRelationV5Repository extends JpaRepository<ConceptAncestorRelationV5, Long> {
 
     String ANCESTORS_SQL = "-- In concept_ancestor table all concepts are valid by default (business rule), "

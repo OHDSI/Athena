@@ -77,19 +77,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "/api/v1/concepts")
 public class ConceptController {
     private final ConceptService conceptService;
-    private final LimitChecker checker;
     private final GenericConversionService conversionService;
     private ConverterUtils converterUtils;
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     public ConceptController(ConceptService conceptService,
-                             LimitChecker checker,
                              GenericConversionService conversionService,
                              ConverterUtils converterUtils) {
 
         this.conceptService = conceptService;
-        this.checker = checker;
         this.conversionService = conversionService;
         this.converterUtils = converterUtils;
     }
@@ -103,33 +100,6 @@ public class ConceptController {
                 conversionService.convert(concept, ConceptDetailsDTO.class),
                 linkTo(methodOn(ConceptController.class).getConcept(id)).withSelfRel());
         return new ResponseEntity<>(conceptResource, OK);
-    }
-
-    @ApiOperation("Search concepts.")
-    @RequestMapping(value = "", method = RequestMethod.GET)
-    public ResponseEntity<ConceptSearchResultDTO> search(@ModelAttribute ConceptSearchDTO searchDTO)
-            throws IOException, SolrServerException {
-
-        return new ResponseEntity<>(conceptService.search(searchDTO), OK);
-    }
-
-    @ApiOperation("Download csv file.")
-    @RequestMapping(value = "/download/csv", method = RequestMethod.GET)
-    public void downloadCsv(@ModelAttribute ConceptSearchDTO searchDTO, HttpServletResponse response)
-            throws IOException, SolrServerException {
-
-        CheckResult checkResult = checker.check(searchDTO);
-        if (!checkResult.isSuccess()) {
-            response.sendError(SC_BAD_REQUEST, checkResult.getDescription());
-            return;
-        }
-        response.setContentType("text/csv");
-        String headerValue = String.format("attachment; filename=\"%s\"", conceptService.getSearchedConceptsFileName());
-        response.setHeader("Content-Disposition", headerValue);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
-        conceptService.generateCSV(searchDTO, response.getOutputStream());
-        response.flushBuffer();
     }
 
     @ApiOperation("Get relations for concept")
