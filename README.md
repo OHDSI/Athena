@@ -18,7 +18,7 @@ We use an object with boosts in order to configure the solr search query:
     "conceptSynonymName": 500,
     "querySymbols": 1
   },
-  "exactPhrase": {
+  "phrase": {
     "id": 100000,
     "conceptCodeCi": 80000,
     "conceptNameCi": 60000,
@@ -39,7 +39,7 @@ examples of generated solr queries:
 
 **query string** : aspirin
 ```sql
-(  --exactPhrase
+(  --phrase
      id:aspirin^100000 OR
      concept_code_ci:aspirin^80000 OR
      concept_name_ci:aspirin^60000 OR
@@ -66,7 +66,7 @@ examples of generated solr queries:
 ```
 **query string**: "aspirin"
 ```sql
- (  --exactPhrase
+ (  --phrase
       id:aspirin^100000 OR
       concept_code_ci:aspirin^80000 OR
       concept_name_ci:aspirin^60000 OR
@@ -93,7 +93,7 @@ examples of generated solr queries:
 
 **query string**: aspirin paracetamol
 ```sql
-  (  --exactPhrase
+  (  --phrase
        id:aspirin\ paracetamol^100000 OR
        concept_code_ci:aspirin\ paracetamol^80000 OR
        concept_name_ci:aspirin\ paracetamol^60000 OR
@@ -127,7 +127,7 @@ examples of generated solr queries:
 ```
 **query string**: aspirin "paracetamol"
 ```sql
-( --exactPhrase
+( --phrase
     id:aspirin\ paracetamol^100000 OR
     concept_code_ci:aspirin\ paracetamol^80000 OR
     concept_name_ci:aspirin\ paracetamol^60000 OR
