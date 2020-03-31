@@ -5,7 +5,7 @@ public class QueryBoosts {
 
     private NotExactTermBoosts notExactTerm = new NotExactTermBoosts();
     private ExactTermBoosts exactTerm = new ExactTermBoosts();
-    private ExactPhraseBoosts exactPhrase = new ExactPhraseBoosts();
+    private PhraseBoosts phrase = new PhraseBoosts();
 
 
     public NotExactTermBoosts getNotExactTerm() {
@@ -28,14 +28,14 @@ public class QueryBoosts {
         this.exactTerm = exactTerm;
     }
 
-    public ExactPhraseBoosts getExactPhrase() {
+    public PhraseBoosts getPhrase() {
 
-        return exactPhrase;
+        return phrase;
     }
 
-    public void setExactPhrase(ExactPhraseBoosts exactPhrase) {
+    public void setPhrase(PhraseBoosts phrase) {
 
-        this.exactPhrase = exactPhrase;
+        this.phrase = phrase;
     }
 
     public static class NotExactTermBoosts {
@@ -154,7 +154,7 @@ public class QueryBoosts {
         }
     }
 
-    public static class ExactPhraseBoosts {
+    public static class PhraseBoosts {
         private Integer id = 100000;
         private Integer conceptCodeCi = 80000;
         private Integer conceptNameCi = 60000;

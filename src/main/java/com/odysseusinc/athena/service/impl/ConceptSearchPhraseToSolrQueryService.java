@@ -189,7 +189,7 @@ public class ConceptSearchPhraseToSolrQueryService {
         //field "query" is specified in SOLR's managed-schema. It's type is "general text" which means that filters and tokenizers are applied to it
         //and other words may surround our term. We need an exact match, so here components of "query" are listed. Their type is String in SOLR that
         //guarantees an exact match.
-        QueryBoosts.ExactPhraseBoosts query = queryBoosts.getExactPhrase();
+        QueryBoosts.PhraseBoosts query = queryBoosts.getPhrase();
         return String.join(" OR ",
                 String.format("%s:%s^%s", ID, term, query.getId()),
                 String.format("%s:%s^%s", CONCEPT_CODE_CI, term, query.getConceptCodeCi()),
