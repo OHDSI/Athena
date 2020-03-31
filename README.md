@@ -1,3 +1,182 @@
+# 0 Customize query
+
+## Boosts object
+We use an object with boosts in order to configure the solr search query:
+```json
+{
+  "notExactTerm": {
+    "conceptCodeText": 100,
+    "conceptCodeTextFuzzy": 100,
+    "conceptNameText": 50,
+    "conceptNameTextFuzzy": 50,
+    "conceptSynonymName": 25
+  },
+  "exactTerm": {
+    "id": 100000,
+    "conceptCode": 10000,
+    "conceptName": 1000,
+    "conceptSynonymName": 500,
+    "querySymbols": 1
+  },
+  "exactPhrase": {
+    "id": 100000,
+    "conceptCodeCi": 80000,
+    "conceptNameCi": 60000,
+    "conceptSynonymNameCi": 40000,
+    "conceptCode": 10000,
+    "conceptName": 1000,
+    "conceptSynonymName": 500,
+    "conceptClassId": 100,
+    "domainId": 100,
+    "vocabularyId": 100,
+    "standardConcept": 100,
+    "invalidReason": 100
+  }
+}
+```
+## Query examples 
+examples of generated solr queries:
+
+**query string** : aspirin
+```sql
+(  --exactPhrase
+     id:aspirin^100000 OR
+     concept_code_ci:aspirin^80000 OR
+     concept_name_ci:aspirin^60000 OR
+     concept_synonym_name_ci:aspirin^40000 OR
+     concept_code:aspirin^10000 OR
+     concept_name:aspirin^1000 OR
+     concept_synonym_name:aspirin^500 OR
+     concept_class_id:aspirin^100 OR
+     domain_id:aspirin^100 OR
+     vocabulary_id:aspirin^100 OR
+     standard_concept:aspirin^100 OR
+     invalid_reason:aspirin^100
+ ) OR
+ (
+    ( --notExactTerm
+         concept_code_text:aspirin^100 OR
+         concept_code_text:aspirin~0.7^100 OR
+         concept_name_text:aspirin^500 OR
+         concept_name_text:aspirin~0.7^50 OR
+         concept_synonym_name_text:aspirin^25
+     )
+ )
+
+```
+**query string**: "aspirin"
+```sql
+ (  --exactPhrase
+      id:aspirin^100000 OR
+      concept_code_ci:aspirin^80000 OR
+      concept_name_ci:aspirin^60000 OR
+      concept_synonym_name_ci:aspirin^40000 OR
+      concept_code:aspirin^10000 OR
+      concept_name:aspirin^1000 OR
+      concept_synonym_name:aspirin^500 OR
+      concept_class_id:aspirin^100 OR
+      domain_id:aspirin^100 OR
+      vocabulary_id:aspirin^100 OR
+      standard_concept:aspirin^100 OR
+      invalid_reason:aspirin^100
+  ) OR
+  (
+      (  -- exactTerm
+          id:"aspirin"^100000 OR
+          concept_code:"aspirin"^10000 OR
+          concept_name:"aspirin"^1000 OR
+          concept_synonym_name:"aspirin"^500 OR
+          query:"aspirin"^1
+      )
+  )
+```
+
+**query string**: aspirin paracetamol
+```sql
+  (  --exactPhrase
+       id:aspirin\ paracetamol^100000 OR
+       concept_code_ci:aspirin\ paracetamol^80000 OR
+       concept_name_ci:aspirin\ paracetamol^60000 OR
+       concept_synonym_name_ci:aspirin\ paracetamol^40000 OR
+       concept_code:aspirin\ paracetamol^10000 OR
+       concept_name:aspirin\ paracetamol^1000 OR
+       concept_synonym_name:aspirin\ paracetamol^500 OR
+       concept_class_id:aspirin\ paracetamol^100 OR
+       domain_id:aspirin\ paracetamol^100 OR
+       vocabulary_id:aspirin\ paracetamol^100 OR
+       standard_concept:aspirin\ paracetamol^100 OR
+       invalid_reason:aspirin\ paracetamol^100
+   ) OR
+   (
+       ( --notExactTerm
+           concept_code_text:aspirin^100 OR
+           concept_code_text:aspirin~0.7^100 OR
+           concept_name_text:aspirin^50 OR
+           concept_name_text:aspirin~0.7^50 OR
+           concept_synonym_name_text:aspirin^25
+       ) OR
+       ( --notExactTerm
+           concept_code_text:paracetamol^100 OR
+           concept_code_text:paracetamol~0.7^100 OR
+           concept_name_text:paracetamol^50 OR
+           concept_name_text:paracetamol~0.7^50 OR
+           concept_synonym_name_text:paracetamol^25
+       )
+   )
+      
+```
+**query string**: aspirin "paracetamol"
+```sql
+( --exactPhrase
+    id:aspirin\ paracetamol^100000 OR
+    concept_code_ci:aspirin\ paracetamol^80000 OR
+    concept_name_ci:aspirin\ paracetamol^60000 OR
+    concept_synonym_name_ci:aspirin\ paracetamol^40000 OR
+    concept_code:aspirin\ paracetamol^10000 OR
+    concept_name:aspirin\ paracetamol^1000 OR
+    concept_synonym_name:aspirin\ paracetamol^500 OR
+    concept_class_id:aspirin\ paracetamol^100 OR
+    domain_id:aspirin\ paracetamol^100 OR
+    vocabulary_id:aspirin\ paracetamol^100 OR
+    standard_concept:aspirin\ paracetamol^100 OR
+    invalid_reason:aspirin\ paracetamol^100
+ ) OR
+ (
+     (
+         (-- exactTerm
+             id:"paracetamol"^100000 OR
+             concept_code:"paracetamol"^10000 OR
+             concept_name:"paracetamol"^1000 OR
+             concept_synonym_name:"paracetamol"^500 OR
+             query:"paracetamol"^1
+         )
+     )
+     OR
+     (
+         (
+             (-- exactTerm
+                 id:"paracetamol"^100000 OR
+                 concept_code:"paracetamol"^10000 OR
+                 concept_name:"paracetamol"^1000 OR
+                 concept_synonym_name:"paracetamol"^500 OR
+                 query:"paracetamol"^1
+             )
+         )
+          AND
+          (
+              (--notExactTerm
+                concept_code_text:aspirin^100 OR
+                concept_code_text:aspirin~0.7^100 OR
+                concept_name_text:aspirin^50 OR
+                concept_name_text:aspirin~0.7^50 OR
+                concept_synonym_name_text:aspirin^25
+             )
+         )
+     )
+ )
+```
+
+
 # 1 Phrase search
 
 Search provides the ability to search by phrase. All results are sorted by default according to the following criteria:
