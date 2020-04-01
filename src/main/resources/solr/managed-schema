@@ -118,8 +118,8 @@
 
 
     <field name="concept_id" type="string" indexed="true" stored="true" omitNorms="true"/>
-    <field name="concept_code_ci" type="string_case_insensitive" indexed="true" stored="true"/>
-    <field name="concept_name_ci" type="string_case_insensitive" indexed="true" stored="true"/>
+    <field name="concept_code" type="string" indexed="true" stored="true" omitNorms="true"/>
+    <field name="concept_name" type="string" indexed="true" stored="true" omitNorms="true"/>
     <field name="concept_class_id" type="string" indexed="true" stored="true" omitNorms="true"/>
     <field name="domain_id" type="string" indexed="true" stored="true" omitNorms="true"/>
     <field name="vocabulary_id" type="string" indexed="true" stored="true" omitNorms="true"/>
@@ -138,12 +138,14 @@
 
     <copyField source="id" dest="query"/>
     <copyField source="id" dest="query_wo_symbols"/>
-    <copyField source="concept_code_ci" dest="query"/>
-    <copyField source="concept_code_ci" dest="query_wo_symbols"/>
-    <copyField source="concept_code_ci" dest="concept_code_text"/>
-    <copyField source="concept_name_ci" dest="query"/>
-    <copyField source="concept_name_ci" dest="query_wo_symbols"/>
-    <copyField source="concept_name_ci" dest="concept_name_text"/>
+    <copyField source="concept_code" dest="query"/>
+    <copyField source="concept_code" dest="query_wo_symbols"/>
+    <copyField source="concept_code" dest="concept_code_ci"/>
+    <copyField source="concept_code" dest="concept_code_text"/>
+    <copyField source="concept_name" dest="query"/>
+    <copyField source="concept_name" dest="query_wo_symbols"/>
+    <copyField source="concept_name" dest="concept_name_ci"/>
+    <copyField source="concept_name" dest="concept_name_text"/>
     <copyField source="concept_class_id" dest="query"/>
     <copyField source="concept_class_id" dest="query_wo_symbols"/>
     <copyField source="domain_id" dest="query"/>
@@ -161,7 +163,9 @@
 
     <field name="query" type="text_general" multiValued="true" indexed="true" stored="true"/>
     <field name="query_wo_symbols" type="text_wo_symbols" multiValued="true" indexed="true" stored="true"/>
+    <field name="concept_name_ci" type="string_case_insensitive" indexed="true" stored="true"/>
     <field name="concept_name_text" type="text_general" indexed="true" stored="true"/>
+    <field name="concept_code_ci" type="string_case_insensitive" indexed="true" stored="true"/>
     <field name="concept_code_text" type="text_general" indexed="true" stored="true"/>
     <field name="concept_synonym_name_ci" type="string_case_insensitive" indexed="true" stored="true"/>
     <field name="concept_synonym_name_text" type="text_general" indexed="true" stored="true"/>

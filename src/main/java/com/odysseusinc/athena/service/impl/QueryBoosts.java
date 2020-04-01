@@ -109,9 +109,9 @@ public class QueryBoosts {
 
     public static class ExactTermBoosts {
         private Integer id = 100000;
-        private Integer conceptCodeCi = 10000;
-        private Integer conceptNameCi = 1000;
-        private Integer conceptSynonymNameCi = 500;
+        private Integer conceptCode = 10000;
+        private Integer conceptName = 1000;
+        private Integer conceptSynonymName = 500;
         private Integer querySymbols = 1;
 
         public Integer getId() {
@@ -124,34 +124,34 @@ public class QueryBoosts {
             this.id = id;
         }
 
-        public Integer getConceptCodeCi() {
+        public Integer getConceptCode() {
 
-            return conceptCodeCi;
+            return conceptCode;
         }
 
-        public void setConceptCodeCi(Integer conceptCodeCi) {
+        public void setConceptCode(Integer conceptCode) {
 
-            this.conceptCodeCi = conceptCodeCi;
+            this.conceptCode = conceptCode;
         }
 
-        public Integer getConceptNameCi() {
+        public Integer getConceptName() {
 
-            return conceptNameCi;
+            return conceptName;
         }
 
-        public void setConceptNameCi(Integer conceptNameCi) {
+        public void setConceptName(Integer conceptName) {
 
-            this.conceptNameCi = conceptNameCi;
+            this.conceptName = conceptName;
         }
 
-        public Integer getConceptSynonymNameCi() {
+        public Integer getConceptSynonymName() {
 
-            return conceptSynonymNameCi;
+            return conceptSynonymName;
         }
 
-        public void setConceptSynonymNameCi(Integer conceptSynonymNameCi) {
+        public void setConceptSynonymName(Integer conceptSynonymName) {
 
-            this.conceptSynonymNameCi = conceptSynonymNameCi;
+            this.conceptSynonymName = conceptSynonymName;
         }
 
         public Integer getQuerySymbols() {
@@ -170,6 +170,9 @@ public class QueryBoosts {
         private Integer conceptCodeCi = 80000;
         private Integer conceptNameCi = 60000;
         private Integer conceptSynonymNameCi = 40000;
+        private Integer conceptCode = 10000;
+        private Integer conceptName = 1000;
+        private Integer conceptSynonymName = 500;
         private Integer conceptClassId = 100;
         private Integer domainId = 100;
         private Integer vocabularyId = 100;
@@ -214,6 +217,36 @@ public class QueryBoosts {
         public void setConceptSynonymNameCi(Integer conceptSynonymNameCi) {
 
             this.conceptSynonymNameCi = conceptSynonymNameCi;
+        }
+
+        public Integer getConceptCode() {
+
+            return conceptCode;
+        }
+
+        public void setConceptCode(Integer conceptCode) {
+
+            this.conceptCode = conceptCode;
+        }
+
+        public Integer getConceptName() {
+
+            return conceptName;
+        }
+
+        public void setConceptName(Integer conceptName) {
+
+            this.conceptName = conceptName;
+        }
+
+        public Integer getConceptSynonymName() {
+
+            return conceptSynonymName;
+        }
+
+        public void setConceptSynonymName(Integer conceptSynonymName) {
+
+            this.conceptSynonymName = conceptSynonymName;
         }
 
         public Integer getConceptClassId() {

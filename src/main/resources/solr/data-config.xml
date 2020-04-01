@@ -22,8 +22,8 @@
            preImportDeleteQuery="*:*">
 
      <field column="concept_id" name="id"/>
-     <field column="concept_code" name="concept_code_ci"/>
-     <field column="concept_name" name="concept_name_ci"/>
+     <field column="concept_code" name="concept_code"/>
+     <field column="concept_name" name="concept_name"/>
      <field column="concept_class_id" name="concept_class_id"/>
      <field column="domain_id" name="domain_id"/>
      <field column="vocabulary_id" name="vocabulary_id"/>

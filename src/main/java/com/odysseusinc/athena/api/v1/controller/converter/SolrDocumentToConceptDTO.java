@@ -37,8 +37,8 @@ public class SolrDocumentToConceptDTO {
 
         return builder()
                 .setId(Long.parseLong(concept.getFieldValue("id").toString()))
-                .setName(concept.getFieldValue("concept_name_ci").toString())
-                .setCode(concept.getFieldValue("concept_code_ci").toString())
+                .setName(concept.getFieldValue("concept_name").toString())
+                .setCode(concept.getFieldValue("concept_code").toString())
                 .setClassName(concept.getFieldValue("concept_class_id").toString())
                 .setDomain(concept.getFieldValue("domain_id").toString())
                 .setInvalidReason(concept.getFieldValue("invalid_reason").toString())
