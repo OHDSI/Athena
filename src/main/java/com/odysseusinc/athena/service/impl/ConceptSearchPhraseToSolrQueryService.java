@@ -20,20 +20,15 @@ public class ConceptSearchPhraseToSolrQueryService {
     public static final String EXACT_TERM_REGEX = "\".*?\"";
     public static final String WORD_DELIMITER_REGEX = "(\\s|\\/|\\?|!|,|;|\\.\\s|\\*)+";
     public static final List<String> SPEC_CHARS = Arrays.asList("\\", "+", "-", "!", "(", ")", ":", "^", "[", "]", "\"", "{", "}", "~", "*", "?", "|", "&", ";", "/");
-    public static final String FUZZY_FORMAT = "%s~0.6";
-    public static final String EXACT_FORMAT = "\"%s\"";
 
     public static final String ID = "id";
     public static final String CONCEPT_NAME_CI = "concept_name_ci";
     public static final String CONCEPT_CODE_CI = "concept_code_ci";
-    public static final String CONCEPT_CODE = "concept_code";
-    public static final String CONCEPT_NAME = "concept_name";
     public static final String CONCEPT_CLASS_ID = "concept_class_id";
     public static final String DOMAIN_ID = "domain_id";
     public static final String VOCABULARY_ID = "vocabulary_id";
     public static final String STANDARD_CONCEPT = "standard_concept";
     public static final String INVALID_REASON = "invalid_reason";
-    public static final String CONCEPT_SYNONYM_NAME = "concept_synonym_name";
     public static final String CONCEPT_SYNONYM_NAME_CI = "concept_synonym_name_ci";
 
     public static final String CONCEPT_NAME_TEXT = "concept_name_text";
@@ -121,7 +116,7 @@ public class ConceptSearchPhraseToSolrQueryService {
 
     protected List<String> findExactTerms(String phraseString) {
 
-        if (StringUtils.isEmpty(phraseString) || StringUtils.isEmpty(phraseString)) {
+        if (StringUtils.isEmpty(phraseString)) {
             return Collections.emptyList();
         }
 
@@ -134,7 +129,7 @@ public class ConceptSearchPhraseToSolrQueryService {
 
     protected List<String> findNotExactTerms(String phraseString) {
 
-        if (StringUtils.isEmpty(phraseString) || StringUtils.isEmpty(phraseString)) {
+        if (StringUtils.isEmpty(phraseString)) {
             return Collections.emptyList();
         }
         String stringWithoutExactTerms = phraseString.replaceAll(EXACT_TERM_REGEX, StringUtils.EMPTY);
@@ -169,7 +164,8 @@ public class ConceptSearchPhraseToSolrQueryService {
                 String.format("%s:%s~0.7^%s", CONCEPT_CODE_TEXT, term, boosts.getConceptCodeTextFuzzy()),
                 String.format("%s:%s^%s", CONCEPT_NAME_TEXT, term, boosts.getConceptNameText()),
                 String.format("%s:%s~0.7^%s", CONCEPT_NAME_TEXT, term, boosts.getConceptNameTextFuzzy()),
-                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_TEXT, term, boosts.getConceptSynonymName())
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_TEXT, term, boosts.getConceptSynonymNameText()),
+                String.format("%s:%s^%s", QUERY_WO_SYMBOLS, term, boosts.getQueryWoSymbols())
         );
     }
 
@@ -177,11 +173,11 @@ public class ConceptSearchPhraseToSolrQueryService {
 
         QueryBoosts.ExactTermBoosts boosts = queryBoosts.getExactTerm();
         return String.join(" OR ",
-                String.format("%s:\"%s\"^%s", ID, term, boosts.getId()),
-                String.format("%s:\"%s\"^%s", CONCEPT_CODE, term, boosts.getConceptCode()),
-                String.format("%s:\"%s\"^%s", CONCEPT_NAME, term, boosts.getConceptName()),
-                String.format("%s:\"%s\"^%s", CONCEPT_SYNONYM_NAME, term, boosts.getConceptSynonymName()),
-                String.format("%s:\"%s\"^%s", QUERY_SYMBOLS, term, boosts.getQuerySymbols()));
+                String.format("%s:%s^%s", ID, term, boosts.getId()),
+                String.format("%s:%s^%s", CONCEPT_CODE_CI, term, boosts.getConceptCodeCi()),
+                String.format("%s:%s^%s", CONCEPT_NAME_CI, term, boosts.getConceptNameCi()),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_CI, term, boosts.getConceptSynonymNameCi()),
+                String.format("%s:%s^%s", QUERY_SYMBOLS, term, boosts.getQuerySymbols()));
     }
 
 
@@ -195,9 +191,6 @@ public class ConceptSearchPhraseToSolrQueryService {
                 String.format("%s:%s^%s", CONCEPT_CODE_CI, term, query.getConceptCodeCi()),
                 String.format("%s:%s^%s", CONCEPT_NAME_CI, term, query.getConceptNameCi()),
                 String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_CI, term, query.getConceptSynonymNameCi()),
-                String.format("%s:%s^%s", CONCEPT_CODE, term, query.getConceptCode()),
-                String.format("%s:%s^%s", CONCEPT_NAME, term, query.getConceptName()),
-                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, query.getConceptSynonymName()),
                 String.format("%s:%s^%s", CONCEPT_CLASS_ID, term, query.getConceptClassId()),
                 String.format("%s:%s^%s", DOMAIN_ID, term, query.getDomainId()),
                 String.format("%s:%s^%s", VOCABULARY_ID, term, query.getVocabularyId()),

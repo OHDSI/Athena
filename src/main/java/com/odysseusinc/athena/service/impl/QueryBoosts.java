@@ -43,7 +43,8 @@ public class QueryBoosts {
         private Integer conceptCodeTextFuzzy = 100;
         private Integer conceptNameText = 50;
         private Integer conceptNameTextFuzzy = 50;
-        private Integer conceptSynonymName = 25;
+        private Integer conceptSynonymNameText = 25;
+        private Integer queryWoSymbols = 10;
 
         public Integer getConceptCodeText() {
 
@@ -85,22 +86,32 @@ public class QueryBoosts {
             this.conceptNameTextFuzzy = conceptNameTextFuzzy;
         }
 
-        public Integer getConceptSynonymName() {
+        public Integer getConceptSynonymNameText() {
 
-            return conceptSynonymName;
+            return conceptSynonymNameText;
         }
 
-        public void setConceptSynonymName(Integer conceptSynonymName) {
+        public void setConceptSynonymNameText(Integer conceptSynonymNameText) {
 
-            this.conceptSynonymName = conceptSynonymName;
+            this.conceptSynonymNameText = conceptSynonymNameText;
+        }
+
+        public Integer getQueryWoSymbols() {
+
+            return queryWoSymbols;
+        }
+
+        public void setQueryWoSymbols(Integer queryWoSymbols) {
+
+            this.queryWoSymbols = queryWoSymbols;
         }
     }
 
     public static class ExactTermBoosts {
         private Integer id = 100000;
-        private Integer conceptCode = 10000;
-        private Integer conceptName = 1000;
-        private Integer conceptSynonymName = 500;
+        private Integer conceptCodeCi = 10000;
+        private Integer conceptNameCi = 1000;
+        private Integer conceptSynonymNameCi = 500;
         private Integer querySymbols = 1;
 
         public Integer getId() {
@@ -113,34 +124,34 @@ public class QueryBoosts {
             this.id = id;
         }
 
-        public Integer getConceptCode() {
+        public Integer getConceptCodeCi() {
 
-            return conceptCode;
+            return conceptCodeCi;
         }
 
-        public void setConceptCode(Integer conceptCode) {
+        public void setConceptCodeCi(Integer conceptCodeCi) {
 
-            this.conceptCode = conceptCode;
+            this.conceptCodeCi = conceptCodeCi;
         }
 
-        public Integer getConceptName() {
+        public Integer getConceptNameCi() {
 
-            return conceptName;
+            return conceptNameCi;
         }
 
-        public void setConceptName(Integer conceptName) {
+        public void setConceptNameCi(Integer conceptNameCi) {
 
-            this.conceptName = conceptName;
+            this.conceptNameCi = conceptNameCi;
         }
 
-        public Integer getConceptSynonymName() {
+        public Integer getConceptSynonymNameCi() {
 
-            return conceptSynonymName;
+            return conceptSynonymNameCi;
         }
 
-        public void setConceptSynonymName(Integer conceptSynonymName) {
+        public void setConceptSynonymNameCi(Integer conceptSynonymNameCi) {
 
-            this.conceptSynonymName = conceptSynonymName;
+            this.conceptSynonymNameCi = conceptSynonymNameCi;
         }
 
         public Integer getQuerySymbols() {
@@ -159,9 +170,6 @@ public class QueryBoosts {
         private Integer conceptCodeCi = 80000;
         private Integer conceptNameCi = 60000;
         private Integer conceptSynonymNameCi = 40000;
-        private Integer conceptCode = 10000;
-        private Integer conceptName = 1000;
-        private Integer conceptSynonymName = 500;
         private Integer conceptClassId = 100;
         private Integer domainId = 100;
         private Integer vocabularyId = 100;
@@ -206,36 +214,6 @@ public class QueryBoosts {
         public void setConceptSynonymNameCi(Integer conceptSynonymNameCi) {
 
             this.conceptSynonymNameCi = conceptSynonymNameCi;
-        }
-
-        public Integer getConceptCode() {
-
-            return conceptCode;
-        }
-
-        public void setConceptCode(Integer conceptCode) {
-
-            this.conceptCode = conceptCode;
-        }
-
-        public Integer getConceptName() {
-
-            return conceptName;
-        }
-
-        public void setConceptName(Integer conceptName) {
-
-            this.conceptName = conceptName;
-        }
-
-        public Integer getConceptSynonymName() {
-
-            return conceptSynonymName;
-        }
-
-        public void setConceptSynonymName(Integer conceptSynonymName) {
-
-            this.conceptSynonymName = conceptSynonymName;
         }
 
         public Integer getConceptClassId() {
