@@ -109,9 +109,12 @@ public class QueryBoosts {
 
     public static class ExactTermBoosts {
         private Integer id = 100000;
-        private Integer conceptCode = 10000;
-        private Integer conceptName = 1000;
-        private Integer conceptSynonymName = 500;
+        private Integer conceptCode = 80000;
+        private Integer conceptName = 60000;
+        private Integer conceptSynonymName = 40000;
+        private Integer conceptCodeCi = 10000;
+        private Integer conceptNameCi = 1000;
+        private Integer conceptSynonymNameCi = 500;
         private Integer querySymbols = 1;
 
         public Integer getId() {
@@ -163,6 +166,36 @@ public class QueryBoosts {
 
             this.querySymbols = querySymbols;
         }
+
+        public Integer getConceptSynonymNameCi() {
+
+            return conceptSynonymNameCi;
+        }
+
+        public void setConceptSynonymNameCi(Integer conceptSynonymNameCi) {
+
+            this.conceptSynonymNameCi = conceptSynonymNameCi;
+        }
+
+        public Integer getConceptCodeCi() {
+
+            return conceptCodeCi;
+        }
+
+        public void setConceptCodeCi(Integer conceptCodeCi) {
+
+            this.conceptCodeCi = conceptCodeCi;
+        }
+
+        public Integer getConceptNameCi() {
+
+            return conceptNameCi;
+        }
+
+        public void setConceptNameCi(Integer conceptNameCi) {
+
+            this.conceptNameCi = conceptNameCi;
+        }
     }
 
     public static class PhraseBoosts {
@@ -176,8 +209,9 @@ public class QueryBoosts {
         private Integer conceptClassId = 100;
         private Integer domainId = 100;
         private Integer vocabularyId = 100;
-        private Integer standardConcept = 100;
-        private Integer invalidReason = 100;
+        private Integer conceptClassIdCi = 100;
+        private Integer domainIdCi = 100;
+        private Integer vocabularyIdCi = 100;
 
         public Integer getId() {
 
@@ -279,24 +313,34 @@ public class QueryBoosts {
             this.vocabularyId = vocabularyId;
         }
 
-        public Integer getStandardConcept() {
+        public Integer getConceptClassIdCi() {
 
-            return standardConcept;
+            return conceptClassIdCi;
         }
 
-        public void setStandardConcept(Integer standardConcept) {
+        public void setConceptClassIdCi(Integer conceptClassIdCi) {
 
-            this.standardConcept = standardConcept;
+            this.conceptClassIdCi = conceptClassIdCi;
         }
 
-        public Integer getInvalidReason() {
+        public Integer getDomainIdCi() {
 
-            return invalidReason;
+            return domainIdCi;
         }
 
-        public void setInvalidReason(Integer invalidReason) {
+        public void setDomainIdCi(Integer domainIdCi) {
 
-            this.invalidReason = invalidReason;
+            this.domainIdCi = domainIdCi;
+        }
+
+        public Integer getVocabularyIdCi() {
+
+            return vocabularyIdCi;
+        }
+
+        public void setVocabularyIdCi(Integer vocabularyIdCi) {
+
+            this.vocabularyIdCi = vocabularyIdCi;
         }
     }
 }

@@ -26,11 +26,9 @@ public class ConceptSearchPhraseToSolrQueryService {
     public static final String CONCEPT_CODE_CI = "concept_code_ci";
     public static final String CONCEPT_CODE = "concept_code";
     public static final String CONCEPT_NAME = "concept_name";
-    public static final String CONCEPT_CLASS_ID = "concept_class_id";
-    public static final String DOMAIN_ID = "domain_id";
-    public static final String VOCABULARY_ID = "vocabulary_id";
-    public static final String STANDARD_CONCEPT = "standard_concept";
-    public static final String INVALID_REASON = "invalid_reason";
+    public static final String CONCEPT_CLASS_ID_CI = "concept_class_id_ci";
+    public static final String DOMAIN_ID_CI = "domain_id_ci";
+    public static final String VOCABULARY_ID_CI = "vocabulary_id_ci";
     public static final String CONCEPT_SYNONYM_NAME = "concept_synonym_name";
     public static final String CONCEPT_SYNONYM_NAME_CI = "concept_synonym_name_ci";
 
@@ -176,11 +174,14 @@ public class ConceptSearchPhraseToSolrQueryService {
 
         QueryBoosts.ExactTermBoosts boosts = queryBoosts.getExactTerm();
         return String.join(" OR ",
-                String.format("%s:\"%s\"^%s", ID, term, boosts.getId()),
-                String.format("%s:\"%s\"^%s", CONCEPT_CODE, term, boosts.getConceptCode()),
-                String.format("%s:\"%s\"^%s", CONCEPT_NAME, term, boosts.getConceptName()),
-                String.format("%s:\"%s\"^%s", CONCEPT_SYNONYM_NAME, term, boosts.getConceptSynonymName()),
-                String.format("%s:\"%s\"^%s", QUERY_SYMBOLS, term, boosts.getQuerySymbols()));
+                String.format("%s:%s^%s", ID, term, boosts.getId()),
+                String.format("%s:%s^%s", CONCEPT_CODE, term, boosts.getConceptCode()),
+                String.format("%s:%s^%s", CONCEPT_NAME, term, boosts.getConceptName()),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, boosts.getConceptSynonymName()),
+                String.format("%s:%s^%s", CONCEPT_CODE_CI, term, boosts.getConceptCodeCi()),
+                String.format("%s:%s^%s", CONCEPT_NAME_CI, term, boosts.getConceptNameCi()),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_CI, term, boosts.getConceptSynonymNameCi()),
+                String.format("%s:%s^%s", QUERY_SYMBOLS, term, boosts.getQuerySymbols()));
     }
 
 
@@ -197,11 +198,9 @@ public class ConceptSearchPhraseToSolrQueryService {
                 String.format("%s:%s^%s", CONCEPT_CODE, term, query.getConceptCode()),
                 String.format("%s:%s^%s", CONCEPT_NAME, term, query.getConceptName()),
                 String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, query.getConceptSynonymName()),
-                String.format("%s:%s^%s", CONCEPT_CLASS_ID, term, query.getConceptClassId()),
-                String.format("%s:%s^%s", DOMAIN_ID, term, query.getDomainId()),
-                String.format("%s:%s^%s", VOCABULARY_ID, term, query.getVocabularyId()),
-                String.format("%s:%s^%s", STANDARD_CONCEPT, term, query.getStandardConcept()),
-                String.format("%s:%s^%s", INVALID_REASON, term, query.getInvalidReason()));
+                String.format("%s:%s^%s", CONCEPT_CLASS_ID_CI, term, query.getConceptClassIdCi()),
+                String.format("%s:%s^%s", DOMAIN_ID_CI, term, query.getDomainIdCi()),
+                String.format("%s:%s^%s", VOCABULARY_ID_CI, term, query.getVocabularyIdCi()));
     }
 
 }
