@@ -206,9 +206,6 @@ public class QueryBoosts {
         private Integer conceptCode = 10000;
         private Integer conceptName = 1000;
         private Integer conceptSynonymName = 500;
-        private Integer conceptClassId = 100;
-        private Integer domainId = 100;
-        private Integer vocabularyId = 100;
         private Integer conceptClassIdCi = 100;
         private Integer domainIdCi = 100;
         private Integer vocabularyIdCi = 100;
@@ -281,36 +278,6 @@ public class QueryBoosts {
         public void setConceptSynonymName(Integer conceptSynonymName) {
 
             this.conceptSynonymName = conceptSynonymName;
-        }
-
-        public Integer getConceptClassId() {
-
-            return conceptClassId;
-        }
-
-        public void setConceptClassId(Integer conceptClassId) {
-
-            this.conceptClassId = conceptClassId;
-        }
-
-        public Integer getDomainId() {
-
-            return domainId;
-        }
-
-        public void setDomainId(Integer domainId) {
-
-            this.domainId = domainId;
-        }
-
-        public Integer getVocabularyId() {
-
-            return vocabularyId;
-        }
-
-        public void setVocabularyId(Integer vocabularyId) {
-
-            this.vocabularyId = vocabularyId;
         }
 
         public Integer getConceptClassIdCi() {
