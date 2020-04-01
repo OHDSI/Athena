@@ -39,11 +39,11 @@ public class SolrDocumentToConceptDTO {
                 .setId(Long.parseLong(concept.getFieldValue("id").toString()))
                 .setName(concept.getFieldValue("concept_name").toString())
                 .setCode(concept.getFieldValue("concept_code").toString())
-                .setClassName(concept.getFieldValue("concept_class_id").toString())
-                .setDomain(concept.getFieldValue("domain_id").toString())
+                .setClassName(concept.getFieldValue("concept_class_id_ci").toString())
+                .setDomain(concept.getFieldValue("domain_id_ci").toString())
                 .setInvalidReason(concept.getFieldValue("invalid_reason").toString())
                 .setStandardConcept(concept.getFieldValue("standard_concept").toString())
-                .setVocabulary(concept.getFieldValue("vocabulary_id").toString())
+                .setVocabulary(concept.getFieldValue("vocabulary_id_ci").toString())
                 .build();
     }
 

@@ -46,9 +46,9 @@ public class ConceptSearchDTOToSolrQuery {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConceptSearchDTOToSolrQuery.class);
 
     private static final String ID = "id";
-    private static final String CLASS_ID = "concept_class_id";
-    private static final String DOMAIN_ID = "domain_id";
-    public static final String VOCABULARY_ID = "vocabulary_id";
+    private static final String CLASS_ID = "concept_class_id_ci";
+    private static final String DOMAIN_ID = "domain_id_ci";
+    public static final String VOCABULARY_ID = "vocabulary_id_ci";
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
 
