@@ -22,10 +22,20 @@
 
 package com.odysseusinc.athena.service;
 
+import com.odysseusinc.athena.api.v1.controller.dto.DownloadHistoryDTO;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.time.LocalDateTime;
+import java.util.Collection;
 
 
 public interface DownloadsHistoryService {
 
     void updateStatistics(DownloadBundle bundle, Long userId);
+
+    Collection<DownloadHistoryDTO> retrieveStatistics(LocalDateTime from, LocalDateTime to, Boolean licensedOnly, String[] keywords);
+
+    void generateCSV(Collection<DownloadHistoryDTO> records, OutputStream osw) throws IOException;
 }

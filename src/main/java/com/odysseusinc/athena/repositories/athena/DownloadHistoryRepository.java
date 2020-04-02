@@ -26,6 +26,12 @@ import com.odysseusinc.athena.model.athena.DownloadHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.stream.Stream;
+
 @Repository
 public interface DownloadHistoryRepository extends JpaRepository<DownloadHistory, Long> {
+
+    Stream<DownloadHistory> findByDownloadTimeBetweenOrderByDownloadTimeAsc(LocalDateTime from, LocalDateTime to);
+
 }

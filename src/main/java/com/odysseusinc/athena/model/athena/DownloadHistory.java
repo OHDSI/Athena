@@ -31,7 +31,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
@@ -47,7 +47,7 @@ public class DownloadHistory {
     @Column(name = "user_id")
     private Long userId;
     @Column(name = "download_time")
-    private Date downloadTime;
+    private LocalDateTime downloadTime;
 
     public Long getId() {
         return id;
@@ -73,11 +73,11 @@ public class DownloadHistory {
         this.userId = userId;
     }
 
-    public Date getDownloadTime() {
+    public LocalDateTime getDownloadTime() {
         return downloadTime;
     }
 
-    public void setDownloadTime(Date downloadTime) {
+    public void setDownloadTime(LocalDateTime downloadTime) {
         this.downloadTime = downloadTime;
     }
 
