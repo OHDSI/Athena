@@ -48,7 +48,7 @@ public class ConceptSearchDTOToSolrQuery {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConceptSearchDTOToSolrQuery.class);
 
-    private static final String ID = "id";
+    private static final String CONCEPT_ID = "concept_id";
     private static final String CLASS_ID = "concept_class_id";
     private static final String DOMAIN_ID = "domain_id";
     public static final String VOCABULARY_ID = "vocabulary_id";
@@ -193,7 +193,7 @@ public class ConceptSearchDTOToSolrQuery {
         //quotation marks are for correct url query in case of compound vocabulary name
         List<String> ids = getWrappedInQuotationMarksUnavailableVocabularyIds();
         SolrQuery result = baseQuery(source, ids);
-        result.setSort(ID, SolrQuery.ORDER.asc);
+        result.setSort(CONCEPT_ID, SolrQuery.ORDER.asc);
         result.setStart(0);
         result.setRows(limitChecker.getMaxLimitPageSize());
         return result;
