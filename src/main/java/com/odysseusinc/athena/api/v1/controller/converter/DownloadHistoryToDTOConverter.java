@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 public class DownloadHistoryToDTOConverter implements Converter<DownloadHistory, DownloadHistoryDTO> {
 
     private final UserService userService;
+
     @Autowired
     public DownloadHistoryToDTOConverter(GenericConversionService conversionService, UserService userService) {
 
@@ -48,7 +49,7 @@ public class DownloadHistoryToDTOConverter implements Converter<DownloadHistory,
 
         final AthenaUser athenaUser = userService.get(downloadHistory.getUserId());
         DownloadHistoryDTO dto = new DownloadHistoryDTO();
-        dto.setUserName(athenaUser.getFirstName()+", "+athenaUser.getLastName());
+        dto.setUserName(String.format("%s %s", athenaUser.getFirstName(), athenaUser.getLastName()));
         dto.setVocabularyName(downloadHistory.getVocabularyBundle().getName());
         return dto;
     }
