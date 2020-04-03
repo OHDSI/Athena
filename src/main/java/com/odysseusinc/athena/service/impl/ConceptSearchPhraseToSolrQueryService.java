@@ -65,6 +65,7 @@ public class ConceptSearchPhraseToSolrQueryService {
 
     private String createAsteriskSolrQueryString(String query, QueryBoosts queryBoosts) {
 
+        query = query.replaceAll("\\s+", " ");
         List<String> allTerms = Arrays.asList(query.split(" "));
         List<String> termsWithAsterisk = allTerms.stream()
                 .filter(t -> t.contains("*"))
