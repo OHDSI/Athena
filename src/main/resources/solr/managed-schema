@@ -148,10 +148,13 @@
     <copyField source="concept_name" dest="concept_name_text"/>
     <copyField source="concept_class_id" dest="query"/>
     <copyField source="concept_class_id" dest="query_wo_symbols"/>
+    <copyField source="concept_class_id" dest="concept_class_id_ci"/>
     <copyField source="domain_id" dest="query"/>
     <copyField source="domain_id" dest="query_wo_symbols"/>
+    <copyField source="domain_id" dest="domain_id_ci"/>
     <copyField source="vocabulary_id" dest="query"/>
     <copyField source="vocabulary_id" dest="query_wo_symbols"/>
+    <copyField source="vocabulary_id" dest="vocabulary_id_ci"/>
     <copyField source="standard_concept" dest="query"/>
     <copyField source="standard_concept" dest="query_wo_symbols"/>
     <copyField source="invalid_reason" dest="query"/>
@@ -159,12 +162,15 @@
     <copyField source="concept_synonym_name" dest="query"/>
     <copyField source="concept_synonym_name" dest="query_wo_symbols"/>
 
-    <field name="query" type="text_general" multiValued="true" indexed="true" stored="true" />
+    <field name="query" type="text_general" multiValued="true" indexed="true" stored="true"/>
     <field name="query_wo_symbols" type="text_wo_symbols" multiValued="true" indexed="true" stored="true"/>
     <field name="concept_name_ci" type="string_case_insensitive" indexed="true" stored="true"/>
     <field name="concept_name_text" type="text_general" indexed="true" stored="true"/>
     <field name="concept_code_ci" type="string_case_insensitive" indexed="true" stored="true"/>
     <field name="concept_code_text" type="text_general" indexed="true" stored="true"/>
+    <field name="concept_class_id_ci" type="string_case_insensitive" indexed="true" stored="true"/>
+    <field name="domain_id_ci" type="string_case_insensitive" indexed="true" stored="true"/>
+    <field name="vocabulary_id_ci" type="string_case_insensitive" indexed="true" stored="true"/>
 
 
     <!-- Dynamic field definitions allow using convention over configuration
@@ -172,9 +178,9 @@
        EXAMPLE:  name="*_i" will match any field ending in _i (like myid_i, z_i)
        RESTRICTION: the glob-like pattern in the name attribute must have a "*" only at the start or the end.  -->
 
-    <dynamicField name="*_i"  type="pint"    indexed="true"  stored="true"/>
-    <dynamicField name="*_is" type="pints"    indexed="true"  stored="true"/>
-    <dynamicField name="*_s"  type="string"  indexed="true"  stored="true" />
+    <dynamicField name="*_i" type="pint" indexed="true" stored="true"/>
+    <dynamicField name="*_is" type="pints" indexed="true" stored="true"/>
+    <dynamicField name="*_s" type="string" indexed="true" stored="true"/>
     <dynamicField name="*_ss" type="strings"  indexed="true"  stored="true"/>
     <dynamicField name="*_l"  type="plong"   indexed="true"  stored="true"/>
     <dynamicField name="*_ls" type="plongs"   indexed="true"  stored="true"/>
