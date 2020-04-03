@@ -1,17 +1,23 @@
 package com.odysseusinc.athena.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Sets;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
 
@@ -39,27 +45,76 @@ public class ConceptSearchPhraseToSolrQueryService {
     public static final String QUERY_WO_SYMBOLS = "query_wo_symbols";
 
 
-    public String createSolrQueryString(ConceptSearchDTO source) {
+    public String createQuery(ConceptSearchDTO source) {
 
+        String query = source.getQuery();
         QueryBoosts queryBoosts = getQueryBoosts(source.getBoosts());
 
-
-        if (source.getQuery() == null || StringUtils.isEmpty(source.getQuery())) {
+        if (query == null || StringUtils.isEmpty(query)) {
             return "*:*";
         }
-        String phraseForQuery = source.getQuery()
+        query = query
                 .trim()
                 .replace("\\\"", "\""); //remove escaping quotes
+        if (query.contains("*")) {
+            return createAsteriskSolrQueryString(query, queryBoosts);
+        } else {
+            return createSolrQueryString(source, queryBoosts);
+        }
+    }
 
-        List<String> exactTerms = findExactTerms(phraseForQuery);
-        List<String> notExactTerms = findNotExactTerms(phraseForQuery);
+    private String createAsteriskSolrQueryString(String query, QueryBoosts queryBoosts) {
+
+        List<String> allTerms = Arrays.asList(query.split(" "));
+        List<String> termsWithAsterisk = allTerms.stream()
+                .filter(t -> t.contains("*"))
+                .map(t -> t.substring(0, t.indexOf("*") + 1))
+                .collect(Collectors.toList());
+
+        Collection<List<String>> asteriskTermsCombinations = Collections2.permutations(termsWithAsterisk);
+        String asteriskQuery = "(" +
+                asteriskTermsCombinations.stream()
+                        .map(s -> String.join("\\ ", s))
+                        .map(term -> getQueryForExactPhrase(term, queryBoosts))
+                        .collect(Collectors.joining(" OR "))
+                + ")";
+
+        List<String> otherTerms = ListUtils.subtract(allTerms, termsWithAsterisk);
+        Set<Set<String>> otherTermsCombinations = new HashSet<>();
+        for (int i = 1; i <= otherTerms.size(); i++) {
+            otherTermsCombinations.addAll(Sets.combinations(new HashSet<>(otherTerms), i));
+        }
+        String otherTermsQuery = otherTermsCombinations.stream()
+                .map(t -> {
+                    String otherTermsQueryPart = t.stream()
+                            .map(e -> {
+                                if (e.startsWith("\"") && e.endsWith("\"")) {
+                                    e = e.substring(1, e.length() - 1);
+                                    return "(" + getQueryForExactTerm(e, queryBoosts) + ")";
+                                }
+                                return "(" + getQueryForNotExactTerm(e, queryBoosts) + ")";
+                            })
+                            .collect(Collectors.joining(" AND "));
+
+                    return "(" + asteriskQuery + " AND (" + otherTermsQueryPart + "))";
+                })
+                .collect(Collectors.joining(" OR "));
+        return otherTermsQuery.isEmpty() ? asteriskQuery : asteriskQuery + " OR " + otherTermsQuery;
+    }
+
+    public String createSolrQueryString(ConceptSearchDTO source, QueryBoosts queryBoosts) {
+
+        String query = source.getQuery();
+
+        List<String> exactTerms = findExactTerms(query);
+        List<String> notExactTerms = findNotExactTerms(query);
 
         if (CollectionUtils.isEmpty(exactTerms) && CollectionUtils.isEmpty(notExactTerms)) {
             return "*:*";
         }
         return Stream.of(
-                getQueryToFindDocsWithWholePhrase(phraseForQuery,  queryBoosts),
-                getQueryToFindDocsWithAnyOfTermFromPhrase(exactTerms, notExactTerms,  queryBoosts)
+                getQueryToFindDocsWithWholePhrase(query, queryBoosts),
+                getQueryToFindDocsWithAnyOfTermFromPhrase(exactTerms, notExactTerms, queryBoosts)
         )
                 .filter(StringUtils::isNotEmpty)
                 .map(queryPart -> String.format("(%s)", queryPart))
@@ -71,7 +126,6 @@ public class ConceptSearchPhraseToSolrQueryService {
         if (StringUtils.isEmpty(boostJson)) {
             return new QueryBoosts();
         }
-
         try {
             ObjectMapper mapper = new ObjectMapper();
             return mapper.readValue(boostJson, QueryBoosts.class);
@@ -81,10 +135,10 @@ public class ConceptSearchPhraseToSolrQueryService {
     }
 
     private String getQueryToFindDocsWithWholePhrase(String phraseForQuery, QueryBoosts queryBoosts) {
+
         if (StringUtils.isEmpty(phraseForQuery)) {
             return StringUtils.EMPTY;
         }
-
         String phraseWithoutQuotes = ClientUtils.escapeQueryChars(StringUtils.remove(phraseForQuery, "\""));
         return getQueryForExactPhrase(phraseWithoutQuotes, queryBoosts);
     }
@@ -120,7 +174,6 @@ public class ConceptSearchPhraseToSolrQueryService {
         if (StringUtils.isEmpty(phraseString)) {
             return Collections.emptyList();
         }
-
         return findAllMatches(phraseString, EXACT_TERM_REGEX).stream()
                 .map(term -> term.substring(1, term.length() - 1))
                 .filter(StringUtils::isNotEmpty)
@@ -134,8 +187,6 @@ public class ConceptSearchPhraseToSolrQueryService {
             return Collections.emptyList();
         }
         String stringWithoutExactTerms = phraseString.replaceAll(EXACT_TERM_REGEX, StringUtils.EMPTY);
-
-
         return Arrays.stream(stringWithoutExactTerms.split(WORD_DELIMITER_REGEX))
                 .filter(StringUtils::isNotEmpty)
                 .filter(term -> !SPEC_CHARS.contains(term))
@@ -158,6 +209,7 @@ public class ConceptSearchPhraseToSolrQueryService {
 
 
     private String getQueryForNotExactTerm(String term, QueryBoosts queryBoosts) {
+
         //0.7 - the required similarity of fuzzyness, see http://lucene.apache.org/core/3_6_0/queryparsersyntax.html#Fuzzy%20Searches
         QueryBoosts.NotExactTermBoosts boosts = queryBoosts.getNotExactTerm();
         return String.join(" OR ",

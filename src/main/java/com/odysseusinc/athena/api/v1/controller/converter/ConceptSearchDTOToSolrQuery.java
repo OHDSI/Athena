@@ -79,7 +79,7 @@ public class ConceptSearchDTOToSolrQuery {
 
     private void setQuery(ConceptSearchDTO source, SolrQuery result) {
 
-        String resultQuery = conceptSearchPhraseToSolrQueryService.createSolrQueryString(source);
+        String resultQuery = conceptSearchPhraseToSolrQueryService.createQuery(source);
 
         LOGGER.debug("Concept search query: {}", resultQuery);
 
