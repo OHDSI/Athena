@@ -59,12 +59,18 @@ public class StatisticsController {
     public Collection<DownloadHistoryDTO> getStatistics(@RequestParam(name = "from") String from,
                                                         @RequestParam("to") String to,
                                                         @RequestParam(name = "keywords", defaultValue = "", required = false) String keywords,
-                                                        @RequestParam(name = "licensedOnly", defaultValue = "false", required = false) Boolean licensedOnly) {
+                                                        @RequestParam(name = "licensedOnly", defaultValue = "false", required = false) Boolean licensedOnly,
+                                                        @RequestParam(name = "sortBy", defaultValue = "code", required = false) String sortBy,
+                                                        @RequestParam(name = "sortAsc", defaultValue = "true", required = false) Boolean sortAsc
 
-        return downloadsHistoryService.retrieveStatistics(parseDateParameter(from).atStartOfDay(),
+    ) {
+
+        final Collection<DownloadHistoryDTO> dtos = downloadsHistoryService.retrieveStatistics(parseDateParameter(from).atStartOfDay(),
                 parseDateParameter(to).plusDays(1).atStartOfDay(),
                 licensedOnly,
                 StringUtils.split(keywords.toLowerCase()));
+
+        return downloadsHistoryService.sort(dtos, sortBy, sortAsc);
     }
 
     @GetMapping("/csv")
@@ -72,6 +78,8 @@ public class StatisticsController {
                                  @RequestParam("to") String to,
                                  @RequestParam(name = "keywords", defaultValue = "", required = false) String keywords,
                                  @RequestParam(name = "licensedOnly", defaultValue = "false", required = false) Boolean licensedOnly,
+                                 @RequestParam(name = "sortBy", defaultValue = "code", required = false) String sortBy,
+                                 @RequestParam(name = "sortAsc", defaultValue = "true", required = false) Boolean sortAsc,
                                  HttpServletResponse response) throws IOException {
 
         response.setContentType("text/csv");
@@ -79,7 +87,7 @@ public class StatisticsController {
         response.setHeader("Content-Disposition", headerValue);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        final Collection<DownloadHistoryDTO> statistics = getStatistics(from, to, keywords, licensedOnly);
+        final Collection<DownloadHistoryDTO> statistics = getStatistics(from, to, keywords, licensedOnly, sortBy, sortAsc);
         downloadsHistoryService.generateCSV(statistics, response.getOutputStream());
         response.flushBuffer();
     }

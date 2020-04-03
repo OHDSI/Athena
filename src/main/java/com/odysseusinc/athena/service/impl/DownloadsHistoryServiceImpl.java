@@ -22,6 +22,7 @@
 
 package com.odysseusinc.athena.service.impl;
 
+import com.google.common.collect.Lists;
 import com.odysseusinc.athena.api.v1.controller.dto.DownloadHistoryDTO;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.DownloadHistory;
@@ -47,7 +48,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -67,19 +70,6 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
         this.userService = userService;
         this.separator = separator;
         this.fileHelper = fileHelper;
-    }
-
-    private static DownloadHistoryDTO createDto(VocabularyConversion vocabularyConversion, AthenaUser athenaUser, LocalDateTime downloadDate) {
-
-        final String userName = String.format("%s, %s", athenaUser.getFirstName(), athenaUser.getLastName());
-        DownloadHistoryDTO dto = new DownloadHistoryDTO();
-        dto.setOrganization(athenaUser.getOrganization());
-        dto.setUserName(userName);
-        dto.setOrganization(athenaUser.getOrganization());
-        dto.setCode(vocabularyConversion.getIdV5());
-        dto.setVocabularyName(vocabularyConversion.getName());
-        dto.setDate(downloadDate);
-        return dto;
     }
 
     @Override
@@ -120,6 +110,20 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
         }
     }
 
+    @Override
+    public Collection<DownloadHistoryDTO> sort(Collection<DownloadHistoryDTO> dtos, String sortBy, Boolean sortAsc) {
+
+        Comparator<DownloadHistoryDTO> comparator = pickComparator(sortBy);
+        final List<DownloadHistoryDTO> sortedDtos = dtos.stream()
+                .sorted(comparator)
+                .collect(Collectors.toList());
+
+        if (!sortAsc) {
+            return Lists.reverse(sortedDtos);
+        }
+        return sortedDtos;
+    }
+
     private void writeAll(CSVWriter csvWriter, Collection<DownloadHistoryDTO> records) throws IOException {
 
         DownloadHistoryExtractor extractor = new DownloadHistoryExtractor();
@@ -139,11 +143,6 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
                 .filter(vocabDto -> filterKeywords(vocabDto, keywords));
     }
 
-    private static boolean licenseOnly(DownloadItem vocab, boolean licensedOnly) {
-
-        return !licensedOnly || StringUtils.isNotBlank(vocab.getVocabularyConversion().getAvailable());
-    }
-
     private boolean filterKeywords(DownloadHistoryDTO vocabDto, String[] keywords) {
 
         if (keywords == null || keywords.length == 0) {
@@ -160,5 +159,40 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
 
         return !vocab.getVocabularyConversion().getOmopReqValue();
     }
+
+    private DownloadHistoryDTO createDto(VocabularyConversion vocabularyConversion, AthenaUser athenaUser, LocalDateTime downloadDate) {
+
+        final String userName = String.format("%s, %s", athenaUser.getFirstName(), athenaUser.getLastName());
+        DownloadHistoryDTO dto = new DownloadHistoryDTO();
+        dto.setOrganization(athenaUser.getOrganization());
+        dto.setUserName(userName);
+        dto.setOrganization(athenaUser.getOrganization());
+        dto.setCode(vocabularyConversion.getIdV5());
+        dto.setVocabularyName(vocabularyConversion.getName());
+        dto.setDate(downloadDate);
+        return dto;
+    }
+
+    private boolean licenseOnly(DownloadItem vocab, boolean licensedOnly) {
+
+        return !licensedOnly || StringUtils.isNotBlank(vocab.getVocabularyConversion().getAvailable());
+    }
+
+    private static Comparator<DownloadHistoryDTO> pickComparator(String sortBy) {
+
+        switch (sortBy) {
+            case "'vocabularyName":
+                return (a, b) -> Objects.compare(a.getVocabularyName(), b.getVocabularyName(), String::compareTo);
+            case "date":
+                return (a, b) -> Objects.compare(a.getDate(), b.getDate(), LocalDateTime::compareTo);
+            case "userName":
+                return (a, b) -> Objects.compare(a.getUserName(), b.getUserName(), String::compareTo);
+            case "organization":
+                return (a, b) -> Objects.compare(a.getOrganization(), b.getOrganization(), String::compareTo);
+            default:
+                return (a, b) -> Objects.compare(a.getCode(), b.getCode(), String::compareTo);
+        }
+    }
+
 
 }
