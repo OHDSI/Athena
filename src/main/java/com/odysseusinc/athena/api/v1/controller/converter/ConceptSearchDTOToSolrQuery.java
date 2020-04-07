@@ -22,6 +22,9 @@
 
 package com.odysseusinc.athena.api.v1.controller.converter;
 
+import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_CLASS_ID;
+import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_CODE;
+import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_NAME;
 import static org.apache.solr.common.params.CommonParams.FQ;
 import static org.hibernate.validator.internal.util.StringHelper.join;
 
@@ -29,6 +32,7 @@ import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
 import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -37,7 +41,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -45,7 +48,7 @@ public class ConceptSearchDTOToSolrQuery {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConceptSearchDTOToSolrQuery.class);
 
-    private static final String ID = "id";
+    private static final String CONCEPT_ID = "concept_id";
     private static final String CLASS_ID = "concept_class_id_ci";
     private static final String DOMAIN_ID = "domain_id_ci";
     public static final String VOCABULARY_ID = "vocabulary_id_ci";
@@ -58,15 +61,22 @@ public class ConceptSearchDTOToSolrQuery {
     private LimitChecker limitChecker;
     @Autowired
     private VocabularyConversionService vocabularyConversionService;
-
-    @Value("${solr.default.query.operator:AND}")
-    private String solrQueryOperator;
+    private static final String CASE_INSENSITIVE_SUFFIX = "_ci";
+    private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME, CONCEPT_CLASS_ID, DOMAIN_ID, VOCABULARY_ID);
 
     private void setSorting(ConceptSearchDTO source, SolrQuery result) {
 
         if (source.getSort() != null && source.getOrder() != null) {
-            result.setSort(source.getSort(), SolrQuery.ORDER.valueOf(source.getOrder()));
+            result.setSort(getSortFieldWithSuffix(source.getSort()), SolrQuery.ORDER.valueOf(source.getOrder()));
         }
+    }
+
+    private String getSortFieldWithSuffix(String field) {
+
+        if (CASE_INSENSITIVE_FIELDS.contains(field)) {
+            return field + CASE_INSENSITIVE_SUFFIX;
+        }
+        return field;
     }
 
     private void setPagination(ConceptSearchDTO source, SolrQuery result) {
@@ -183,7 +193,7 @@ public class ConceptSearchDTOToSolrQuery {
         //quotation marks are for correct url query in case of compound vocabulary name
         List<String> ids = getWrappedInQuotationMarksUnavailableVocabularyIds();
         SolrQuery result = baseQuery(source, ids);
-        result.setSort(ID, SolrQuery.ORDER.asc);
+        result.setSort(CONCEPT_ID, SolrQuery.ORDER.asc);
         result.setStart(0);
         result.setRows(limitChecker.getMaxLimitPageSize());
         return result;

@@ -117,7 +117,7 @@
     <field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>
 
 
-    <field name="concept_id" type="string" indexed="true" stored="true" omitNorms="true"/>
+    <field name="concept_id" type="plong" indexed="true" stored="true" omitNorms="true"/>
     <field name="concept_code" type="string" indexed="true" stored="true" omitNorms="true"/>
     <field name="concept_name" type="string" indexed="true" stored="true" omitNorms="true"/>
     <field name="concept_class_id_ci" type="string_case_insensitive" indexed="true" stored="true" omitNorms="true"/>
@@ -136,8 +136,8 @@
     <!-- <copyField source="*" dest="_text_"/> -->
 
 
-    <copyField source="id" dest="query"/>
-    <copyField source="id" dest="query_wo_symbols"/>
+    <copyField source="concept_id" dest="query"/>
+    <copyField source="concept_id" dest="query_wo_symbols"/>
     <copyField source="concept_code" dest="query"/>
     <copyField source="concept_code" dest="query_wo_symbols"/>
     <copyField source="concept_code" dest="concept_code_ci"/>

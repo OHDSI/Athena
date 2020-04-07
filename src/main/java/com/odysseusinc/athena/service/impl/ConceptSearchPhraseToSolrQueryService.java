@@ -27,7 +27,7 @@ public class ConceptSearchPhraseToSolrQueryService {
     public static final String WORD_DELIMITER_REGEX = "(\\s|\\/|\\?|!|,|;|\\.\\s|\\*)+";
     public static final List<String> SPEC_CHARS = Arrays.asList("\\", "+", "-", "!", "(", ")", ":", "^", "[", "]", "\"", "{", "}", "~", "*", "?", "|", "&", ";", "/");
 
-    public static final String ID = "id";
+    public static final String CONCEPT_ID = "concept_id";
     public static final String CONCEPT_NAME_CI = "concept_name_ci";
     public static final String CONCEPT_CODE_CI = "concept_code_ci";
     public static final String CONCEPT_CODE = "concept_code";
@@ -243,8 +243,7 @@ public class ConceptSearchPhraseToSolrQueryService {
         //and other words may surround our term. We need an exact match, so here components of "query" are listed. Their type is String in SOLR that
         //guarantees an exact match.
         QueryBoosts.PhraseBoosts query = queryBoosts.getPhrase();
-        return String.join(" OR ",
-                String.format("%s:%s^%s", ID, term, query.getId()),
+        String boostedQuery = String.join(" OR ",
                 String.format("%s:%s^%s", CONCEPT_CODE_CI, term, query.getConceptCodeCi()),
                 String.format("%s:%s^%s", CONCEPT_NAME_CI, term, query.getConceptNameCi()),
                 String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_CI, term, query.getConceptSynonymNameCi()),
@@ -254,6 +253,10 @@ public class ConceptSearchPhraseToSolrQueryService {
                 String.format("%s:%s^%s", CONCEPT_CLASS_ID_CI, term, query.getConceptClassIdCi()),
                 String.format("%s:%s^%s", DOMAIN_ID_CI, term, query.getDomainIdCi()),
                 String.format("%s:%s^%s", VOCABULARY_ID_CI, term, query.getVocabularyIdCi()));
+        if (StringUtils.isNumeric(term)) {
+            boostedQuery += " OR " + String.format("%s:%s^%s", CONCEPT_ID, term, query.getId());
+        }
+        return boostedQuery;
     }
 
 }
