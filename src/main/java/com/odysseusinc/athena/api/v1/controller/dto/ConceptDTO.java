@@ -26,7 +26,7 @@ import javax.validation.constraints.NotNull;
 
 public class ConceptDTO {
     @NotNull
-    private Long conceptId;
+    private Long id;
     private String code;
     private String name;
     private String className;
@@ -45,14 +45,14 @@ public class ConceptDTO {
         return new ConceptDTO().new ConceptDTOBuilder();
     }
 
-    public Long getConceptId() {
+    public Long getId() {
 
-        return conceptId;
+        return id;
     }
 
-    public void setConceptId(Long conceptId) {
+    public void setId(Long id) {
 
-        this.conceptId = conceptId;
+        this.id = id;
     }
 
     public String getCode() {
@@ -156,7 +156,7 @@ public class ConceptDTO {
 
         public ConceptDTOBuilder setId(Long id) {
 
-            ConceptDTO.this.conceptId = id;
+            ConceptDTO.this.id = id;
             return this;
         }
 

@@ -30,7 +30,7 @@ public class ConceptFieldsExtractor extends FieldsExtractor<ConceptDTO> {
 
     public String[] fields(ConceptDTO concept) {
 
-        return new String[]{getString(concept.getConceptId()),
+        return new String[]{getString(concept.getId()),
                 getString(concept.getCode()),
                 getString(concept.getName()),
                 getString(concept.getClassName()),
