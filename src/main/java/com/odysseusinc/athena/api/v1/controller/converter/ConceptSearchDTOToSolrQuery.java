@@ -22,7 +22,6 @@
 
 package com.odysseusinc.athena.api.v1.controller.converter;
 
-import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_CLASS_ID;
 import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_CODE;
 import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_NAME;
 import static org.apache.solr.common.params.CommonParams.FQ;
@@ -62,7 +61,7 @@ public class ConceptSearchDTOToSolrQuery {
     @Autowired
     private VocabularyConversionService vocabularyConversionService;
     private static final String CASE_INSENSITIVE_SUFFIX = "_ci";
-    private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME, CONCEPT_CLASS_ID, DOMAIN_ID, VOCABULARY_ID);
+    private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME, CLASS_ID, DOMAIN_ID, VOCABULARY_ID);
 
     private void setSorting(ConceptSearchDTO source, SolrQuery result) {
 

@@ -227,7 +227,7 @@ public class ConceptSearchPhraseToSolrQueryService {
 
         QueryBoosts.ExactTermBoosts boosts = queryBoosts.getExactTerm();
         return String.join(" OR ",
-                String.format("%s:%s^%s", ID, term, boosts.getId()),
+                String.format("%s:%s^%s", CONCEPT_ID, term, boosts.getConceptId()),
                 String.format("%s:%s^%s", CONCEPT_CODE, term, boosts.getConceptCode()),
                 String.format("%s:%s^%s", CONCEPT_NAME, term, boosts.getConceptName()),
                 String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, boosts.getConceptSynonymName()),
@@ -254,7 +254,7 @@ public class ConceptSearchPhraseToSolrQueryService {
                 String.format("%s:%s^%s", DOMAIN_ID_CI, term, query.getDomainIdCi()),
                 String.format("%s:%s^%s", VOCABULARY_ID_CI, term, query.getVocabularyIdCi()));
         if (StringUtils.isNumeric(term)) {
-            boostedQuery += " OR " + String.format("%s:%s^%s", CONCEPT_ID, term, query.getId());
+            boostedQuery += " OR " + String.format("%s:%s^%s", CONCEPT_ID, term, query.getConceptId());
         }
         return boostedQuery;
     }
