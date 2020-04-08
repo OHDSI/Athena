@@ -46,7 +46,7 @@ import static org.springframework.http.HttpStatus.OK;
 
 @Api
 @RestController
-@RequestMapping(value = "/api/v1/concepts")
+@RequestMapping("/api/v1/concepts")
 public class ConceptSearchController {
 
     private final LimitChecker checker;

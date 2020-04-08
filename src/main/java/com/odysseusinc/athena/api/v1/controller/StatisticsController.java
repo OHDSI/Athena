@@ -43,7 +43,7 @@ import static com.odysseusinc.athena.model.common.AthenaConstants.COMMON_DATE_FO
 
 @Api
 @RestController
-@RequestMapping(value = "/api/v1/statistics")
+@RequestMapping("/api/v1/statistics")
 public class StatisticsController {
 
     private final DownloadsHistoryService downloadsHistoryService;

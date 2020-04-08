@@ -46,7 +46,7 @@ import static java.lang.System.currentTimeMillis;
 
 @Api
 @RestController
-@RequestMapping(value = "/api/v1/vocabularies")
+@RequestMapping("/api/v1/vocabularies")
 public class DownloadsController {
 
     private final DownloadsHistoryService downloadsHistoryService;

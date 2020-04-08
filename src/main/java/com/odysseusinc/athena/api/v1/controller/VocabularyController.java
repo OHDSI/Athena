@@ -22,11 +22,6 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
-import static com.odysseusinc.athena.util.CDMVersion.getByValue;
-import static com.odysseusinc.athena.util.CDMVersion.notExist;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static org.apache.commons.lang.StringUtils.isEmpty;
-
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.CustomPageImpl;
 import com.odysseusinc.athena.api.v1.controller.dto.LicenseExceptionDTO;
@@ -63,13 +58,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -79,9 +75,14 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 
+import static com.odysseusinc.athena.util.CDMVersion.getByValue;
+import static com.odysseusinc.athena.util.CDMVersion.notExist;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+
 @Api
 @RestController
-@RequestMapping(value = "/api/v1/vocabularies")
+@RequestMapping("/api/v1/vocabularies")
 public class VocabularyController {
     private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyController.class);
 
@@ -105,14 +106,14 @@ public class VocabularyController {
     }
 
     @ApiOperation("Get vocabularies.")
-    @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.GET)
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<UserVocabularyDTO>> getAllForCurrentUser() {
 
         return ResponseEntity.ok(vocabularyService.getAllForCurrentUser());
     }
 
     @ApiOperation("Save vocabularies.")
-    @RequestMapping(value = "/save", method = RequestMethod.GET)
+    @GetMapping("/save")
     public void save(@RequestParam(value = "cdmVersion", defaultValue = "5") float version,
                      @RequestParam(value = "ids") List<Integer> idV4s,
                      @RequestParam(value = "name") String bundleName,
@@ -133,7 +134,7 @@ public class VocabularyController {
     }
 
     @ApiOperation("Get download history.")
-    @RequestMapping(value = "/downloads", method = RequestMethod.GET)
+    @GetMapping("/downloads")
     public List<DownloadBundleDTO> getDownloadHistory(Principal principal)
             throws PermissionDeniedException {
 
@@ -160,7 +161,7 @@ public class VocabularyController {
     }
 
     @ApiOperation("Archive download history item.")
-    @RequestMapping(value = "/downloads/{id}", method = RequestMethod.DELETE)
+    @DeleteMapping("/downloads/{id}")
     public ResponseEntity<Boolean> archive(@PathVariable("id") Long bundleId, Principal principal)
             throws NotExistException, PermissionDeniedException {
 
@@ -173,7 +174,7 @@ public class VocabularyController {
     }
 
     @ApiOperation("Restore download history item.")
-    @RequestMapping(value = "/restore/{id}", method = RequestMethod.PUT)
+    @PutMapping("/restore/{id}")
     public ResponseEntity restore(@PathVariable("id") Long bundleId)
             throws PermissionDeniedException {
 
@@ -183,7 +184,7 @@ public class VocabularyController {
     }
 
     @ApiOperation("Check bundle.")
-    @RequestMapping(value = "/check/{id}", method = RequestMethod.GET)
+    @GetMapping("/check/{id}")
     public LicenseExceptionDTO checkBundle(@PathVariable("id") Long bundleId)
             throws PermissionDeniedException {
 
@@ -195,7 +196,7 @@ public class VocabularyController {
 
     @Secured("ROLE_ADMIN")
     @ApiOperation("Get users' licenses.")
-    @RequestMapping(value = "licenses", method = RequestMethod.GET)
+    @GetMapping("licenses")
     public Page<UserLicensesDTO> getLicenses(
             @ModelAttribute PageDTO pageDTO, @RequestParam(name = "queryUser", defaultValue = "") String query,
             @RequestParam(name = "pendingOnly", defaultValue = "false") Boolean pendingOnly) {
@@ -209,7 +210,7 @@ public class VocabularyController {
 
     @Secured("ROLE_ADMIN")
     @ApiOperation("Suggest licenses.")
-    @RequestMapping(value = "licenses/suggest", method = RequestMethod.GET)
+    @GetMapping("licenses/suggest")
     public List<VocabularyDTO> suggestLicenses(@RequestParam("userId") Long userId) {
         //PENDING licenses are added -> do not need to suggest
         final List<VocabularyDTO> vocabularies = vocabularyConversionService.getUnavailableVocabularies(userId, true);
@@ -218,7 +219,7 @@ public class VocabularyController {
 
     @Secured("ROLE_ADMIN")
     @ApiOperation("Add user's licenses.")
-    @RequestMapping(value = "licenses", method = RequestMethod.POST)
+    @PostMapping("licenses")
     public ResponseEntity saveLicenses(@RequestBody @Valid AddingUserLicensesDTO dto) {
 
         final AthenaUser user = userService.get(dto.getUserId());
@@ -228,7 +229,7 @@ public class VocabularyController {
 
     @Secured("ROLE_ADMIN")
     @ApiOperation("Remove user's licenses.")
-    @RequestMapping(value = "licenses/{id}", method = RequestMethod.DELETE)
+    @DeleteMapping("licenses/{id}")
     public ResponseEntity removeLicenses(@PathVariable("id") Long licenseId) {
 
         vocabularyService.deleteLicense(licenseId);
@@ -236,7 +237,7 @@ public class VocabularyController {
     }
 
     @ApiOperation("Request user's license.")
-    @RequestMapping(value = "licenses/request", method = RequestMethod.POST)
+    @PostMapping("licenses/request")
     public ResponseEntity requestLicense(Principal principal, @Valid @RequestBody LicenseRequestDTO dto)
             throws PermissionDeniedException {
 
@@ -252,7 +253,7 @@ public class VocabularyController {
 
     @Secured("ROLE_ADMIN")
     @ApiOperation("Accept user's license.")
-    @RequestMapping(value = "licenses/accept", method = RequestMethod.POST)
+    @PostMapping("licenses/accept")
     public ResponseEntity acceptLicense(@Valid @RequestBody AcceptDTO acceptDTO)
             throws PermissionDeniedException {
 
@@ -262,7 +263,7 @@ public class VocabularyController {
     }
 
     @ApiOperation("Accept user's license via mail.")
-    @RequestMapping(value = "licenses/accept/mail", method = RequestMethod.GET)
+    @GetMapping("licenses/accept/mail")
     public void acceptLicenseViaMail(@RequestParam("id") Long id,
                                      @RequestParam("accepted") Boolean accepted,
                                      @RequestParam("token") String token,
@@ -283,7 +284,7 @@ public class VocabularyController {
         }
     }
 
-    @GetMapping(value = "/release-version")
+    @GetMapping("/release-version")
     public VocabularyVersionDTO releaseVersion() {
 
         String vocabularyVersion = vocabularyService.getOMOPVocabularyVersion();
