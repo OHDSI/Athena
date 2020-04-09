@@ -226,8 +226,7 @@ public class ConceptSearchPhraseToSolrQueryService {
     private String getQueryForExactTerm(String term, QueryBoosts queryBoosts) {
 
         QueryBoosts.ExactTermBoosts boosts = queryBoosts.getExactTerm();
-        return String.join(" OR ",
-                String.format("%s:%s^%s", CONCEPT_ID, term, boosts.getConceptId()),
+        String boostedQuery = String.join(" OR ",
                 String.format("%s:%s^%s", CONCEPT_CODE, term, boosts.getConceptCode()),
                 String.format("%s:%s^%s", CONCEPT_NAME, term, boosts.getConceptName()),
                 String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, boosts.getConceptSynonymName()),
@@ -235,6 +234,10 @@ public class ConceptSearchPhraseToSolrQueryService {
                 String.format("%s:%s^%s", CONCEPT_NAME_CI, term, boosts.getConceptNameCi()),
                 String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_CI, term, boosts.getConceptSynonymNameCi()),
                 String.format("%s:%s^%s", QUERY_SYMBOLS, term, boosts.getQuerySymbols()));
+        if (StringUtils.isNumeric(term)) {
+            boostedQuery += " OR " + String.format("%s:%s^%s", CONCEPT_ID, term, boosts.getConceptId());
+        }
+        return boostedQuery;
     }
 
 
@@ -242,19 +245,19 @@ public class ConceptSearchPhraseToSolrQueryService {
         //field "query" is specified in SOLR's managed-schema. It's type is "general text" which means that filters and tokenizers are applied to it
         //and other words may surround our term. We need an exact match, so here components of "query" are listed. Their type is String in SOLR that
         //guarantees an exact match.
-        QueryBoosts.PhraseBoosts query = queryBoosts.getPhrase();
+        QueryBoosts.PhraseBoosts boosts = queryBoosts.getPhrase();
         String boostedQuery = String.join(" OR ",
-                String.format("%s:%s^%s", CONCEPT_CODE_CI, term, query.getConceptCodeCi()),
-                String.format("%s:%s^%s", CONCEPT_NAME_CI, term, query.getConceptNameCi()),
-                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_CI, term, query.getConceptSynonymNameCi()),
-                String.format("%s:%s^%s", CONCEPT_CODE, term, query.getConceptCode()),
-                String.format("%s:%s^%s", CONCEPT_NAME, term, query.getConceptName()),
-                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, query.getConceptSynonymName()),
-                String.format("%s:%s^%s", CONCEPT_CLASS_ID_CI, term, query.getConceptClassIdCi()),
-                String.format("%s:%s^%s", DOMAIN_ID_CI, term, query.getDomainIdCi()),
-                String.format("%s:%s^%s", VOCABULARY_ID_CI, term, query.getVocabularyIdCi()));
+                String.format("%s:%s^%s", CONCEPT_CODE_CI, term, boosts.getConceptCodeCi()),
+                String.format("%s:%s^%s", CONCEPT_NAME_CI, term, boosts.getConceptNameCi()),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_CI, term, boosts.getConceptSynonymNameCi()),
+                String.format("%s:%s^%s", CONCEPT_CODE, term, boosts.getConceptCode()),
+                String.format("%s:%s^%s", CONCEPT_NAME, term, boosts.getConceptName()),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, boosts.getConceptSynonymName()),
+                String.format("%s:%s^%s", CONCEPT_CLASS_ID_CI, term, boosts.getConceptClassIdCi()),
+                String.format("%s:%s^%s", DOMAIN_ID_CI, term, boosts.getDomainIdCi()),
+                String.format("%s:%s^%s", VOCABULARY_ID_CI, term, boosts.getVocabularyIdCi()));
         if (StringUtils.isNumeric(term)) {
-            boostedQuery += " OR " + String.format("%s:%s^%s", CONCEPT_ID, term, query.getConceptId());
+            boostedQuery += " OR " + String.format("%s:%s^%s", CONCEPT_ID, term, boosts.getConceptId());
         }
         return boostedQuery;
     }

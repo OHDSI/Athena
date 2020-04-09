@@ -5,34 +5,34 @@ We use an object with boosts in order to configure the solr search query:
 ```json
 {
   "notExactTerm": {
-    "conceptCodeText": 100,
-    "conceptCodeTextFuzzy": 100,
-    "conceptNameText": 50,
-    "conceptNameTextFuzzy": 50,
-    "conceptSynonymNameText": 25,
-    "queryWoSymbols": 10
+    "conceptCodeText":100,
+    "conceptCodeTextFuzzy":100,
+    "conceptNameText":50,
+    "conceptNameTextFuzzy":50,
+    "conceptSynonymNameText":25,
+    "queryWoSymbols":10
   },
   "exactTerm": {
-    "id": 100000,
-    "conceptCode": 80000,
-    "conceptName": 60000,
-    "conceptSynonymName": 40000,
-    "conceptCodeCi": 10000,
-    "conceptNameCi": 1000,
-    "conceptSynonymNameCi": 500,
-    "querySymbols": 1
+    "conceptId":100000,
+    "conceptCode":80000,
+    "conceptName":60000,
+    "conceptSynonymName":40000,
+    "conceptCodeCi":10000,
+    "conceptNameCi":1000,
+    "conceptSynonymNameCi":500,
+    "querySymbols":1
   },
   "phrase": {
-    "id": 100000,
-    "conceptCodeCi": 80000,
-    "conceptNameCi": 60000,
-    "conceptSynonymNameCi": 40000,
-    "conceptCode": 10000,
-    "conceptName": 1000,
-    "conceptSynonymName": 500,
-    "conceptClassIdCi": 100,
-    "domainIdCi": 100,
-    "vocabularyIdCi": 100
+    "conceptId":100000,
+    "conceptCodeCi":80000,
+    "conceptNameCi":60000,
+    "conceptSynonymNameCi":40000,
+    "conceptCode":10000,
+    "conceptName":1000,
+    "conceptSynonymName":500,
+    "conceptClassIdCi":100,
+    "domainIdCi":100,
+    "vocabularyIdCi":100
   }
 }
 ```
@@ -42,7 +42,6 @@ examples of generated solr queries:
 **query string** : aspirin
 ```sql
 ( --phrase
-  id:aspirin^100000 OR
   concept_code_ci:aspirin^80000 OR
   concept_name_ci:aspirin^60000 OR
   concept_synonym_name_ci:aspirin^40000 OR
@@ -68,7 +67,6 @@ examples of generated solr queries:
 **query string**: "aspirin"
 ```sql
 ( --phrase
-  id:aspirin^100000 OR
   concept_code_ci:aspirin^80000 OR
   concept_name_ci:aspirin^60000 OR
   concept_synonym_name_ci:aspirin^40000 OR
@@ -81,7 +79,6 @@ examples of generated solr queries:
 ) OR
 (
   ( -- exactTerm
-    id:aspirin^100000 OR
     concept_code:aspirin^80000 OR
     concept_name:aspirin^60000 OR
     concept_synonym_name:aspirin^40000 OR
@@ -92,11 +89,37 @@ examples of generated solr queries:
   )
 )
 ```
+**query string**: "45957786" (in case we are searching an exact number the field 'concept_id' is added)
+```sql
+( --phrase
+  concept_code_ci:45957786^80000 OR
+  concept_name_ci:45957786^60000 OR
+  concept_synonym_name_ci:45957786^40000 OR
+  concept_code:45957786^10000 OR
+  concept_name:45957786^1000 OR
+  concept_synonym_name:45957786^500 OR
+  concept_class_id_ci:45957786^100 OR
+  domain_id_ci:45957786^100 OR
+  vocabulary_id_ci:45957786^100 OR
+  concept_id:45957786^100000
+) OR
+(
+  ( -- exactTerm
+    concept_code:45957786^80000 OR
+    concept_name:45957786^60000 OR
+    concept_synonym_name:45957786^40000 OR
+    concept_code_ci:45957786^10000 OR
+    concept_name_ci:45957786^1000 OR
+    concept_synonym_name_ci:45957786^500 OR
+    query:45957786^1 OR
+    concept_id:45957786^100000
+  )
+)
+```
 
 **query string**: aspirin paracetamol
 ```sql
 ( --phrase
-  id:aspirin\ paracetamol^100000 OR
   concept_code_ci:aspirin\ paracetamol^80000 OR
   concept_name_ci:aspirin\ paracetamol^60000 OR
   concept_synonym_name_ci:aspirin\ paracetamol^40000 OR
@@ -129,7 +152,6 @@ examples of generated solr queries:
 **query string**: aspirin "paracetamol"
 ```sql
 ( --phrase
-  id:aspirin\ paracetamol^100000 OR
   concept_code_ci:aspirin\ paracetamol^80000 OR
   concept_name_ci:aspirin\ paracetamol^60000 OR
   concept_synonym_name_ci:aspirin\ paracetamol^40000 OR
@@ -143,7 +165,6 @@ examples of generated solr queries:
 (
   (
     ( -- exactTerm
-      id:paracetamol^100000 OR
       concept_code:paracetamol^80000 OR
       concept_name:paracetamol^60000 OR
       concept_synonym_name:paracetamol^40000 OR
@@ -156,7 +177,6 @@ examples of generated solr queries:
   (
     (
       ( -- exactTerm
-        id:paracetamol^100000 OR
         concept_code:paracetamol^80000 OR
         concept_name:paracetamol^60000 OR
         concept_synonym_name:paracetamol^40000 OR
