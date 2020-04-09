@@ -1,7 +1,7 @@
 # 0 Customize query
 
-## Boosts object
 
+## Activate customizing  query mode
 You can activate this  mode by adding `debug=true` params in url
 https://qaathena.odysseusinc.com/search-terms/terms&debug=true
 
@@ -10,7 +10,7 @@ https://qaathena.odysseusinc.com/search-terms/terms&debug=true
 * the generated solr requests and score calculation information will be printed to the browser console (to see it, open developer tools by F12). if the  solr-request/score has not changed then this info will not be printed
 
 
-
+## Boosts object
 We use an object with boosts in order to configure the solr search query:
 ```json
 {
