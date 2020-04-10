@@ -1,9 +1,9 @@
 # 0 Customize query
 
 
-## Activate customizing  query mode
+## Activate customizing search query mode
 You can activate this  mode by adding `debug=true` params in url
-https://qaathena.odysseusinc.com/search-terms/terms&debug=true
+https://qaathena.odysseusinc.com/search-terms/terms?debug=true
 
 * the text input field for the boost object will appear below the search input
 * the score column will be appear
