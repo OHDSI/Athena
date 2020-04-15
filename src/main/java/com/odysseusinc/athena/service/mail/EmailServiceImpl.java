@@ -30,6 +30,7 @@ import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.service.impl.UserService;
 import com.odysseusinc.athena.util.CDMVersion;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,17 +42,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
-@Transactional
+@Transactional(readOnly = true)
 @Service
 public class EmailServiceImpl implements EmailService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     private final EmailSenderService emailSenderService;
+    private final MailContentBuilder contentBuilder;
     private final UrlBuilder urlBuilder;
     private final UserService userService;
 
@@ -62,9 +66,10 @@ public class EmailServiceImpl implements EmailService {
     @Value("${vocabularies.download.umls.url}")
     private String umlsUrl;
 
-    public EmailServiceImpl(EmailSenderService emailSenderService, UrlBuilder urlBuilder, UserService userService) {
+    public EmailServiceImpl(EmailSenderService emailSenderService, MailContentBuilder contentBuilder, UrlBuilder urlBuilder, UserService userService) {
 
         this.emailSenderService = emailSenderService;
+        this.contentBuilder = contentBuilder;
         this.urlBuilder = urlBuilder;
         this.userService = userService;
     }
@@ -74,52 +79,35 @@ public class EmailServiceImpl implements EmailService {
 
         final Map<String, String> vocabularyDetails = new HashMap<>();
         updatedVocabularies.forEach(v -> vocabularyDetails.put(v.getVocabularyCode(), v.getVocabularyConversion().getName()));
-
-        emailSenderService.send(EmailType.VOCABULARIES_UPDATE_NOTIFICATION, ImmutableMap.of("UPDATED_VOCABULARIES", vocabularyDetails), user.getEmail());
+        send(EmailType.VOCABULARIES_UPDATE_NOTIFICATION, ImmutableMap.of("UPDATED_VOCABULARIES", vocabularyDetails), asList(user.getEmail()), emptyList(), emptyList());
     }
+
 
     @Override
     public void sendVocabularyDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion, String bundleName, Map<String, String> requestedVocabularies) {
 
-        try {
-            emailSenderService.send(EmailType.VOCABULARIES_LINK, buildParameters(url, version, vocabularyReleaseVersion, bundleName, requestedVocabularies), user.getEmail());
-            LOGGER.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]",
-                    user.getId(), url);
-
-        } catch (Exception ex) {
-            emailSenderService.send(EmailType.FAILED_SENDING_TO_ADMIN, getParameters(ex), getAdminEmails());
-        }
+        send(EmailType.VOCABULARIES_LINK, buildParameters(url, version, vocabularyReleaseVersion, bundleName, requestedVocabularies), asList(user.getEmail()), emptyList(), getAdminEmails());
+        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", user.getId(), url);
     }
 
     @Override
     public void sendFailedSaving(AthenaUser user) {
 
-        emailSenderService.send(EmailType.FAILED_SAVING, Collections.emptyMap(), user.getEmail());
+        send(EmailType.FAILED_SAVING, Collections.emptyMap(), asList(user.getEmail()), emptyList(), emptyList());
     }
 
     @Override
     public void sendLicenseRequestToAdmins(License license) {
 
         final Map<String, Object> licenceRequestEmailParameters = getParameters(license);
-
-        try {
-            emailSenderService.send(EmailType.LICENSE_REQUEST, licenceRequestEmailParameters, getAdminEmails());
-        } catch (Exception ex) {
-            emailSenderService.send(EmailType.FAILED_SENDING_TO_ADMIN, getParameters(ex), getAdminEmails());
-        }
+        send(EmailType.LICENSE_REQUEST, licenceRequestEmailParameters, getAdminEmails(), emptyList(), getAdminEmails());
     }
 
     @Override
     public void sendLicenseAcceptance(AthenaUser user, boolean accepted, String vocabularyName) {
 
-        try {
-            emailSenderService.send(EmailType.LICENSE_ACCEPTANCE, getParameters(accepted, vocabularyName), asList(user.getEmail()), asList(getAdminEmails()));
-            LOGGER.info("Notification with acceptance solution [{}] is sent to user with id: [{}]",
-                    accepted, user.getId());
-
-        } catch (Exception ex) {
-            emailSenderService.send(EmailType.FAILED_SENDING_TO_ADMIN, getParameters(ex), getAdminEmails());
-        }
+        send(EmailType.LICENSE_ACCEPTANCE, getParameters(accepted, vocabularyName), asList(user.getEmail()), getAdminEmails(), getAdminEmails());
+        log.info("Notification with acceptance solution [{}] is sent to user with id: [{}]", accepted, user.getId());
     }
 
     @Override
@@ -128,19 +116,32 @@ public class EmailServiceImpl implements EmailService {
         final String bundleUrl = urlBuilder.downloadVocabulariesLink(bundle.getUuid());
         final Map<String, Object> emailParameters = getParameters(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(), bundle.getReleaseVersion());
 
-        try {
-            emailSenderService.send(EmailType.VOCABULARIES_SHARED_DOWNLOAD, emailParameters, recipient.getEmail());
-            LOGGER.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]",
-                    recipient.getId(), bundleUrl);
-        } catch (Exception ex) {
-            emailSenderService.send(EmailType.FAILED_SENDING_TO_ADMIN, getParameters(ex), getAdminEmails());
-        }
+        send(EmailType.VOCABULARIES_SHARED_DOWNLOAD, emailParameters, asList(recipient.getEmail()), emptyList(), getAdminEmails());
+        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", recipient.getId(), bundleUrl);
     }
 
-    private String[] getAdminEmails() {
+    private void send(EmailType messageType, Map<String, Object> parameters, List<String> to, List<String> bcc, List<String> notifyOnFailureEmails) {
+
+        log.debug("Sending {} to {}", messageType, to);
+        final String emailBody = contentBuilder.build(messageType.getTemplate(), parameters);
+        emailSenderService.sendAsync(messageType.getSubject(), emailBody, to, bcc)
+                .exceptionally(ex -> handleError(ex, messageType, emailBody, to, notifyOnFailureEmails));
+    }
+
+    private Void handleError(Throwable ex, EmailType messageType, String emailBody, List<String> to, List<String> notifyOnFailureEmails) {
+
+        log.error("Failed email {} \n\n\n{}\n\n\n, to: {}", messageType, emailBody, to, ex);
+        if (CollectionUtils.isNotEmpty(notifyOnFailureEmails)) {
+            final Map<String, Object> parameters = ImmutableMap.of("exception", ex.getCause());
+            send(EmailType.FAILED_SENDING_TO_ADMIN, parameters, emptyList(), notifyOnFailureEmails, emptyList());
+        }
+        return null;
+    }
+
+    private List<String> getAdminEmails() {
 
         return userService.getAdmins().stream()
-                .map(AthenaUser::getEmail).toArray(size -> new String[size]);
+                .map(AthenaUser::getEmail).collect(Collectors.toList());
     }
 
     private Map<String, Object> buildParameters(String url, CDMVersion version, String vocabularyReleaseVersion, String bundleName, Map<String, String> requestedVocabularies) {
@@ -169,13 +170,6 @@ public class EmailServiceImpl implements EmailService {
         parameters.put("downloadVocabulariesPageUrl", urlBuilder.downloadVocabulariesPageUrl());
         parameters.put("accepted", accepted);
         parameters.put("vocabularyName", vocabularyName);
-        return parameters;
-    }
-
-    private Map<String, Object> getParameters(Exception exception) {
-
-        final Map<String, Object> parameters = new HashMap<>();
-        parameters.put("exception", exception.toString());
         return parameters;
     }
 
