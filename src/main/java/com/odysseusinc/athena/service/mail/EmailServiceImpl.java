@@ -132,7 +132,7 @@ public class EmailServiceImpl implements EmailService {
 
         log.error("Failed email {} \n\n\n{}\n\n\n, to: {}", messageType, emailBody, to, ex);
         if (CollectionUtils.isNotEmpty(notifyOnFailureEmails)) {
-            final Map<String, Object> parameters = ImmutableMap.of("exception", ex.getCause());
+            final Map<String, Object> parameters = Collections.singletonMap("exception", ex.getCause());
             send(EmailType.FAILED_SENDING_TO_ADMIN, parameters, emptyList(), notifyOnFailureEmails, emptyList());
         }
         return null;
