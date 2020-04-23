@@ -16,5 +16,4 @@ public class AthenaConstants {
 
     public static final DateTimeFormatter COMMON_DATE_FORMATTER = DateTimeFormatter.ofPattern(COMMON_DATE_FORMAT);
 
-    public static final String DOMAIN_FACET_KEY ="domain_id";
 }
