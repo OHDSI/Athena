@@ -106,6 +106,13 @@ public class ConceptV5ToConceptDetailDTOConverter implements Converter<ConceptV5
         if (StringUtils.isBlank(invalidReason)) {
             return "Valid";
         }
-        return String.format("Invalid (%s)", invalidReason);
+        switch (invalidReason){
+            case "U":
+                return "Upgraded";
+            case "D":
+                return "Deleted";
+            default:
+                return String.format("Invalid (%s)", invalidReason);
+        }
     }
 }

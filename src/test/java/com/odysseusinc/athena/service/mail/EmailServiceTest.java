@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +38,7 @@ public class EmailServiceTest {
     private AthenaUser athenaUser;
     @Mock
     private AthenaUser athenaAdmin;
+    private EmailRecipients recipients;
 
     @InjectMocks
     private EmailServiceImpl emailService;
@@ -54,15 +56,16 @@ public class EmailServiceTest {
 
         when(userService.getAdmins()).thenReturn(Arrays.asList(athenaAdmin));
 
+        recipients = EmailRecipients.builder().to(asList(TEST_EMAIL)).build();
     }
 
     @Test
     public void shouldSendVocabularyDownloadLink() {
-        when(emailSenderService.sendAsync(any(), any(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+        when(emailSenderService.sendAsync(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
         emailService.sendVocabularyDownloadLink(athenaUser, EMPTY, CDMVersion.V5, EMPTY, EMPTY, new HashMap<>());
 
-        verify(emailSenderService).sendAsync(EmailType.VOCABULARIES_LINK.getSubject(), EMPTY, Arrays.asList(TEST_EMAIL), Collections.emptyList());
+        verify(emailSenderService).sendAsync(EmailType.VOCABULARIES_LINK.getSubject(), EMPTY, recipients);
     }
 
 
@@ -72,12 +75,12 @@ public class EmailServiceTest {
         CompletableFuture<Void> failureAction = CompletableFuture.runAsync(() -> {
             throw new AthenaException();
         });
-        when(emailSenderService.sendAsync(any(), any(), any(), any())).thenReturn(failureAction);
+        when(emailSenderService.sendAsync(any(), any(), any())).thenReturn(failureAction);
 
         emailService.sendVocabularyDownloadLink(athenaUser, EMPTY, CDMVersion.V5, EMPTY, EMPTY, new HashMap<>());
 
-        verify(emailSenderService).sendAsync(EmailType.VOCABULARIES_LINK.getSubject(), EMPTY, Arrays.asList(TEST_EMAIL), Collections.emptyList());
-        verify(emailSenderService).sendAsync(EmailType.FAILED_SENDING_TO_ADMIN.getSubject(), EMPTY, Collections.emptyList(), Arrays.asList(TEST_ADMIN_EMAIL));
+        verify(emailSenderService).sendAsync(EmailType.VOCABULARIES_LINK.getSubject(), EMPTY, recipients);
+        verify(emailSenderService).sendAsync(EmailType.FAILED_SENDING_TO_ADMIN.getSubject(), EMPTY, EmailRecipients.builder().to(asList(TEST_ADMIN_EMAIL)).build());
     }
 
 }
