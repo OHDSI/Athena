@@ -29,19 +29,12 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class DownloadHistoryDTO {
-    private String vocabularyName;
     private String code;
+    private String email;
     private String userName;
     private String organization;
     private LocalDateTime date;
 
-    public String getVocabularyName() {
-        return vocabularyName;
-    }
-
-    public void setVocabularyName(String vocabularyName) {
-        this.vocabularyName = vocabularyName;
-    }
 
     public String getCode() {
         return code;
@@ -49,6 +42,14 @@ public class DownloadHistoryDTO {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getUserName() {
@@ -81,8 +82,8 @@ public class DownloadHistoryDTO {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DownloadHistoryDTO that = (DownloadHistoryDTO) o;
-        return Objects.equals(vocabularyName, that.vocabularyName) &&
-                Objects.equals(code, that.code) &&
+        return Objects.equals(code, that.code) &&
+                Objects.equals(email, that.email) &&
                 Objects.equals(userName, that.userName) &&
                 Objects.equals(organization, that.organization) &&
                 Objects.equals(date, that.date);
@@ -90,14 +91,14 @@ public class DownloadHistoryDTO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(vocabularyName, code, userName, organization, date);
+        return Objects.hash(code, email, userName, organization, date);
     }
 
     @Override
     public String toString() {
         return "DownloadHistoryDTO{" +
-                ", vocabularyName='" + vocabularyName + '\'' +
-                ", code='" + code + '\'' +
+                "code='" + code + '\'' +
+                ", email='" + email + '\'' +
                 ", userName='" + userName + '\'' +
                 ", organization='" + organization + '\'' +
                 ", date=" + date +
