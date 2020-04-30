@@ -4,6 +4,7 @@
     <include resource="org/springframework/boot/logging/logback/defaults.xml" />
     <property name="LOGS_DIR" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}"/>
     <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+    <include resource="org/springframework/boot/logging/logback/file-appender.xml" />
 
     <appender name="SEARCH_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOGS_DIR}/queries.log</file>
@@ -34,6 +35,7 @@
 
     <root level="INFO">
         <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
         <appender-ref ref="ERRORS_FILE" />
     </root>
 
