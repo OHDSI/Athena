@@ -31,7 +31,11 @@ import com.odysseusinc.athena.service.checker.LimitChecker;
 import com.odysseusinc.athena.service.search.SearchOverviewStatisticsLoader;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,6 +54,7 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 @RestController
 @RequestMapping("/api/v1/concepts")
 public class ConceptSearchController {
+    private static final Logger log = LoggerFactory.getLogger(ConceptSearchController.class);
 
     private final ConceptService conceptService;
     private final LimitChecker checker;
@@ -70,6 +75,10 @@ public class ConceptSearchController {
     public ResponseEntity<ConceptSearchResultDTO> search(@ModelAttribute ConceptSearchDTO searchDTO)
             throws IOException, SolrServerException {
 
+        if (StringUtils.isNotBlank(searchDTO.getQuery())) {
+            JSONObject obj = new JSONObject(searchDTO);
+            log.trace("{}", obj);
+        }
         return ResponseEntity.ok(searchService.search(searchDTO));
     }
 
