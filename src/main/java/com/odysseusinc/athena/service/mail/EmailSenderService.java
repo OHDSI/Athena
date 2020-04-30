@@ -28,70 +28,63 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static com.google.common.collect.Iterables.toArray;
-import static java.util.Collections.emptyList;
+import static com.odysseusinc.athena.model.common.AthenaConstants.FIVE_SEC_MS;
 
 @Service
 public class EmailSenderService {
     private static final Logger log = LoggerFactory.getLogger(EmailSenderService.class);
 
     private final JavaMailSender mailSender;
-    private final MailContentBuilder contentBuilder;
     private final String from;
     private final String notifier;
 
     @Autowired
-    public EmailSenderService(MailContentBuilder contentBuilder,
-                              JavaMailSender mailSender,
+    public EmailSenderService(JavaMailSender mailSender,
                               @Value("${athena.mail.notifier}") String notifier,
                               @Value("${spring.mail.username}") String from) {
 
-        this.contentBuilder = contentBuilder;
         this.mailSender = mailSender;
         this.notifier = notifier;
         this.from = from;
     }
 
-    public void send(EmailType messageType, Map<String, Object> parameters, String... toEmails) {
+    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = FIVE_SEC_MS, multiplier = 3))
+    @Async("emailSenderExecutor")
+    public CompletableFuture<Void> sendAsync(String subject, String emailBody, List<String> toEmails, List<String> bccEmails) {
 
-        this.send(messageType, parameters, Arrays.asList(toEmails), emptyList());
+        if (CollectionUtils.isNotEmpty(toEmails) || CollectionUtils.isNotEmpty(bccEmails)) {
+            sendMessage(subject, emailBody, toEmails, bccEmails);
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
-
-    public void send(EmailType messageType, Map<String, Object> parameters, List<String> toEmails, List<String> bccEmails) {
-
-        if (CollectionUtils.isEmpty(toEmails) && CollectionUtils.isEmpty(bccEmails)) {
-            return;
-        }
-
+    private boolean sendMessage(String subject, String emailBody, List<String> toEmails, List<String> bccEmails) {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper;
         try {
-            final String emailBody = contentBuilder.build(messageType.getTemplate(), parameters);
-            log.debug("Sending  [{}] email: \n\n\n{}\n\n\n", messageType, emailBody);
+            log.debug("Sending  [{}] email: \n\n\n{}\n\n\n", subject, emailBody);
             helper = new MimeMessageHelper(message, true);
-            helper.setSubject(messageType.getSubject());
+            helper.setSubject(subject);
             helper.setFrom(from, notifier);
             helper.setTo(toArray(toEmails, String.class));
             helper.setBcc(toArray(bccEmails, String.class));
             helper.setText(emailBody, true);
-
             mailSender.send(message);
-        } catch (MessagingException | MailException | UnsupportedEncodingException ex) {
-            log.error("{} [user email: {}, subject: {}]", ex.getMessage(), String.join(",", toEmails), messageType.getSubject(), ex);
-            throw new AthenaException();
+            return true;
+        } catch (Exception ex) {
+            throw new AthenaException("Send Message issue", ex);
         }
     }
 }

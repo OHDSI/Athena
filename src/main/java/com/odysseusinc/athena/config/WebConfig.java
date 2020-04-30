@@ -74,6 +74,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
         registry.addViewController("/auth/complete").setViewName("index");
         registry.addViewController("/auth/reset-password/**").setViewName("index");
         registry.addViewController("/auth/remind-password**").setViewName("index");
+        registry.addViewController("/search-terms/start").setViewName("index");
         registry.addViewController("/search-terms/terms**").setViewName("index");
         registry.addViewController("/search-terms/terms/**").setViewName("index");
         registry.addViewController("/vocabulary/list**").setViewName("index");

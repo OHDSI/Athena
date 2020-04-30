@@ -254,6 +254,10 @@
             <artifactId>guava</artifactId>
             <version>${guava.verson}</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

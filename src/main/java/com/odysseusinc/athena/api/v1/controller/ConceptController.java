@@ -22,21 +22,8 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
-import static com.odysseusinc.athena.service.graph.RelationshipGraphFactory.getRelationshipGraph;
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toList;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptDetailsDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchResultDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.relations.ConceptAncestorRelationsDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.relations.ConceptRelationshipDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.relations.GroupedConceptRelationshipDTO;
@@ -47,34 +34,38 @@ import com.odysseusinc.athena.model.athenav5.ConceptRelationship;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
 import com.odysseusinc.athena.model.athenav5.RelationshipV5;
 import com.odysseusinc.athena.service.ConceptService;
-import com.odysseusinc.athena.service.checker.CheckResult;
-import com.odysseusinc.athena.service.checker.LimitChecker;
 import com.odysseusinc.athena.util.JsonResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.hateoas.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
+import static com.odysseusinc.athena.service.graph.RelationshipGraphFactory.getRelationshipGraph;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 @Api
 @RestController
-@RequestMapping(value = "/api/v1/concepts")
+@RequestMapping("/api/v1/concepts")
 public class ConceptController {
     private final ConceptService conceptService;
     private final GenericConversionService conversionService;
@@ -92,7 +83,7 @@ public class ConceptController {
     }
 
     @ApiOperation("Get concept details.")
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Resource<ConceptDetailsDTO>> getConcept(@PathVariable Long id) {
 
         ConceptV5 concept = conceptService.getByIdWithLicenseCheck(id);
@@ -103,8 +94,7 @@ public class ConceptController {
     }
 
     @ApiOperation("Get relations for concept")
-    @RequestMapping(value = "/{id}/relations", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/{id}/relations", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<ConceptAncestorRelationsDTO> relationsGraph(
             @PathVariable Long id, @RequestParam(name = "depth", defaultValue = "10") Integer depth,
             @RequestParam(name = "zoomLevel", defaultValue = "4") Integer zoomLevel) throws ExecutionException {
@@ -115,8 +105,7 @@ public class ConceptController {
     }
 
     @ApiOperation("Is any relations for the concept exists")
-    @RequestMapping(value = "/{id}/relations/any", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/{id}/relations/any", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<JsonResult> hasAnyRelations(
             @PathVariable Long id) {
 
@@ -127,8 +116,7 @@ public class ConceptController {
     }
 
     @ApiOperation("Get concept relationships")
-    @RequestMapping(value = "/{id}/relationships", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/{id}/relationships", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<GroupedConceptRelationshipListDTO> relationships(
             @PathVariable Long id,
             @RequestParam(name = "relationshipId", required = false) String relationshipId,
@@ -154,8 +142,7 @@ public class ConceptController {
         return new ResponseEntity<>(new GroupedConceptRelationshipListDTO(groupedRelationships, resultList.size()), OK);
     }
 
-    @RequestMapping(value = "/{id}/relationships/options", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/{id}/relationships/options", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Set<RelationshipDTO>> relationshipOptions(@PathVariable Long id) {
 
         List<RelationshipV5> options = conceptService.getAllRelationships(id);

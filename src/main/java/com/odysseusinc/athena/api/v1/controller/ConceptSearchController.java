@@ -28,9 +28,11 @@ import com.odysseusinc.athena.service.ConceptService;
 import com.odysseusinc.athena.service.SearchService;
 import com.odysseusinc.athena.service.checker.CheckResult;
 import com.odysseusinc.athena.service.checker.LimitChecker;
+import com.odysseusinc.athena.service.search.SearchOverviewStatisticsLoader;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -40,23 +42,26 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static org.springframework.http.HttpStatus.OK;
 
 @Api
 @RestController
-@RequestMapping(value = "/api/v1/concepts")
+@RequestMapping("/api/v1/concepts")
 public class ConceptSearchController {
 
-    private final LimitChecker checker;
     private final ConceptService conceptService;
+    private final LimitChecker checker;
+    private final SearchOverviewStatisticsLoader searchOverviewStatisticsLoader;
     private final SearchService searchService;
 
-    public ConceptSearchController(LimitChecker checker, ConceptService conceptService, SearchService searchService) {
+    @Autowired
+    public ConceptSearchController(ConceptService conceptService, LimitChecker checker, SearchOverviewStatisticsLoader searchOverviewStatisticsLoader, SearchService searchService) {
 
-        this.checker = checker;
         this.conceptService = conceptService;
+        this.checker = checker;
+        this.searchOverviewStatisticsLoader = searchOverviewStatisticsLoader;
         this.searchService = searchService;
     }
 
@@ -65,7 +70,16 @@ public class ConceptSearchController {
     public ResponseEntity<ConceptSearchResultDTO> search(@ModelAttribute ConceptSearchDTO searchDTO)
             throws IOException, SolrServerException {
 
-        return new ResponseEntity<>(searchService.search(searchDTO), OK);
+        return ResponseEntity.ok(searchService.search(searchDTO));
+    }
+
+    @ApiOperation("Show search ")
+    @GetMapping("/terms-count")
+    public ResponseEntity<Map<String, Long>> showFacetsData() {
+
+        final Map<String, Long> domainTermsStatistics = searchOverviewStatisticsLoader.getDomainTermsStatistics();
+        return ResponseEntity.ok(domainTermsStatistics);
+
     }
 
     @ApiOperation("Download csv file.")

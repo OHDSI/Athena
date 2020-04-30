@@ -8,6 +8,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import javax.mail.internet.MimeMessage;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,9 +24,9 @@ public class EmailSenderServiceTest {
     private final String from = "test.from.account@localhost";
     private final String notifier = "Test";
     private final String testAccount = "test.to.account@localhost";
+    private final String subject = "subject";
+    private final String emailBody = "BODY";
 
-    @Mock
-    private MailContentBuilder contentBuilder;
     @Mock
     private JavaMailSender mailSender;
     @Mock
@@ -38,15 +39,14 @@ public class EmailSenderServiceTest {
     public void setUp() {
 
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
-        when(contentBuilder.build(any(), any())).thenReturn("BODY");
 
-        emailSenderService = new EmailSenderService(contentBuilder, mailSender, notifier, from);
+        emailSenderService = new EmailSenderService(mailSender, notifier, from);
     }
 
     @Test
     public void itShouldNotSentEmailWithoutRecepients() {
 
-        emailSenderService.send(EmailType.LICENSE_REQUEST, params, emptyList(), null);
+        emailSenderService.sendAsync(subject, emailBody, emptyList(), emptyList());
 
         verify(mailSender, never()).send((MimeMessage) any());
     }
@@ -55,7 +55,7 @@ public class EmailSenderServiceTest {
     @Test
     public void itShouldSendEmailToTheRecipient() {
 
-        emailSenderService.send(EmailType.LICENSE_REQUEST, params, testAccount);
+        emailSenderService.sendAsync(subject, emailBody, Arrays.asList(testAccount), emptyList());
 
         verify(mailSender).send((MimeMessage) any());
     }

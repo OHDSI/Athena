@@ -1,5 +1,15 @@
 # 0 Customize query
 
+
+## Activate customizing search query mode
+You can activate this  mode by adding `debug=true` params in url
+https://qaathena.odysseusinc.com/search-terms/terms?debug=true
+
+* the text input field for the boost object will appear below the search input
+* the score column will be appear
+* the generated solr requests and score calculation information will be printed to the browser console (to see it, open developer tools by F12). if the  solr-request/score has not changed then this info will not be printed
+
+
 ## Boosts object
 We use an object with boosts in order to configure the solr search query:
 ```json
