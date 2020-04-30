@@ -24,10 +24,13 @@
 package com.odysseusinc.athena.api.v1.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
+import static com.odysseusinc.athena.model.common.AthenaConstants.COMMON_DATE_FORMAT;
+
+@Data
 public class DownloadHistoryDTO {
     private String code;
     private String email;
@@ -36,72 +39,8 @@ public class DownloadHistoryDTO {
     private LocalDateTime date;
 
 
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getOrganization() {
-        return organization;
-    }
-
-    public void setOrganization(String organization) {
-        this.organization = organization;
-    }
-
-    @JsonFormat(pattern = "dd-MMM-yyyy")
+    @JsonFormat(pattern = COMMON_DATE_FORMAT)
     public LocalDateTime getDate() {
         return date;
-    }
-
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DownloadHistoryDTO that = (DownloadHistoryDTO) o;
-        return Objects.equals(code, that.code) &&
-                Objects.equals(email, that.email) &&
-                Objects.equals(userName, that.userName) &&
-                Objects.equals(organization, that.organization) &&
-                Objects.equals(date, that.date);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(code, email, userName, organization, date);
-    }
-
-    @Override
-    public String toString() {
-        return "DownloadHistoryDTO{" +
-                "code='" + code + '\'' +
-                ", email='" + email + '\'' +
-                ", userName='" + userName + '\'' +
-                ", organization='" + organization + '\'' +
-                ", date=" + date +
-                '}';
     }
 }
