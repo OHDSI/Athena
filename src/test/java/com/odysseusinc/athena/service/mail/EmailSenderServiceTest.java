@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.util.Collections.emptyList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -31,9 +30,9 @@ public class EmailSenderServiceTest {
     private JavaMailSender mailSender;
     @Mock
     private MimeMessage mimeMessage;
+    private EmailRecipients recipients;
 
     private EmailSenderService emailSenderService;
-    private Map<String, Object> params = new HashMap<>();
 
     @Before
     public void setUp() {
@@ -41,21 +40,21 @@ public class EmailSenderServiceTest {
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
 
         emailSenderService = new EmailSenderService(mailSender, notifier, from);
+        recipients = EmailRecipients.builder().to(Arrays.asList(testAccount)).build();
     }
 
     @Test
-    public void itShouldNotSentEmailWithoutRecepients() {
+    public void itShouldNotSentEmailWithoutRecipients() {
 
-        emailSenderService.sendAsync(subject, emailBody, emptyList(), emptyList());
+        emailSenderService.sendAsync(subject, emailBody, EmailRecipients.builder().build());
 
         verify(mailSender, never()).send((MimeMessage) any());
     }
 
-
     @Test
     public void itShouldSendEmailToTheRecipient() {
 
-        emailSenderService.sendAsync(subject, emailBody, Arrays.asList(testAccount), emptyList());
+        emailSenderService.sendAsync(subject, emailBody, recipients);
 
         verify(mailSender).send((MimeMessage) any());
     }

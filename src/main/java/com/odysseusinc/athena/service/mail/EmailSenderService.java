@@ -24,6 +24,7 @@ package com.odysseusinc.athena.service.mail;
 
 import com.odysseusinc.athena.exceptions.AthenaException;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.mail.internet.MimeMessage;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static com.google.common.collect.Iterables.toArray;
@@ -62,15 +62,15 @@ public class EmailSenderService {
 
     @Retryable(maxAttempts = 3, backoff = @Backoff(delay = FIVE_SEC_MS, multiplier = 3))
     @Async("emailSenderExecutor")
-    public CompletableFuture<Void> sendAsync(String subject, String emailBody, List<String> toEmails, List<String> bccEmails) {
+    public CompletableFuture<Void> sendAsync(String subject, String emailBody, EmailRecipients recipients) {
 
-        if (CollectionUtils.isNotEmpty(toEmails) || CollectionUtils.isNotEmpty(bccEmails)) {
-            sendMessage(subject, emailBody, toEmails, bccEmails);
+        if (CollectionUtils.isNotEmpty(recipients.getTo()) || CollectionUtils.isNotEmpty(recipients.getBcc())) {
+            sendMessage(subject, emailBody, recipients);
         }
         return CompletableFuture.completedFuture(null);
     }
 
-    private boolean sendMessage(String subject, String emailBody, List<String> toEmails, List<String> bccEmails) {
+    private boolean sendMessage(String subject, String emailBody, EmailRecipients recipients) {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper;
         try {
@@ -78,8 +78,11 @@ public class EmailSenderService {
             helper = new MimeMessageHelper(message, true);
             helper.setSubject(subject);
             helper.setFrom(from, notifier);
-            helper.setTo(toArray(toEmails, String.class));
-            helper.setBcc(toArray(bccEmails, String.class));
+            if (StringUtils.isNotBlank(recipients.getReplyTo())) {
+                helper.setReplyTo(recipients.getReplyTo());
+            }
+            helper.setTo(toArray(recipients.getTo(), String.class));
+            helper.setBcc(toArray(recipients.getBcc(), String.class));
             helper.setText(emailBody, true);
             mailSender.send(message);
             return true;

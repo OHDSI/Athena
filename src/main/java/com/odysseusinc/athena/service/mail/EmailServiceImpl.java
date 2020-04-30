@@ -79,34 +79,41 @@ public class EmailServiceImpl implements EmailService {
 
         final Map<String, String> vocabularyDetails = new HashMap<>();
         updatedVocabularies.forEach(v -> vocabularyDetails.put(v.getVocabularyCode(), v.getVocabularyConversion().getName()));
-        send(EmailType.VOCABULARIES_UPDATE_NOTIFICATION, ImmutableMap.of("UPDATED_VOCABULARIES", vocabularyDetails), asList(user.getEmail()), emptyList(), emptyList());
+        final EmailRecipients recipients = EmailRecipients.builder().to(asList(user.getEmail())).build();
+        send(EmailType.VOCABULARIES_UPDATE_NOTIFICATION, ImmutableMap.of("UPDATED_VOCABULARIES", vocabularyDetails), recipients, emptyList());
     }
 
 
     @Override
     public void sendVocabularyDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion, String bundleName, Map<String, String> requestedVocabularies) {
 
-        send(EmailType.VOCABULARIES_LINK, buildParameters(url, version, vocabularyReleaseVersion, bundleName, requestedVocabularies), asList(user.getEmail()), emptyList(), getAdminEmails());
+        final EmailRecipients recipients = EmailRecipients.builder().to(asList(user.getEmail())).build();
+        send(EmailType.VOCABULARIES_LINK, buildParameters(url, version, vocabularyReleaseVersion, bundleName, requestedVocabularies), recipients, getAdminEmails());
         log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", user.getId(), url);
     }
 
     @Override
     public void sendFailedSaving(AthenaUser user) {
 
-        send(EmailType.FAILED_SAVING, Collections.emptyMap(), asList(user.getEmail()), emptyList(), emptyList());
+        final EmailRecipients recipients = EmailRecipients.builder().to(asList(user.getEmail())).build();
+        send(EmailType.FAILED_SAVING, Collections.emptyMap(), recipients, emptyList());
     }
 
     @Override
     public void sendLicenseRequestToAdmins(License license) {
 
         final Map<String, Object> licenceRequestEmailParameters = getParameters(license);
-        send(EmailType.LICENSE_REQUEST, licenceRequestEmailParameters, getAdminEmails(), emptyList(), getAdminEmails());
+        final EmailRecipients recipients = EmailRecipients.builder()
+                .to(getAdminEmails())
+                .replyTo(license.getUser().getEmail()).build();
+        send(EmailType.LICENSE_REQUEST, licenceRequestEmailParameters, recipients, getAdminEmails());
     }
 
     @Override
     public void sendLicenseAcceptance(AthenaUser user, boolean accepted, String vocabularyName) {
 
-        send(EmailType.LICENSE_ACCEPTANCE, getParameters(accepted, vocabularyName), asList(user.getEmail()), getAdminEmails(), getAdminEmails());
+        final EmailRecipients recipients = EmailRecipients.builder().to(asList(user.getEmail())).build();
+        send(EmailType.LICENSE_ACCEPTANCE, getParameters(accepted, vocabularyName), recipients, getAdminEmails());
         log.info("Notification with acceptance solution [{}] is sent to user with id: [{}]", accepted, user.getId());
     }
 
@@ -116,24 +123,28 @@ public class EmailServiceImpl implements EmailService {
         final String bundleUrl = urlBuilder.downloadVocabulariesLink(bundle.getUuid());
         final Map<String, Object> emailParameters = getParameters(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(), bundle.getReleaseVersion());
 
-        send(EmailType.VOCABULARIES_SHARED_DOWNLOAD, emailParameters, asList(recipient.getEmail()), emptyList(), getAdminEmails());
+        final EmailRecipients recipients = EmailRecipients.builder().to(asList(recipient.getEmail())).build();
+        send(EmailType.VOCABULARIES_SHARED_DOWNLOAD, emailParameters, recipients, getAdminEmails());
         log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", recipient.getId(), bundleUrl);
     }
 
-    private void send(EmailType messageType, Map<String, Object> parameters, List<String> to, List<String> bcc, List<String> notifyOnFailureEmails) {
+    private void send(EmailType messageType, Map<String, Object> parameters, EmailRecipients recipients, List<String> notifyOnFailureEmails) {
 
-        log.debug("Sending {} to {}", messageType, to);
+        log.debug("Sending {} to {}", messageType, recipients);
         final String emailBody = contentBuilder.build(messageType.getTemplate(), parameters);
-        emailSenderService.sendAsync(messageType.getSubject(), emailBody, to, bcc)
-                .exceptionally(ex -> handleError(ex, messageType, emailBody, to, notifyOnFailureEmails));
+
+        emailSenderService.sendAsync(messageType.getSubject(), emailBody, recipients)
+                .exceptionally(ex -> handleError(ex, messageType, emailBody, recipients.toString(), notifyOnFailureEmails));
     }
 
-    private Void handleError(Throwable ex, EmailType messageType, String emailBody, List<String> to, List<String> notifyOnFailureEmails) {
+    private Void handleError(Throwable ex, EmailType messageType, String emailBody, String recipients, List<String> notifyOnFailureEmails) {
 
-        log.error("Failed email {} \n\n\n{}\n\n\n, to: {}", messageType, emailBody, to, ex);
+        log.error("Failed email {} \n\n\n{}\n\n\n, to: {}", messageType, emailBody, recipients, ex);
         if (CollectionUtils.isNotEmpty(notifyOnFailureEmails)) {
             final Map<String, Object> parameters = Collections.singletonMap("exception", ex.getCause());
-            send(EmailType.FAILED_SENDING_TO_ADMIN, parameters, emptyList(), notifyOnFailureEmails, emptyList());
+
+            final EmailRecipients supportEmails = EmailRecipients.builder().to(notifyOnFailureEmails).build();
+            send(EmailType.FAILED_SENDING_TO_ADMIN, parameters, supportEmails, emptyList());
         }
         return null;
     }
