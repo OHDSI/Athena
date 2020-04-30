@@ -199,6 +199,28 @@ examples of generated solr queries:
   )
 )
 ```
+Requirement for search with an asterisk:
+
+**query string**: term1* term2* term3 term4 term5
+
+**result**:
+```sql   
+(term1* AND term2*)
+OR
+(term1* AND term2* AND fuzzy-term3 AND fuzzy-term4 AND fuzzy-term5)
+OR
+(term1* AND term2* AND fuzzy-term3 AND fuzzy-term4)
+OR
+(term1* AND term2* AND fuzzy-term3 AND fuzzy-term5)
+OR
+(term1* AND term2* AND fuzzy-term4 AND fuzzy-term5)
+OR
+(term1* AND term2* AND fuzzy-term3)
+OR
+(term1* AND term2* AND fuzzy-term4)
+OR
+(term1* AND term2* AND fuzzy-term5)
+```
 
 
 # 1 Phrase search
