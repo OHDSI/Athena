@@ -9,3 +9,5 @@ Start import process from command line with:
 Use USER/PASSWORD from UMLS account: https://utslogin.nlm.nih.gov/cas/login.
 Do not close or shutdown your PC until the end of import process,
 it will cause damage to concept.csv file.
+
+Please make sure java allowed to make http requests and has write permission to the concept.csv file.

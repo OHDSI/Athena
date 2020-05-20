@@ -74,6 +74,7 @@ public class StatisticsController {
     }
 
     @GetMapping("/csv")
+    @Secured("ROLE_ADMIN")
     public void getStatisticsCSV(@RequestParam(name = "from") String from,
                                  @RequestParam("to") String to,
                                  @RequestParam(name = "keywords", defaultValue = "", required = false) String keywords,
@@ -96,6 +97,4 @@ public class StatisticsController {
 
         return LocalDate.parse(dateValue, COMMON_DATE_FORMATTER);
     }
-
-
 }

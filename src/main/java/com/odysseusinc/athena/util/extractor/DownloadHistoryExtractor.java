@@ -34,11 +34,11 @@ public class DownloadHistoryExtractor extends FieldsExtractor<DownloadHistoryDTO
     public String[] fields(DownloadHistoryDTO record) {
 
         return new String[]{
-                getString(record.getUserName()),
-                getString(record.getOrganization()),
                 getString(record.getCode()),
-                getString(record.getVocabularyName()),
-                getString(record.getDate().format(COMMON_DATE_FORMATTER))
+                getString(record.getDate().format(COMMON_DATE_FORMATTER)),
+                getString(record.getUserName()),
+                getString(record.getEmail()),
+                getString(record.getOrganization())
         };
     }
 }

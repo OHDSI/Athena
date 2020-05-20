@@ -39,5 +39,5 @@ public interface DownloadsHistoryService {
 
     void generateCSV(Collection<DownloadHistoryDTO> records, OutputStream osw) throws IOException;
 
-    Collection<DownloadHistoryDTO> sort(Collection<DownloadHistoryDTO> dtos, String sortBy, Boolean sortAsc);
+    Collection<DownloadHistoryDTO> sort(Collection<DownloadHistoryDTO> dtos, String sortBy, boolean sortAsc);
 }

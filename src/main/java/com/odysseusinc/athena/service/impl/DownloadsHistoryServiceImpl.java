@@ -99,7 +99,7 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
 
         try (CSVWriter csvWriter = new AthenaCSVWriter(name, separator)) {
 
-            csvWriter.writeNext(new String[]{"user", "organization", "code", "vocabulary", "date"}, false);
+            csvWriter.writeNext(new String[]{"vocabulary", "date", "user", "email", "organization"}, false);
 
             writeAll(csvWriter, records);
 
@@ -111,7 +111,7 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
     }
 
     @Override
-    public Collection<DownloadHistoryDTO> sort(Collection<DownloadHistoryDTO> dtos, String sortBy, Boolean sortAsc) {
+    public Collection<DownloadHistoryDTO> sort(Collection<DownloadHistoryDTO> dtos, String sortBy, boolean sortAsc) {
 
         Comparator<DownloadHistoryDTO> comparator = pickComparator(sortBy);
         final List<DownloadHistoryDTO> sortedDtos = dtos.stream()
@@ -168,8 +168,8 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
         dto.setUserName(userName);
         dto.setOrganization(athenaUser.getOrganization());
         dto.setCode(vocabularyConversion.getIdV5());
-        dto.setVocabularyName(vocabularyConversion.getName());
         dto.setDate(downloadDate);
+        dto.setEmail(athenaUser.getEmail());
         return dto;
     }
 
@@ -181,8 +181,8 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
     private static Comparator<DownloadHistoryDTO> pickComparator(String sortBy) {
 
         switch (sortBy) {
-            case "'vocabularyName":
-                return (a, b) -> Objects.compare(a.getVocabularyName(), b.getVocabularyName(), String::compareTo);
+            case "email":
+                return (a, b) -> Objects.compare(a.getEmail(), b.getEmail(), String::compareTo);
             case "date":
                 return (a, b) -> Objects.compare(a.getDate(), b.getDate(), LocalDateTime::compareTo);
             case "userName":
@@ -193,6 +193,4 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
                 return (a, b) -> Objects.compare(a.getCode(), b.getCode(), String::compareTo);
         }
     }
-
-
 }
