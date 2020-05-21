@@ -37,8 +37,8 @@ public class QueryBoosts {
 
     @Data
     public static class ExactTermBoosts {
-        private Integer conceptId = 70000;
-        private Integer conceptCode = 60000;
+        private Integer conceptId = 100000;
+        private Integer conceptCode = 80000;
         private Integer conceptName = 60000;
         private Integer conceptSynonymName = 40000;
         private Integer conceptCodeCi = 10000;
@@ -49,8 +49,8 @@ public class QueryBoosts {
 
     @Data
     public static class PhraseBoosts {
-        private Integer conceptId = 70000;
-        private Integer conceptCodeCi = 60000;
+        private Integer conceptId = 100000;
+        private Integer conceptCodeCi = 80000;
         private Integer conceptNameCi = 60000;
         private Integer conceptSynonymNameCi = 40000;
         private Integer conceptCode = 10000;
