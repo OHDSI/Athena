@@ -197,37 +197,6 @@ public class ConceptSearchPhraseToSolrQueryService {
         return exacts;
     }
 
-
-    private String getQueryForNotExactTerm(String term, QueryBoosts.NotExactTermBoosts boosts) {
-
-        //0.7 - the required similarity of fuzzyness, see http://lucene.apache.org/core/3_6_0/queryparsersyntax.html#Fuzzy%20Searches
-        return String.join(" OR ",
-                String.format("%s:%s^%s", CONCEPT_CODE_TEXT, term, boosts.getConceptCodeText()),
-                String.format("%s:%s~0.7^%s", CONCEPT_CODE_TEXT, term, boosts.getConceptCodeTextFuzzy()),
-                String.format("%s:%s^%s", CONCEPT_NAME_TEXT, term, boosts.getConceptNameText()),
-                String.format("%s:%s~0.7^%s", CONCEPT_NAME_TEXT, term, boosts.getConceptNameTextFuzzy()),
-                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_TEXT, term, boosts.getConceptSynonymNameText()),
-                String.format("%s:%s^%s", QUERY_WO_SYMBOLS, term, boosts.getQueryWoSymbols())
-        );
-    }
-
-    private String getQueryForExactTerm(String term, QueryBoosts.ExactTermBoosts boosts) {
-
-        String boostedQuery = String.join(" OR ",
-                String.format("%s:%s^%s", CONCEPT_CODE, term, boosts.getConceptCode()),
-                String.format("%s:%s^%s", CONCEPT_NAME, term, boosts.getConceptName()),
-                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, boosts.getConceptSynonymName()),
-                String.format("%s:%s^%s", CONCEPT_CODE_CI, term, boosts.getConceptCodeCi()),
-                String.format("%s:%s^%s", CONCEPT_NAME_CI, term, boosts.getConceptNameCi()),
-                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_CI, term, boosts.getConceptSynonymNameCi()),
-                String.format("%s:%s^%s", QUERY_SYMBOLS, term, boosts.getQuerySymbols()));
-        if (isNumeric(term)) {
-            boostedQuery += " OR " + String.format("%s:%s^%s", CONCEPT_ID, term, boosts.getConceptId());
-        }
-        return boostedQuery;
-    }
-
-
     private String getQueryForExactPhrase(String term, QueryBoosts.PhraseBoosts boosts) {
         //field "query" is specified in SOLR's managed-schema. It's type is "general text" which means that filters and tokenizers are applied to it
         //and other words may surround our term. We need an exact match, so here components of "query" are listed. Their type is String in SOLR that
@@ -287,5 +256,34 @@ public class ConceptSearchPhraseToSolrQueryService {
                 .map(term -> getQueryForExactTerm(term, queryBoosts.getExactTerm()))
                 .map(queryPart -> String.format("(%s)", queryPart))
                 .collect(Collectors.joining(" AND "));
+    }
+
+    private String getQueryForNotExactTerm(String term, QueryBoosts.NotExactTermBoosts boosts) {
+
+        //0.7 - the required similarity of fuzzyness, see http://lucene.apache.org/core/3_6_0/queryparsersyntax.html#Fuzzy%20Searches
+        return String.join(" OR ",
+                String.format("%s:%s^%s", CONCEPT_CODE_TEXT, term, boosts.getConceptCodeText()),
+                String.format("%s:%s~0.7^%s", CONCEPT_CODE_TEXT, term, boosts.getConceptCodeTextFuzzy()),
+                String.format("%s:%s^%s", CONCEPT_NAME_TEXT, term, boosts.getConceptNameText()),
+                String.format("%s:%s~0.7^%s", CONCEPT_NAME_TEXT, term, boosts.getConceptNameTextFuzzy()),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_TEXT, term, boosts.getConceptSynonymNameText()),
+                String.format("%s:%s^%s", QUERY_WO_SYMBOLS, term, boosts.getQueryWoSymbols())
+        );
+    }
+
+    private String getQueryForExactTerm(String term, QueryBoosts.ExactTermBoosts boosts) {
+
+        String boostedQuery = String.join(" OR ",
+                String.format("%s:%s^%s", CONCEPT_CODE, term, boosts.getConceptCode()),
+                String.format("%s:%s^%s", CONCEPT_NAME, term, boosts.getConceptName()),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, boosts.getConceptSynonymName()),
+                String.format("%s:%s^%s", CONCEPT_CODE_CI, term, boosts.getConceptCodeCi()),
+                String.format("%s:%s^%s", CONCEPT_NAME_CI, term, boosts.getConceptNameCi()),
+                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_CI, term, boosts.getConceptSynonymNameCi()),
+                String.format("%s:%s^%s", QUERY_SYMBOLS, term, boosts.getQuerySymbols()));
+        if (isNumeric(term)) {
+            boostedQuery += " OR " + String.format("%s:%s^%s", CONCEPT_ID, term, boosts.getConceptId());
+        }
+        return boostedQuery;
     }
 }
