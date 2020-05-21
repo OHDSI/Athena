@@ -118,7 +118,7 @@ public class ConceptSearchPhraseToSolrQueryService {
         List<String> allTerms = Arrays.asList(query.split(" "));
         List<String> termsWithAsterisk = allTerms.stream()
                 .filter(t -> t.contains("*"))
-                .map(t -> t.substring(0, t.indexOf("*") + 1))
+                .map(t -> t.substring(0, t.indexOf('*') + 1))
                 .collect(Collectors.toList());
 
         final String asteriskQuery = buildAsteriskQuery(queryBoosts, termsWithAsterisk);
