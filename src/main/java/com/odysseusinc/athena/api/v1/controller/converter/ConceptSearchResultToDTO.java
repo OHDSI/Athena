@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.util.NamedList;
@@ -45,20 +46,28 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConceptSearchResultToDTO {
 
-    public ConceptSearchResultDTO convert(SearchResult<SolrDocument> source, List<String> unavailableVocabularyIds) {
-
-        return new ConceptSearchResultDTO(
-                buildContent(source),
+    public ConceptSearchResultDTO convert(SearchResult<SolrDocument> source, List<String> unavailableVocabularyIds, String debug, String query) {
+        List<ConceptDTO> content = buildContent(source);
+        ConceptSearchResultDTO conceptDTOS = new ConceptSearchResultDTO(
+                content,
                 buildFacets(source, unavailableVocabularyIds),
                 buildPageRequest(source),
                 getTotal(source)
         );
+        conceptDTOS.setDebug(debug);
+
+        conceptDTOS.setQuery(StringUtils.substringBetween(query, "=", "&"));
+        return conceptDTOS;
     }
 
     private List<ConceptDTO> buildContent(SearchResult<SolrDocument> searchResult) {
 
         return searchResult.getEntityList().stream()
-                .map(SolrDocumentToConceptDTO::convert)
+                .map(concept -> {
+                    ConceptDTO conceptDTO = SolrDocumentToConceptDTO.convert(concept);
+                    conceptDTO.setScore(concept.getFieldValue("score").toString());
+                    return conceptDTO;
+                })
                 .collect(toList());
     }
 

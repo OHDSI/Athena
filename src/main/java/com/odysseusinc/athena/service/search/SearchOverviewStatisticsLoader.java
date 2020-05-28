@@ -25,6 +25,7 @@ package com.odysseusinc.athena.service.search;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableMap;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchResultDTO;
 import com.odysseusinc.athena.exceptions.AthenaException;
@@ -36,11 +37,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.odysseusinc.athena.model.common.AthenaConstants.DOMAIN_FACET_KEY;
+import static com.odysseusinc.athena.api.v1.controller.converter.ConceptSearchDTOToSolrQuery.DOMAIN_ID;
 
 @Configuration
 public class SearchOverviewStatisticsLoader {
@@ -59,9 +59,9 @@ public class SearchOverviewStatisticsLoader {
 
     public Map<String, Long> getDomainTermsStatistics() {
         try {
-            return cache.get(DOMAIN_FACET_KEY, () -> loadDomainTermsStatistics(DOMAIN_FACET_KEY));
+            return cache.get(DOMAIN_ID, () -> loadDomainTermsStatistics(DOMAIN_ID));
         } catch (Exception ex) {
-            cache.invalidate(DOMAIN_FACET_KEY);
+            cache.invalidate(DOMAIN_ID);
             throw new AthenaException("Cannot load terms count cache", ex);
         }
     }
@@ -74,6 +74,6 @@ public class SearchOverviewStatisticsLoader {
         ConceptSearchResultDTO search = searchService.search(searchDTO);
         final Map<String, Map<String, Long>> facet = search.getFacets();
         final Map<String, Long> domainData = facet.get(facetKey);
-        return Collections.unmodifiableMap(domainData);
+        return ImmutableMap.copyOf(domainData);
     }
 }

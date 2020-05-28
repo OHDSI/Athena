@@ -24,12 +24,15 @@ import static org.junit.Assert.assertEquals;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConceptSearchDTOToSolrQuery;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
+import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
+import com.odysseusinc.athena.service.impl.ConceptSearchQueryPartCreator;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -39,7 +42,20 @@ public class SolrConceptFuzzySearchTest {
     @ClassRule
     public static final TestRule serviceInitializer = SolrInitializer.INSTANCE;
 
-    private ConceptSearchDTOToSolrQuery conceptSearchDTOToSolrQuery = new ConceptSearchDTOToSolrQuery();
+    private ConceptSearchDTOToSolrQuery conceptSearchDTOToSolrQuery;
+
+    @Before
+    public void setUp() throws Exception {
+        ConceptSearchQueryPartCreator conceptSearchQueryPartCreator = new ConceptSearchQueryPartCreator();
+        ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService(conceptSearchQueryPartCreator);
+
+        conceptSearchDTOToSolrQuery = new ConceptSearchDTOToSolrQuery(
+                conceptSearchPhraseToSolrQueryService,
+                null,
+                null
+        );
+
+    }
 
     @Test
     public void query_fuzzy() throws Exception {
@@ -47,21 +63,24 @@ public class SolrConceptFuzzySearchTest {
         ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Strok Myocardi8 Infarctiin Gastrointestinal Bleedi");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
+        query.set("debugQuery", "on");
         QueryResponse response = SolrInitializer.server.query(query);
+        String debug = response.getExplainMap().toString();
+
         SolrDocumentList docList = response.getResults();
 
         assertEquals(13, docList.size());
         assertEquals(
                 Arrays.asList(
+                        "Stroke Myocardial Infarction Strok",
                         "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
                         "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
-                        "Stroke Myocardial Infarction Strok",
                         "Bleeding in Back Gastrointestinal Bleeding",
-                        "Stroke Myocardial Infarction Bleeding in Back",
                         "Stroke Myocardial Infarction",
                         "Stroke Myocardial Infarction Stroke Nothin",
                         "Stroke Myocardial Infarction  Renal Dysfunction",
+                        "Stroke Myocardial Infarction Bleeding in Back",
                         "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
                         "stroke",
                         "Stroke",
@@ -92,7 +111,4 @@ public class SolrConceptFuzzySearchTest {
         conceptSearchDTO.setPageSize(30);
         return conceptSearchDTO;
     }
-
-
-
 }

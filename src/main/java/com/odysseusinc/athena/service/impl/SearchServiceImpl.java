@@ -35,10 +35,15 @@ import com.odysseusinc.athena.service.impl.solr.SearchResult;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.extractor.ConceptFieldsExtractor;
 import com.opencsv.CSVWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +54,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.thymeleaf.util.StringUtils;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.solr.common.params.CursorMarkParams.CURSOR_MARK_PARAM;
@@ -56,6 +62,8 @@ import static org.apache.solr.common.params.CursorMarkParams.CURSOR_MARK_START;
 
 @Service
 public class SearchServiceImpl implements SearchService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SearchService.class);
 
     private final Character separator;
     private final ConceptSearchDTOToSolrQuery converterToSolrQuery;
@@ -79,10 +87,30 @@ public class SearchServiceImpl implements SearchService {
 
         List<String> v5Ids = conversionService.getUnavailableVocabularies();
         SolrQuery solrQuery = converterToSolrQuery.createQuery(searchDTO, v5Ids);
+
+        solrQuery.setParam("fl", "*,score");
+        solrQuery.set("debugQuery", "on");
+
         QueryResponse solrResponse = solrService.search(solrQuery);
         List<SolrDocument> solrDocumentList = solrResponse.getResults();
-        return converter.convert(new SearchResult<>(solrQuery, solrResponse, solrDocumentList), v5Ids);
+
+        String debug = solrResponse.getExplainMap().toString();
+        String query = decode(solrQuery.toString());
+
+        return converter.convert(new SearchResult<>(solrQuery, solrResponse, solrDocumentList), v5Ids, debug, query);
+
     }
+
+    private String decode(String value) {
+
+        try {
+            return URLDecoder.decode(value, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.info("Cannot decode solr query string{}", value, e);
+        }
+        return value;
+    }
+
 
     @Override
     public void generateCSV(ConceptSearchDTO searchDTO, OutputStream osw) throws IOException, SolrServerException {

@@ -25,12 +25,15 @@ import static org.junit.Assert.assertEquals;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConceptSearchDTOToSolrQuery;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
+import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
+import com.odysseusinc.athena.service.impl.ConceptSearchQueryPartCreator;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Collectors;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -40,7 +43,21 @@ public class SolrConceptBracketsSearchTest {
     @ClassRule
     public static final TestRule serviceInitializer = SolrInitializer.INSTANCE;
 
-    private ConceptSearchDTOToSolrQuery conceptSearchDTOToSolrQuery = new ConceptSearchDTOToSolrQuery();
+    private ConceptSearchDTOToSolrQuery conceptSearchDTOToSolrQuery;
+
+    @Before
+    public void setUp() throws Exception {
+
+        ConceptSearchQueryPartCreator conceptSearchQueryPartCreator = new ConceptSearchQueryPartCreator();
+        ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService(conceptSearchQueryPartCreator);
+
+        conceptSearchDTOToSolrQuery = new ConceptSearchDTOToSolrQuery(
+                conceptSearchPhraseToSolrQueryService,
+                null,
+                null
+        );
+
+    }
 
     @Test
     public void query_wordWithoutBrackets() throws Exception {
@@ -50,7 +67,6 @@ public class SolrConceptBracketsSearchTest {
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         QueryResponse response = SolrInitializer.server.query(query);
         SolrDocumentList docList = response.getResults();
-
         assertEquals(11, docList.size());
         assertEquals(
                 Arrays.asList(
@@ -65,7 +81,7 @@ public class SolrConceptBracketsSearchTest {
                         "hip} fracture risk",
                         "hip} fracture risk",
                         "{hip fracture risk"
-                        ),
+                ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
     }

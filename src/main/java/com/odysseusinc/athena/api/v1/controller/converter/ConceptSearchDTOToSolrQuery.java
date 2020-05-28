@@ -22,7 +22,6 @@
 
 package com.odysseusinc.athena.api.v1.controller.converter;
 
-import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_CLASS_ID;
 import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_CODE;
 import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_NAME;
 import static org.apache.solr.common.params.CommonParams.FQ;
@@ -49,20 +48,26 @@ public class ConceptSearchDTOToSolrQuery {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConceptSearchDTOToSolrQuery.class);
 
     private static final String CONCEPT_ID = "concept_id";
-    private static final String CLASS_ID = "concept_class_id";
-    private static final String DOMAIN_ID = "domain_id";
-    public static final String VOCABULARY_ID = "vocabulary_id";
+    private static final String CLASS_ID = "concept_class_id_ci";
+    public static final String DOMAIN_ID = "domain_id_ci";
+    public static final String VOCABULARY_ID = "vocabulary_id_ci";
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
 
-    private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService();
+    private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService;
+    private LimitChecker limitChecker;
+    private VocabularyConversionService vocabularyConversionService;
 
     @Autowired
-    private LimitChecker limitChecker;
-    @Autowired
-    private VocabularyConversionService vocabularyConversionService;
+    public ConceptSearchDTOToSolrQuery(ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService, LimitChecker limitChecker, VocabularyConversionService vocabularyConversionService) {
+
+        this.conceptSearchPhraseToSolrQueryService = conceptSearchPhraseToSolrQueryService;
+        this.limitChecker = limitChecker;
+        this.vocabularyConversionService = vocabularyConversionService;
+    }
+
     private static final String CASE_INSENSITIVE_SUFFIX = "_ci";
-    private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME, CONCEPT_CLASS_ID, DOMAIN_ID, VOCABULARY_ID);
+    private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME, CLASS_ID, DOMAIN_ID, VOCABULARY_ID);
 
     private void setSorting(ConceptSearchDTO source, SolrQuery result) {
 
@@ -89,7 +94,7 @@ public class ConceptSearchDTOToSolrQuery {
 
     private void setQuery(ConceptSearchDTO source, SolrQuery result) {
 
-        String resultQuery = conceptSearchPhraseToSolrQueryService.createSolrQueryString(source);
+        String resultQuery = conceptSearchPhraseToSolrQueryService.createQuery(source);
 
         LOGGER.debug("Concept search query: {}", resultQuery);
 
