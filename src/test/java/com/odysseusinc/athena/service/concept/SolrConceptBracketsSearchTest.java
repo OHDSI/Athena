@@ -67,7 +67,6 @@ public class SolrConceptBracketsSearchTest {
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         QueryResponse response = SolrInitializer.server.query(query);
         SolrDocumentList docList = response.getResults();
-
         assertEquals(11, docList.size());
         assertEquals(
                 Arrays.asList(
@@ -75,13 +74,13 @@ public class SolrConceptBracketsSearchTest {
                         "[Hip] fracture risk",
                         "[hip fracture risk",
                         "hip] fracture risk",
-                        "(hip) fracture risk",
                         "(hip fracture risk",
+                        "(hip) fracture risk",
+                        "hip fracture risk",
                         "hip) fracture risk",
                         "hip} fracture risk",
                         "hip} fracture risk",
-                        "{hip fracture risk",
-                        "hip fracture risk"
+                        "{hip fracture risk"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );

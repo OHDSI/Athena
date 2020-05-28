@@ -41,8 +41,8 @@ public class QueryBoosts {
 
     @Data
     public static class SingleNotExactTermBoosts {
-        private Integer conceptCodeText = 40000;
-        private Integer conceptCodeTextFuzzy = 30000;
+        private Integer conceptCodeText = 80;
+        private Integer conceptCodeTextFuzzy = 60;
     }
 
     @Data

@@ -60,7 +60,7 @@ public class SolrConceptFuzzySearchTest {
     @Test
     public void query_fuzzy() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Strokk Myocardi8 Infarctiin Gastrointestinal Bleedi");
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Strok Myocardi8 Infarctiin Gastrointestinal Bleedi");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
         query.set("debugQuery", "on");
@@ -72,15 +72,15 @@ public class SolrConceptFuzzySearchTest {
         assertEquals(13, docList.size());
         assertEquals(
                 Arrays.asList(
+                        "Stroke Myocardial Infarction Strok",
                         "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
-                        "Bleeding in Back Gastrointestinal Bleeding",
                         "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
-                        "Stroke Myocardial Infarction Strok",
-                        "Stroke Myocardial Infarction Bleeding in Back",
+                        "Bleeding in Back Gastrointestinal Bleeding",
                         "Stroke Myocardial Infarction",
                         "Stroke Myocardial Infarction Stroke Nothin",
                         "Stroke Myocardial Infarction  Renal Dysfunction",
+                        "Stroke Myocardial Infarction Bleeding in Back",
                         "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
                         "stroke",
                         "Stroke",

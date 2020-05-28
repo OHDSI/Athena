@@ -69,7 +69,7 @@ public class SolrConceptPhraseSearchTest {
         QueryResponse response = SolrInitializer.server.query(query);
         SolrDocumentList docList = response.getResults();
 
-        assertEquals(13, docList.size());
+        assertEquals(12, docList.size());
         assertEquals(
                 Arrays.asList(
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
@@ -78,13 +78,12 @@ public class SolrConceptPhraseSearchTest {
                         "Stroke Myocardial Infarction Bleeding in Back",
                         "Bleeding in Back Gastrointestinal Bleeding",
                         "Stroke Myocardial Infarction",
-                        "Stroke Myocardial Infarction Stroke Nothin",
                         "Stroke Myocardial Infarction Strok",
+                        "Stroke Myocardial Infarction Stroke Nothin",
                         "Stroke Myocardial Infarction  Renal Dysfunction",
                         "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
                         "stroke",
-                        "Stroke",
-                        "Strook"
+                        "Stroke"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
@@ -99,7 +98,7 @@ public class SolrConceptPhraseSearchTest {
         QueryResponse response = SolrInitializer.server.query(query);
         SolrDocumentList docList = response.getResults();
 
-        assertEquals(13, docList.size());
+        assertEquals(12, docList.size());
         assertEquals(
                 Arrays.asList(
                         "Gastrointestinal Bleeding Myocardial Infarction Stroke",
@@ -108,13 +107,12 @@ public class SolrConceptPhraseSearchTest {
                         "Stroke Myocardial Infarction Bleeding in Back",
                         "Bleeding in Back Gastrointestinal Bleeding",
                         "Stroke Myocardial Infarction",
-                        "Stroke Myocardial Infarction Stroke Nothin",
                         "Stroke Myocardial Infarction Strok",
+                        "Stroke Myocardial Infarction Stroke Nothin",
                         "Stroke Myocardial Infarction  Renal Dysfunction",
                         "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
                         "stroke",
-                        "Stroke",
-                        "Strook"
+                        "Stroke"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );

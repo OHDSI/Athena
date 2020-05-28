@@ -208,14 +208,14 @@ examples of generated solr queries:
 OR
 ( -- single notExactTerm
     concept_code_text:aspirin^40000 OR
-    concept_code_text:aspirin~30000^0.7
+    concept_code_text:aspirin~0.7^30000
 ) 
 OR
 ( -- notExactTerm
     concept_code_text:aspirin^50 OR
-    concept_code_text:aspirin~40^0.7 OR
+    concept_code_text:aspirin~0.7^40 OR
     concept_name_text:aspirin^50 OR
-    concept_name_text:aspirin~40^0.7 OR
+    concept_name_text:aspirin~0.7^40 OR
     concept_synonym_name_text:aspirin^25 OR
     query_wo_symbols:aspirin^10
 )
@@ -301,18 +301,18 @@ OR
 (
     ( --notExactTerm
         concept_code_text:aspirin^50 OR
-        concept_code_text:aspirin~40^0.7 OR
+        concept_code_text:aspirin~0.7^40 OR
         concept_name_text:aspirin^50 OR
-        concept_name_text:aspirin~40^0.7 OR
+        concept_name_text:aspirin~0.7^40 OR
         concept_synonym_name_text:aspirin^25 OR
         query_wo_symbols:aspirin^10
     ) 
     OR
     (--notExactTerm
         concept_code_text:paracetamol^50 OR
-        concept_code_text:paracetamol~40^0.7 OR
+        concept_code_text:paracetamol~0.7^40 OR
         concept_name_text:paracetamol^50 OR
-        concept_name_text:paracetamol~40^0.7 OR
+        concept_name_text:paracetamol~0.7^40 OR
         concept_synonym_name_text:paracetamol^25 OR
         query_wo_symbols:paracetamol^10
     )
@@ -356,9 +356,9 @@ OR
         AND 
         ( --notExactTerm
             concept_code_text:aspirin^50 OR
-            concept_code_text:aspirin~40^0.7 OR
+            concept_code_text:aspirin~0.7^40 OR
             concept_name_text:aspirin^50 OR
-            concept_name_text:aspirin~40^0.7 OR
+            concept_name_text:aspirin~0.7^40 OR
             concept_synonym_name_text:aspirin^25 OR
             query_wo_symbols:aspirin^10
         )

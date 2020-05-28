@@ -29,9 +29,9 @@ public class ConceptSearchQueryPartCreator {
 
         return String.join(" OR ",
                 String.format("%s:%s^%s", CONCEPT_CODE_TEXT, term, boosts.getConceptCodeText()),
-                String.format("%s:%s~%s^%s", CONCEPT_CODE_TEXT, term, boosts.getConceptCodeTextFuzzy(), FUZZY_EDIT_DISTANCE),
+                String.format("%s:%s~%s^%s", CONCEPT_CODE_TEXT, term, FUZZY_EDIT_DISTANCE, boosts.getConceptCodeTextFuzzy()),
                 String.format("%s:%s^%s", CONCEPT_NAME_TEXT, term, boosts.getConceptNameText()),
-                String.format("%s:%s~%s^%s", CONCEPT_NAME_TEXT, term, boosts.getConceptNameTextFuzzy(), FUZZY_EDIT_DISTANCE),
+                String.format("%s:%s~%s^%s", CONCEPT_NAME_TEXT, term, FUZZY_EDIT_DISTANCE, boosts.getConceptNameTextFuzzy()),
                 String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_TEXT, term, boosts.getConceptSynonymNameText()),
                 String.format("%s:%s^%s", QUERY_WO_SYMBOLS, term, boosts.getQueryWoSymbols())
         );
@@ -41,7 +41,7 @@ public class ConceptSearchQueryPartCreator {
 
         return String.join(" OR ",
                 String.format("%s:%s^%s", CONCEPT_CODE_TEXT, term, boosts.getConceptCodeText()),
-                String.format("%s:%s~%s^%s", CONCEPT_CODE_TEXT, term, boosts.getConceptCodeTextFuzzy(), FUZZY_EDIT_DISTANCE)
+                String.format("%s:%s~%s^%s", CONCEPT_CODE_TEXT, term, FUZZY_EDIT_DISTANCE, boosts.getConceptCodeTextFuzzy())
         );
     }
 
