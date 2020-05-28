@@ -54,12 +54,18 @@ public class ConceptSearchDTOToSolrQuery {
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
 
-    private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService();
+    private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService;
+    private LimitChecker limitChecker;
+    private VocabularyConversionService vocabularyConversionService;
 
     @Autowired
-    private LimitChecker limitChecker;
-    @Autowired
-    private VocabularyConversionService vocabularyConversionService;
+    public ConceptSearchDTOToSolrQuery(ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService, LimitChecker limitChecker, VocabularyConversionService vocabularyConversionService) {
+
+        this.conceptSearchPhraseToSolrQueryService = conceptSearchPhraseToSolrQueryService;
+        this.limitChecker = limitChecker;
+        this.vocabularyConversionService = vocabularyConversionService;
+    }
+
     private static final String CASE_INSENSITIVE_SUFFIX = "_ci";
     private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME, CLASS_ID, DOMAIN_ID, VOCABULARY_ID);
 

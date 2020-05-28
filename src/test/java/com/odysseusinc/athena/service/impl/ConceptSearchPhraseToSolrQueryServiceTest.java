@@ -29,7 +29,9 @@ import org.junit.Test;
 
 public class ConceptSearchPhraseToSolrQueryServiceTest {
 
-    private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService();
+    private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService =
+            new ConceptSearchPhraseToSolrQueryService(new ConceptSearchQueryPartCreator());
+
 
     @Test
     public void extractTermsFromPhrase_FirstWordIsExactTerm() {
