@@ -31,43 +31,51 @@ import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
 import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.SortClause;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
+
 public class ConceptSearchDTOToSolrQuery {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConceptSearchDTOToSolrQuery.class);
+    private static final Logger log = LoggerFactory.getLogger(ConceptSearchDTOToSolrQuery.class);
 
-    private static final String CONCEPT_ID = "concept_id";
-    private static final String CLASS_ID = "concept_class_id_ci";
     public static final String DOMAIN_ID = "domain_id_ci";
     public static final String VOCABULARY_ID = "vocabulary_id_ci";
+    private static final String CONCEPT_ID = "concept_id";
+    private static final String CLASS_ID = "concept_class_id_ci";
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
+    private static final String CASE_INSENSITIVE_SUFFIX = "_ci";
+    private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME, CLASS_ID, DOMAIN_ID, VOCABULARY_ID);
 
-    private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService;
-    private LimitChecker limitChecker;
-    private VocabularyConversionService vocabularyConversionService;
+    private final ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService;
+    private final LimitChecker limitChecker;
+    private final VocabularyConversionService vocabularyConversionService;
 
     @Autowired
-    public ConceptSearchDTOToSolrQuery(ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService, LimitChecker limitChecker, VocabularyConversionService vocabularyConversionService) {
+    public ConceptSearchDTOToSolrQuery(ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService, @Lazy LimitChecker limitChecker, VocabularyConversionService vocabularyConversionService) {
 
         this.conceptSearchPhraseToSolrQueryService = conceptSearchPhraseToSolrQueryService;
         this.limitChecker = limitChecker;
         this.vocabularyConversionService = vocabularyConversionService;
     }
 
-    private static final String CASE_INSENSITIVE_SUFFIX = "_ci";
-    private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME, CLASS_ID, DOMAIN_ID, VOCABULARY_ID);
+    public static String getFacetLabel(String facetName) {
+
+        return facetName + "s";
+    }
 
     private void setSorting(ConceptSearchDTO source, SolrQuery result) {
 
@@ -96,7 +104,7 @@ public class ConceptSearchDTOToSolrQuery {
 
         String resultQuery = conceptSearchPhraseToSolrQueryService.createQuery(source);
 
-        LOGGER.debug("Concept search query: {}", resultQuery);
+        log.debug("Concept search query: {}", resultQuery);
 
         result.setQuery(resultQuery);
         SortClause sortByScore = new SortClause("score", SolrQuery.ORDER.desc);
@@ -165,11 +173,6 @@ public class ConceptSearchDTOToSolrQuery {
     private String getExcludedTag(String facetField) {
 
         return String.format("{!tag=%s}", facetField.toUpperCase());
-    }
-
-    public static String getFacetLabel(String facetName) {
-
-        return facetName + "s";
     }
 
     public SolrQuery createQuery(ConceptSearchDTO source, List<String> unavailableVocabularyIds) {
