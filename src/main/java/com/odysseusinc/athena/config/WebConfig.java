@@ -37,6 +37,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
+import static com.odysseusinc.athena.model.common.AthenaConstants.DEFAULT_TEMPLATE_NAME;
+
 @Configuration
 @EnableWebMvc
 public class WebConfig extends WebMvcConfigurerAdapter {
@@ -67,17 +69,18 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
 
-        registry.addViewController("/").setViewName("index");
-        registry.addViewController("/index.html").setViewName("index");
-        registry.addViewController("/auth/register").setViewName("index");
-        registry.addViewController("/auth/login").setViewName("index");
-        registry.addViewController("/auth/complete").setViewName("index");
-        registry.addViewController("/auth/reset-password/**").setViewName("index");
-        registry.addViewController("/auth/remind-password**").setViewName("index");
-        registry.addViewController("/search-terms/**").setViewName("index");
-        registry.addViewController("/vocabulary/list**").setViewName("index");
-        registry.addViewController("/vocabulary/download-history**").setViewName("index");
-        registry.addViewController("/admin/licenses**").setViewName("index");
+        registry.addViewController("/").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/index.html").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/auth/register").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/auth/login").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/auth/complete").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/auth/reset-password/**").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/auth/remind-password**").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/search-terms/**").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/vocabulary/list**").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/vocabulary/download-history**").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/admin/licenses**").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/admin/statistics**").setViewName(DEFAULT_TEMPLATE_NAME);
     }
 
     @Bean
