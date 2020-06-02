@@ -192,8 +192,8 @@ public class SolrConceptPhraseSearchTest {
                 Arrays.asList(
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
                         "Stroke",
-                        "stroke",
                         "Gastrointestinal Bleeding Myocardial Infarction Stroke",
+                        "stroke",
                         "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
                         "Stroke Myocardial Infarction Bleeding in Back",
                         "Stroke Myocardial Infarction",

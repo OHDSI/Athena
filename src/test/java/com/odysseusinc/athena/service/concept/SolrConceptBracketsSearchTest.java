@@ -62,9 +62,41 @@ public class SolrConceptBracketsSearchTest {
     @Test
     public void query_wordWithoutBrackets() throws Exception {
 
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("hip");
+
+        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
+        query.setParam("fl", "*,score");
+        query.set("debugQuery", "on");
+
+        QueryResponse response = SolrInitializer.server.query(query);
+        SolrDocumentList docList = response.getResults();
+        assertEquals(11, docList.size());
+        assertEquals(
+                Arrays.asList(
+                        "hip fracture risk",
+                        "(hip fracture risk",
+                        "(hip) fracture risk",
+                        "[hip fracture risk",
+                        "[hip] fracture risk",
+                        "[Hip] fracture risk",
+                        "hip) fracture risk",
+                        "hip] fracture risk",
+                        "hip} fracture risk",
+                        "hip} fracture risk",
+                        "{hip fracture risk"
+                ),
+                docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
+        );
+    }
+
+    @Test
+    public void query_notExactWordWithSquareBrackets() throws Exception {
+
         ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("[hip]");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
+        query.setParam("fl", "*,score");
+        query.set("debugQuery", "on");
         QueryResponse response = SolrInitializer.server.query(query);
         SolrDocumentList docList = response.getResults();
         assertEquals(11, docList.size());

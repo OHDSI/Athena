@@ -55,8 +55,7 @@ public class ConceptSearchResultToDTO {
                 getTotal(source)
         );
         conceptDTOS.setDebug(debug);
-
-        conceptDTOS.setQuery(StringUtils.substringBetween(query, "=", "&"));
+        conceptDTOS.setQuery(query);
         return conceptDTOS;
     }
 
