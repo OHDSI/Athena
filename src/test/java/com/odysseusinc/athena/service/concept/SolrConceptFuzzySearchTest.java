@@ -63,10 +63,7 @@ public class SolrConceptFuzzySearchTest {
         ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Strok Myocardi8 Infarctiin Gastrointestinal Bleedi");
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        query.set("debugQuery", "on");
         QueryResponse response = SolrInitializer.server.query(query);
-        String debug = response.getExplainMap().toString();
-
         SolrDocumentList docList = response.getResults();
 
         assertEquals(13, docList.size());

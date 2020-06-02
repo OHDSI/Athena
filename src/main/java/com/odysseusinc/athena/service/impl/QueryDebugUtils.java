@@ -55,12 +55,12 @@ public class QueryDebugUtils {
                 if (line.contains("(")) {
                     level++;
                 }
-                return builder.toString();
             }
+            return builder.toString();
         } catch (Exception e) {
             LOGGER.info("Cannot decode solr query string{}", queryString, e);
         }
-        return query;
+        return queryString;
 
     }
 

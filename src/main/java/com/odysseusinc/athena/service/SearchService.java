@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public interface SearchService {
-    ConceptSearchResultDTO search(ConceptSearchDTO searchDTO) throws IOException, SolrServerException;
+    ConceptSearchResultDTO search(ConceptSearchDTO searchDTO, boolean debug) throws IOException, SolrServerException;
 
     void generateCSV(ConceptSearchDTO searchDTO, OutputStream osw) throws IOException, SolrServerException;
 }

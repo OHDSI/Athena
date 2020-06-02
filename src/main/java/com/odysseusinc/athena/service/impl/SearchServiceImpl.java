@@ -78,23 +78,30 @@ public class SearchServiceImpl implements SearchService {
     }
 
     @Override
-    public ConceptSearchResultDTO search(ConceptSearchDTO searchDTO) throws IOException, SolrServerException {
+    public ConceptSearchResultDTO search(ConceptSearchDTO searchDTO, boolean debug) throws IOException, SolrServerException {
 
         List<String> v5Ids = conversionService.getUnavailableVocabularies();
         SolrQuery solrQuery = converterToSolrQuery.createQuery(searchDTO, v5Ids);
 
-        solrQuery.setParam("fl", "*,score");
-        solrQuery.set("debugQuery", "on");
+        if (debug) {
+            solrQuery.setParam("fl", "*,score");
+            solrQuery.set("debugQuery", "on");
+
+            QueryResponse solrResponse = solrService.search(solrQuery);
+            List<SolrDocument> solrDocumentList = solrResponse.getResults();
+
+            return converter.convert(
+                    new SearchResult<>(solrQuery, solrResponse, solrDocumentList), v5Ids,
+                    QueryDebugUtils.getDebug(solrResponse.getExplainMap().toString()),
+                    QueryDebugUtils.getQuery(solrQuery.toString())
+            );
+        }
 
         QueryResponse solrResponse = solrService.search(solrQuery);
         List<SolrDocument> solrDocumentList = solrResponse.getResults();
-
-        String debug = QueryDebugUtils.getDebug(solrResponse.getExplainMap().toString());
-        String query = QueryDebugUtils.getQuery(solrQuery.toString());
-
-        return converter.convert(new SearchResult<>(solrQuery, solrResponse, solrDocumentList), v5Ids,
-                debug, query);
+        return converter.convert(new SearchResult<>(solrQuery, solrResponse, solrDocumentList), v5Ids, null, null);
     }
+
     @Override
     public void generateCSV(ConceptSearchDTO searchDTO, OutputStream osw) throws IOException, SolrServerException {
 

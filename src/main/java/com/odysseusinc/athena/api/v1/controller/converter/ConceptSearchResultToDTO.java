@@ -64,7 +64,9 @@ public class ConceptSearchResultToDTO {
         return searchResult.getEntityList().stream()
                 .map(concept -> {
                     ConceptDTO conceptDTO = SolrDocumentToConceptDTO.convert(concept);
-                    conceptDTO.setScore(concept.getFieldValue("score").toString());
+                    if (concept.getFieldValue("score") != null) {
+                        conceptDTO.setScore(concept.getFieldValue("score").toString());
+                    }
                     return conceptDTO;
                 })
                 .collect(toList());
