@@ -21,7 +21,6 @@ public class ConceptSearchQueryPartCreator {
     public static final String CONCEPT_CODE_TEXT = "concept_code_text";
     public static final String CONCEPT_SYNONYM_NAME_TEXT = "concept_synonym_name_text";
     public static final String QUERY_SYMBOLS = "query";
-    public static final String QUERY_WO_SYMBOLS = "query_wo_symbols";
     //0.7 - the required similarity of fuzzyness, see http://lucene.apache.org/core/3_6_0/queryparsersyntax.html#Fuzzy%20Searches
     public static final String FUZZY_EDIT_DISTANCE = "0.7";
 
@@ -29,11 +28,13 @@ public class ConceptSearchQueryPartCreator {
 
         return String.join(" OR ",
                 String.format("%s:%s^%s", CONCEPT_CODE_TEXT, term, boosts.getConceptCodeText()),
-                String.format("%s:%s~%s^%s", CONCEPT_CODE_TEXT, term, FUZZY_EDIT_DISTANCE, boosts.getConceptCodeTextFuzzy()),
                 String.format("%s:%s^%s", CONCEPT_NAME_TEXT, term, boosts.getConceptNameText()),
-                String.format("%s:%s~%s^%s", CONCEPT_NAME_TEXT, term, FUZZY_EDIT_DISTANCE, boosts.getConceptNameTextFuzzy()),
                 String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME_TEXT, term, boosts.getConceptSynonymNameText()),
-                String.format("%s:%s^%s", QUERY_WO_SYMBOLS, term, boosts.getQueryWoSymbols())
+                String.format("%s:%s^%s", QUERY_SYMBOLS, term, boosts.getQuerySymbols()),
+                String.format("%s:%s~%s^%s", CONCEPT_CODE_TEXT, term, FUZZY_EDIT_DISTANCE, boosts.getConceptCodeTextFuzzy()),
+                String.format("%s:%s~%s^%s", CONCEPT_NAME_TEXT, term, FUZZY_EDIT_DISTANCE, boosts.getConceptNameTextFuzzy()),
+                String.format("%s:%s~%s^%s", CONCEPT_SYNONYM_NAME_TEXT, term, FUZZY_EDIT_DISTANCE, boosts.getConceptSynonymNameFuzzy()),
+                String.format("%s:%s~%s^%s", QUERY_SYMBOLS, term, FUZZY_EDIT_DISTANCE, boosts.getQuerySymbols())
         );
     }
 

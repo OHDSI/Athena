@@ -157,7 +157,7 @@
     <copyField source="concept_synonym_name" dest="concept_synonym_name_ci"/>
     <copyField source="concept_synonym_name" dest="concept_synonym_name_text"/>
 
-    <field name="query" type="text_general" multiValued="true" indexed="true" stored="true"/>
+    <field name="query" type="text_with_symbols" multiValued="true" indexed="true" stored="true"/>
     <field name="query_wo_symbols" type="text_wo_symbols" multiValued="true" indexed="true" stored="true"/>
     <field name="concept_name_ci" type="string_case_insensitive" indexed="true" stored="true"/>
     <field name="concept_name_text" type="text_general" indexed="true" stored="true"/>
@@ -313,6 +313,18 @@
       </analyzer>
     </fieldType>
 
+
+    <fieldType name="text_with_symbols" class="solr.TextField" positionIncrementGap="100">
+        <analyzer type="index">
+            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+        <analyzer type="query">
+            <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+    </fieldType>
+
     <!-- A text field which replaces special characters from "mapping-solr.txt"-->
     <fieldType name="text_wo_symbols" class="solr.TextField" positionIncrementGap="100">
         <analyzer type="index">
@@ -347,7 +359,7 @@
 	  -->
     <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100" multiValued="true">
       <analyzer type="index">
-        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(\s|\/|\?|!|,|;|\.\s|\*)+" replacement=" "/>
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(\s|\/|\?|!|,|;|\.\s|\*|\[|\]|\(|\)|\{|\})+" replacement=" "/>
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
         <!-- in this example, we will only use synonyms at query time
@@ -357,7 +369,7 @@
         <filter class="solr.LowerCaseFilterFactory"/>
       </analyzer>
       <analyzer type="query">
-        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(\s|\/|\?|!|,|;|\.\s|\*)+" replacement=" "/>
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="(\s|\/|\?|!|,|;|\.\s|\*|\[|\]|\(|\)|\{|\})+" replacement=" "/>
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
         <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>

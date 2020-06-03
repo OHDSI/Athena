@@ -41,6 +41,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
@@ -72,14 +73,17 @@ public class ConceptSearchController {
 
     @ApiOperation("Search concepts.")
     @GetMapping
-    public ResponseEntity<ConceptSearchResultDTO> search(@ModelAttribute ConceptSearchDTO searchDTO)
+    public ResponseEntity<ConceptSearchResultDTO> search(
+            @ModelAttribute ConceptSearchDTO searchDTO,
+            @RequestParam(required = false, name = "debug", defaultValue = "false") boolean debug
+    )
             throws IOException, SolrServerException {
 
         if (StringUtils.isNotBlank(searchDTO.getQuery())) {
             JSONObject obj = new JSONObject(searchDTO);
             log.trace("{}", obj);
         }
-        return ResponseEntity.ok(searchService.search(searchDTO));
+        return ResponseEntity.ok(searchService.search(searchDTO, debug));
     }
 
     @ApiOperation("Show search ")

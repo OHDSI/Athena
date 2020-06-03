@@ -55,8 +55,7 @@ public class ConceptSearchResultToDTO {
                 getTotal(source)
         );
         conceptDTOS.setDebug(debug);
-
-        conceptDTOS.setQuery(StringUtils.substringBetween(query, "=", "&"));
+        conceptDTOS.setQuery(query);
         return conceptDTOS;
     }
 
@@ -65,7 +64,9 @@ public class ConceptSearchResultToDTO {
         return searchResult.getEntityList().stream()
                 .map(concept -> {
                     ConceptDTO conceptDTO = SolrDocumentToConceptDTO.convert(concept);
-                    conceptDTO.setScore(concept.getFieldValue("score").toString());
+                    if (concept.getFieldValue("score") != null) {
+                        conceptDTO.setScore(concept.getFieldValue("score").toString());
+                    }
                     return conceptDTO;
                 })
                 .collect(toList());

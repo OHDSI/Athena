@@ -133,61 +133,64 @@ https://qaathena.odysseusinc.com/search-terms/terms?debug=true
 We use an object with boosts in order to configure the solr search query:
 ```json
 {
-  "notExactTerm": {
-    "conceptNameText": 50,
-    "conceptCodeText": 50,
-    "conceptSynonymNameText": 25,
-    "conceptCodeTextFuzzy": 40,
-    "queryWoSymbols": 10,
-    "conceptNameTextFuzzy": 40
-  },
-  "singleNotExactTermBoosts": {
-    "conceptCodeText": 40000,
-    "conceptCodeTextFuzzy": 30000
-  },
-  "exactTerm": {
-    "conceptSynonymName": 40000,
-    "conceptNameCi": 1000,
-    "conceptName": 60000,
-    "conceptSynonymNameCi": 500,
-    "conceptCodeCi": 10000,
-    "conceptCode": 80000,
-    "conceptId": 100000,
-    "querySymbols": 1
-  },
-  "singleExactTermBoosts": {
-    "conceptCodeCi": 10000,
-    "conceptCode": 80000
-  },  
-  "asteriskTermBoosts": {
-    "conceptSynonymName": 40000,
-    "conceptNameCi": 25000,
-    "conceptNameText": 8000,
-    "conceptCodeText": 10000,
-    "conceptName": 60000,
-    "conceptSynonymNameText": 5000,
-    "conceptSynonymNameCi": 20000,
-    "conceptCodeCi": 30000,
-    "conceptCode": 80000
-  },
-  "singleAsteriskTermBoosts": {
-    "conceptCodeText": 10000,
-    "conceptCodeCi": 30000,
-    "conceptCode": 80000
-  },
-  "phrase": {
-    "conceptSynonymName": 40000,
-    "conceptNameCi": 1000,
-    "domainIdCi": 100,
-    "conceptName": 60000,
-    "conceptSynonymNameCi": 500,
-    "conceptCodeCi": 10000,
-    "conceptClassIdCi": 100,
-    "conceptCode": 80000,
-    "conceptId": 100000,
-    "vocabularyIdCi": 100
-  }
+    "notExactTerm": {
+        "conceptNameText": 500,
+        "conceptCodeText": 500,
+        "conceptSynonymNameText": 200,
+        "querySymbols": 10,
+        "conceptCodeTextFuzzy": 50,
+        "conceptNameTextFuzzy": 50,
+        "conceptSynonymNameFuzzy": 20,
+        "querySymbolsFuzzy": 1
+    },
+    "asteriskTermBoosts": {
+        "conceptSynonymName": 40000,
+        "conceptNameCi": 25000,
+        "conceptNameText": 8000,
+        "conceptCodeText": 10000,
+        "conceptName": 60000,
+        "conceptSynonymNameText": 5000,
+        "conceptSynonymNameCi": 20000,
+        "conceptCodeCi": 30000,
+        "conceptCode": 80000
+    },
+    "phrase": {
+        "conceptSynonymName": 40000,
+        "conceptNameCi": 1000,
+        "conceptName": 60000,
+        "domainIdCi": 100,
+        "conceptSynonymNameCi": 500,
+        "conceptCodeCi": 10000,
+        "conceptCode": 80000,
+        "conceptClassIdCi": 100,
+        "conceptId": 100000,
+        "vocabularyIdCi": 100
+    },
+    "singleNotExactTermBoosts": {
+        "conceptCodeText": 500,
+        "conceptCodeTextFuzzy": 50
+    },
+    "exactTerm": {
+        "conceptSynonymName": 40000,
+        "conceptNameCi": 1000,
+        "conceptName": 60000,
+        "conceptSynonymNameCi": 500,
+        "conceptCodeCi": 10000,
+        "conceptCode": 80000,
+        "conceptId": 100000,
+        "querySymbols": 10
+    },
+    "singleExactTermBoosts": {
+        "conceptCodeCi": 10000,
+        "conceptCode": 80000
+    },
+    "singleAsteriskTermBoosts": {
+        "conceptCodeText": 10000,
+        "conceptCodeCi": 30000,
+        "conceptCode": 80000
+    }
 }
+
 ```
 ## Query examples 
 examples of generated solr queries:

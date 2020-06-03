@@ -71,7 +71,7 @@ public class SearchOverviewStatisticsLoader {
         log.debug("Refreshing terms count for the: {}", facetKey);
         ConceptSearchDTO searchDTO = new ConceptSearchDTO();
         searchDTO.setQuery(StringUtils.EMPTY);
-        ConceptSearchResultDTO search = searchService.search(searchDTO);
+        ConceptSearchResultDTO search = searchService.search(searchDTO, false);
         final Map<String, Map<String, Long>> facet = search.getFacets();
         final Map<String, Long> domainData = facet.get(facetKey);
         return ImmutableMap.copyOf(domainData);
