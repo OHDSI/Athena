@@ -5,17 +5,23 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 public class QueryDebugUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(QueryDebugUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(QueryDebugUtils.class);
+
+    private QueryDebugUtils() {
+    }
 
     public static String getDebug(String debug) {
 
-        if (StringUtils.isEmpty(debug)) {
+        if (isBlank(debug)) {
             return StringUtils.EMPTY;
         }
         return Arrays.stream(debug.split("\\r?\\n"))
@@ -25,7 +31,7 @@ public class QueryDebugUtils {
 
     public static String getQuery(String queryString) {
 
-        if (StringUtils.isEmpty(queryString)) {
+        if (isBlank(queryString)) {
             return StringUtils.EMPTY;
         }
 
@@ -38,7 +44,7 @@ public class QueryDebugUtils {
                     .replace("(", "\n(\n")
                     .replace(")", "\n)\n");
             int level = 0;
-            StringBuffer builder = new StringBuffer();
+            StringBuilder builder = new StringBuilder();
             for (String line : newLines.split("\\r?\\n")) {
                 if (StringUtils.isBlank(line)) {
                     continue;
@@ -58,7 +64,7 @@ public class QueryDebugUtils {
             }
             return builder.toString();
         } catch (Exception e) {
-            LOGGER.info("Cannot decode solr query string{}", queryString, e);
+            log.info("Cannot decode solr query string{}", queryString, e);
         }
         return queryString;
 
@@ -69,7 +75,7 @@ public class QueryDebugUtils {
         try {
             return URLDecoder.decode(value, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException e) {
-            LOGGER.info("Cannot decode solr query string{}", value, e);
+            log.info("Cannot decode solr query string{}", value, e);
         }
         return value;
     }
