@@ -1021,10 +1021,9 @@
        the default is fine for most applications.
        For more info: http://lucene.apache.org/solr/guide/other-schema-elements.html#OtherSchemaElements-Similarity
     -->
-    <!--
-     <similarity class="com.example.solr.CustomSimilarityFactory">
-       <str name="paramkey">param value</str>
-     </similarity>
-    -->
+    <similarity class="solr.BM25SimilarityFactory">
+       <float name="k1">1.2</float>
+       <float name="b">1.2</float>
+    </similarity>
 
 </schema>
