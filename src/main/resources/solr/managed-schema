@@ -1023,7 +1023,7 @@
     -->
     <similarity class="solr.BM25SimilarityFactory">
        <float name="k1">1.2</float>
-       <float name="b">1.2</float>
+       <float name="b">1.0</float>
     </similarity>
 
 </schema>
