@@ -11,7 +11,7 @@ public class ConceptSearchQueryPartCreator {
     public static final String CONCEPT_CODE_CI = "concept_code_ci";
     public static final String CONCEPT_CODE = "concept_code";
     public static final String CONCEPT_NAME = "concept_name";
-`    public static final String CONCEPT_CLASS_ID_CI = "concept_class_id_ci";
+    public static final String CONCEPT_CLASS_ID_CI = "concept_class_id_ci";
     public static final String DOMAIN_ID_CI = "domain_id_ci";
     public static final String VOCABULARY_ID_CI = "vocabulary_id_ci";
     public static final String CONCEPT_SYNONYM_NAME = "concept_synonym_name";
