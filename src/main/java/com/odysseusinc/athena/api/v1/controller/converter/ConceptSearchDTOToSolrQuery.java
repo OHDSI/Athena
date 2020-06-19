@@ -51,14 +51,14 @@ public class ConceptSearchDTOToSolrQuery {
 
     private static final Logger log = LoggerFactory.getLogger(ConceptSearchDTOToSolrQuery.class);
 
-    public static final String DOMAIN_ID = "domain_id_ci";
-    public static final String VOCABULARY_ID = "vocabulary_id_ci";
+    public static final String DOMAIN_ID = "domain_id";
+    public static final String VOCABULARY_ID = "vocabulary_id";
     private static final String CONCEPT_ID = "concept_id";
-    private static final String CLASS_ID = "concept_class_id_ci";
+    private static final String CLASS_ID = "concept_class_id";
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
     private static final String CASE_INSENSITIVE_SUFFIX = "_ci";
-    private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME, CLASS_ID, DOMAIN_ID, VOCABULARY_ID);
+    private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME);
 
     private final ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService;
     private final LimitChecker limitChecker;
