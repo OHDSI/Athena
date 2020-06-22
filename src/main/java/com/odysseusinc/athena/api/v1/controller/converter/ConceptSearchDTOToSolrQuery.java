@@ -24,14 +24,19 @@ package com.odysseusinc.athena.api.v1.controller.converter;
 
 import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_CODE;
 import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_NAME;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.solr.common.params.CommonParams.FQ;
 import static org.hibernate.validator.internal.util.StringHelper.join;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
 import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
 
+import com.odysseusinc.athena.service.impl.ConceptSearchQueryPartCreator;
+import com.odysseusinc.athena.service.impl.QueryBoosts;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,13 +68,18 @@ public class ConceptSearchDTOToSolrQuery {
     private final ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService;
     private final LimitChecker limitChecker;
     private final VocabularyConversionService vocabularyConversionService;
+    private final ConceptSearchQueryPartCreator conceptSearchQueryPartCreator;
 
     @Autowired
-    public ConceptSearchDTOToSolrQuery(ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService, @Lazy LimitChecker limitChecker, VocabularyConversionService vocabularyConversionService) {
+    public ConceptSearchDTOToSolrQuery(ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService,
+                                       @Lazy LimitChecker limitChecker,
+                                       VocabularyConversionService vocabularyConversionService,
+                                       ConceptSearchQueryPartCreator conceptSearchQueryPartCreator) {
 
         this.conceptSearchPhraseToSolrQueryService = conceptSearchPhraseToSolrQueryService;
         this.limitChecker = limitChecker;
         this.vocabularyConversionService = vocabularyConversionService;
+        this.conceptSearchQueryPartCreator = conceptSearchQueryPartCreator;
     }
 
     public static String getFacetLabel(String facetName) {
@@ -100,17 +110,17 @@ public class ConceptSearchDTOToSolrQuery {
         }
     }
 
-    private void setQuery(ConceptSearchDTO source, SolrQuery result) {
+    private void setQuery(ConceptSearchDTO source, SolrQuery query, QueryBoosts queryBoosts) {
 
-        String resultQuery = conceptSearchPhraseToSolrQueryService.createQuery(source);
+        String queryString = conceptSearchPhraseToSolrQueryService.createQuery(source, queryBoosts);
 
-        log.debug("Concept search query: {}", resultQuery);
+        log.debug("Concept search query: {}", queryString);
 
-        result.setQuery(resultQuery);
+        query.setQuery(queryString);
         SortClause sortByScore = new SortClause("score", SolrQuery.ORDER.desc);
         SortClause sortByConceptName = new SortClause("concept_name_ci", SolrQuery.ORDER.asc);
-        result.setSort(sortByScore);
-        result.addSort(sortByConceptName);
+        query.setSort(sortByScore);
+        query.addSort(sortByConceptName);
     }
 
     private void setFilters(ConceptSearchDTO source, SolrQuery result) {
@@ -176,19 +186,27 @@ public class ConceptSearchDTOToSolrQuery {
     }
 
     public SolrQuery createQuery(ConceptSearchDTO source, List<String> unavailableVocabularyIds) {
-
         List<String> ids = getWrappedInQuotationMarks(unavailableVocabularyIds);
 
-        SolrQuery result = baseQuery(source, ids);
-        setSorting(source, result);
-        setPagination(source, result);
-        setFacets(result);
-        if (result.getFilterQueries() != null && result.getFilterQueries().length > 0) {
-            result.setParam("facet.method", "fcs");
+        QueryBoosts queryBoosts = getQueryBoosts(source.getBoosts());
+        SolrQuery query = baseQuery(source, ids, queryBoosts);
+
+        setSorting(source, query);
+        setPagination(source, query);
+        setAdditionalProrities(query, queryBoosts);
+        setFacets(query);
+        if (query.getFilterQueries() != null && query.getFilterQueries().length > 0) {
+            query.setParam("facet.method", "fcs");
         } else {
-            result.setParam("facet.method", "enum");
+            query.setParam("facet.method", "enum");
         }
-        return result;
+        return query;
+    }
+
+    private void setAdditionalProrities(SolrQuery query, QueryBoosts queryBoosts) {
+
+        query.set("defType", "edismax");
+        query.set("dq", conceptSearchQueryPartCreator.additionalPriority(queryBoosts.getAdditionalBoosts()));
     }
 
     public SolrQuery createQuery(ConceptSearchDTO source) {
@@ -200,17 +218,31 @@ public class ConceptSearchDTOToSolrQuery {
 
         //quotation marks are for correct url query in case of compound vocabulary name
         List<String> ids = getWrappedInQuotationMarksUnavailableVocabularyIds();
-        SolrQuery result = baseQuery(source, ids);
+        QueryBoosts queryBoosts = getQueryBoosts(source.getBoosts());
+        SolrQuery result = baseQuery(source, ids, queryBoosts);
         result.setSort(CONCEPT_ID, SolrQuery.ORDER.asc);
         result.setStart(0);
         result.setRows(limitChecker.getMaxLimitPageSize());
         return result;
     }
 
-    private SolrQuery baseQuery(ConceptSearchDTO source, List<String> ids) {
+    private QueryBoosts getQueryBoosts(String boostJson) {
+
+        if (isBlank(boostJson)) {
+            return QueryBoosts.buildDefault();
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(boostJson, QueryBoosts.class);
+        } catch (IOException e) {
+            return QueryBoosts.buildDefault();
+        }
+    }
+
+    private SolrQuery baseQuery(ConceptSearchDTO source, List<String> ids, QueryBoosts queryBoosts) {
 
         SolrQuery result = new SolrQuery();
-        setQuery(source, result);
+        setQuery(source, result, queryBoosts);
         setFilters(source, result);
         setUnavailableVocabularies(result, ids);
         return result;

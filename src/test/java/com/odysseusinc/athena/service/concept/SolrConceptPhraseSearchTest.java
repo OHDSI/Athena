@@ -55,8 +55,8 @@ public class SolrConceptPhraseSearchTest {
         conceptSearchDTOToSolrQuery = new ConceptSearchDTOToSolrQuery(
                 conceptSearchPhraseToSolrQueryService,
                 null,
-                null
-        );
+                null,
+                conceptSearchQueryPartCreator);
 
     }
 
@@ -75,8 +75,8 @@ public class SolrConceptPhraseSearchTest {
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
                         "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
-                        "Stroke Myocardial Infarction Bleeding in Back",
                         "Bleeding in Back Gastrointestinal Bleeding",
+                        "Stroke Myocardial Infarction Bleeding in Back",
                         "Stroke Myocardial Infarction",
                         "Stroke Myocardial Infarction Strok",
                         "Stroke Myocardial Infarction Stroke Nothin",
@@ -104,8 +104,8 @@ public class SolrConceptPhraseSearchTest {
                         "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
                         "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
-                        "Stroke Myocardial Infarction Bleeding in Back",
                         "Bleeding in Back Gastrointestinal Bleeding",
+                        "Stroke Myocardial Infarction Bleeding in Back",
                         "Stroke Myocardial Infarction",
                         "Stroke Myocardial Infarction Strok",
                         "Stroke Myocardial Infarction Stroke Nothin",

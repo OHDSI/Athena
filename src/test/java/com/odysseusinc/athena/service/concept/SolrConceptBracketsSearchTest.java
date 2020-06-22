@@ -54,8 +54,8 @@ public class SolrConceptBracketsSearchTest {
         conceptSearchDTOToSolrQuery = new ConceptSearchDTOToSolrQuery(
                 conceptSearchPhraseToSolrQueryService,
                 null,
-                null
-        );
+                null,
+                conceptSearchQueryPartCreator);
 
     }
 

@@ -20,6 +20,8 @@
  */
 package com.odysseusinc.athena.service.concept;
 
+import static com.odysseusinc.athena.service.concept.SolrTestUtils.createConceptSearchDTO;
+import static org.apache.commons.lang3.tuple.ImmutableTriple.of;
 import static org.junit.Assert.assertEquals;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConceptSearchDTOToSolrQuery;
@@ -37,17 +39,20 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 
-public class SolrConceptFuzzySearchTest {
+public class SolrConceptStandardAndValidFirstSearchTest {
 
     @ClassRule
     public static final TestRule serviceInitializer = SolrInitializer.INSTANCE;
 
     private ConceptSearchDTOToSolrQuery conceptSearchDTOToSolrQuery;
+    private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService;
+    private ConceptSearchQueryPartCreator conceptSearchQueryPartCreator;
 
     @Before
     public void setUp() throws Exception {
-        ConceptSearchQueryPartCreator conceptSearchQueryPartCreator = new ConceptSearchQueryPartCreator();
-        ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService(conceptSearchQueryPartCreator);
+
+        conceptSearchQueryPartCreator = new ConceptSearchQueryPartCreator();
+        conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService(conceptSearchQueryPartCreator);
 
         conceptSearchDTOToSolrQuery = new ConceptSearchDTOToSolrQuery(
                 conceptSearchPhraseToSolrQueryService,
@@ -58,54 +63,31 @@ public class SolrConceptFuzzySearchTest {
     }
 
     @Test
-    public void query_fuzzy() throws Exception {
+    public void query_wordWithoutBrackets() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Strok Myocardi8 Infarctiin Gastrointestinal Bleedi");
-
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Omeprazole");
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
+
+        query.setParam("fl", "*,score");
+        query.set("debugQuery", "on");
+
         QueryResponse response = SolrInitializer.server.query(query);
         SolrDocumentList docList = response.getResults();
-
-        assertEquals(13, docList.size());
         assertEquals(
                 Arrays.asList(
-                        "Stroke Myocardial Infarction Strok",
-                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
-                        "Stroke Myocardial Infarction Gastrointestinal Bleeding",
-                        "Bleeding in Back Gastrointestinal Bleeding",
-                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
-                        "Stroke Myocardial Infarction",
-                        "Stroke Myocardial Infarction Stroke Nothin",
-                        "Stroke Myocardial Infarction  Renal Dysfunction",
-                        "Stroke Myocardial Infarction Bleeding in Back",
-                        "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
-                        "stroke",
-                        "Stroke",
-                        "Strook"
-                        ),
-                docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
+                        of("Omeprazole","Standard","Valid"),
+                        of("Omeprazole","Classification","Valid"),
+                        of("Omeprazole","Non-standard","Valid"),
+                        of("Omeprazole","Non-standard","Invalid"),
+                        of("omeprazole","Standard","Valid"),
+                        of("omeprazole","Classification","Valid"),
+                        of("omeprazole","Non-standard","Valid"),
+                        of("omeprazole","Non-standard","Invalid")
+                ),
+                docList.stream()
+                        .map(f -> of(f.get("concept_name"), f.get("standard_concept"), f.get("invalid_reason")))
+                        .collect(Collectors.toList())
         );
     }
 
-    @Test
-    public void query_TooFuzzy() throws Exception {
-
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("P888");
-
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
-
-        assertEquals(0, docList.size());
-    }
-
-
-    private ConceptSearchDTO createConceptSearchDTO(String searchString) {
-
-        ConceptSearchDTO conceptSearchDTO = new ConceptSearchDTO();
-        conceptSearchDTO.setQuery(searchString);
-        conceptSearchDTO.setPage(1);
-        conceptSearchDTO.setPageSize(30);
-        return conceptSearchDTO;
-    }
 }

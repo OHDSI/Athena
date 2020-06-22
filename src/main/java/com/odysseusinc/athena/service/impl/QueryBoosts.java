@@ -18,6 +18,7 @@ public class QueryBoosts {
     private AsteriskTermBoosts asteriskTermBoosts;
     private SingleAsteriskTermBoosts singleAsteriskTermBoosts;
     private PhraseBoosts phrase;
+    private AdditionalBoosts additionalBoosts;
 
     public static QueryBoosts buildDefault() {
 
@@ -25,7 +26,7 @@ public class QueryBoosts {
                 new NotExactTermBoosts(), new SingleNotExactTermBoosts(),
                 new ExactTermBoosts(), new SingleExactTermBoosts(),
                 new AsteriskTermBoosts(), new SingleAsteriskTermBoosts(),
-                new PhraseBoosts());
+                new PhraseBoosts(), new AdditionalBoosts());
     }
 
     @Data
@@ -98,5 +99,12 @@ public class QueryBoosts {
         private Integer conceptClassIdCi = 100;
         private Integer domainIdCi = 100;
         private Integer vocabularyIdCi = 100;
+    }
+
+    @Data
+    public static class AdditionalBoosts {
+        private Integer standardConcept = 30;
+        private Integer classificationConcept = 10;
+        private Integer valid = 5;
     }
 }

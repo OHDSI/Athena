@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConceptSearchQueryPartCreator {
     public static final String CONCEPT_ID = "concept_id";
-    public static final String CONCEPT_NAME_CI = "concept_name_ci";
-    public static final String CONCEPT_CODE_CI = "concept_code_ci";
     public static final String CONCEPT_CODE = "concept_code";
+    public static final String CONCEPT_CODE_CI = "concept_code_ci";
     public static final String CONCEPT_NAME = "concept_name";
+    public static final String CONCEPT_NAME_CI = "concept_name_ci";
     public static final String CONCEPT_CLASS_ID_CI = "concept_class_id_ci";
     public static final String DOMAIN_ID_CI = "domain_id_ci";
     public static final String VOCABULARY_ID_CI = "vocabulary_id_ci";
@@ -21,6 +21,8 @@ public class ConceptSearchQueryPartCreator {
     public static final String CONCEPT_CODE_TEXT = "concept_code_text";
     public static final String CONCEPT_SYNONYM_NAME_TEXT = "concept_synonym_name_text";
     public static final String QUERY_SYMBOLS = "query";
+    public static final String STANDARD_CONCEPT = "standard_concept";
+    public static final String INVALID_REASON = "invalid_reason";
     //0.7 - the required similarity of fuzzyness, see http://lucene.apache.org/core/3_6_0/queryparsersyntax.html#Fuzzy%20Searches
     public static final String FUZZY_EDIT_DISTANCE = "0.7";
 
@@ -111,6 +113,15 @@ public class ConceptSearchQueryPartCreator {
             boostedQuery += " OR " + String.format("%s:%s^%s", CONCEPT_ID, term, boosts.getConceptId());
         }
         return boostedQuery;
+    }
+
+    public String additionalPriority(QueryBoosts.AdditionalBoosts boosts) {
+
+
+        return String.join(" ",
+                String.format("_val_:\"termfreq(%s,%s)\"^%s", STANDARD_CONCEPT, "Standard", boosts.getStandardConcept()),
+                String.format("_val_:\"termfreq(%s,%s)\"^%s", STANDARD_CONCEPT, "Classification", boosts.getClassificationConcept()),
+                String.format("_val_:\"termfreq(%s,%s)\"^%s", INVALID_REASON, "Valid", boosts.getValid()));
     }
 
 }

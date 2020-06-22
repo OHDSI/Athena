@@ -43,12 +43,12 @@ public class ConceptSearchPhraseToSolrQueryService {
         this.conceptSearchQueryPartCreator = conceptSearchQueryPartCreator;
     }
 
-    public String createQuery(ConceptSearchDTO source) {
+    public String createQuery(ConceptSearchDTO source, QueryBoosts queryBoosts) {
 
         if (isBlank(source.getQuery())) {
             return FIND_ALL_QUERY;
         }
-        return createSolrQueryString(source, getQueryBoosts(source.getBoosts()));
+        return createSolrQueryString(source, queryBoosts);
     }
 
     private String createSolrQueryString(ConceptSearchDTO source, QueryBoosts queryBoosts) {
@@ -171,18 +171,7 @@ public class ConceptSearchPhraseToSolrQueryService {
                 .collect(Collectors.toList());
     }
 
-    private QueryBoosts getQueryBoosts(String boostJson) {
 
-        if (isBlank(boostJson)) {
-            return QueryBoosts.buildDefault();
-        }
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(boostJson, QueryBoosts.class);
-        } catch (IOException e) {
-            return QueryBoosts.buildDefault();
-        }
-    }
 
     private List<String> findAllMatches(String value, String regex) {
 
