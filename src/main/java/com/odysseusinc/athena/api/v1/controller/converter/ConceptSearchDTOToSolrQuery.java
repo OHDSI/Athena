@@ -193,7 +193,7 @@ public class ConceptSearchDTOToSolrQuery {
 
         setSorting(source, query);
         setPagination(source, query);
-        setAdditionalProrities(query, queryBoosts);
+        setAdditionalPriorities(query, queryBoosts);
         setFacets(query);
         if (query.getFilterQueries() != null && query.getFilterQueries().length > 0) {
             query.setParam("facet.method", "fcs");
@@ -203,10 +203,10 @@ public class ConceptSearchDTOToSolrQuery {
         return query;
     }
 
-    private void setAdditionalProrities(SolrQuery query, QueryBoosts queryBoosts) {
+    private void setAdditionalPriorities(SolrQuery query, QueryBoosts queryBoosts) {
 
         query.set("defType", "edismax");
-        query.set("dq", conceptSearchQueryPartCreator.additionalPriority(queryBoosts.getAdditionalBoosts()));
+        query.set("bq", conceptSearchQueryPartCreator.additionalPriority(queryBoosts.getAdditionalBoosts()));
     }
 
     public SolrQuery createQuery(ConceptSearchDTO source) {

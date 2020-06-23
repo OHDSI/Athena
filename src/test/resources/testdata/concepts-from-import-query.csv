@@ -33,3 +33,7 @@
 49000005;0011100005;omeprazole;Substance;Observation;SNOMED;Classification;Valid;Observation;Systematic Nomenclature of Medicine - Clinical Terms (IHTSDO);
 49000006;0011100005;omeprazole;Substance;Observation;SNOMED;Non-standard;Valid;Observation;Systematic Nomenclature of Medicine - Clinical Terms (IHTSDO);
 49000007;0011100005;omeprazole;Substance;Observation;SNOMED;Non-standard;Invalid;Observation;Systematic Nomenclature of Medicine - Clinical Terms (IHTSDO);
+50000000;043063484;Lisinopril ORAL 20020701 TABLET [Lisinopril];Substance;Observation;SNOMED;Non-standard;Invalid;Observation;Systematic Nomenclature of Medicine - Clinical Terms (IHTSDO);
+50000001;OMOP499018;Lisinopril Oral Tablet [Lisinopril Oral];Substance;Observation;SNOMED;Non-standard;Invalid;Observation;Systematic Nomenclature of Medicine - Clinical Terms (IHTSDO);
+50000002;OMOP373435;Lisinopril Oral Suspension;Substance;Observation;SNOMED;Standard;Valid;Observation;Systematic Nomenclature of Medicine - Clinical Terms (IHTSDO);
+50000003;010101;Lisinopril Oral;Substance;Observation;SNOMED;Standard;Valid;Observation;Systematic Nomenclature of Medicine - Clinical Terms (IHTSDO);

@@ -84,16 +84,16 @@ public class SearchServiceImpl implements SearchService {
         SolrQuery solrQuery = converterToSolrQuery.createQuery(searchDTO, v5Ids);
 
         if (debug) {
-            solrQuery.setParam("fl", "*,score");
-            solrQuery.set("debugQuery", "on");
+            QueryDebugUtils.addDebugAndScore(solrQuery);
+            QueryResponse response = solrService.search(solrQuery);
+            List<SolrDocument> solrDocumentList = response.getResults();
 
-            QueryResponse solrResponse = solrService.search(solrQuery);
-            List<SolrDocument> solrDocumentList = solrResponse.getResults();
+            LOGGER.info("Debug {}", response.getExplainMap().toString());
 
             return converter.convert(
-                    new SearchResult<>(solrQuery, solrResponse, solrDocumentList), v5Ids,
-                    QueryDebugUtils.getDebug(solrResponse.getExplainMap().toString()),
-                    QueryDebugUtils.getQuery(solrQuery.toString())
+                    new SearchResult<>(solrQuery, response, solrDocumentList), v5Ids,
+                    QueryDebugUtils.getDebug(response.getExplainMap().toString()),
+                    QueryDebugUtils.getQuery(solrQuery.getQuery())
             );
         }
 

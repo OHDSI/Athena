@@ -37,36 +37,16 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 
-public class SolrConceptFuzzySearchTest {
+public class SolrConceptFuzzySearchTest extends  SolrConceptSearchAbstractTest {
 
-    @ClassRule
-    public static final TestRule serviceInitializer = SolrInitializer.INSTANCE;
 
-    private ConceptSearchDTOToSolrQuery conceptSearchDTOToSolrQuery;
-
-    @Before
-    public void setUp() throws Exception {
-        ConceptSearchQueryPartCreator conceptSearchQueryPartCreator = new ConceptSearchQueryPartCreator();
-        ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService(conceptSearchQueryPartCreator);
-
-        conceptSearchDTOToSolrQuery = new ConceptSearchDTOToSolrQuery(
-                conceptSearchPhraseToSolrQueryService,
-                null,
-                null,
-                conceptSearchQueryPartCreator);
-
-    }
 
     @Test
     public void query_fuzzy() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Strok Myocardi8 Infarctiin Gastrointestinal Bleedi");
+        String queryString = "Strok Myocardi8 Infarctiin Gastrointestinal Bleedi";
+        SolrDocumentList docList = executeQuery(queryString);
 
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
-
-        assertEquals(13, docList.size());
         assertEquals(
                 Arrays.asList(
                         "Stroke Myocardial Infarction Strok",
@@ -90,22 +70,9 @@ public class SolrConceptFuzzySearchTest {
     @Test
     public void query_TooFuzzy() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("P888");
-
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
+        String queryString = "P888";
+        SolrDocumentList docList = executeQuery(queryString);
 
         assertEquals(0, docList.size());
-    }
-
-
-    private ConceptSearchDTO createConceptSearchDTO(String searchString) {
-
-        ConceptSearchDTO conceptSearchDTO = new ConceptSearchDTO();
-        conceptSearchDTO.setQuery(searchString);
-        conceptSearchDTO.setPage(1);
-        conceptSearchDTO.setPageSize(30);
-        return conceptSearchDTO;
     }
 }

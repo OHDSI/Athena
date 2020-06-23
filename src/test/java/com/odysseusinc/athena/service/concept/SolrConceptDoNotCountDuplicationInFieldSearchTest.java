@@ -18,25 +18,20 @@
  * Authors: Yaroslav Molodkov
  *
  */
+
 package com.odysseusinc.athena.service.concept;
 
 import static com.odysseusinc.athena.service.concept.SolrTestUtils.createConceptSearchDTO;
-import static org.apache.commons.lang3.tuple.ImmutableTriple.of;
 import static org.junit.Assert.assertEquals;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConceptSearchDTOToSolrQuery;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
 import com.odysseusinc.athena.service.impl.ConceptSearchQueryPartCreator;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
+import com.odysseusinc.athena.service.support.TestQueryDebugUtils;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
@@ -45,30 +40,52 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 
-public class SolrConceptStandardAndValidFirstSearchTest extends SolrConceptSearchAbstractTest{
+public class SolrConceptDoNotCountDuplicationInFieldSearchTest {
 
+    @ClassRule
+    public static final TestRule serviceInitializer = SolrInitializer.INSTANCE;
+
+    private ConceptSearchDTOToSolrQuery conceptSearchDTOToSolrQuery;
+
+    @Before
+    public void setUp() throws Exception {
+
+        ConceptSearchQueryPartCreator conceptSearchQueryPartCreator = new ConceptSearchQueryPartCreator();
+        ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService =
+                new ConceptSearchPhraseToSolrQueryService(conceptSearchQueryPartCreator);
+
+        conceptSearchDTOToSolrQuery = new ConceptSearchDTOToSolrQuery(
+                conceptSearchPhraseToSolrQueryService,
+                null,
+                null,
+                conceptSearchQueryPartCreator
+        );
+
+    }
 
     @Test
-    public void query_orderByStandardConcept() throws Exception {
+    public void query_repeatingTermsDoesNotIncreasePriority() throws Exception {
 
-        String queryString = "Omeprazole";
-        SolrDocumentList docList = executeQuery(queryString);
+        String queryString = "Lisinopril Oral";
+
+        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO(queryString);
+
+        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
+
+        QueryResponse response = TestQueryDebugUtils.debug("repeatingTermsDoesNotIncreasePriority", query, () -> SolrInitializer.server.query(query));
+        SolrDocumentList docList = response.getResults();
 
         assertEquals(String.format("Wrong outcome for '%s' query", queryString),
                 Arrays.asList(
-                        of("Omeprazole","Standard","Valid"),
-                        of("omeprazole","Standard","Valid"),
-                        of("Omeprazole","Classification","Valid"),
-                        of("omeprazole","Classification","Valid"),
-                        of("Omeprazole","Non-standard","Valid"),
-                        of("omeprazole","Non-standard","Valid"),
-                        of("Omeprazole","Non-standard","Invalid"),
-                        of("omeprazole","Non-standard","Invalid")
+                        "Lisinopril Oral",
+                        "Lisinopril Oral Suspension",
+                        "Lisinopril Oral Tablet [Lisinopril Oral]",
+                        "Lisinopril ORAL 20020701 TABLET [Lisinopril]"
                 ),
-                docList.stream()
-                        .map(f -> of(f.get("concept_name"), f.get("standard_concept"), f.get("invalid_reason")))
-                        .collect(Collectors.toList())
+                docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
     }
+
+
 
 }
