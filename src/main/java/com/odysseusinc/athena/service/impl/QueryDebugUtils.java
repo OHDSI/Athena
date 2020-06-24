@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,12 @@ public class QueryDebugUtils {
     private static final Logger log = LoggerFactory.getLogger(QueryDebugUtils.class);
 
     private QueryDebugUtils() {
+    }
+
+
+    public static void addDebugAndScore(SolrQuery solrQuery) {
+        solrQuery.set("debugQuery", "on");
+        solrQuery.setParam("fl", "*,score");
     }
 
     public static String getDebug(String debug) {
@@ -35,10 +42,8 @@ public class QueryDebugUtils {
             return StringUtils.EMPTY;
         }
 
-        String query = decode(queryString);
-        query = StringUtils.substringBetween(query, "=", "&");
         try {
-            String newLines = query
+            String newLines = queryString
                     .replace("OR", "OR\n")
                     .replace("AND", "AND\n")
                     .replace("(", "\n(\n")

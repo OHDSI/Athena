@@ -20,15 +20,23 @@
  */
 package com.odysseusinc.athena.service.concept;
 
+import static com.odysseusinc.athena.service.concept.SolrTestUtils.createConceptSearchDTO;
+import static org.apache.commons.lang3.tuple.ImmutableTriple.of;
 import static org.junit.Assert.assertEquals;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConceptSearchDTOToSolrQuery;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
 import com.odysseusinc.athena.service.impl.ConceptSearchQueryPartCreator;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
@@ -37,42 +45,30 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 
-public class SolrConceptFuzzySearchTest extends  SolrConceptSearchAbstractTest {
-
+public class SolrConceptStandardAndValidFirstSearchTest extends SolrConceptSearchAbstractTest{
 
 
     @Test
-    public void query_fuzzy() throws Exception {
+    public void query_orderByStandardConcept() throws Exception {
 
-        String queryString = "Strok Myocardi8 Infarctiin Gastrointestinal Bleedi";
+        String queryString = "Omeprazole";
         SolrDocumentList docList = executeQuery(queryString);
 
-        assertEquals(
+        assertEquals(String.format("Wrong outcome for '%s' query", queryString),
                 Arrays.asList(
-                        "Stroke Myocardial Infarction Strok",
-                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
-                        "Stroke Myocardial Infarction Gastrointestinal Bleeding",
-                        "Bleeding in Back Gastrointestinal Bleeding",
-                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
-                        "Stroke Myocardial Infarction",
-                        "Stroke Myocardial Infarction Stroke Nothin",
-                        "Stroke Myocardial Infarction  Renal Dysfunction",
-                        "Stroke Myocardial Infarction Bleeding in Back",
-                        "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
-                        "stroke",
-                        "Stroke",
-                        "Strook"
-                        ),
-                docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
+                        of("Omeprazole","Standard","Valid"),
+                        of("omeprazole","Standard","Valid"),
+                        of("Omeprazole","Classification","Valid"),
+                        of("omeprazole","Classification","Valid"),
+                        of("Omeprazole","Non-standard","Valid"),
+                        of("omeprazole","Non-standard","Valid"),
+                        of("Omeprazole","Non-standard","Invalid"),
+                        of("omeprazole","Non-standard","Invalid")
+                ),
+                docList.stream()
+                        .map(f -> of(f.get("concept_name"), f.get("standard_concept"), f.get("invalid_reason")))
+                        .collect(Collectors.toList())
         );
     }
 
-    @Test
-    public void query_TooFuzzy() throws Exception {
-
-        String queryString = "P888";
-        SolrDocumentList docList = executeQuery(queryString);
-
-        assertEquals(0, docList.size());
-    }
 }

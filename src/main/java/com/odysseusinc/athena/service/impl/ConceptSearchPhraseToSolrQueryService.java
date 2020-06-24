@@ -6,9 +6,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.remove;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,12 +41,12 @@ public class ConceptSearchPhraseToSolrQueryService {
         this.conceptSearchQueryPartCreator = conceptSearchQueryPartCreator;
     }
 
-    public String createQuery(ConceptSearchDTO source) {
+    public String createQuery(ConceptSearchDTO source, QueryBoosts queryBoosts) {
 
         if (isBlank(source.getQuery())) {
             return FIND_ALL_QUERY;
         }
-        return createSolrQueryString(source, getQueryBoosts(source.getBoosts()));
+        return createSolrQueryString(source, queryBoosts);
     }
 
     private String createSolrQueryString(ConceptSearchDTO source, QueryBoosts queryBoosts) {
@@ -65,7 +63,7 @@ public class ConceptSearchPhraseToSolrQueryService {
         return Stream.of(
                 getQueryToFindDocsWithWholePhrase(query, queryBoosts.getPhrase()),
                 getQueryToFindDocsWithSingleTerm(exactTerms, notExactTerms, asteriskTerms, queryBoosts),
-                getQueryToFindDocsWithAnyOfTermFromPhrase(exactTerms, notExactTerms, asteriskTerms,  queryBoosts)
+                getQueryToFindDocsWithAnyOfTermFromPhrase(query, exactTerms, notExactTerms, asteriskTerms,  queryBoosts)
 
         )
                 .filter(StringUtils::isNotBlank)
@@ -99,23 +97,32 @@ public class ConceptSearchPhraseToSolrQueryService {
         if (isBlank(phraseForQuery)) {
             return EMPTY;
         }
-        String phraseWithoutQuotes = remove(phraseForQuery, "\"");
-        String phraseWithoutEscChars = ClientUtils.escapeQueryChars(phraseWithoutQuotes);
-        String phraseWithoutDuplicatedWhitespaces = phraseWithoutEscChars.replaceAll("\\s+", " ");
-        return conceptSearchQueryPartCreator.wholePhrase(phraseWithoutDuplicatedWhitespaces, boosts);
+        String queryString = preparePhraseQueryString(phraseForQuery);
+        return conceptSearchQueryPartCreator.wholePhrase(queryString, boosts);
     }
 
-    private String getQueryToFindDocsWithAnyOfTermFromPhrase(List<String> exactTerms, List<String> notExactTerms, List<String> asteriskTerms,  QueryBoosts queryBoosts) {
+    private String preparePhraseQueryString(String phraseForQuery) {
+
+        String phraseWithoutQuotes = remove(phraseForQuery, "\"");
+        String phraseWithoutEscChars = ClientUtils.escapeQueryChars(phraseWithoutQuotes);
+        return phraseWithoutEscChars.replaceAll("\\s+", " ");
+    }
+
+    private String getQueryToFindDocsWithAnyOfTermFromPhrase(String phraseForQuery, List<String> exactTerms, List<String> notExactTerms, List<String> asteriskTerms,  QueryBoosts queryBoosts) {
 
         String exactQueryPart = buildExactTermsQueryPart(exactTerms, queryBoosts);
         String notExactQueryPart = buildNotExactTermsQueryPart(notExactTerms, queryBoosts);
         String asteriskQueryPart = buildAsteriskTermsQueryPart(asteriskTerms, queryBoosts);
+        String allTermQueryPart =  buildFewTermsQueryPart(phraseForQuery, queryBoosts);
 
         String mandatoryPart = Stream.of(exactQueryPart, asteriskQueryPart)
                 .filter(StringUtils::isNotEmpty)
                 .map(part -> String.format("%s", part))
                 .collect(Collectors.joining(" AND "));
-        String optionalPart = notExactQueryPart;
+        String optionalPart = Stream.of(notExactQueryPart, allTermQueryPart)
+                .filter(StringUtils::isNotEmpty)
+                .map(part -> String.format("%s", part))
+                .collect(Collectors.joining(" OR "));
 
         if (isBlank(mandatoryPart)) {
             return optionalPart;
@@ -123,10 +130,10 @@ public class ConceptSearchPhraseToSolrQueryService {
         if (isBlank(optionalPart)) {
             return mandatoryPart;
         }
-        // the query for  "A + [B]" condition equals A || (A && B),
+        // the query for  "A + [B]" condition equals (A && B) || A,
         // A - MANDATORY part of the query
         // B - OPTIONAL part of the query
-        return String.format("%s OR (%s AND %s)", mandatoryPart, mandatoryPart, optionalPart);
+        return String.format("(%s AND (%s)) OR %s", mandatoryPart, optionalPart, mandatoryPart);
     }
 
     protected List<String> findExactTerms(String phraseString) {
@@ -171,18 +178,7 @@ public class ConceptSearchPhraseToSolrQueryService {
                 .collect(Collectors.toList());
     }
 
-    private QueryBoosts getQueryBoosts(String boostJson) {
 
-        if (isBlank(boostJson)) {
-            return QueryBoosts.buildDefault();
-        }
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(boostJson, QueryBoosts.class);
-        } catch (IOException e) {
-            return QueryBoosts.buildDefault();
-        }
-    }
 
     private List<String> findAllMatches(String value, String regex) {
 
@@ -195,6 +191,14 @@ public class ConceptSearchPhraseToSolrQueryService {
             exacts.add(matcher.group());
         }
         return exacts;
+    }
+
+    // in the current implementation, terms that are exists in many fields can get a higher score than the phrase
+    // to compensate this we search for phrase so any combination of terms are going to have hige score.
+    private String buildFewTermsQueryPart(String phraseQuery, QueryBoosts queryBoosts) {
+
+        String preparedPhraseQuery = preparePhraseQueryString(phraseQuery);
+        return String.format("(%s)",  conceptSearchQueryPartCreator.fewTermsQueryPart(preparedPhraseQuery, queryBoosts.getFewTermsBoosts()));
     }
 
     private String buildAsteriskTermsQueryPart(List<String> asteriskTerms, QueryBoosts queryBoosts) {
