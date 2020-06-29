@@ -67,7 +67,7 @@ public class ConceptV5ToConceptDetailDTOConverterTest {
 
         final ConceptDetailsDTO conceptDto = converter.convert(concept);
 
-        assertThat(conceptDto.getInvalidReason()).isEqualTo("Deleted");
+        assertThat(conceptDto.getInvalidReason()).isEqualTo("Deprecated");
     }
 
     @Test
