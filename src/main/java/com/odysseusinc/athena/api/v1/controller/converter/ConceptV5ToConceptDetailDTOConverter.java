@@ -110,7 +110,7 @@ public class ConceptV5ToConceptDetailDTOConverter implements Converter<ConceptV5
             case "U":
                 return "Upgraded";
             case "D":
-                return "Deleted";
+                return "Deprecated";
             default:
                 return String.format("Invalid (%s)", invalidReason);
         }
