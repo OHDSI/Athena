@@ -65,5 +65,6 @@ public class RevokableJwtAthenticator extends JwtAuthenticator {
             throw new CredentialsException("Token was revoked");
         }
         super.validate(credentials, context);
+        context.getSessionStore().getOrCreateSessionId(context);
     }
 }
