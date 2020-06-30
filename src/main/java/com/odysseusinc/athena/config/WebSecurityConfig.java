@@ -105,7 +105,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .addFilterBefore(filter, BasicAuthenticationFilter.class)
                     .csrf()
                     .disable()
-                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
+                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
         }
 
         @Bean
