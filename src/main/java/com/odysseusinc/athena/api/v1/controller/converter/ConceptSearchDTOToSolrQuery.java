@@ -58,7 +58,7 @@ public class ConceptSearchDTOToSolrQuery {
 
     public static final String DOMAIN_ID = "domain_id";
     public static final String VOCABULARY_ID = "vocabulary_id";
-    private static final String CONCEPT_ID = "concept_id";
+    private static final String UNIQUE_KEY = "id";
     private static final String CLASS_ID = "concept_class_id";
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
@@ -220,7 +220,7 @@ public class ConceptSearchDTOToSolrQuery {
         List<String> ids = getWrappedInQuotationMarksUnavailableVocabularyIds();
         QueryBoosts queryBoosts = getQueryBoosts(source.getBoosts());
         SolrQuery result = baseQuery(source, ids, queryBoosts);
-        result.setSort(CONCEPT_ID, SolrQuery.ORDER.asc);
+        result.setSort(UNIQUE_KEY, SolrQuery.ORDER.asc);
         result.setStart(0);
         result.setRows(limitChecker.getMaxLimitPageSize());
         return result;

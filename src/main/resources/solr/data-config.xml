@@ -6,6 +6,7 @@
            pk="concept_id"
 
             query="select c.concept_id,
+            lpad(concept_id::text, 10 , '0') id,
             c.concept_code,
             c.concept_name,
             c.concept_class_id,
