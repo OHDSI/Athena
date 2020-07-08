@@ -72,7 +72,7 @@ public class SolrConceptDoNotCountDuplicationInFieldSearchTest {
 
         SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
 
-        QueryResponse response = TestQueryDebugUtils.debug("repeatingTermsDoesNotIncreasePriority", query, () -> SolrInitializer.server.query(query));
+        QueryResponse response = SolrInitializer.server.query(query);
         SolrDocumentList docList = response.getResults();
 
         assertEquals(String.format("Wrong outcome for '%s' query", queryString),

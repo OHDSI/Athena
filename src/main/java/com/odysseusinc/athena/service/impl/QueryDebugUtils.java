@@ -1,17 +1,13 @@
 package com.odysseusinc.athena.service.impl;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.util.Arrays;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class QueryDebugUtils {
 
@@ -73,16 +69,6 @@ public class QueryDebugUtils {
         }
         return queryString;
 
-    }
-
-    private static String decode(String value) {
-
-        try {
-            return URLDecoder.decode(value, StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException e) {
-            log.info("Cannot decode solr query string{}", value, e);
-        }
-        return value;
     }
 
 }

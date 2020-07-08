@@ -151,8 +151,8 @@ public class SolrConceptPhraseSearchTest extends SolrConceptSearchAbstractTest {
         assertEquals(String.format("Wrong outcome for '%s' query", queryString),
                 Arrays.asList(
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
-                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
                         "Stroke",
+                        "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
                         "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Stroke Myocardial Infarction Bleeding in Back",
                         "Stroke Myocardial Infarction",
