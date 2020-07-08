@@ -116,8 +116,8 @@ public class SearchServiceImpl implements SearchService {
 
             try (CSVWriter csvWriter = new AthenaCSVWriter(name, separator)) {
                 if (first) {
-                    csvWriter.writeNext(new String[]{"Id", "Code", "Name", "Concept Class Id", "Domain", "Vocabulary",
-                            "Invalid Reason", "Standard Concept"}, false);
+                    csvWriter.writeNext(new String[]{"Id", "Code", "Name", "Standard Class", "Domain", "Vocab",
+                            "Validity", "Concept"}, false);
                     first = false;
                 }
                 solrQuery.set(CURSOR_MARK_PARAM, cursorMark);
