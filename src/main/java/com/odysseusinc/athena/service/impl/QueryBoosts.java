@@ -59,7 +59,7 @@ public class QueryBoosts {
         private Integer conceptId = 100000;
         private Integer conceptCode = 80000;
         private Integer conceptName = 60000;
-        private Integer conceptSynonymName = 8000;
+        private Integer conceptSynonymName = 7000;
         private Integer conceptCodeCi = 10000;
         private Integer conceptNameCi = 1000;
         private Integer conceptSynonymNameCi = 300;
@@ -76,7 +76,7 @@ public class QueryBoosts {
     public static class AsteriskTermBoosts {
         private Integer conceptCode = 80000;
         private Integer conceptName = 60000;
-        private Integer conceptSynonymName = 8000;
+        private Integer conceptSynonymName = 7000;
         private Integer conceptCodeCi = 30000;
         private Integer conceptNameCi = 25000;
         private Integer conceptSynonymNameCi = 2000;
@@ -98,7 +98,7 @@ public class QueryBoosts {
         private Integer conceptId = 100000;
         private Integer conceptCode = 80000;
         private Integer conceptName = 60000;
-        private Integer conceptSynonymName = 8000;
+        private Integer conceptSynonymName = 7000;
         private Integer conceptCodeCi = 10000;
         private Integer conceptNameCi = 1000;
         private Integer conceptSynonymNameCi = 300;
