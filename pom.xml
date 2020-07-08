@@ -23,7 +23,7 @@
         <jjwt.version>0.7.0</jjwt.version>
         <postgresql.version>42.2.9</postgresql.version>
         <opensaml.version>2.6.6-patched</opensaml.version>
-        <solr.version>7.2.1</solr.version>
+        <solr.version>7.7.1</solr.version>
         <spring-security-pac4j.version>3.1.0</spring-security-pac4j.version>
         <pac4j.version>2.3.1</pac4j.version>
         <opencsv.version>3.9</opencsv.version>
