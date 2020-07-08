@@ -85,7 +85,7 @@
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-velocity-\d.*\.jar" />
 
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-dataimporthandler-.*\.jar" />
-  <lib dir="${solr.install.dir:../../../..}/dist/" regex="postgresql-9.4-1201.jdbc4.jar" />
+  <lib dir="${solr.install.dir:../../../..}/dist/" regex="postgresql-.*\.jar" />
 
 
   <!-- an exact 'path' can be used instead of a 'dir' to specify a 
