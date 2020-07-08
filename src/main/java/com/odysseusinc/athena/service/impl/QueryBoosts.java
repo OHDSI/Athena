@@ -33,12 +33,12 @@ public class QueryBoosts {
     @Data
     public static class NotExactTermBoosts {
 
-        private Integer conceptCodeText = 500;
-        private Integer conceptNameText = 500;
-        private Integer conceptSynonymNameText = 200;
+        private Integer conceptCodeText = 1000;
+        private Integer conceptNameText = 1000;
+        private Integer conceptSynonymNameText = 50;
         private Integer conceptCodeTextFuzzy = 50;
         private Integer conceptNameTextFuzzy = 50;
-        private Integer conceptSynonymNameFuzzy = 20;
+        private Integer conceptSynonymNameFuzzy = 15;
         private Integer querySymbols = 10;
         private Integer querySymbolsFuzzy = 1;
     }
@@ -51,7 +51,7 @@ public class QueryBoosts {
 
     @Data
     public static class  FewTermsBoosts {
-        private Integer query = 50000;
+        private Integer query = 20000;
     }
 
     @Data
@@ -59,10 +59,10 @@ public class QueryBoosts {
         private Integer conceptId = 100000;
         private Integer conceptCode = 80000;
         private Integer conceptName = 60000;
-        private Integer conceptSynonymName = 40000;
+        private Integer conceptSynonymName = 8000;
         private Integer conceptCodeCi = 10000;
         private Integer conceptNameCi = 1000;
-        private Integer conceptSynonymNameCi = 500;
+        private Integer conceptSynonymNameCi = 300;
         private Integer querySymbols = 10;
     }
 
@@ -76,13 +76,13 @@ public class QueryBoosts {
     public static class AsteriskTermBoosts {
         private Integer conceptCode = 80000;
         private Integer conceptName = 60000;
-        private Integer conceptSynonymName = 40000;
+        private Integer conceptSynonymName = 8000;
         private Integer conceptCodeCi = 30000;
         private Integer conceptNameCi = 25000;
-        private Integer conceptSynonymNameCi = 20000;
+        private Integer conceptSynonymNameCi = 2000;
         private Integer conceptCodeText = 10000;
         private Integer conceptNameText = 8000;
-        private Integer conceptSynonymNameText = 5000;
+        private Integer conceptSynonymNameText = 500;
 
     }
 
@@ -98,10 +98,10 @@ public class QueryBoosts {
         private Integer conceptId = 100000;
         private Integer conceptCode = 80000;
         private Integer conceptName = 60000;
-        private Integer conceptSynonymName = 40000;
+        private Integer conceptSynonymName = 8000;
         private Integer conceptCodeCi = 10000;
         private Integer conceptNameCi = 1000;
-        private Integer conceptSynonymNameCi = 500;
+        private Integer conceptSynonymNameCi = 300;
         private Integer conceptClassIdCi = 100;
         private Integer domainIdCi = 100;
         private Integer vocabularyIdCi = 100;
@@ -109,9 +109,9 @@ public class QueryBoosts {
 
     @Data
     public static class AdditionalBoosts {
-        private Integer standardConcept = 10000;
-        private Integer classificationConcept = 3000;
-        private Integer valid = 1500;
+        private Integer standardConcept = 25000;
+        private Integer classificationConcept = 5000;
+        private Integer valid = 2500;
     }
 
 }
