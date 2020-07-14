@@ -32,6 +32,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -65,9 +67,9 @@ public class ConceptV5ToConceptDetailDTOConverter implements Converter<ConceptV5
         dto.setConceptClassId(solrConcept.getConceptClassId());
         dto.setVocabularyId(solrConcept.getVocabularyId());
         dto.setConceptCode(solrConcept.getConceptCode());
-        dto.setInvalidReason(solrConcept.getInvalidReason() == null ? "Valid" : "Invalid");
-        String standard = solrConcept.getStandardConcept();
-        dto.setStandardConcept(standard == null ? "Non-standard" : standard.equals("S") ? "Standard" : "Classification");
+
+        dto.setInvalidReason(mapInvalidReason(solrConcept.getInvalidReason()));
+        dto.setStandardConcept(mapStandardConcept(solrConcept.getStandardConcept()));
         dto.setSynonyms(solrConcept.getSynonyms().stream()
                 .map(ConceptSynonymV5::getName)
                 .collect(Collectors.toList()));
@@ -89,5 +91,28 @@ public class ConceptV5ToConceptDetailDTOConverter implements Converter<ConceptV5
             }
         }
         return dto;
+    }
+
+    private String mapStandardConcept(String standard) {
+
+        if(standard == null){
+            return "Non-standard";
+        }
+        return standard.equals("S") ? "Standard" : "Classification";
+    }
+
+    private String mapInvalidReason(String invalidReason) {
+
+        if (StringUtils.isBlank(invalidReason)) {
+            return "Valid";
+        }
+        switch (invalidReason){
+            case "U":
+                return "Upgraded";
+            case "D":
+                return "Deprecated";
+            default:
+                return String.format("Invalid (%s)", invalidReason);
+        }
     }
 }

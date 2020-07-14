@@ -45,14 +45,14 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class AthenaV5DatabaseConfig {
 
     @Bean(name = "athenaV5TransactionManager")
-    PlatformTransactionManager cdmTransactionManager(@Qualifier("athenaV5EntityManagerFactory")
+    public PlatformTransactionManager cdmTransactionManager(@Qualifier("athenaV5EntityManagerFactory")
                                                              EntityManagerFactory entityManagerFactory) {
 
         return new JpaTransactionManager(entityManagerFactory);
     }
 
     @Bean(name = "athenaV5EntityManagerFactory")
-    LocalContainerEntityManagerFactoryBean cdmEntityManagerFactory(@Qualifier("athenaV5DataSource") DataSource dataSource) {
+    public LocalContainerEntityManagerFactoryBean cdmEntityManagerFactory(@Qualifier("athenaV5DataSource") DataSource dataSource) {
 
         HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
         jpaVendorAdapter.setGenerateDdl(false);
@@ -68,7 +68,7 @@ public class AthenaV5DatabaseConfig {
 
     @Bean(name = "athenaV5DataSource")
     @ConfigurationProperties(prefix = "athena.v5.datasource")
-    DataSource cdmDataSource() {
+    public DataSource cdmDataSource() {
 
         return DataSourceBuilder.create().build();
     }

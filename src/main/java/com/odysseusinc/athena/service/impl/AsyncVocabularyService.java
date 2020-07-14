@@ -25,6 +25,8 @@ package com.odysseusinc.athena.service.impl;
 import com.odysseusinc.athena.api.v1.controller.converter.UrlBuilder;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
+import com.odysseusinc.athena.model.athena.DownloadItem;
+import com.odysseusinc.athena.model.athena.VocabularyConversion;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.VocabularyConversionRepository;
@@ -40,12 +42,15 @@ import com.odysseusinc.athena.util.DownloadBundleStatus;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static java.util.stream.Collectors.toMap;
 
 
 @Service
@@ -102,8 +107,14 @@ public class AsyncVocabularyService {
 
             LOGGER.info("Bundle is saved in zip: {}", bundle);
             updateStatus(bundle, DownloadBundleStatus.READY);
+
+            final Map<String, String> includedVocabularies = bundle.getVocabularies().stream()
+                    .map(DownloadItem::getVocabularyConversion)
+                    .filter(vocab -> !vocab.getOmopReqValue())
+                    .collect(toMap(VocabularyConversion::getIdV5, VocabularyConversion::getName));
+
             emailService.sendVocabularyDownloadLink(user, urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
-                    bundle.getCdmVersion(), bundle.getReleaseVersion());
+                    bundle.getCdmVersion(), bundle.getReleaseVersion(), bundle.getName(), includedVocabularies);
 
         } catch (Exception ex) {
             updateStatus(bundle, DownloadBundleStatus.FAILED);

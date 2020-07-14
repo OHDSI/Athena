@@ -36,7 +36,7 @@ public class SolrDocumentToConceptDTO {
     public static ConceptDTO convert(SolrDocument concept) {
 
         return builder()
-                .setId(Long.parseLong(concept.getFieldValue("id").toString()))
+                .setId(Long.parseLong(concept.getFieldValue("concept_id").toString()))
                 .setName(concept.getFieldValue("concept_name").toString())
                 .setCode(concept.getFieldValue("concept_code").toString())
                 .setClassName(concept.getFieldValue("concept_class_id").toString())

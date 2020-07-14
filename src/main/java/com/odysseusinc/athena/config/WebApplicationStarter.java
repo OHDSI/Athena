@@ -23,27 +23,31 @@
 package com.odysseusinc.athena.config;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication
-@Configuration
-@EnableScheduling
-@EnableAsync
-@EnableAspectJAutoProxy
-@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class,
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class,
         HibernateJpaAutoConfiguration.class,
         FlywayAutoConfiguration.class
 })
+@Configuration
+@EnableScheduling
+@EnableRetry
+@EnableAsync
+@EnableAspectJAutoProxy
 @ComponentScan(basePackages = {"com.odysseusinc.athena.api.v1.controller",
         "com.odysseusinc.athena.config",
         "com.odysseusinc.athena.service.**",
@@ -55,4 +59,9 @@ public class WebApplicationStarter extends SpringBootServletInitializer {
         new SpringApplication(WebApplicationStarter.class).run(args);
     }
 
+    @Bean(name = "emailSenderExecutor")
+    public Executor emailsExecutor() {
+
+        return Executors.newSingleThreadExecutor();
+    }
 }

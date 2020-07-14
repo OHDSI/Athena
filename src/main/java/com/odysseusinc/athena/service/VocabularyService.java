@@ -24,18 +24,16 @@ package com.odysseusinc.athena.service;
 
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
-import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.CDMVersion;
-import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import java.util.List;
 
 public interface VocabularyService {
 
-    List<UserVocabularyDTO> getAllForCurrentUser() throws PermissionDeniedException;
+    List<UserVocabularyDTO> getAllForCurrentUser();
 
     void saveContent(DownloadBundle bundle, AthenaUser user);
 
@@ -47,19 +45,19 @@ public interface VocabularyService {
 
     DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Integer> idV4s);
 
-    void restoreDownloadBundle(DownloadBundle downloadBundle) throws PermissionDeniedException;
+    void restoreDownloadBundle(DownloadBundle downloadBundle);
 
     void checkBundleUser(AthenaUser user, DownloadBundle bundle);
 
     void checkBundleAndSharedUser(AthenaUser user, DownloadBundle bundle);
 
-    Iterable<License> saveLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, LicenseStatus status);
+    Iterable<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids);
 
-    Long requestLicenses(AthenaUser user, Integer vocabularyV4Id);
+    Long requestLicense(AthenaUser user, Integer vocabularyV4Id);
 
     void deleteLicense(Long licenseId);
 
-    void acceptLicense(Long id, Boolean accepted);
+    void acceptLicense(Long id, boolean accepted);
 
     License get(AthenaUser user, Integer vocabularyId);
 

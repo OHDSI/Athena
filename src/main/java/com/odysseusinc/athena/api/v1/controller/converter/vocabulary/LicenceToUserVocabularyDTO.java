@@ -58,6 +58,7 @@ public class LicenceToUserVocabularyDTO implements Converter<License, UserVocabu
         Long id = license.getId();
         dto.setLicenseId(id);
         dto.setAvailable(true);
+        dto.setRequestDate(license.getRequestDate());
 
         LicenseStatus status = license.getStatus();
         dto.setStatus(status);

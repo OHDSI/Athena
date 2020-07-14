@@ -24,11 +24,14 @@ package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
 
+import java.util.Date;
+
+
 public class UserVocabularyDTO extends VocabularyDTO {
 
     private boolean available;
     private Long licenseId;
-
+    private Date requestDate;
     private LicenseStatus status;
     private String token;
 
@@ -75,5 +78,15 @@ public class UserVocabularyDTO extends VocabularyDTO {
     public void setToken(String token) {
 
         this.token = token;
+    }
+
+    public Date getRequestDate() {
+
+        return requestDate;
+    }
+
+    public void setRequestDate(Date requestDate) {
+
+        this.requestDate = requestDate;
     }
 }

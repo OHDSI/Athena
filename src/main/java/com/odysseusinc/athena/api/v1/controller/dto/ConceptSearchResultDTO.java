@@ -28,12 +28,37 @@ import org.springframework.data.domain.Pageable;
 
 public class ConceptSearchResultDTO extends FacetedSearchResultDTO<ConceptDTO> {
 
+    private String query;
+    private String debug;
+
     public ConceptSearchResultDTO(List<ConceptDTO> content,
                                   Map<String, Map<String, Long>> facets,
                                   Pageable pageable,
                                   long total) {
 
         super(content, facets, pageable, total);
+        this.debug = debug;
     }
+
+    public String getQuery() {
+
+        return query;
+    }
+
+    public void setQuery(String query) {
+
+        this.query = query;
+    }
+
+    public String getDebug() {
+
+        return debug;
+    }
+
+    public void setDebug(String debug) {
+
+        this.debug = debug;
+    }
+
 
 }

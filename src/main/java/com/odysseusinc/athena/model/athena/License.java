@@ -24,6 +24,8 @@ package com.odysseusinc.athena.model.athena;
 
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
+
+import java.util.Date;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -76,6 +78,9 @@ public class License {
     @Column
     private String token;
 
+    @Column(name = "request_date")
+    private Date requestDate;
+
     public Long getId() {
 
         return id;
@@ -124,5 +129,15 @@ public class License {
     public void setToken(String token) {
 
         this.token = token;
+    }
+
+    public Date getRequestDate() {
+
+        return requestDate;
+    }
+
+    public void setRequestDate(Date requestDate) {
+
+        this.requestDate = requestDate;
     }
 }

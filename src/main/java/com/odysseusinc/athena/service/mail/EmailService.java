@@ -29,12 +29,13 @@ import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.CDMVersion;
 
 import java.util.List;
+import java.util.Map;
 
 public interface EmailService {
 
     void sendVocabularyUpdateNotification(AthenaUser user, List<Notification> updatedVocabularies);
 
-    void sendVocabularyDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion);
+    void sendVocabularyDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion, String bundleName, Map<String, String> requestedVocabularies);
 
     void sendLicenseRequestToAdmins(License license);
 

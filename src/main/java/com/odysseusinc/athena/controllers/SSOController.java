@@ -22,23 +22,21 @@
 
 package com.odysseusinc.athena.controllers;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 @Controller
 public class SSOController implements ApplicationContextAware {
@@ -51,7 +49,7 @@ public class SSOController implements ApplicationContextAware {
     @Value("${athena.slo-url}")
     private String sloUri;
 
-    @RequestMapping(value = "/auth/saml-metadata", method = RequestMethod.GET)
+    @GetMapping("/auth/saml-metadata")
     @ResponseBody
     public void samlMetadata(HttpServletResponse response) throws IOException {
 
@@ -66,7 +64,7 @@ public class SSOController implements ApplicationContextAware {
         response.flushBuffer();
     }
 
-    @RequestMapping(value = "/auth/slo", method = RequestMethod.GET)
+    @GetMapping("/auth/slo")
     public ResponseEntity logout() throws URISyntaxException {
 
         return ResponseEntity.status(302)
@@ -75,7 +73,7 @@ public class SSOController implements ApplicationContextAware {
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(ApplicationContext applicationContext) {
 
         this.applicationContext = applicationContext;
     }
