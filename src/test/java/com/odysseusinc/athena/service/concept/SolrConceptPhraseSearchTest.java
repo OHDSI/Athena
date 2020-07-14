@@ -21,25 +21,12 @@
 
 package com.odysseusinc.athena.service.concept;
 
-import static com.odysseusinc.athena.service.concept.SolrTestUtils.createConceptSearchDTO;
 import static org.junit.Assert.assertEquals;
 
-import com.odysseusinc.athena.api.v1.controller.converter.ConceptSearchDTOToSolrQuery;
-import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
-import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
-import com.odysseusinc.athena.service.impl.ConceptSearchQueryPartCreator;
-import com.odysseusinc.athena.service.impl.QueryDebugUtils;
-import com.odysseusinc.athena.service.support.TestQueryDebugUtils;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.stream.Collectors;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
-import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
 
 public class SolrConceptPhraseSearchTest extends SolrConceptSearchAbstractTest {
 
