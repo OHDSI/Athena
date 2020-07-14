@@ -28,7 +28,6 @@ import com.odysseusinc.athena.api.v1.controller.converter.ConceptSearchDTOToSolr
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
 import com.odysseusinc.athena.service.impl.ConceptSearchQueryPartCreator;
-import com.odysseusinc.athena.service.support.TestQueryDebugUtils;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Collectors;

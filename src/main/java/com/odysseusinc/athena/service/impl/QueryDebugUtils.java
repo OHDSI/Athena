@@ -2,10 +2,17 @@ package com.odysseusinc.athena.service.impl;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +76,42 @@ public class QueryDebugUtils {
         }
         return queryString;
 
+    }
+
+    /**
+     * This is a super handy method to deep debugging of the queries. If you pass solr_query method as lambda here, then you get score explanation info for each found concept.
+     * <pre>{@code
+    *        queryResponse = QueryDebugUtils.debug(
+    *               DEBUG_INFO_FOR_SEARCH_DIR_BASE, searchName,
+    *               query, () -> SolrInitializer.server.query(query)
+    *       );
+     * }</pre>
+     *
+     * This info is going to be in the DEBUG_INFO_FOR_SEARCH_DIR_BASE/searchName directory, and a separate file will be created for each concept and named as conceptID.
+     * Then you can use DIFF to see a difference between found results.
+     */
+    public static QueryResponse debug(String baseDir, String conceptQueryDir, SolrQuery query, ProducerWithException<QueryResponse> requestFunction) throws SolrServerException, IOException {
+
+        QueryDebugUtils.addDebugAndScore(query);
+        QueryResponse response = requestFunction.produce();
+
+        String dir = String.format("%s/%s/", baseDir, conceptQueryDir);
+        FileUtils.deleteDirectory(new File(dir));
+
+        File fileWithQuery = new File(String.format("%s%s", dir,  "query"));
+        FileUtils.writeStringToFile(fileWithQuery, QueryDebugUtils.getQuery(query.getQuery()), Charset.defaultCharset());
+
+        for (Map.Entry<String, String> stringStringEntry : response.getExplainMap().entrySet()) {
+            String k = stringStringEntry.getKey();
+            String v = stringStringEntry.getValue();
+            File file = new File(dir + org.apache.commons.lang3.StringUtils.substringBetween(v, "\n", "=") + "_" + k);
+            FileUtils.writeStringToFile(file, v, Charset.defaultCharset());
+        }
+        return response;
+    }
+
+    public interface ProducerWithException<T> {
+        T produce() throws SolrServerException, IOException;
     }
 
 }
