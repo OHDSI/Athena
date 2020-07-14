@@ -75,6 +75,8 @@ public class AthenaUser implements UserDetails {
     private String middleName;
     @Column(name = "lastname")
     private String lastName;
+    @Column
+    private String organization;
 
     @ManyToMany(targetEntity = AthenaRole.class, fetch = FetchType.EAGER)
     @JoinTable(name = "users_roles",
@@ -287,6 +289,16 @@ public class AthenaUser implements UserDetails {
         this.roles = roles;
     }
 
+    public String getOrganization() {
+
+        return organization;
+    }
+
+    public void setOrganization(String organization) {
+
+        this.organization = organization;
+    }
+
     @Override
     public String toString() {
 
@@ -296,6 +308,9 @@ public class AthenaUser implements UserDetails {
                 + '\''
                 + ", email='"
                 + email
+                + '\''
+                + ", organization='"
+                + organization
                 + '\''
                 + ", origin='" + origin
                 + '\''

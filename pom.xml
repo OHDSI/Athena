@@ -6,38 +6,39 @@
 
     <groupId>com.odysseusinc.athena</groupId>
     <artifactId>athena</artifactId>
-    <version>1.10.0</version>
+    <version>1.11.0</version>
     <packaging>jar</packaging>
+
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.4.4.RELEASE</version>
+        <version>1.5.22.RELEASE</version>
         <relativePath/>
     </parent>
 
     <properties>
         <java.version>1.8</java.version>
-        <spring.boot.version>1.4.4.RELEASE</spring.boot.version>
-        <swagger.springmvc.version>1.0.2</swagger.springmvc.version>
-        <springfox.swagger2.version>2.6.1</springfox.swagger2.version>
+        <springfox.swagger2.version>2.9.2</springfox.swagger2.version>
         <jjwt.version>0.7.0</jjwt.version>
-        <postgresql.version>42.2.5</postgresql.version>
-        <spring.hateoas.version>0.23.0.RELEASE</spring.hateoas.version>
+        <postgresql.version>42.2.9</postgresql.version>
         <opensaml.version>2.6.6-patched</opensaml.version>
-        <solr.version>7.2.1</solr.version>
-        <spring-security-pac4j.version>3.0.0</spring-security-pac4j.version>
-        <pac4j.version>2.0.0</pac4j.version>
-        <j2e-pac4j.version>1.3.3</j2e-pac4j.version>
+        <solr.version>7.7.1</solr.version>
+        <spring-security-pac4j.version>3.1.0</spring-security-pac4j.version>
+        <pac4j.version>2.3.1</pac4j.version>
         <opencsv.version>3.9</opencsv.version>
         <javax.mail.version>1.4</javax.mail.version>
         <spring.context.support>4.3.7.RELEASE</spring.context.support>
         <dockerImagePrefix>hub.arachnenetwork.com</dockerImagePrefix>
-        <arachne.version>1.13.0</arachne.version>
-        <disruptor.version>3.3.6</disruptor.version>
-        <commons-lang3.version>3.0</commons-lang3.version>
+        <arachne.version>1.16.0</arachne.version>
+        <disruptor.version>3.4.2</disruptor.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
+        <thymeleaf.version>3.0.11.RELEASE</thymeleaf.version>
+        <thymeleaf-layout-dialect.version>2.2.1</thymeleaf-layout-dialect.version>
+        <guava.verson>28.2-jre</guava.verson>
+        <lombok.version>1.18.12</lombok.version>
     </properties>
 
     <profiles>
@@ -51,22 +52,6 @@
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
-                        <!--<configuration>-->
-                            <!--<excludes>-->
-                                <!--<exclude>-->
-                                    <!--<groupId>org.springframework.boot</groupId>-->
-                                    <!--<artifactId>spring-boot-starter-tomcat</artifactId>-->
-                                <!--</exclude>-->
-                            <!--</excludes>-->
-                        <!--</configuration>-->
-                        <!--<dependencies>-->
-                            <!--&lt;!&ndash; Including emdedded Tomcat &ndash;&gt;-->
-                            <!--<dependency>-->
-                                <!--<groupId>org.springframework.boot</groupId>-->
-                                <!--<artifactId>spring-boot-starter-tomcat</artifactId>-->
-                                <!--<version>${spring.boot.version}</version>-->
-                            <!--</dependency>-->
-                        <!--</dependencies>-->
                     </plugin>
                 </plugins>
             </build>
@@ -102,11 +87,6 @@
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>com.mangofactory</groupId>
-            <artifactId>swagger-springmvc</artifactId>
-            <version>${swagger.springmvc.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
             <version>${springfox.swagger2.version}</version>
@@ -119,33 +99,26 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
-            <version>${spring.boot.version}</version>
-            <!--<scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>${spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -156,7 +129,6 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.jtds</groupId>
@@ -169,6 +141,22 @@
             <artifactId>flyway-core</artifactId>
             <version>${flyway.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-java8</artifactId>
+            <version>5.0.12.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -179,7 +167,6 @@
         <dependency>
             <groupId>org.springframework.hateoas</groupId>
             <artifactId>spring-hateoas</artifactId>
-            <version>${spring.hateoas.version}</version>
         </dependency>
 
         <dependency>
@@ -219,22 +206,6 @@
             <groupId>org.pac4j</groupId>
             <artifactId>spring-security-pac4j</artifactId>
             <version>${spring-security-pac4j.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.pac4j</groupId>
-                    <artifactId>pac4j-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.pac4j</groupId>
-            <artifactId>pac4j-core</artifactId>
-            <version>${pac4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.pac4j</groupId>
-            <artifactId>pac4j-jwt</artifactId>
-            <version>${pac4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.pac4j</groupId>
@@ -248,10 +219,9 @@
         </dependency>
         <dependency>
             <groupId>org.pac4j</groupId>
-            <artifactId>j2e-pac4j</artifactId>
-            <version>${j2e-pac4j.version}</version>
+            <artifactId>pac4j-jwt</artifactId>
+            <version>${pac4j.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
@@ -286,7 +256,15 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/src/main/resources/opencsv.jar</systemPath>
         </dependency>
-
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.verson}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -295,7 +273,7 @@
             <resource>
                 <directory>properties/${env}</directory>
                 <includes>
-                    <include>**</include>
+                    <include>*.properties</include>
                 </includes>
                 <filtering>true</filtering>
             </resource>
@@ -304,6 +282,17 @@
             </resource>
         </resources>
         <plugins>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}/src/main/resources/public/</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -377,36 +366,6 @@
                         <phase>deploy</phase>
                         <goals>
                             <goal>push</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.17</version>
-                <configuration>
-                    <configLocation>google_checks.xml</configLocation>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.puppycrawl.tools</groupId>
-                        <artifactId>checkstyle</artifactId>
-                        <version>7.3</version>
-                    </dependency>
-                </dependencies>
-                <executions>
-                    <execution>
-                        <id>validate</id>
-                        <phase>validate</phase>
-                        <configuration>
-                            <configLocation>google_checks.xml</configLocation>
-                            <encoding>UTF-8</encoding>
-                            <consoleOutput>true</consoleOutput>
-                            <failsOnError>true</failsOnError>
-                        </configuration>
-                        <goals>
-                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>

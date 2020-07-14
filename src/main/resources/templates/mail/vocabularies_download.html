@@ -8,6 +8,22 @@
 <p>
     Vocabularies release version: <strong><span th:text="${vocabularyReleaseVersion}"></span></strong>
 </p>
+
+<div>
+    <table>
+        <thead>
+        <tr>
+            <th colspan="3" align="left"><span th:text="${bundleName}"></span> Vocabularies:</th>
+        </tr>
+        </thead>
+        <tr th:each="vocabulary : ${vocabularies}">
+            <td th:text="${vocabulary.key}"></td>
+            <td>-</td>
+            <td th:text="${vocabulary.value}">Normal User</td>
+        </tr>
+    </table>
+</div>
+
 <p>Please download and load the Standardized Vocabularies as following:</p>
 <ol>
     <li>Click on this <a th:href="${url}">link</a> to download the zip file.

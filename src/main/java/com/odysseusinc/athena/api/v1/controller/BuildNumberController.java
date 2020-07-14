@@ -25,10 +25,8 @@ package com.odysseusinc.athena.api.v1.controller;
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonBuildNumberDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Api
@@ -43,8 +41,8 @@ public class BuildNumberController {
     private String projectVersion;
 
     @ApiOperation(value = "Get build number.", hidden = true)
-    @RequestMapping(value = "/api/v1/build-number", method = RequestMethod.GET)
-    public CommonBuildNumberDTO buildNumber(HttpServletRequest request) {
+    @GetMapping(value = "/api/v1/build-number")
+    public CommonBuildNumberDTO buildNumber() {
 
         CommonBuildNumberDTO buildNumberDTO = new CommonBuildNumberDTO();
         buildNumberDTO.setBuildNumber(buildNumber);

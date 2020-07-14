@@ -21,53 +21,35 @@
 
 package com.odysseusinc.athena.service.concept;
 
-import static com.odysseusinc.athena.service.concept.SolrTestUtils.createConceptSearchDTO;
 import static org.junit.Assert.assertEquals;
 
-import com.odysseusinc.athena.api.v1.controller.converter.ConceptSearchDTOToSolrQuery;
-import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.stream.Collectors;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
 
-public class SolrConceptPhraseSearchTest {
-
-    @ClassRule
-    public static final TestRule serviceInitializer = SolrInitializer.INSTANCE;
-
-    private ConceptSearchDTOToSolrQuery conceptSearchDTOToSolrQuery = new ConceptSearchDTOToSolrQuery();
+public class SolrConceptPhraseSearchTest extends SolrConceptSearchAbstractTest {
 
     @Test
     public void query_wholePhrase() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Stroke Myocardial Infarction Gastrointestinal Bleeding");
+        String queryString = "Stroke Myocardial Infarction Gastrointestinal Bleeding";
+        SolrDocumentList docList = executeQuery(queryString);
 
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
-
-        assertEquals(13, docList.size());
-        assertEquals(
+        assertEquals(String.format("Wrong outcome for '%s' query", queryString),
                 Arrays.asList(
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
-                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
+                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Stroke Myocardial Infarction Bleeding in Back",
-                        "Bleeding in Back Gastrointestinal Bleeding",
                         "Stroke Myocardial Infarction",
-                        "Stroke Myocardial Infarction Strok",
                         "Stroke Myocardial Infarction Stroke Nothin",
+                        "Bleeding in Back Gastrointestinal Bleeding",
+                        "Stroke Myocardial Infarction Strok",
                         "Stroke Myocardial Infarction  Renal Dysfunction",
                         "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
-                        "stroke",
                         "Stroke",
-                        "Strook"
+                        "stroke"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
@@ -76,28 +58,23 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_allWordFromPhrase() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Stroke Bleeding Infarction Myocardial Gastrointestinal");
+        String queryString = "Stroke Bleeding Infarction Myocardial Gastrointestinal";
+        SolrDocumentList docList = executeQuery(queryString);
 
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
-
-        assertEquals(13, docList.size());
-        assertEquals(
+        assertEquals(String.format("Wrong outcome for '%s' query", queryString),
                 Arrays.asList(
                         "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
                         "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
                         "Stroke Myocardial Infarction Bleeding in Back",
-                        "Bleeding in Back Gastrointestinal Bleeding",
                         "Stroke Myocardial Infarction",
-                        "Stroke Myocardial Infarction Strok",
                         "Stroke Myocardial Infarction Stroke Nothin",
+                        "Bleeding in Back Gastrointestinal Bleeding",
+                        "Stroke Myocardial Infarction Strok",
                         "Stroke Myocardial Infarction  Renal Dysfunction",
                         "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
-                        "stroke",
                         "Stroke",
-                        "Strook"
+                        "stroke"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
@@ -106,14 +83,10 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_fewWords() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Renal Dysfunction");
+        String queryString = "Renal Dysfunction";
+        SolrDocumentList docList = executeQuery(queryString);
 
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
-
-        assertEquals(3, docList.size());
-        assertEquals(
+        assertEquals(String.format("Wrong outcome for '%s' query", queryString),
                 Arrays.asList(
                         "Stroke Myocardial Infarction  Renal Dysfunction",
                         "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
@@ -126,14 +99,10 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_word() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Gastrointestinal Bleeding");
+        String queryString = "Gastrointestinal Bleeding";
+        SolrDocumentList docList = executeQuery(queryString);
 
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
-
-        assertEquals(5, docList.size());
-        assertEquals(
+        assertEquals(String.format("Wrong outcome for '%s' query", queryString),
                 Arrays.asList(
                         "Bleeding in Back Gastrointestinal Bleeding",
                         "Gastrointestinal Bleeding Myocardial Infarction Stroke",
@@ -148,44 +117,36 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_exactPhrase() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"Bleeding in Back\"");
+        String queryString = "\"Bleeding in Back\"";
+        SolrDocumentList docList = executeQuery(queryString);
 
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
-        assertEquals(2, docList.size());
-        assertEquals(
+        assertEquals(String.format("Wrong outcome for '%s' query", queryString),
                 Arrays.asList(
-                        "Stroke Myocardial Infarction Bleeding in Back",
-                        "Bleeding in Back Gastrointestinal Bleeding"
+                        "Bleeding in Back Gastrointestinal Bleeding",
+                        "Stroke Myocardial Infarction Bleeding in Back"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
     }
 
-
     @Test
     public void query_phraseWithFirstExactWord() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"Stroke\" Myocardial Infarction Gastrointestinal Bleeding");
+        String queryString = "\"Stroke\" Myocardial Infarction Gastrointestinal Bleeding";
+        SolrDocumentList docList = executeQuery(queryString);
 
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
-
-        assertEquals(11, docList.size());
-        assertEquals(
+        assertEquals(String.format("Wrong outcome for '%s' query", queryString),
                 Arrays.asList(
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
-                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
+                        "Stroke",
                         "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
+                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Stroke Myocardial Infarction Bleeding in Back",
                         "Stroke Myocardial Infarction",
-                        "Stroke Myocardial Infarction Strok",
                         "Stroke Myocardial Infarction Stroke Nothin",
+                        "Stroke Myocardial Infarction Strok",
                         "Stroke Myocardial Infarction  Renal Dysfunction",
                         "Stroke Myocardial Infarction Renal Dysfunction and Nothing",
-                        "Stroke",
                         "stroke"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
@@ -195,19 +156,14 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_phraseWithExactSubPhrase() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("Stroke Myocardial Infarction \"Gastrointestinal Bleeding\"");
+        String queryString = "Stroke Myocardial Infarction \"Gastrointestinal Bleeding\"";
+        SolrDocumentList docList = executeQuery(queryString);
 
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
-
-
-        assertEquals(4, docList.size());
-        assertEquals(
+        assertEquals(String.format("Wrong outcome for '%s' query", queryString),
                 Arrays.asList(
                         "Stroke Myocardial Infarction Gastrointestinal Bleeding",
-                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction",
+                        "Gastrointestinal Bleeding Myocardial Infarction Stroke",
                         "Bleeding in Back Gastrointestinal Bleeding"
                 ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
@@ -217,15 +173,11 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_phraseWithComma() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("ibuprofen");
-
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
+        String queryString = "ibuprofen";
+        SolrDocumentList docList = executeQuery(queryString);
 
 
-        assertEquals(2, docList.size());
-        assertEquals(
+        assertEquals(String.format("Wrong outcome for '%s' query", queryString),
                 Arrays.asList(
                         "aspirin paracetamol ibuprofen",
                         "aspirin, paracetamol, ibuprofen"
@@ -237,19 +189,15 @@ public class SolrConceptPhraseSearchTest {
     @Test
     public void query_phraseWithExactCommaSearch() throws Exception {
 
-        ConceptSearchDTO conceptSearchDTO = createConceptSearchDTO("\"aspirin, paracetamol\"");
-
-        SolrQuery query = conceptSearchDTOToSolrQuery.createQuery(conceptSearchDTO, Collections.emptyList());
-        QueryResponse response = SolrInitializer.server.query(query);
-        SolrDocumentList docList = response.getResults();
+        String queryString = "\"aspirin, paracetamol\"";
+        SolrDocumentList docList = executeQuery(queryString);
 
 
-        assertEquals(2, docList.size());
-        assertEquals(
+        assertEquals(String.format("Wrong outcome for '%s' query", queryString),
                 Arrays.asList(
                         "aspirin paracetamol ibuprofen",
                         "aspirin, paracetamol, ibuprofen"
-                        ),
+                ),
                 docList.stream().map(f -> f.get("concept_name")).collect(Collectors.toList())
         );
     }

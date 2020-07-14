@@ -22,63 +22,72 @@
 
 package com.odysseusinc.athena.service.mail;
 
-import com.opencsv.util.StringUtils;
+import com.odysseusinc.athena.exceptions.AthenaException;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.io.UnsupportedEncodingException;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+import static com.google.common.collect.Iterables.toArray;
+import static com.odysseusinc.athena.model.common.AthenaConstants.FIVE_SEC_MS;
 
 @Service
 public class EmailSenderService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EmailSenderService.class);
+    private static final Logger log = LoggerFactory.getLogger(EmailSenderService.class);
 
-    private final MailContentBuilder contentBuilder;
     private final JavaMailSender mailSender;
-
-    @Value("${athena.mail.notifier}")
-    private String notifier;
-
-    @Value("${spring.mail.username}")
-    private String from;
+    private final String from;
+    private final String notifier;
 
     @Autowired
-    public EmailSenderService(MailContentBuilder contentBuilder, JavaMailSender mailSender) {
+    public EmailSenderService(JavaMailSender mailSender,
+                              @Value("${athena.mail.notifier}") String notifier,
+                              @Value("${spring.mail.username}") String from) {
 
-        this.contentBuilder = contentBuilder;
         this.mailSender = mailSender;
+        this.notifier = notifier;
+        this.from = from;
     }
 
-    public void send(EmailType messageType, Map<String, Object> parameters, String... emails) {
+    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = FIVE_SEC_MS, multiplier = 3))
+    @Async("emailSenderExecutor")
+    public CompletableFuture<Void> sendAsync(String subject, String emailBody, EmailRecipients recipients) {
 
-        if (emails == null || emails.length == 0 || StringUtils.isBlank(emails[0])) {
-            return;
+        if (CollectionUtils.isNotEmpty(recipients.getTo()) || CollectionUtils.isNotEmpty(recipients.getBcc())) {
+            sendMessage(subject, emailBody, recipients);
         }
+        return CompletableFuture.completedFuture(null);
+    }
 
+    private boolean sendMessage(String subject, String emailBody, EmailRecipients recipients) {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper;
         try {
-            final String emailBody = contentBuilder.build(messageType.getTemplate(), parameters);
-            LOGGER.debug("Sending  [{}] email: \n\n\n{}\n\n\n", messageType, emailBody);
+            log.debug("Sending  [{}] email: \n\n\n{}\n\n\n", subject, emailBody);
             helper = new MimeMessageHelper(message, true);
-            helper.setSubject(messageType.getSubject());
+            helper.setSubject(subject);
             helper.setFrom(from, notifier);
-            helper.setTo(emails);
+            if (StringUtils.isNotBlank(recipients.getReplyTo())) {
+                helper.setReplyTo(recipients.getReplyTo());
+            }
+            helper.setTo(toArray(recipients.getTo(), String.class));
+            helper.setBcc(toArray(recipients.getBcc(), String.class));
             helper.setText(emailBody, true);
-
             mailSender.send(message);
-        } catch (MessagingException | MailException | UnsupportedEncodingException ex) {
-            LOGGER.error("{} [user email: {}, subject: {}]", ex.getMessage(), emails, messageType.getSubject(), ex);
-            throw new RuntimeException(ex);
+            return true;
+        } catch (Exception ex) {
+            throw new AthenaException("Send Message issue", ex);
         }
     }
-
 }

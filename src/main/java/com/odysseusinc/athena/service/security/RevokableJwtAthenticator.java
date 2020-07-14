@@ -42,11 +42,6 @@ public class RevokableJwtAthenticator extends JwtAuthenticator {
         this.tokenStore = tokenStore;
     }
 
-    public RevokableJwtAthenticator(List<SignatureConfiguration> signatureConfigurations, RevokedTokenStore tokenStore) {
-
-        super(signatureConfigurations);
-        this.tokenStore = tokenStore;
-    }
 
     public RevokableJwtAthenticator(List<SignatureConfiguration> signatureConfigurations,
                                     List<EncryptionConfiguration> encryptionConfigurations, RevokedTokenStore tokenStore) {
@@ -70,5 +65,6 @@ public class RevokableJwtAthenticator extends JwtAuthenticator {
             throw new CredentialsException("Token was revoked");
         }
         super.validate(credentials, context);
+        context.getSessionStore().getOrCreateSessionId(context);
     }
 }
