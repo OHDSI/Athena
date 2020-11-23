@@ -450,7 +450,7 @@
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
             </snapshots>
-            <url>https://nexus.odysseusinc.com/community-libs-snapshot-local</url>
+            <url>https://nexus.odysseusinc.com/community-libs-snapshot-local/</url>
         </repository>
         <repository>
             <id>odysseus.community.releases</id>
@@ -463,7 +463,7 @@
                 <enabled>false</enabled>
                 <updatePolicy>always</updatePolicy>
             </snapshots>
-            <url>https://nexus.odysseusinc.com/community-libs-release-local</url>
+            <url>https://nexus.odysseusinc.com/community-libs-release-local/</url>
         </repository>
         <repository>
             <id>atlassian-3rd-party</id>
@@ -481,12 +481,12 @@
         <snapshotRepository>
             <id>nexus</id>
             <name>Odysseus community snapshots</name>
-            <url>https://nexus.odysseusinc.com/community-libs-snapshot-local</url>
+            <url>https://nexus.odysseusinc.com/community-libs-snapshot-local/</url>
         </snapshotRepository>
         <repository>
             <id>nexus</id>
             <name>Odysseus community releases</name>
-            <url>https://nexus.odysseusinc.com/community-libs-release-local</url>
+            <url>https://nexus.odysseusinc.com/community-libs-release-local/</url>
         </repository>
     </distributionManagement>
 
