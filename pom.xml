@@ -32,7 +32,7 @@
         <opencsv.version>3.9</opencsv.version>
         <javax.mail.version>1.4</javax.mail.version>
         <spring.context.support>4.3.7.RELEASE</spring.context.support>
-        <dockerImagePrefix>hub.arachnenetwork.com</dockerImagePrefix>
+        <dockerImagePrefix>hub.odysseusinc.com</dockerImagePrefix>
         <arachne.version>1.13.0</arachne.version>
         <disruptor.version>3.3.6</disruptor.version>
         <commons-lang3.version>3.0</commons-lang3.version>
@@ -363,7 +363,7 @@
                         </resource>
                     </resources>
                     <serverId>arachne-hub</serverId>
-                    <registryUrl>https://hub.arachnenetwork.com/v2/</registryUrl>
+                    <registryUrl>https://hub.odysseusinc.com/v2/</registryUrl>
                 </configuration>
                 <executions>
                     <execution>
