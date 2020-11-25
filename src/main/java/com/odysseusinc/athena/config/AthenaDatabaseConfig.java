@@ -26,6 +26,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.flyway.FlywayDataSource;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -52,15 +53,14 @@ public class AthenaDatabaseConfig {
 
     @Bean(name = "athenaTransactionManager")
     @Primary
-    PlatformTransactionManager athenaTransactionManager(@Qualifier("athenaEntityManagerFactory")
+    public PlatformTransactionManager athenaTransactionManager(@Qualifier("athenaEntityManagerFactory")
                                                                 EntityManagerFactory entityManagerFactory) {
 
         return new JpaTransactionManager(entityManagerFactory);
     }
 
     @Bean(name = "athenaEntityManagerFactory")
-    @Primary
-    LocalContainerEntityManagerFactoryBean athenaEntityManagerFactory(@Qualifier("athenaDataSource")
+    public LocalContainerEntityManagerFactoryBean athenaEntityManagerFactory(@Qualifier("athenaDataSource")
                                                                               DataSource dataSource) {
 
         HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
@@ -82,10 +82,10 @@ public class AthenaDatabaseConfig {
         return new JdbcTemplate(dataSource);
     }
 
+    @FlywayDataSource
     @Bean(name = "athenaDataSource")
-    @Primary
     @ConfigurationProperties(prefix = "spring.datasource")
-    DataSource athenaDataSource() {
+    public DataSource athenaDataSource() {
 
         return DataSourceBuilder.create().build();
     }

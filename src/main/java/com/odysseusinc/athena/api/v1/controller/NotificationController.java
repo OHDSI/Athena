@@ -47,7 +47,7 @@ import java.util.List;
 
 @Api
 @RestController
-@RequestMapping(value = "/api/v1/notifications")
+@RequestMapping("/api/v1/notifications")
 public class NotificationController {
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationController.class);
 

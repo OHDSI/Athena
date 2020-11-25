@@ -32,6 +32,8 @@ import com.odysseusinc.athena.service.impl.AthenaCSVWriter;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.opencsv.CSVWriter;
+
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -94,7 +96,7 @@ public abstract class Saver implements ISaver {
 
     public List getIds() {
 
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
     public void save(ZipOutputStream zos, DownloadBundle bundle, List ids) {
@@ -108,21 +110,22 @@ public abstract class Saver implements ISaver {
 
     protected void writeCSV(ZipOutputStream zos, DownloadBundle bundle, List vocabularyIds) {
 
-        Path path = fileHelper.getPath(bundle.getUuid(), fileName());
+        final String fileName = fileName();
+        Path path = fileHelper.getPath(bundle.getUuid(), fileName);
 
         try (CSVWriter csvWriter = new AthenaCSVWriter(path.toString(), separator)) {
 
             writeContent(bundle, csvWriter, vocabularyIds);
             csvWriter.flush(true);
-            putEntry(zos, fileName(), path);
-            LOGGER.info("Entry is added to archive " + fileName() + ", bundle uuid:" + bundle.getUuid());
-            path.toFile().delete();
+            putEntry(zos, fileName, path);
+            LOGGER.info("Entry is added to archive {}, bundle uuid: {}", fileName, bundle.getUuid());
+            Files.delete(path);
         } catch (Exception ex) {
             throw new IORuntimeException("", ex);
         }
 
         SavedFile savedFile = new SavedFile();
-        savedFile.setRealName(fileName());
+        savedFile.setRealName(fileName);
         savedFile.setDownloadBundle(bundle);
         bundleService.save(savedFile);
     }
@@ -159,7 +162,7 @@ public abstract class Saver implements ISaver {
                 }
             }
             st.setFetchSize(500);
-            LOGGER.info("Preparing to execute (bundle with uuid {}): {}", bundle.getUuid(), st.toString());
+            LOGGER.info("Preparing to execute (bundle with uuid {}): {}", bundle.getUuid(), st);
             ResultSet rs = st.executeQuery();
             csvWriter.writeAll(rs, true, false);
             rs.close();

@@ -35,7 +35,7 @@
        that you fully re-index after changing this setting as it can
        affect both how text is indexed and queried.
   -->
-  <luceneMatchVersion>7.2.1</luceneMatchVersion>
+  <luceneMatchVersion>7.7.1</luceneMatchVersion>
 
   <!-- <lib/> directives can be used to instruct Solr to load any Jars
        identified and use them to resolve any "plugins" specified in
@@ -85,7 +85,7 @@
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-velocity-\d.*\.jar" />
 
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-dataimporthandler-.*\.jar" />
-  <lib dir="${solr.install.dir:../../../..}/dist/" regex="postgresql-9.4-1201.jdbc4.jar" />
+  <lib dir="${solr.install.dir:../../../..}/dist/" regex="postgresql-.*\.jar" />
 
 
   <!-- an exact 'path' can be used instead of a 'dir' to specify a 

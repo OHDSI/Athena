@@ -23,7 +23,6 @@
 package com.odysseusinc.athena.api.v1.controller;
 
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
@@ -49,9 +48,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -108,7 +108,7 @@ public class UserController {
             GenericConversionService conversionService,
             UserService userService,
             RestTemplate restTemplate,
-            ConverterUtils converterUtils) throws IOException {
+            ConverterUtils converterUtils) {
 
         this.conversionService = conversionService;
         this.userService = userService;
@@ -116,7 +116,7 @@ public class UserController {
         this.converterUtils = converterUtils;
     }
 
-    @RequestMapping(value = "/professional-types", method = GET)
+    @GetMapping(value = "/professional-types")
     public JsonResult listProfessionalTypes() throws URISyntaxException {
 
         String uri = UriComponentsBuilder
@@ -134,7 +134,7 @@ public class UserController {
         return responseEntity.getBody();
     }
 
-    @RequestMapping(value = "/countries", method = GET)
+    @GetMapping(value = "/countries")
     public JsonResult searchCountries(
 						@RequestParam("query") String query,
 						@RequestParam("limit") Integer limit,
@@ -156,7 +156,7 @@ public class UserController {
     		return responseEntity.getBody();
 		}
 
-		@RequestMapping(value = "/provinces", method = GET)
+		@GetMapping(value = "/provinces")
 		public JsonResult searchProvinces(
 						@RequestParam("countryId") String countryIdParam,
 						@RequestParam("query") String query,
@@ -179,7 +179,7 @@ public class UserController {
     		return responseEntity.getBody();
 		}
 
-    @RequestMapping(method = RequestMethod.POST)
+    @PostMapping
     public ResponseEntity register(@RequestBody CommonUserRegistrationDTO dto) throws PermissionDeniedException {
 
         dto.setRegistrantToken(registerToken);
@@ -211,7 +211,7 @@ public class UserController {
     }
 
     @ApiOperation("Request password reset e-mail.")
-    @RequestMapping(value = "/remind-password", method = RequestMethod.POST)
+    @PostMapping(value = "/remind-password")
     public ResponseEntity remindPassword(@RequestBody @Valid RemindPasswordDTO dto) {
 
         dto.setRegistrantToken(remindToken);
@@ -227,7 +227,7 @@ public class UserController {
     }
 
     @ApiOperation("Reset password for specified e-mail.")
-    @RequestMapping(value = "/reset-password", method = RequestMethod.POST)
+    @PostMapping(value = "/reset-password")
     public ResponseEntity resetPassword(@RequestBody @Valid ResetPasswordDTO dto)
             throws URISyntaxException, IOException {
 
@@ -240,7 +240,7 @@ public class UserController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/me", method = GET)
+    @GetMapping(value = "/me")
     public ResponseEntity<AthenaUserDTO> me(Principal principal) throws PermissionDeniedException {
 
         final AthenaUser user = userService.getUser(principal);
@@ -249,7 +249,7 @@ public class UserController {
         return new ResponseEntity<>(dto, OK);
     }
 
-    @RequestMapping(value = "/suggest", method = GET)
+    @GetMapping(value = "/suggest")
     public ResponseEntity<List<BaseAthenaUserDTO>> suggest(@RequestParam("query") String query) {
 
         List<AthenaUser> users = userService.suggest(query);

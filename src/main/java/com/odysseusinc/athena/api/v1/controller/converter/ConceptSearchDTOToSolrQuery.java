@@ -22,51 +22,84 @@
 
 package com.odysseusinc.athena.api.v1.controller.converter;
 
+import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_CODE;
+import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_NAME;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.solr.common.params.CommonParams.FQ;
 import static org.hibernate.validator.internal.util.StringHelper.join;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
 import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
+
+import com.odysseusinc.athena.service.impl.ConceptSearchQueryPartCreator;
+import com.odysseusinc.athena.service.impl.QueryBoosts;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.SortClause;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
+
 public class ConceptSearchDTOToSolrQuery {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConceptSearchDTOToSolrQuery.class);
+    private static final Logger log = LoggerFactory.getLogger(ConceptSearchDTOToSolrQuery.class);
 
-    private static final String ID = "id";
-    private static final String CLASS_ID = "concept_class_id";
-    private static final String DOMAIN_ID = "domain_id";
+    public static final String DOMAIN_ID = "domain_id";
     public static final String VOCABULARY_ID = "vocabulary_id";
+    private static final String UNIQUE_KEY = "id";
+    private static final String CLASS_ID = "concept_class_id";
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
+    private static final String CASE_INSENSITIVE_SUFFIX = "_ci";
+    private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME);
 
-    private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService = new ConceptSearchPhraseToSolrQueryService();
+    private final ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService;
+    private final LimitChecker limitChecker;
+    private final VocabularyConversionService vocabularyConversionService;
+    private final ConceptSearchQueryPartCreator conceptSearchQueryPartCreator;
 
     @Autowired
-    private LimitChecker limitChecker;
-    @Autowired
-    private VocabularyConversionService vocabularyConversionService;
+    public ConceptSearchDTOToSolrQuery(ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService,
+                                       @Lazy LimitChecker limitChecker,
+                                       VocabularyConversionService vocabularyConversionService,
+                                       ConceptSearchQueryPartCreator conceptSearchQueryPartCreator) {
 
-    @Value("${solr.default.query.operator:AND}")
-    private String solrQueryOperator;
+        this.conceptSearchPhraseToSolrQueryService = conceptSearchPhraseToSolrQueryService;
+        this.limitChecker = limitChecker;
+        this.vocabularyConversionService = vocabularyConversionService;
+        this.conceptSearchQueryPartCreator = conceptSearchQueryPartCreator;
+    }
+
+    public static String getFacetLabel(String facetName) {
+
+        return facetName + "s";
+    }
 
     private void setSorting(ConceptSearchDTO source, SolrQuery result) {
 
         if (source.getSort() != null && source.getOrder() != null) {
-            result.setSort(source.getSort(), SolrQuery.ORDER.valueOf(source.getOrder()));
+            result.setSort(getSortFieldWithSuffix(source.getSort()), SolrQuery.ORDER.valueOf(source.getOrder()));
         }
+    }
+
+    private String getSortFieldWithSuffix(String field) {
+
+        if (CASE_INSENSITIVE_FIELDS.contains(field)) {
+            return field + CASE_INSENSITIVE_SUFFIX;
+        }
+        return field;
     }
 
     private void setPagination(ConceptSearchDTO source, SolrQuery result) {
@@ -77,17 +110,17 @@ public class ConceptSearchDTOToSolrQuery {
         }
     }
 
-    private void setQuery(ConceptSearchDTO source, SolrQuery result) {
+    private void setQuery(ConceptSearchDTO source, SolrQuery query, QueryBoosts queryBoosts) {
 
-        String resultQuery = conceptSearchPhraseToSolrQueryService.createSolrQueryString(source);
+        String queryString = conceptSearchPhraseToSolrQueryService.createQuery(source, queryBoosts);
 
-        LOGGER.debug("Concept search query: {}", resultQuery);
+        log.debug("Concept search query: {}", queryString);
 
-        result.setQuery(resultQuery);
+        query.setQuery(queryString);
         SortClause sortByScore = new SortClause("score", SolrQuery.ORDER.desc);
         SortClause sortByConceptName = new SortClause("concept_name_ci", SolrQuery.ORDER.asc);
-        result.setSort(sortByScore);
-        result.addSort(sortByConceptName);
+        query.setSort(sortByScore);
+        query.addSort(sortByConceptName);
     }
 
     private void setFilters(ConceptSearchDTO source, SolrQuery result) {
@@ -152,25 +185,28 @@ public class ConceptSearchDTOToSolrQuery {
         return String.format("{!tag=%s}", facetField.toUpperCase());
     }
 
-    public static String getFacetLabel(String facetName) {
-
-        return facetName + "s";
-    }
-
     public SolrQuery createQuery(ConceptSearchDTO source, List<String> unavailableVocabularyIds) {
-
         List<String> ids = getWrappedInQuotationMarks(unavailableVocabularyIds);
 
-        SolrQuery result = baseQuery(source, ids);
-        setSorting(source, result);
-        setPagination(source, result);
-        setFacets(result);
-        if (result.getFilterQueries() != null && result.getFilterQueries().length > 0) {
-            result.setParam("facet.method", "fcs");
+        QueryBoosts queryBoosts = getQueryBoosts(source.getBoosts());
+        SolrQuery query = baseQuery(source, ids, queryBoosts);
+
+        setSorting(source, query);
+        setPagination(source, query);
+        setAdditionalPriorities(query, queryBoosts);
+        setFacets(query);
+        if (query.getFilterQueries() != null && query.getFilterQueries().length > 0) {
+            query.setParam("facet.method", "fcs");
         } else {
-            result.setParam("facet.method", "enum");
+            query.setParam("facet.method", "enum");
         }
-        return result;
+        return query;
+    }
+
+    private void setAdditionalPriorities(SolrQuery query, QueryBoosts queryBoosts) {
+
+        query.set("defType", "edismax");
+        query.set("bq", conceptSearchQueryPartCreator.additionalPriority(queryBoosts.getAdditionalBoosts()));
     }
 
     public SolrQuery createQuery(ConceptSearchDTO source) {
@@ -182,17 +218,31 @@ public class ConceptSearchDTOToSolrQuery {
 
         //quotation marks are for correct url query in case of compound vocabulary name
         List<String> ids = getWrappedInQuotationMarksUnavailableVocabularyIds();
-        SolrQuery result = baseQuery(source, ids);
-        result.setSort(ID, SolrQuery.ORDER.asc);
+        QueryBoosts queryBoosts = getQueryBoosts(source.getBoosts());
+        SolrQuery result = baseQuery(source, ids, queryBoosts);
+        result.setSort(UNIQUE_KEY, SolrQuery.ORDER.asc);
         result.setStart(0);
         result.setRows(limitChecker.getMaxLimitPageSize());
         return result;
     }
 
-    private SolrQuery baseQuery(ConceptSearchDTO source, List<String> ids) {
+    private QueryBoosts getQueryBoosts(String boostJson) {
+
+        if (isBlank(boostJson)) {
+            return QueryBoosts.buildDefault();
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(boostJson, QueryBoosts.class);
+        } catch (IOException e) {
+            return QueryBoosts.buildDefault();
+        }
+    }
+
+    private SolrQuery baseQuery(ConceptSearchDTO source, List<String> ids, QueryBoosts queryBoosts) {
 
         SolrQuery result = new SolrQuery();
-        setQuery(source, result);
+        setQuery(source, result, queryBoosts);
         setFilters(source, result);
         setUnavailableVocabularies(result, ids);
         return result;

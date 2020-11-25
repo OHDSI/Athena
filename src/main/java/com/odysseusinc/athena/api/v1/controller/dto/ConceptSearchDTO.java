@@ -28,6 +28,7 @@ public class ConceptSearchDTO extends PageDTO {
     private String order;
 
     private String query = "";
+    private String boosts = "";
 
     private String[] vocabulary;
     private String[] domain;
@@ -63,6 +64,16 @@ public class ConceptSearchDTO extends PageDTO {
     public void setQuery(String query) {
 
         this.query = query;
+    }
+
+    public String getBoosts() {
+
+        return boosts;
+    }
+
+    public void setBoosts(String boosts) {
+
+        this.boosts = boosts;
     }
 
     public String[] getVocabulary() {

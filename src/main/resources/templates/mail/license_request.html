@@ -3,7 +3,7 @@
 <head></head>
 <body>
 <div>
-    User <span th:text="${username}"></span> (<span th:text="${email}"></span>) requested license for <span th:text="${vocabularyname}"></span> vocabulary.
+    User <span th:text="${username}"></span> (<span th:text="${email}"></span>, <span th:text="${organization}"></span>) requested license for <span th:text="${vocabularyname}"></span> vocabulary.
     <br/>
     To accept the request, please follow this
     <a th:href="@{${approveUrl}}">link</a>. Alternatively, please follow this
