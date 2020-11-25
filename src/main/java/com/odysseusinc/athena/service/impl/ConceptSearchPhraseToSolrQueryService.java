@@ -1,150 +1,188 @@
 package com.odysseusinc.athena.service.impl;
 
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.remove;
+
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ConceptSearchPhraseToSolrQueryService {
 
     public static final String EXACT_TERM_REGEX = "\".*?\"";
-    public static final String WORD_DELIMITER_REGEX = "(\\s|\\/|\\?|!|,|;|\\.\\s|\\*)+";
+    public static final String WORD_DELIMITER_REGEX = "(\\s|\\/|\\?|!|,|;|\\.\\s)+";
     public static final List<String> SPEC_CHARS = Arrays.asList("\\", "+", "-", "!", "(", ")", ":", "^", "[", "]", "\"", "{", "}", "~", "*", "?", "|", "&", ";", "/");
-    public static final String FUZZY_FORMAT = "%s~0.6";
-    public static final String EXACT_FORMAT = "\"%s\"";
 
-    public static final String ID = "id";
-    public static final String CONCEPT_NAME_CI = "concept_name_ci";
-    public static final String CONCEPT_CODE_CI = "concept_code_ci";
     public static final String CONCEPT_CODE = "concept_code";
     public static final String CONCEPT_NAME = "concept_name";
-    public static final String CONCEPT_CLASS_ID = "concept_class_id";
-    public static final String DOMAIN_ID = "domain_id";
-    public static final String VOCABULARY_ID = "vocabulary_id";
-    public static final String STANDARD_CONCEPT = "standard_concept";
-    public static final String INVALID_REASON = "invalid_reason";
-    public static final String CONCEPT_SYNONYM_NAME = "concept_synonym_name";
 
-    public static final String CONCEPT_NAME_TEXT = "concept_name_text";
-    public static final String CONCEPT_CODE_TEXT = "concept_code_text";
-    public static final String QUERY_SYMBOLS = "query";
-    public static final String QUERY_WO_SYMBOLS = "query_wo_symbols";
+    public static final String FIND_ALL_QUERY = "*:*";
+    public static final String ASTERISK = "*";
 
+    private ConceptSearchQueryPartCreator conceptSearchQueryPartCreator;
 
-    public String createSolrQueryString(ConceptSearchDTO source) {
+    public ConceptSearchPhraseToSolrQueryService(ConceptSearchQueryPartCreator conceptSearchQueryPartCreator) {
 
-        if (source.getQuery() == null || StringUtils.isEmpty(source.getQuery())) {
-            return "*:*";
+        this.conceptSearchQueryPartCreator = conceptSearchQueryPartCreator;
+    }
+
+    public String createQuery(ConceptSearchDTO source, QueryBoosts queryBoosts) {
+
+        if (isBlank(source.getQuery())) {
+            return FIND_ALL_QUERY;
         }
-        String phraseForQuery = source.getQuery()
-                .trim()
-                .replace("\\\"", "\""); //remove escaping quotes
+        return createSolrQueryString(source, queryBoosts);
+    }
 
-        List<String> exactTerms = findExactTerms(phraseForQuery);
-        List<String> notExactTerms = findNotExactTerms(phraseForQuery);
+    private String createSolrQueryString(ConceptSearchDTO source, QueryBoosts queryBoosts) {
 
-        if (CollectionUtils.isEmpty(exactTerms) && CollectionUtils.isEmpty(notExactTerms)) {
-            return "*:*";
+        String query = source.getQuery();
+
+        List<String> exactTerms = findExactTerms(query);
+        List<String> notExactTerms = findNotExactTerms(query);
+        List<String> asteriskTerms = findAsteriskTerms(query);
+
+        if (isEmpty(exactTerms) && isEmpty(notExactTerms) && isEmpty(asteriskTerms)) {
+            return FIND_ALL_QUERY;
         }
         return Stream.of(
-                getQueryToFindDocsWithWholePhrase(phraseForQuery),
-                getQueryToFindDocWithAllTermsFromQuery(exactTerms, notExactTerms),
-                getQueryToFindDocsWithAnyOfTermFromPhrase(exactTerms, notExactTerms)
+                getQueryToFindDocsWithWholePhrase(query, queryBoosts.getPhrase()),
+                getQueryToFindDocsWithSingleTerm(exactTerms, notExactTerms, asteriskTerms, queryBoosts),
+                getQueryToFindDocsWithAnyOfTermFromPhrase(query, exactTerms, notExactTerms, asteriskTerms,  queryBoosts)
+
         )
-                .filter(StringUtils::isNotEmpty)
+                .filter(StringUtils::isNotBlank)
                 .map(queryPart -> String.format("(%s)", queryPart))
                 .collect(Collectors.joining(" OR "));
     }
 
-    private String getQueryToFindDocsWithWholePhrase(String phraseForQuery) {
-        if (StringUtils.isEmpty(phraseForQuery)) {
-            return StringUtils.EMPTY;
-        }
+    private String getQueryToFindDocsWithSingleTerm(List<String> exactTerms, List<String> notExactTerms, List<String> asteriskTerms, QueryBoosts queryBoosts) {
 
-        String phraseWithoutQuotes = ClientUtils.escapeQueryChars(StringUtils.remove(phraseForQuery, "\""));
-        return getQueryForExactPhrase(phraseWithoutQuotes);
+        long totalTermAmount = Stream.of(exactTerms, notExactTerms, asteriskTerms)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .count();
+
+        if (totalTermAmount == 1) {
+            if (isNotEmpty(notExactTerms) && notExactTerms.size() == 1) {
+                return conceptSearchQueryPartCreator.singleNotExactTerm(notExactTerms.get(0), queryBoosts.getSingleNotExactTermBoosts());
+            }
+            if (isNotEmpty(exactTerms) && exactTerms.size() == 1) {
+                return conceptSearchQueryPartCreator.singleExactTerm(exactTerms.get(0), queryBoosts.getSingleExactTermBoosts());
+            }
+            if (isNotEmpty(asteriskTerms) && asteriskTerms.size() == 1) {
+                return conceptSearchQueryPartCreator.singleAsteriskTerm(asteriskTerms.get(0), queryBoosts.getAsteriskTermBoosts());
+            }
+        }
+        return EMPTY;
     }
 
-    private String getQueryToFindDocWithAllTermsFromQuery(List<String> exactTerms, List<String> notExactTerms) {
-        if (CollectionUtils.isEmpty(notExactTerms)) {
-            return StringUtils.EMPTY;
+    private String getQueryToFindDocsWithWholePhrase(String phraseForQuery, QueryBoosts.PhraseBoosts boosts) {
+
+        if (isBlank(phraseForQuery)) {
+            return EMPTY;
         }
-        String allTermsForWholePhraseQuery = Stream
-                .concat(
-                        exactTerms.stream().map(term -> String.format(EXACT_FORMAT, term)),
-                        notExactTerms.stream().map(term -> String.format(FUZZY_FORMAT, term))
-                )
-                .collect(Collectors.joining(" AND "));
-
-        return String.format("%s:(%s)^%s", CONCEPT_NAME_TEXT, allTermsForWholePhraseQuery, 7);
-
+        String queryString = preparePhraseQueryString(phraseForQuery);
+        return conceptSearchQueryPartCreator.wholePhrase(queryString, boosts);
     }
 
-    private String getQueryToFindDocsWithAnyOfTermFromPhrase(List<String> exactTerms, List<String> notExactTerms) {
+    private String preparePhraseQueryString(String phraseForQuery) {
 
-        String exactQueryPart = exactTerms.stream()
+        String phraseWithoutQuotes = remove(phraseForQuery, "\"");
+        String phraseWithoutEscChars = ClientUtils.escapeQueryChars(phraseWithoutQuotes);
+        return phraseWithoutEscChars.replaceAll("\\s+", " ");
+    }
+
+    private String getQueryToFindDocsWithAnyOfTermFromPhrase(String phraseForQuery, List<String> exactTerms, List<String> notExactTerms, List<String> asteriskTerms,  QueryBoosts queryBoosts) {
+
+        String exactQueryPart = buildExactTermsQueryPart(exactTerms, queryBoosts);
+        String notExactQueryPart = buildNotExactTermsQueryPart(notExactTerms, queryBoosts);
+        String asteriskQueryPart = buildAsteriskTermsQueryPart(asteriskTerms, queryBoosts);
+        String allTermQueryPart =  buildFewTermsQueryPart(phraseForQuery, queryBoosts);
+
+        String mandatoryPart = Stream.of(exactQueryPart, asteriskQueryPart)
                 .filter(StringUtils::isNotEmpty)
-                .map(this::getQueryForExactTerm)
-                .map(queryPart -> String.format("(%s)", queryPart))
+                .map(part -> String.format("%s", part))
                 .collect(Collectors.joining(" AND "));
-
-        String notExactQueryPart = notExactTerms.stream()
+        String optionalPart = Stream.of(notExactQueryPart, allTermQueryPart)
                 .filter(StringUtils::isNotEmpty)
-                .map(this::getQueryForNotExactTerm)
-                .map(queryPart -> String.format("(%s)", queryPart))
+                .map(part -> String.format("%s", part))
                 .collect(Collectors.joining(" OR "));
 
-        if (StringUtils.isEmpty(exactQueryPart)) {
-            return notExactQueryPart;
+        if (isBlank(mandatoryPart)) {
+            return optionalPart;
         }
-        if (StringUtils.isEmpty(notExactQueryPart)) {
-            return exactQueryPart;
+        if (isBlank(optionalPart)) {
+            return mandatoryPart;
         }
-        // this is query for  "A and [B]" condition,
-        // A is exact-part of the query
-        // B is not exact part  and OPTIONAL
-        return String.format("(%s) OR ((%s) AND (%s))", exactQueryPart, exactQueryPart, notExactQueryPart);
+        // the query for  "A + [B]" condition equals (A && B) || A,
+        // A - MANDATORY part of the query
+        // B - OPTIONAL part of the query
+        return String.format("(%s AND (%s)) OR %s", mandatoryPart, optionalPart, mandatoryPart);
     }
 
     protected List<String> findExactTerms(String phraseString) {
 
-        if (StringUtils.isEmpty(phraseString) || StringUtils.isEmpty(phraseString)) {
+        if (isBlank(phraseString)) {
             return Collections.emptyList();
         }
-
         return findAllMatches(phraseString, EXACT_TERM_REGEX).stream()
                 .map(term -> term.substring(1, term.length() - 1))
-                .filter(StringUtils::isNotEmpty)
+                .filter(StringUtils::isNotBlank)
                 .map(ClientUtils::escapeQueryChars)
+                .collect(Collectors.toList());
+    }
+
+    public List<String> findAsteriskTerms(String phraseString) {
+
+        if (isBlank(phraseString)) {
+            return Collections.emptyList();
+        }
+        String stringWithoutExactTerms = phraseString.replaceAll(EXACT_TERM_REGEX, EMPTY);
+        return Arrays.stream(stringWithoutExactTerms.split(WORD_DELIMITER_REGEX))
+                .filter(StringUtils::isNotBlank)
+                .filter(term -> !(SPEC_CHARS.contains(term)))
+                .filter(term -> StringUtils.endsWith(term, ASTERISK))
+                .map(ClientUtils::escapeQueryChars)
+                .map(term -> StringUtils.removeEnd(term, "\\*") + ASTERISK) //do not escape last asterisk
                 .collect(Collectors.toList());
     }
 
     protected List<String> findNotExactTerms(String phraseString) {
 
-        if (StringUtils.isEmpty(phraseString) || StringUtils.isEmpty(phraseString)) {
+        if (isBlank(phraseString)) {
             return Collections.emptyList();
         }
-        String stringWithoutExactTerms = phraseString.replaceAll(EXACT_TERM_REGEX, StringUtils.EMPTY);
 
-
+        String stringWithoutExactTerms = phraseString.replaceAll(EXACT_TERM_REGEX, EMPTY);
         return Arrays.stream(stringWithoutExactTerms.split(WORD_DELIMITER_REGEX))
-                .filter(StringUtils::isNotEmpty)
-                .filter(term -> !SPEC_CHARS.contains(term))
+                .filter(StringUtils::isNotBlank)
+                .filter(term -> !(SPEC_CHARS.contains(term)))
+                .filter(term -> !StringUtils.endsWith(term, ASTERISK))
                 .map(ClientUtils::escapeQueryChars)
                 .collect(Collectors.toList());
     }
 
+
+
     private List<String> findAllMatches(String value, String regex) {
 
-        if (StringUtils.isEmpty(value) || StringUtils.isEmpty(regex)) {
+        if (isBlank(value) || isBlank(regex)) {
             return Collections.emptyList();
         }
         List<String> exacts = new ArrayList<>();
@@ -155,41 +193,39 @@ public class ConceptSearchPhraseToSolrQueryService {
         return exacts;
     }
 
+    // in the current implementation, terms that are exists in many fields can get a higher score than the phrase
+    // to compensate this we search for phrase so any combination of terms are going to have hige score.
+    private String buildFewTermsQueryPart(String phraseQuery, QueryBoosts queryBoosts) {
 
-    private String getQueryForNotExactTerm(String term) {
-        return String.join(" OR ",
-                String.format("%s:%s^%s", CONCEPT_NAME_TEXT, term, 4),
-                String.format("%s:%s~0.6^%s", CONCEPT_NAME_TEXT, term, 3),
-                String.format("%s:%s^%s", CONCEPT_CODE_TEXT, term, 3),
-                String.format("%s:*%s*~0.6^%s", CONCEPT_CODE_TEXT, term, 2),
-                String.format("%s:%s*", QUERY_WO_SYMBOLS, term));
+        String preparedPhraseQuery = preparePhraseQueryString(phraseQuery);
+        return String.format("(%s)",  conceptSearchQueryPartCreator.fewTermsQueryPart(preparedPhraseQuery, queryBoosts.getFewTermsBoosts()));
     }
 
-    private String getQueryForExactTerm(String term) {
+    private String buildAsteriskTermsQueryPart(List<String> asteriskTerms, QueryBoosts queryBoosts) {
 
-        return String.join(" OR ",
-                String.format("%s:\"%s\"^%s", CONCEPT_NAME, term, 4),
-                String.format("%s:\"%s\"^%s", CONCEPT_CODE, term, 3),
-                String.format("%s:\"%s\"", QUERY_SYMBOLS, term));
+        return asteriskTerms.stream()
+                .filter(StringUtils::isNotBlank)
+                .map(term -> conceptSearchQueryPartCreator.asteriskTerm(term, queryBoosts.getAsteriskTermBoosts()))
+                .map(queryPart -> String.format("(%s)", queryPart))
+                .collect(Collectors.joining(" AND "));
     }
 
+    private String buildNotExactTermsQueryPart(List<String> notExactTerms, QueryBoosts queryBoosts) {
 
-    private String getQueryForExactPhrase(String term) {
-        //field "query" is specified in SOLR's managed-schema. It's type is "general text" which means that filters and tokenizers are applied to it
-        //and other words may surround our term. We need an exact match, so here components of "query" are listed. Their type is String in SOLR that
-        //guarantees an exact match.
-        return String.join(" OR ",
-                String.format("%s:%s^%s", CONCEPT_NAME_CI, term, 9),
-                String.format("%s:%s^%s", CONCEPT_CODE_CI, term, 8),
-                String.format("%s:%s^%s", ID, term, 8),
-                String.format("%s:%s^%s", CONCEPT_CODE, term, 8),
-                String.format("%s:%s^%s", CONCEPT_NAME, term, 8),
-                String.format("%s:%s^%s", CONCEPT_CLASS_ID, term, 8),
-                String.format("%s:%s^%s", DOMAIN_ID, term, 8),
-                String.format("%s:%s^%s", VOCABULARY_ID, term, 8),
-                String.format("%s:%s^%s", STANDARD_CONCEPT, term, 8),
-                String.format("%s:%s^%s", INVALID_REASON, term, 8),
-                String.format("%s:%s^%s", CONCEPT_SYNONYM_NAME, term, 8));
+        return notExactTerms.stream()
+                .filter(StringUtils::isNotBlank)
+                .map(term -> conceptSearchQueryPartCreator.notExactTerm(term, queryBoosts.getNotExactTerm()))
+                .map(queryPart -> String.format("(%s)", queryPart))
+                .collect(Collectors.joining(" OR "));
+    }
+
+    private String buildExactTermsQueryPart(List<String> exactTerms, QueryBoosts queryBoosts) {
+
+        return exactTerms.stream()
+                .filter(StringUtils::isNotBlank)
+                .map(term -> conceptSearchQueryPartCreator.exactTerm(term, queryBoosts.getExactTerm()))
+                .map(queryPart -> String.format("(%s)", queryPart))
+                .collect(Collectors.joining(" AND "));
     }
 
 }

@@ -63,13 +63,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.odysseusinc.athena.model.common.AthenaConstants.OMOP_VOCABULARY_ID;
+import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -100,6 +100,7 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     @Autowired
     public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyRepository vocabularyRepository) {
+
         this.asyncVocabularyService = asyncVocabularyService;
         this.conceptService = conceptService;
         this.converterUtils = converterUtils;
@@ -116,7 +117,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public List<UserVocabularyDTO> getAllForCurrentUser() throws PermissionDeniedException {
+    public List<UserVocabularyDTO> getAllForCurrentUser() {
 
         Sort sort = new Sort(Sort.Direction.ASC, DEFAULT_SORT_COLUMN);
         AthenaUser user = userService.getCurrentUser();
@@ -146,21 +147,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         return bundle;
     }
 
-    private void checkBundleVocabularies(List<Integer> bundleVocabularyIdV4s, Long userId) {
-
-        //PENDING licenses are not active
-        List<Integer> allUnavailableVocabularyIds = vocabularyConversionService.getUnavailableVocabularies(userId, false)
-                .stream()
-                .map(VocabularyDTO::getId)
-                .collect(Collectors.toList());
-
-        List<Integer> unavailableIdsFromBundle = intersection(allUnavailableVocabularyIds, bundleVocabularyIdV4s);
-        if (!isEmpty(unavailableIdsFromBundle)) {
-            throw new LicenseException(
-                    format("User must have licenses for the bundle vocabularies %s", unavailableIdsFromBundle.toString()), unavailableIdsFromBundle);
-        }
-    }
-
+    @Override
     public void checkBundleVocabularies(DownloadBundle bundle, Long userId) {
 
         List<Integer> bundleVocabularyV4Ids = bundle.getVocabularies().stream()
@@ -180,19 +167,6 @@ public class VocabularyServiceImpl implements VocabularyService {
         }
         LOGGER.warn("OMOP Vocabulary not found");
         return null;
-    }
-
-    private DownloadBundle buildDownloadBundle(CDMVersion version, String uuid, String name, AthenaUser user) {
-
-        DownloadBundle bundle = new DownloadBundle();
-        bundle.setUserId(user.getId());
-        bundle.setCreated(new Date());
-        bundle.setUuid(uuid);
-        bundle.setCdmVersion(version);
-        bundle.setName(name);
-        bundle.setStatus(DownloadBundleStatus.PENDING);
-        bundle.setReleaseVersion(getOMOPVocabularyVersion());
-        return bundle;
     }
 
     @Override
@@ -257,7 +231,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public void restoreDownloadBundle(DownloadBundle downloadBundle) throws PermissionDeniedException {
+    public void restoreDownloadBundle(DownloadBundle downloadBundle) {
 
         AthenaUser currentUser = userService.getCurrentUser();
         checkBundleUser(currentUser, downloadBundle);
@@ -271,6 +245,7 @@ public class VocabularyServiceImpl implements VocabularyService {
                 currentUser.getId());
     }
 
+    @Override
     public void checkBundleUser(AthenaUser user, DownloadBundle bundle){
 
         if (ObjectUtils.notEqual(user.getId(), bundle.getUserId())) {
@@ -278,6 +253,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         }
     }
 
+    @Override
     public void checkBundleAndSharedUser(AthenaUser user, DownloadBundle bundle){
         if (ObjectUtils.notEqual(user.getId(), bundle.getUserId())) {
             // check whether this bundle was chared with current user
@@ -290,22 +266,25 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public List<License> saveLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, LicenseStatus status) {
+    public List<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids) {
 
-        Iterable<License> licenses = vocabularyV4Ids.stream()
-                .map(vocabularyV4Id -> new License(user, new VocabularyConversion(vocabularyV4Id), status))
+        final List<License> newLicenses = vocabularyV4Ids.stream()
+                .map(v4Id -> buildLicense(user, v4Id, APPROVED))
                 .collect(toList());
-        List<License> result = new ArrayList<>();
-        licenseRepository.save(licenses).iterator().forEachRemaining(result::add);
 
+        final List<License> savedLicenses = licenseRepository.save(newLicenses);
         conceptService.invalidateGraphCache(user.getId());
-        return result;
+        return savedLicenses;
     }
 
     @Override
-    public Long requestLicenses(AthenaUser user, Integer vocabularyV4Id) {
+    public Long requestLicense(AthenaUser user, Integer vocabularyV4Id) {
 
-        return saveLicenses(user, Collections.singletonList(vocabularyV4Id), PENDING).get(0).getId();
+        final License requestedLicense = buildLicense(user, vocabularyV4Id, PENDING);
+        requestedLicense.setRequestDate(new Date());
+        final License savedLicense = licenseRepository.save(requestedLicense);
+        conceptService.invalidateGraphCache(user.getId());
+        return savedLicense.getId();
     }
 
     @Override
@@ -317,7 +296,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public void acceptLicense(Long id, Boolean accepted) {
+    public void acceptLicense(Long id, boolean accepted) {
 
         License userLicense = licenseRepository.findOne(id);
         String vocabularyName = userLicense.getVocabularyConversion().getName();
@@ -350,9 +329,43 @@ public class VocabularyServiceImpl implements VocabularyService {
         return licenseRepository.findByIdAndToken(licenseId, token);
     }
 
+    @Override
     public List<Notification> getNotifications(Long userId) {
 
         return notificationRepository.findByUserId(userId);
     }
 
+    private DownloadBundle buildDownloadBundle(CDMVersion version, String uuid, String name, AthenaUser user) {
+
+        DownloadBundle bundle = new DownloadBundle();
+        bundle.setUserId(user.getId());
+        bundle.setCreated(new Date());
+        bundle.setUuid(uuid);
+        bundle.setCdmVersion(version);
+        bundle.setName(name);
+        bundle.setStatus(DownloadBundleStatus.PENDING);
+        bundle.setReleaseVersion(getOMOPVocabularyVersion());
+        return bundle;
+    }
+
+    private License buildLicense(AthenaUser user,  Integer vocabularyV4Id, LicenseStatus status) {
+
+        VocabularyConversion vocabularyConversion = new VocabularyConversion(vocabularyV4Id);
+        return new License(user, vocabularyConversion, status);
+    }
+
+    private void checkBundleVocabularies(List<Integer> bundleVocabularyIdV4s, Long userId) {
+
+        //PENDING licenses are not active
+        List<Integer> allUnavailableVocabularyIds = vocabularyConversionService.getUnavailableVocabularies(userId, false)
+                .stream()
+                .map(VocabularyDTO::getId)
+                .collect(Collectors.toList());
+
+        List<Integer> unavailableIdsFromBundle = intersection(allUnavailableVocabularyIds, bundleVocabularyIdV4s);
+        if (!isEmpty(unavailableIdsFromBundle)) {
+            throw new LicenseException(
+                    format("User must have licenses for the bundle vocabularies %s", unavailableIdsFromBundle.toString()), unavailableIdsFromBundle);
+        }
+    }
 }

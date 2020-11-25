@@ -32,7 +32,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@PersistenceContext(unitName = "athenaEntityManagerFactory")
 public interface VocabularyConversionRepository extends CrudRepository<VocabularyConversion, Integer> {
 
     String MISSING_LICENSES = "SELECT * FROM vocabulary_conversion WHERE "

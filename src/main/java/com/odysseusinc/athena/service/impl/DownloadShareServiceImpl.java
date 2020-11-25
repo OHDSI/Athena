@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
+@Transactional
 @Service
 public class DownloadShareServiceImpl implements DownloadShareService {
 
@@ -58,7 +59,6 @@ public class DownloadShareServiceImpl implements DownloadShareService {
     }
 
     @Override
-    @Transactional
     public void change(DownloadBundle bundle, String emails, AthenaUser user) {
         if (emails == null || emails.isEmpty()) {
             deleteByDownloadBundle(bundle);
@@ -99,7 +99,6 @@ public class DownloadShareServiceImpl implements DownloadShareService {
     }
 
     @Override
-    @Transactional
     public void deleteByDownloadBundle(DownloadBundle downloadBundle) {
         bundleShareRepository.deleteByBundle(downloadBundle);
     }

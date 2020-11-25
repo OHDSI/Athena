@@ -23,19 +23,20 @@
 package com.odysseusinc.athena.repositories.athena;
 
 import com.odysseusinc.athena.model.athena.License;
-import javax.persistence.PersistenceContext;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.PersistenceContext;
+
 @Repository
 @PersistenceContext(unitName = "athenaEntityManagerFactory")
-public interface LicenseRepository extends CrudRepository<License, Long> {
+public interface LicenseRepository extends JpaRepository<License, Long> {
 
     @Query(nativeQuery = true, value =
             "SELECT * FROM licenses where user_id = :userId and vocabulary_id_v4 = :vocabularyId")
-    License findByUserIdAndVocabularyIdV4(@Param("userId") Long userId, @Param("vocabularyId")  Integer vocabularyId);
+    License findByUserIdAndVocabularyIdV4(@Param("userId") Long userId, @Param("vocabularyId") Integer vocabularyId);
 
     License findByIdAndToken(Long licenseId, String token);
 }

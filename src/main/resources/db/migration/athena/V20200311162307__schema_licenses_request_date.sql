@@ -1,0 +1,1 @@
+ALTER TABLE licenses ADD COLUMN request_date  TIMESTAMP WITH TIME ZONE;

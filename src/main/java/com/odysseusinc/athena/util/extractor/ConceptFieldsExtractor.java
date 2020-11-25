@@ -25,13 +25,12 @@ package com.odysseusinc.athena.util.extractor;
 import static com.odysseusinc.athena.util.FieldValueUtil.getString;
 
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptDTO;
-import com.odysseusinc.athena.model.athenav5.SolrConcept;
 
 public class ConceptFieldsExtractor extends FieldsExtractor<ConceptDTO> {
 
     public String[] fields(ConceptDTO concept) {
 
-        return new String[] {getString(concept.getId()),
+        return new String[]{getString(concept.getId()),
                 getString(concept.getCode()),
                 getString(concept.getName()),
                 getString(concept.getClassName()),
