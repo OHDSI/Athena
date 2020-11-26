@@ -16,3 +16,6 @@ it will cause damage to concept.csv file.
 
 Please make sure java allowed to make http requests and has write permission to the concept.csv file.
 If your username or password contains special symbols or space please wrap it with single quotes in linux or double quotes in windows e.g. "user$1@email" or 'pa$$word'.
+
+Please migrate your UMLS account to APIKEY authentication till the January 15, 2021 as described here:
+https://www.nlm.nih.gov/research/umls/uts-changes.html
