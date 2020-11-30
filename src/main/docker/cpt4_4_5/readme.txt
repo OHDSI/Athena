@@ -1,4 +1,4 @@
-CPT4 utility for CDM v5.
+CPT4 utility for CDM v4.
 
 This utility will import the CPT4 vocabulary into concept.csv.
 Internet connection is required.
