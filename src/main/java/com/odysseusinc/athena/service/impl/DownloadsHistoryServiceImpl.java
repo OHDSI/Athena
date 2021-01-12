@@ -22,6 +22,8 @@
 
 package com.odysseusinc.athena.service.impl;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.odysseusinc.athena.api.v1.controller.dto.DownloadHistoryDTO;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
@@ -34,6 +36,8 @@ import com.odysseusinc.athena.service.DownloadsHistoryService;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.extractor.DownloadHistoryExtractor;
 import com.opencsv.CSVWriter;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -51,12 +55,15 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Transactional
 @Service
+@Slf4j
 public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
 
     private final DownloadHistoryRepository downloadHistoryRepository;
@@ -86,9 +93,16 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
     @Override
     public Collection<DownloadHistoryDTO> retrieveStatistics(LocalDateTime from, LocalDateTime to, Boolean licensedOnly, String[] keywords) {
 
-        return downloadHistoryRepository.findByDownloadTimeBetweenOrderByDownloadTimeAsc(from, to)
+        log.trace("START: retrieveStatistics: {}", LocalDateTime.now());
+        List<DownloadHistory> bundleHistory = downloadHistoryRepository.findByDownloadTimeBetweenOrderByDownloadTimeAsc(from, to);
+
+        log.trace("map to History: {}", LocalDateTime.now());
+        Set<DownloadHistoryDTO> itemHistory = bundleHistory.stream().parallel()
                 .flatMap(history -> mapHistory(history, licensedOnly, keywords))
                 .collect(Collectors.toSet());
+
+        log.trace("END: retrieveStatistics: {}", LocalDateTime.now());
+        return itemHistory;
     }
 
     @Override
@@ -130,13 +144,21 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
         csvWriter.writeAll(new ArrayList<>(extractor.extractForAll(records)));
     }
 
+    private Cache<Long,AthenaUser> userCache= CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build();
+
+    @SneakyThrows
+    private AthenaUser getUserFromCache(Long userId){
+        return userCache.get(userId, () -> userService.get(userId));
+    }
+
     private Stream<DownloadHistoryDTO> mapHistory(DownloadHistory history, boolean licensedOnly, String[] keywords) {
 
-        final AthenaUser athenaUser = userService.get(history.getUserId());
+        final AthenaUser athenaUser = getUserFromCache(history.getUserId());
         final List<DownloadItem> vocabularies = history.getVocabularyBundle().getVocabularies();
         final LocalDateTime downloadDate = history.getDownloadTime().truncatedTo(ChronoUnit.DAYS);
 
         return vocabularies.stream()
+                .parallel()
                 .filter(this::isOmopRequired)
                 .filter(vocab -> licenseOnly(vocab, licensedOnly))
                 .map(vocab -> createDto(vocab.getVocabularyConversion(), athenaUser, downloadDate))
@@ -164,7 +186,6 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
 
         final String userName = String.format("%s, %s", athenaUser.getFirstName(), athenaUser.getLastName());
         DownloadHistoryDTO dto = new DownloadHistoryDTO();
-        dto.setOrganization(athenaUser.getOrganization());
         dto.setUserName(userName);
         dto.setOrganization(athenaUser.getOrganization());
         dto.setCode(vocabularyConversion.getIdV5());
