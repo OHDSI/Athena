@@ -6,7 +6,7 @@
 
     <groupId>com.odysseusinc.athena</groupId>
     <artifactId>athena</artifactId>
-    <version>1.11.1-RC</version>
+    <version>1.11.2-RC</version>
     <packaging>jar</packaging>
 
 
@@ -38,7 +38,8 @@
         <thymeleaf.version>3.0.11.RELEASE</thymeleaf.version>
         <thymeleaf-layout-dialect.version>2.2.1</thymeleaf-layout-dialect.version>
         <guava.verson>28.2-jre</guava.verson>
-        <lombok.version>1.18.12</lombok.version>
+        <lombok.version>1.18.16</lombok.version>
+        <flyway.version>4.2.0</flyway.version>
     </properties>
 
     <profiles>

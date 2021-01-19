@@ -27,6 +27,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.PersistenceContext;
+
+import com.odysseusinc.athena.util.DownloadBundleStatus;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -54,4 +56,5 @@ public interface DownloadBundleRepository extends JpaRepository<DownloadBundle, 
 
     DownloadBundle findByUuid(String uuid);
 
+    List<DownloadBundle> findByStatus(DownloadBundleStatus status);
 }

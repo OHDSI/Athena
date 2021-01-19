@@ -66,7 +66,7 @@ public class ZipWriter {
     @Autowired
     InvalidConceptCPT4V5Saver cpt4V5DeprecatedSaver;
 
-    public void addCPT4Utility(ZipOutputStream zos, DownloadBundle bundle) throws Exception {
+    public synchronized void addCPT4Utility(ZipOutputStream zos, DownloadBundle bundle) throws Exception {
 
         if (bundle.isCpt4()) {
             File filesStoreDir = V4_5 == bundle.getCdmVersion() ? new File(cpt4V4Files) : new File(cpt4V5Files);
@@ -121,6 +121,6 @@ public class ZipWriter {
             Files.copy(externalTxtFile, pathInZipfile,
                     StandardCopyOption.REPLACE_EXISTING);
         }
-        path.toFile().delete();
+        Files.delete(path);
     }
 }

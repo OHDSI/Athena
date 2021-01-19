@@ -27,11 +27,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.stream.Stream;
+import java.util.List;
 
 @Repository
 public interface DownloadHistoryRepository extends JpaRepository<DownloadHistory, Long> {
 
-    Stream<DownloadHistory> findByDownloadTimeBetweenOrderByDownloadTimeAsc(LocalDateTime from, LocalDateTime to);
+    List<DownloadHistory> findByDownloadTimeBetweenOrderByDownloadTimeAsc(LocalDateTime from, LocalDateTime to);
 
 }
