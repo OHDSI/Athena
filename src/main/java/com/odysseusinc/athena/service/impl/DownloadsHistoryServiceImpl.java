@@ -96,7 +96,7 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
         log.trace("START: retrieveStatistics: {}", LocalDateTime.now());
         List<DownloadHistory> bundleHistory = downloadHistoryRepository.findByDownloadTimeBetweenOrderByDownloadTimeAsc(from, to);
 
-        log.trace("map to History: {}", LocalDateTime.now());
+        log.trace("map to History: {}, count: {}", LocalDateTime.now(), bundleHistory.size());
         Set<DownloadHistoryDTO> itemHistory = bundleHistory.stream().parallel()
                 .flatMap(history -> mapHistory(history, licensedOnly, keywords))
                 .collect(Collectors.toSet());
