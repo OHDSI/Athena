@@ -45,7 +45,7 @@ public interface AthenaUserRepository extends PagingAndSortingRepository<AthenaU
     Page<AthenaUser> getUsersWithLicenses(@Param("suggestRequest") String suggestRequest,
                                           @Param("pendingOnly") boolean pendingOnly,  Pageable pageable);
 
-    AthenaUser findByUsernameAndOrigin(String username, String origin);
+    AthenaUser findByUsernameIgnoreCaseAndOrigin(String username, String origin);
 
     @Query(nativeQuery = true, value =
             "SELECT * FROM users WHERE lower(firstname) SIMILAR TO :suggestRequest "
