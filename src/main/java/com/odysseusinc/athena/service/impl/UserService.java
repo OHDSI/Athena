@@ -106,7 +106,7 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
                                                 AthenaProfile athenaProfile, WebContext webContext)
             throws HttpAction {
 
-        AthenaUser user = athenaUserRepository.findByUsernameAndOrigin(username, origin);
+        AthenaUser user = athenaUserRepository.findByUsernameIgnoreCaseAndOrigin(username, origin);
         if (user == null) {
             if (origin == null) {
                 throw HttpAction.unauthorized("User origin is not defined", webContext, "");
