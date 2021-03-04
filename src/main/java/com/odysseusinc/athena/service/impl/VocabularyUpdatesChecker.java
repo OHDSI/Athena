@@ -21,7 +21,7 @@ public class VocabularyUpdatesChecker {
 
     public void sendVocabularyUpdatesNotification() {
 
-        notificationService.ensureVocabularyVersionAndCodeAreSet();
+        //notificationService.ensureVocabularyVersionAndCodeAreSet();
 
         for (Long subscribedUserId : notificationRepository.getSubscribedUserIds()) {
             notificationService.processUsersVocabularyUpdateSubscriptions(subscribedUserId);
