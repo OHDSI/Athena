@@ -31,7 +31,6 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.PersistenceContext;
 
 @Repository
-@PersistenceContext(unitName = "athenaEntityManagerFactory")
 public interface LicenseRepository extends JpaRepository<License, Long> {
 
     @Query(nativeQuery = true, value =

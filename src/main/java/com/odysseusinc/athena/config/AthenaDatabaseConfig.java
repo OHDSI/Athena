@@ -22,71 +22,58 @@
 
 package com.odysseusinc.athena.config;
 
-import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.flyway.FlywayDataSource;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import javax.persistence.EntityManagerFactory;
 
 @Configuration
 @EnableJpaRepositories(basePackages = "com.odysseusinc.athena.repositories.athena",
         entityManagerFactoryRef = "athenaEntityManagerFactory",
         transactionManagerRef = "athenaTransactionManager")
-@EnableConfigurationProperties(DataSourceProperties.class)
-public class AthenaDatabaseConfig {
+@ConfigurationProperties("spring.datasource-db")
+public class AthenaDatabaseConfig extends HikariConfig {
 
-    @Autowired
-    DataSourceProperties properties;
+    public final static String ATHENA_DB_PERSISTENCE_UNIT_NAME = "ATHENA_DB";
 
-    @Bean(name = "athenaTransactionManager")
-    @Primary
-    public PlatformTransactionManager athenaTransactionManager(@Qualifier("athenaEntityManagerFactory")
-                                                                EntityManagerFactory entityManagerFactory) {
+    public AthenaDatabaseConfig(@Qualifier("athenaDBHikariProps") HikariProps athenaDBHikariProps) {
 
-        return new JpaTransactionManager(entityManagerFactory);
+        athenaDBHikariProps.setToConfig(this);
+    }
+
+    @Bean
+    public HikariDataSource dataSourceAthenaDB() {
+        return new HikariDataSource(this);
     }
 
     @Bean(name = "athenaEntityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean athenaEntityManagerFactory(@Qualifier("athenaDataSource")
-                                                                              DataSource dataSource) {
+    public LocalContainerEntityManagerFactoryBean athenaEntityManagerFactory(final HikariDataSource dataSourceAthenaDB) {
 
-        HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
-        jpaVendorAdapter.setGenerateDdl(false);
-
-        LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-
-        factoryBean.setDataSource(dataSource);
-        factoryBean.setJpaVendorAdapter(jpaVendorAdapter);
-        factoryBean.setPackagesToScan("com.odysseusinc.athena.model.athena",
-                "com.odysseusinc.athena.model.common",
-                "com.odysseusinc.athena.model.security");
-        return factoryBean;
+        return new LocalContainerEntityManagerFactoryBean() {{
+            setDataSource(dataSourceAthenaDB);
+            setPersistenceProviderClass(HibernatePersistenceProvider.class);
+            setPersistenceUnitName(ATHENA_DB_PERSISTENCE_UNIT_NAME);
+            setPackagesToScan("com.odysseusinc.athena.model.athena",
+                    "com.odysseusinc.athena.model.common",
+                    "com.odysseusinc.athena.model.security");
+            setJpaProperties(HikariProps.JPA_PROPERTIES);
+        }};
     }
 
-    @Bean(name = "athenaJdbcTemplate")
-    public JdbcTemplate athenaJdbcTemplate(@Qualifier("athenaDataSource") DataSource dataSource) {
+    @Primary
+    @Bean(name = "athenaTransactionManager")
+    public PlatformTransactionManager athenaTransactionManager(EntityManagerFactory athenaEntityManagerFactory) {
 
-        return new JdbcTemplate(dataSource);
-    }
-
-    @FlywayDataSource
-    @Bean(name = "athenaDataSource")
-    @ConfigurationProperties(prefix = "spring.datasource")
-    public DataSource athenaDataSource() {
-
-        return DataSourceBuilder.create().build();
+        return new JpaTransactionManager(athenaEntityManagerFactory);
     }
 }

@@ -45,7 +45,7 @@ public interface VocabularyService {
 
     DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Integer> idV4s);
 
-    void restoreDownloadBundle(DownloadBundle downloadBundle);
+    void restoreDownloadBundle(long bundleId);
 
     void checkBundleUser(AthenaUser user, DownloadBundle bundle);
 
@@ -67,7 +67,5 @@ public interface VocabularyService {
 
     List<Notification> getNotifications(Long userId);
 
-    void checkBundleVocabularies(DownloadBundle bundle, Long userId);
-
-    String getOMOPVocabularyVersion();
+    void checkBundleVocabularies(long bundleId, Long userId);
     }

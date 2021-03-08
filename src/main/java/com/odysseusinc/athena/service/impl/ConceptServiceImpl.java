@@ -116,7 +116,7 @@ public class ConceptServiceImpl implements ConceptService {
     @LicenseCheck
     public ConceptV5 getByIdWithLicenseCheck(Long id) {
 
-        return conceptRepository.findOne(id);
+        return conceptRepository.getOne(id);
     }
 
     @Override

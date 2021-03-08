@@ -31,7 +31,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@PersistenceContext(unitName = "athenav4EntityManagerFactory")
 public interface ConceptSynonymV4Repository extends CrudRepository<ConceptSynonymV4, Long> {
 
     @Query(nativeQuery = true,

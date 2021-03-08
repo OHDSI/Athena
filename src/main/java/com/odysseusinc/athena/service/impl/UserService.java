@@ -227,7 +227,7 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
 
     public AthenaUser get(Long userId) {
 
-        return athenaUserRepository.findOne(userId);
+        return athenaUserRepository.findById(userId).orElse(null);
     }
 
     public List<AthenaUser> getAdmins() {

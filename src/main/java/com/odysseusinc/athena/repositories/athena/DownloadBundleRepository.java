@@ -38,7 +38,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-@PersistenceContext(unitName = "athenaEntityManagerFactory")
 public interface DownloadBundleRepository extends JpaRepository<DownloadBundle, Long> {
 
     @Query(nativeQuery = true, value = "SELECT user_id FROM download_bundle WHERE id = :id")
