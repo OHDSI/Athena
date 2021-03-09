@@ -23,12 +23,10 @@
 package com.odysseusinc.athena.repositories.athena;
 
 import com.odysseusinc.athena.model.athena.DownloadItem;
-import javax.persistence.PersistenceContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@PersistenceContext(unitName = "athenaEntityManagerFactory")
 public interface DownloadItemRepository extends JpaRepository<DownloadItem, Long> {
 
 }

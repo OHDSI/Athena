@@ -33,22 +33,33 @@ import com.odysseusinc.athena.service.writer.FileHelper;
 import java.io.File;
 import java.util.Date;
 import java.util.Set;
+
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+
+@Transactional
 @Service
 public class DownloadBundleServiceImpl implements DownloadBundleService {
+
+    private final DownloadBundleRepository bundleRepository;
+    private final SavedFileRepository fileRepository;
+    private final FileHelper fileHelper;
+
     @Autowired
-    private DownloadBundleRepository bundleRepository;
-    @Autowired
-    private SavedFileRepository fileRepository;
-    @Autowired
-    private FileHelper fileHelper;
+    public DownloadBundleServiceImpl(DownloadBundleRepository bundleRepository, SavedFileRepository fileRepository, FileHelper fileHelper) {
+
+        this.bundleRepository = bundleRepository;
+        this.fileRepository = fileRepository;
+        this.fileHelper = fileHelper;
+    }
 
     @Override
     public DownloadBundle get(Long bundleId) {
 
-        return bundleRepository.findOne(bundleId);
+        return bundleRepository.getOne(bundleId);
     }
 
     @Override
@@ -72,7 +83,7 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
     public void archiveBefore(Date before) {
 
         Set<DownloadBundle> bundles = bundleRepository.findBefore(before);
-        bundles.forEach((uuid) -> archiveByUuid(uuid.getUuid()));
+        bundles.forEach(uuid -> archiveByUuid(uuid.getUuid()));
 
         fileRepository.deleteByDownloadBundleIdIn(bundles.stream().map(DownloadBundle::getId).collect(toList()));
     }
@@ -89,7 +100,7 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
 
     private void archiveByUuid(String uuid) {
 
-        new File(fileHelper.getZipPath(uuid)).delete();
+        FileUtils.deleteQuietly(new File(fileHelper.getZipPath(uuid)));
         bundleRepository.archiveByUuid(uuid);
     }
 

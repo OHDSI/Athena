@@ -61,11 +61,11 @@ public abstract class Saver implements ISaver {
     protected Character separator;
 
     @Autowired
-    @Qualifier("athenaV5DataSource")
+    @Qualifier("dataSourceAthenaV5")
     private DataSource v5DataSource;
 
     @Autowired
-    @Qualifier("athenaV4DataSource")
+    @Qualifier("dataSourceAthenaV4")
     private DataSource v4DataSource;
 
     @Autowired

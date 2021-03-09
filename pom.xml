@@ -6,40 +6,35 @@
 
     <groupId>com.odysseusinc.athena</groupId>
     <artifactId>athena</artifactId>
-    <version>1.11.2-RC</version>
+    <version>1.12.0-QA</version>
     <packaging>jar</packaging>
 
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.22.RELEASE</version>
+        <version>2.1.18.RELEASE</version>
         <relativePath/>
     </parent>
 
     <properties>
         <java.version>1.8</java.version>
         <springfox.swagger2.version>2.9.2</springfox.swagger2.version>
-        <jjwt.version>0.7.0</jjwt.version>
-        <postgresql.version>42.2.9</postgresql.version>
+        <jjwt.version>0.9.1</jjwt.version>
         <opensaml.version>2.6.6-patched</opensaml.version>
         <solr.version>7.7.1</solr.version>
         <spring-security-pac4j.version>3.1.0</spring-security-pac4j.version>
         <pac4j.version>2.3.1</pac4j.version>
         <opencsv.version>3.9</opencsv.version>
         <javax.mail.version>1.4</javax.mail.version>
-        <spring.context.support>4.3.7.RELEASE</spring.context.support>
         <dockerImagePrefix>hub.odysseusinc.com</dockerImagePrefix>
         <arachne.version>1.16.2</arachne.version>
         <disruptor.version>3.4.2</disruptor.version>
-        <commons-lang3.version>3.9</commons-lang3.version>
+        <commons-lang3.version>3.11</commons-lang3.version>
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
-        <thymeleaf.version>3.0.11.RELEASE</thymeleaf.version>
-        <thymeleaf-layout-dialect.version>2.2.1</thymeleaf-layout-dialect.version>
-        <guava.verson>28.2-jre</guava.verson>
-        <lombok.version>1.18.16</lombok.version>
-        <flyway.version>4.2.0</flyway.version>
+        <guava.verson>30.1-jre</guava.verson>
+        <lombok.version>1.18.18</lombok.version>
     </properties>
 
     <profiles>
@@ -82,10 +77,14 @@
 
     <dependencies>
         <dependency>
+            <groupId>javax.jms</groupId>
+            <artifactId>javax.jms-api</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+        <dependency>
             <groupId>com.odysseusinc.arachne</groupId>
             <artifactId>arachne-commons</artifactId>
             <version>${arachne.version}</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>io.springfox</groupId>
@@ -129,7 +128,6 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>${postgresql.version}</version>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.jtds</groupId>
@@ -140,7 +138,6 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>${flyway.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -189,7 +186,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context-support</artifactId>
-            <version>${spring.context.support}</version>
+            <!--<version>${spring.context.support}</version>-->
         </dependency>
 
         <dependency>

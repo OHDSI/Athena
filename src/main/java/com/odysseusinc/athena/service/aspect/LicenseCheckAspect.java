@@ -52,7 +52,7 @@ public class LicenseCheckAspect {
     public void check(long conceptId) throws PermissionDeniedException {
 
         List<VocabularyConversion> unavailable = vocabularyConversionService.getUnavailableVocabularyConversions();
-        ConceptV5 conceptV5 = conceptRepository.findOne(conceptId);
+        ConceptV5 conceptV5 = conceptRepository.getOne(conceptId);
 
         String conceptVocabularyIdV5 = conceptV5.getVocabulary().getId();
 

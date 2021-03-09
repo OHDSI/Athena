@@ -48,6 +48,7 @@ import com.odysseusinc.athena.repositories.v5.VocabularyRepository;
 import com.odysseusinc.athena.service.ConceptService;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
+import com.odysseusinc.athena.service.VocabularyServiceV5;
 import com.odysseusinc.athena.service.mail.EmailService;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
@@ -96,10 +97,10 @@ public class VocabularyServiceImpl implements VocabularyService {
     private final NotificationRepository notificationRepository;
     private final UserService userService;
     private final VocabularyConversionService vocabularyConversionService;
-    private final VocabularyRepository vocabularyRepository;
+    private final VocabularyServiceV5 vocabularyServiceV5;
 
     @Autowired
-    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyRepository vocabularyRepository) {
+    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyServiceV5 vocabularyServiceV5) {
 
         this.asyncVocabularyService = asyncVocabularyService;
         this.conceptService = conceptService;
@@ -113,7 +114,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         this.notificationRepository = notificationRepository;
         this.userService = userService;
         this.vocabularyConversionService = vocabularyConversionService;
-        this.vocabularyRepository = vocabularyRepository;
+        this.vocabularyServiceV5 = vocabularyServiceV5;
     }
 
     @Override
@@ -148,25 +149,13 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public void checkBundleVocabularies(DownloadBundle bundle, Long userId) {
+    public void checkBundleVocabularies(long bundleId, Long userId) {
 
+        DownloadBundle bundle = downloadBundleRepository.getOne(bundleId);
         List<Integer> bundleVocabularyV4Ids = bundle.getVocabularies().stream()
                 .map(e -> e.getVocabularyConversion().getIdV4())
                 .collect(toList());
         checkBundleVocabularies(bundleVocabularyV4Ids, userId);
-    }
-
-    @Override
-    public String getOMOPVocabularyVersion() {
-
-        final VocabularyV5 omopVocabulary = vocabularyRepository.findOne(OMOP_VOCABULARY_ID);
-        if (omopVocabulary != null) {
-            LOGGER.debug("Current OMOP Vocabulary: {} {}: {}", omopVocabulary.getId(), omopVocabulary.getName(), omopVocabulary.getVersion());
-
-            return omopVocabulary.getVersion();
-        }
-        LOGGER.warn("OMOP Vocabulary not found");
-        return null;
     }
 
     @Override
@@ -183,7 +172,7 @@ public class VocabularyServiceImpl implements VocabularyService {
                 .map(id -> new DownloadItem(result, new VocabularyConversion(id)))
                 .collect(Collectors.toList());
 
-        result.setVocabularies(downloadItemRepository.save(items));
+        result.setVocabularies(downloadItemRepository.saveAll(items));
         return result;
     }
 
@@ -205,7 +194,7 @@ public class VocabularyServiceImpl implements VocabularyService {
                         .collect(toList());
                 bundleDTO.setDownloadShareDTOs(filteredShares);
                 try {
-                    checkBundleVocabularies(share.getBundle(), user.getId());
+                    checkBundleVocabularies(share.getBundle().getId(), user.getId());
                 } catch (LicenseException e) {
                     // if some vocabularies require licence and current user does not have it -
                     // clear link to zip file
@@ -231,14 +220,15 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public void restoreDownloadBundle(DownloadBundle downloadBundle) {
+    public void restoreDownloadBundle(long bundleId) {
 
+        DownloadBundle downloadBundle = downloadBundleRepository.getOne(bundleId);
         AthenaUser currentUser = userService.getCurrentUser();
         checkBundleUser(currentUser, downloadBundle);
         if (!downloadBundle.isArchived()) {
             return;
         }
-        checkBundleVocabularies(downloadBundle, currentUser.getId());
+        checkBundleVocabularies(downloadBundle.getId(), currentUser.getId());
         asyncVocabularyService.updateStatus(downloadBundle, DownloadBundleStatus.PENDING);
         saveContent(downloadBundle, currentUser);
         LOGGER.info("Vocabulary restoring is started, bundle id: {}, user id: {}", downloadBundle.getId(),
@@ -272,7 +262,7 @@ public class VocabularyServiceImpl implements VocabularyService {
                 .map(v4Id -> buildLicense(user, v4Id, APPROVED))
                 .collect(toList());
 
-        final List<License> savedLicenses = licenseRepository.save(newLicenses);
+        final List<License> savedLicenses = licenseRepository.saveAll(newLicenses);
         conceptService.invalidateGraphCache(user.getId());
         return savedLicenses;
     }
@@ -290,22 +280,22 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public void deleteLicense(Long licenseId) {
 
-        License userLicense = licenseRepository.findOne(licenseId);
-        licenseRepository.delete(licenseId);
+        License userLicense = licenseRepository.getOne(licenseId);
+        licenseRepository.deleteById(licenseId);
         conceptService.invalidateGraphCache(userLicense.getUser().getId());
     }
 
     @Override
     public void acceptLicense(Long id, boolean accepted) {
 
-        License userLicense = licenseRepository.findOne(id);
+        License userLicense = licenseRepository.getOne(id);
         String vocabularyName = userLicense.getVocabularyConversion().getName();
         AthenaUser user = userLicense.getUser();
         if (accepted) {
             userLicense.setStatus(LicenseStatus.APPROVED);
             licenseRepository.save(userLicense);
         } else {
-            licenseRepository.delete(id);
+            licenseRepository.deleteById(id);
         }
         conceptService.invalidateGraphCache(user.getId());
         emailService.sendLicenseAcceptance(user, accepted, vocabularyName);
@@ -320,7 +310,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public License get(Long licenseId) {
 
-        return licenseRepository.findOne(licenseId);
+        return licenseRepository.getOne(licenseId);
     }
 
     @Override
@@ -344,7 +334,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         bundle.setCdmVersion(version);
         bundle.setName(name);
         bundle.setStatus(DownloadBundleStatus.PENDING);
-        bundle.setReleaseVersion(getOMOPVocabularyVersion());
+        bundle.setReleaseVersion(vocabularyServiceV5.getOMOPVocabularyVersion());
         return bundle;
     }
 
