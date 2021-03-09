@@ -31,7 +31,6 @@ import com.odysseusinc.athena.service.writer.FileHelper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -72,7 +71,7 @@ public class DownloadsController {
 
         final Long userId = userService.getCurrentUserId() != null ? userService.getCurrentUserId() : bundle.getUserId();
 
-        vocabularyService.checkBundleVocabularies(bundle, userId);
+        vocabularyService.checkBundleVocabularies(bundle.getId(), userId);
         downloadsHistoryService.updateStatistics(bundle, userId);
 
         String version = bundle.getCdmVersion().name().toLowerCase().replace(".", "_");

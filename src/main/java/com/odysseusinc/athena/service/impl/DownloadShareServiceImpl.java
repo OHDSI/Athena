@@ -79,12 +79,12 @@ public class DownloadShareServiceImpl implements DownloadShareService {
         List<DownloadShare> newSharedBundles = sharedBundles.stream()
                 .filter(bs -> !existingSharedBundles.contains(bs))
                 .collect(toList());
-        bundleShareRepository.save(newSharedBundles);
+        bundleShareRepository.saveAll(newSharedBundles);
 
         List<DownloadShare> unusedSharedBundles = existingSharedBundles.stream()
                 .filter(existingBS -> !sharedBundles.contains(existingBS))
                 .collect(toList());
-        bundleShareRepository.delete(unusedSharedBundles);
+        bundleShareRepository.deleteAll(unusedSharedBundles);
 
         sendNotification(newSharedBundles, bundle, user);
     }

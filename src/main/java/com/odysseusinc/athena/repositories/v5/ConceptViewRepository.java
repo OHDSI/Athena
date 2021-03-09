@@ -23,12 +23,10 @@
 package com.odysseusinc.athena.repositories.v5;
 
 import com.odysseusinc.athena.model.athenav5.SolrConcept;
-import java.util.List;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ConceptViewRepository extends CrudRepository<SolrConcept, Integer> {
 
-    List<SolrConcept> findByIdIn(List<Integer> ids);
 }

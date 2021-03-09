@@ -22,53 +22,55 @@
 
 package com.odysseusinc.athena.config;
 
-import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import javax.persistence.EntityManagerFactory;
 
 @Configuration
 @EnableJpaRepositories(basePackages = "com.odysseusinc.athena.repositories.v4",
         entityManagerFactoryRef = "athenav4EntityManagerFactory",
         transactionManagerRef = "athenav4TransactionManager")
-@EnableConfigurationProperties
-public class AthenaV4DatabaseConfig {
+@ConfigurationProperties("spring.datasource-v4")
+public class AthenaV4DatabaseConfig extends HikariConfig {
 
-    @Bean(name = "athenav4TransactionManager")
-    public PlatformTransactionManager cdmTransactionManager(@Qualifier("athenav4EntityManagerFactory")
-                                                             EntityManagerFactory entityManagerFactory) {
+    public final static String ATHENA_V4_PERSISTENCE_UNIT_NAME = "ATHENA_V4";
 
-        return new JpaTransactionManager(entityManagerFactory);
+    public AthenaV4DatabaseConfig(@Qualifier("athenaV4HikariProps") HikariProps hikariProps) {
+
+        hikariProps.setToConfig(this);
+    }
+
+    @Bean
+    public HikariDataSource dataSourceAthenaV4() {
+
+        return new HikariDataSource(this);
     }
 
     @Bean(name = "athenav4EntityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean cdmEntityManagerFactory(@Qualifier("athenaV4DataSource") DataSource dataSource) {
+    public LocalContainerEntityManagerFactoryBean athenav4EntityManagerFactory(final HikariDataSource dataSourceAthenaV4) {
 
-        HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
-        jpaVendorAdapter.setGenerateDdl(false);
-
-        LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-
-        factoryBean.setDataSource(cdmDataSource());
-        factoryBean.setJpaVendorAdapter(jpaVendorAdapter);
-        factoryBean.setPackagesToScan("com.odysseusinc.athena.model.athenav4", "com.odysseusinc.athena.model.common");
-
-        return factoryBean;
+        return new LocalContainerEntityManagerFactoryBean() {{
+            setDataSource(dataSourceAthenaV4);
+            setPersistenceProviderClass(HibernatePersistenceProvider.class);
+            setPersistenceUnitName(ATHENA_V4_PERSISTENCE_UNIT_NAME);
+            setPackagesToScan("com.odysseusinc.athena.model.athenav4", "com.odysseusinc.athena.model.common");
+            setJpaProperties(HikariProps.JPA_PROPERTIES);
+        }};
     }
 
-    @Bean(name = "athenaV4DataSource")
-    @ConfigurationProperties(prefix = "athena.v4.datasource")
-    public DataSource cdmDataSource() {
+    @Bean(name = "athenav4TransactionManager")
+    public PlatformTransactionManager athenav4TransactionManager(EntityManagerFactory athenav4EntityManagerFactory) {
 
-        return DataSourceBuilder.create().build();
+        return new JpaTransactionManager(athenav4EntityManagerFactory);
     }
 }

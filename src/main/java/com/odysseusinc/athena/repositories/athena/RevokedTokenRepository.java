@@ -26,9 +26,7 @@ import com.odysseusinc.athena.model.athena.RevokedToken;
 import java.util.Optional;
 import org.springframework.data.repository.CrudRepository;
 
-/**
- * @since 5/3/17.
- */
+
 public interface RevokedTokenRepository extends CrudRepository<RevokedToken, Long> {
 
     Optional<RevokedToken> findByToken(String token);

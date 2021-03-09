@@ -10,15 +10,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,7 +54,7 @@ public class EmailServiceTest {
 
         when(userService.getAdmins()).thenReturn(Arrays.asList(athenaAdmin));
 
-        recipients = EmailRecipients.builder().to(asList(TEST_EMAIL)).build();
+        recipients = EmailRecipients.builder().to(Arrays.asList(TEST_EMAIL)).build();
     }
 
     @Test
@@ -80,7 +78,7 @@ public class EmailServiceTest {
         emailService.sendVocabularyDownloadLink(athenaUser, EMPTY, CDMVersion.V5, EMPTY, EMPTY, new HashMap<>());
 
         verify(emailSenderService).sendAsync(EmailType.VOCABULARIES_LINK.getSubject(), EMPTY, recipients);
-        verify(emailSenderService).sendAsync(EmailType.FAILED_SENDING_TO_ADMIN.getSubject(), EMPTY, EmailRecipients.builder().to(asList(TEST_ADMIN_EMAIL)).build());
+        verify(emailSenderService).sendAsync(EmailType.FAILED_SENDING_TO_ADMIN.getSubject(), EMPTY, EmailRecipients.builder().to(Arrays.asList(TEST_ADMIN_EMAIL)).build());
     }
 
 }

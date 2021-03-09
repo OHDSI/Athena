@@ -35,7 +35,7 @@ public interface VocabularyConversionRepository extends JpaRepository<Vocabulary
 
     String MISSING_LICENSES = "SELECT * FROM vocabulary_conversion WHERE "
             + "available IS NOT NULL AND "
-            + "vocabulary_id_v4 != 4" ; //id of cpt4 vocabulary
+            + "vocabulary_id_v4 != 4"; //id of cpt4 vocabulary
 
     String MISSING_LICENSES_FOR_USER = MISSING_LICENSES + " AND "
             + "vocabulary_id_v4 NOT IN "
