@@ -28,7 +28,7 @@
         <opencsv.version>3.9</opencsv.version>
         <javax.mail.version>1.4</javax.mail.version>
         <dockerImagePrefix>hub.odysseusinc.com</dockerImagePrefix>
-        <arachne.version>1.17.0</arachne.version>
+        <arachne.version>1.16.2</arachne.version>
         <disruptor.version>3.4.2</disruptor.version>
         <commons-lang3.version>3.11</commons-lang3.version>
         <build.number>${BUILD_NUMBER}</build.number>
