@@ -23,7 +23,6 @@
 package com.odysseusinc.athena;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -33,12 +32,11 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
-@SpringBootApplication
-@Configuration
-@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class,
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class,
         HibernateJpaAutoConfiguration.class,
         FlywayAutoConfiguration.class
 })
+@Configuration
 @ComponentScan(basePackages = {"com.odysseusinc.athena.api.v1.controller",
         "com.odysseusinc.athena.config",
         "com.odysseusinc.athena.service.**",

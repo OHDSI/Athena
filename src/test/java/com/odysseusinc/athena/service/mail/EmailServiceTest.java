@@ -54,8 +54,7 @@ public class EmailServiceTest {
 
         when(userService.getAdmins()).thenReturn(Arrays.asList(athenaAdmin));
 
-        //todo: fix
-        //recipients = EmailRecipients.builder().to(asList(TEST_EMAIL)).build();
+        recipients = EmailRecipients.builder().to(Arrays.asList(TEST_EMAIL)).build();
     }
 
     @Test
@@ -79,8 +78,7 @@ public class EmailServiceTest {
         emailService.sendVocabularyDownloadLink(athenaUser, EMPTY, CDMVersion.V5, EMPTY, EMPTY, new HashMap<>());
 
         verify(emailSenderService).sendAsync(EmailType.VOCABULARIES_LINK.getSubject(), EMPTY, recipients);
-        //todo fix
-        //verify(emailSenderService).sendAsync(EmailType.FAILED_SENDING_TO_ADMIN.getSubject(), EMPTY, EmailRecipients.builder().to(asList(TEST_ADMIN_EMAIL)).build());
+        verify(emailSenderService).sendAsync(EmailType.FAILED_SENDING_TO_ADMIN.getSubject(), EMPTY, EmailRecipients.builder().to(Arrays.asList(TEST_ADMIN_EMAIL)).build());
     }
 
 }
