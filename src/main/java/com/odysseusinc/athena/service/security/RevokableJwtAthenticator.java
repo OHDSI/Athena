@@ -31,7 +31,9 @@ import org.pac4j.jwt.config.encryption.EncryptionConfiguration;
 import org.pac4j.jwt.config.signature.SecretSignatureConfiguration;
 import org.pac4j.jwt.config.signature.SignatureConfiguration;
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional(transactionManager = "athenaTransactionManager")
 public class RevokableJwtAthenticator extends JwtAuthenticator {
 
     private RevokedTokenStore tokenStore;

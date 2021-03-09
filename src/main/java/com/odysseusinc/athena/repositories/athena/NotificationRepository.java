@@ -23,26 +23,21 @@
 package com.odysseusinc.athena.repositories.athena;
 
 import com.odysseusinc.athena.model.athena.Notification;
+
 import java.util.List;
 import java.util.Optional;
-import javax.persistence.PersistenceContext;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@PersistenceContext(unitName = "athenaEntityManagerFactory")
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
     List<Notification> findByUserId(Long userId);
 
     @Query(nativeQuery = true, value =
             "SELECT * FROM notifications WHERE user_id = :userId AND vocabulary_id_v4 = :vocabularyId")
-    Optional<Notification> findByUserIdAndVocabularyV4Id(@Param("userId") Long userId,
-                                                         @Param("vocabularyId") Integer vocabularyId);
-
     List<Notification> findByVocabularyCodeIsNullOrActualVersionIsNull();
 
     @Query("select distinct nt.userId from #{#entityName} nt")

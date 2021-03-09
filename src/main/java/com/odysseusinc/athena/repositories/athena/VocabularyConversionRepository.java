@@ -24,19 +24,18 @@ package com.odysseusinc.athena.repositories.athena;
 
 import com.odysseusinc.athena.model.athena.VocabularyConversion;
 import java.util.List;
-import javax.persistence.PersistenceContext;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface VocabularyConversionRepository extends CrudRepository<VocabularyConversion, Integer> {
+public interface VocabularyConversionRepository extends JpaRepository<VocabularyConversion, Integer> {
 
     String MISSING_LICENSES = "SELECT * FROM vocabulary_conversion WHERE "
             + "available IS NOT NULL AND "
-            + "vocabulary_id_v4 != 4" ; //id of cpt4 vocabulary
+            + "vocabulary_id_v4 != 4"; //id of cpt4 vocabulary
 
     String MISSING_LICENSES_FOR_USER = MISSING_LICENSES + " AND "
             + "vocabulary_id_v4 NOT IN "
@@ -59,6 +58,8 @@ public interface VocabularyConversionRepository extends CrudRepository<Vocabular
     List<VocabularyConversion> findByOmopReqIsNull(Sort sort);
 
     List<VocabularyConversion> findByOmopReqIsNotNull();
+
+    List<VocabularyConversion> findByLatestUpdateIsNotNull();
 
     @Query(nativeQuery = true,
             value = "SELECT VOCABULARY_ID_V5 FROM vocabulary_conversion WHERE "

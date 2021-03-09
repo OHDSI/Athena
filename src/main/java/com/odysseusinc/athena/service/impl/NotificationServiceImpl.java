@@ -2,7 +2,6 @@ package com.odysseusinc.athena.service.impl;
 
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.athena.VocabularyConversion;
-import com.odysseusinc.athena.model.athenav5.VocabularyV5;
 import com.odysseusinc.athena.repositories.athena.NotificationRepository;
 import com.odysseusinc.athena.repositories.athena.VocabularyConversionRepository;
 import com.odysseusinc.athena.repositories.v5.VocabularyRepository;
@@ -12,7 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +30,8 @@ import static org.apache.commons.lang.StringUtils.equalsIgnoreCase;
 @Transactional
 public class NotificationServiceImpl implements NotificationService {
 
+    public static final DateTimeFormatter LATEST_UPDATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MMM-yyyy")
+            .withZone(ZoneOffset.UTC);
     private final EmailService emailService;
     private final NotificationRepository notificationRepository;
     private final UserService userService;
@@ -51,8 +58,11 @@ public class NotificationServiceImpl implements NotificationService {
 
         vocabularyRepository.findByIdIn(newVocabulariesToSubscribe).forEach(vocabulary -> {
             final VocabularyConversion vocabularyConversion = vocabularyConversionRepository.findByIdV5(vocabulary.getId());
-            final Notification newNotification = new Notification(userId, vocabularyConversion, vocabulary.getId(), vocabulary.getVersion());
-            notificationRepository.save(newNotification);
+            if(vocabularyConversion.getLatestUpdate()!=null) {
+                String theLatestVersion = LATEST_UPDATE_FORMATTER.format(toOffsetDateTime(vocabularyConversion.getLatestUpdate()));
+                final Notification newNotification = new Notification(userId, vocabularyConversion, vocabulary.getId(), theLatestVersion);
+                notificationRepository.save(newNotification);
+            }
         });
     }
 
@@ -62,53 +72,46 @@ public class NotificationServiceImpl implements NotificationService {
                 .ifPresent(notificationRepository::delete);
     }
 
-    /**
-     * this method is required for the transition of already existing subscriptions
-     */
-    @Override
-    public void ensureVocabularyVersionAndCodeAreSet() {
-
-        Map<String, String> vocabularyVersionMap = buildVocabularyVersionMap();
-
-        final List<Notification> existingNotifications = notificationRepository.findByVocabularyCodeIsNullOrActualVersionIsNull();
-
-        for (Notification notification : existingNotifications) {
-            final String vocabularyCode = notification.getVocabularyConversion().getIdV5();
-            notification.setVocabularyCode(vocabularyCode);
-            final String actualVersion = vocabularyVersionMap.get(vocabularyCode);
-            notification.setActualVersion(actualVersion);
-        }
-    }
-
     @Override
     public void processUsersVocabularyUpdateSubscriptions(Long userId) {
 
-        Map<String, String> vocabularyVersionMap = buildVocabularyVersionMap();
+        Map<String, OffsetDateTime> vocabularyVersionMap = buildVocabularyVersionMap();
         final List<Notification> notificationsSubscriptions = notificationRepository.findByUserId(userId);
 
         List<Notification> changedSubscriptions = new ArrayList<>();
         for (Notification notification : notificationsSubscriptions) {
             final String vocabularyCode = notification.getVocabularyCode();
-            if (!equalsIgnoreCase(notification.getActualVersion(), vocabularyVersionMap.get(vocabularyCode))) {
+            OffsetDateTime latestUpdate = vocabularyVersionMap.get(vocabularyCode);
+            String theLatestVersion = LATEST_UPDATE_FORMATTER.format(latestUpdate);
+
+            if (!isPreviousVersionSet(notification)) {
+                notification.setActualVersion(theLatestVersion);
+            } else if (!equalsIgnoreCase(notification.getActualVersion(), theLatestVersion)) {
+                notification.setActualVersion(theLatestVersion);
                 changedSubscriptions.add(notification);
             }
         }
 
         if (!changedSubscriptions.isEmpty()) {
             emailService.sendVocabularyUpdateNotification(userService.get(userId), changedSubscriptions);
-
-            for (Notification notification : changedSubscriptions) {
-                String theLatestVersion = vocabularyVersionMap.get(notification.getVocabularyCode());
-                notification.setActualVersion(theLatestVersion);
-            }
         }
-
     }
 
-    private Map<String, String> buildVocabularyVersionMap() {
-        final List<VocabularyV5> allVersions = vocabularyRepository.findAll();
+    private boolean isPreviousVersionSet(Notification notification) {
+        try {
+            TemporalAccessor previousVersion = LATEST_UPDATE_FORMATTER.parse(notification.getActualVersion());
+            return previousVersion != null;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
 
-        return allVersions.stream()
-                .collect(HashMap::new, (m, v) -> m.put(v.getId(), v.getVersion()), HashMap::putAll);
+    private Map<String, OffsetDateTime> buildVocabularyVersionMap() {
+        return vocabularyConversionRepository.findByLatestUpdateIsNotNull().stream()
+                .collect(HashMap::new, (map, conversion) -> map.put(conversion.getIdV5(), toOffsetDateTime(conversion.getLatestUpdate())), HashMap::putAll);
+    }
+
+    private OffsetDateTime toOffsetDateTime(Date sqlDate) {
+        return Instant.ofEpochMilli(sqlDate.getTime()).atZone(ZoneOffset.UTC).toOffsetDateTime();
     }
 }

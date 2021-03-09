@@ -1,7 +1,7 @@
-FROM ubuntu
-MAINTAINER aleksandr.krutov@odysseusinc.com
+FROM openjdk:8u282-jre-slim
+LABEL maintainer="Odysseus Inc."
+
 USER root
-RUN apt-get update && apt-get install -y software-properties-common openjdk-8-jdk
 VOLUME /tmp
 COPY athena.jar /athena.jar
 COPY run.sh /bin/run.sh

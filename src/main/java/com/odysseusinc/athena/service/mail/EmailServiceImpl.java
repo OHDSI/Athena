@@ -76,11 +76,12 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendVocabularyUpdateNotification(AthenaUser user, List<Notification> updatedVocabularies) {
-
-        final Map<String, String> vocabularyDetails = new HashMap<>();
-        updatedVocabularies.forEach(v -> vocabularyDetails.put(v.getVocabularyCode(), v.getVocabularyConversion().getName()));
-        final EmailRecipients recipients = EmailRecipients.builder().to(asList(user.getEmail())).build();
-        send(EmailType.VOCABULARIES_UPDATE_NOTIFICATION, ImmutableMap.of("UPDATED_VOCABULARIES", vocabularyDetails), recipients, emptyList());
+        if(!updatedVocabularies.isEmpty()) {
+            final Map<String, String> vocabularyDetails = new HashMap<>();
+            updatedVocabularies.forEach(v -> vocabularyDetails.put(v.getVocabularyCode(), v.getVocabularyConversion().getName()));
+            final EmailRecipients recipients = EmailRecipients.builder().to(asList(user.getEmail())).build();
+            send(EmailType.VOCABULARIES_UPDATE_NOTIFICATION, ImmutableMap.of("UPDATED_VOCABULARIES", vocabularyDetails), recipients, emptyList());
+        }
     }
 
 

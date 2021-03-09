@@ -35,19 +35,17 @@ import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserLicensesDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyVersionDTO;
-import com.odysseusinc.athena.exceptions.AlreadyExistException;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
-import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.service.DownloadShareService;
+import com.odysseusinc.athena.service.LicenseService;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
+import com.odysseusinc.athena.service.VocabularyServiceV5;
 import com.odysseusinc.athena.service.impl.UserService;
-import com.odysseusinc.athena.service.mail.EmailService;
-import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -74,6 +72,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
+import java.util.Objects;
 
 import static com.odysseusinc.athena.util.CDMVersion.getByValue;
 import static com.odysseusinc.athena.util.CDMVersion.notExist;
@@ -89,20 +88,22 @@ public class VocabularyController {
     private final ConverterUtils converterUtils;
     private final DownloadBundleService downloadBundleService;
     private final DownloadShareService downloadShareService;
-    private final EmailService emailService;
     private final UserService userService;
     private final VocabularyConversionService vocabularyConversionService;
     private final VocabularyService vocabularyService;
+    private final LicenseService licenseService;
+    private final VocabularyServiceV5 vocabularyServiceV5;
 
     @Autowired
-    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, DownloadShareService downloadShareService, EmailService emailService, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService) {
+    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, DownloadShareService downloadShareService, LicenseService licenseService, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService, VocabularyServiceV5 vocabularyServiceV5) {
         this.converterUtils = converterUtils;
         this.downloadBundleService = downloadBundleService;
         this.downloadShareService = downloadShareService;
-        this.emailService = emailService;
         this.userService = userService;
         this.vocabularyConversionService = vocabularyConversionService;
         this.vocabularyService = vocabularyService;
+        this.licenseService = licenseService;
+        this.vocabularyServiceV5 = vocabularyServiceV5;
     }
 
     @ApiOperation("Get vocabularies.")
@@ -117,7 +118,7 @@ public class VocabularyController {
     public void save(@RequestParam(value = "cdmVersion", defaultValue = "5") float version,
                      @RequestParam(value = "ids") List<Integer> idV4s,
                      @RequestParam(value = "name") String bundleName,
-                     HttpServletResponse response) throws IOException, PermissionDeniedException {
+                     HttpServletResponse response) throws IOException {
 
         if (notExist(version)) {
             response.sendError(SC_BAD_REQUEST, "No supported version " + version);
@@ -146,8 +147,7 @@ public class VocabularyController {
     @PostMapping(value = "/downloads/{id}/share")
     public ResponseEntity<Boolean> shareBundle(@PathVariable("id") Long bundleId,
                                                @RequestBody DownloadShareChangeDTO changeDTO,
-                                               Principal principal)
-            throws PermissionDeniedException {
+                                               Principal principal) {
 
         final AthenaUser user = userService.getUser(principal);
         DownloadBundle bundle = downloadBundleService.get(bundleId);
@@ -163,7 +163,7 @@ public class VocabularyController {
     @ApiOperation("Archive download history item.")
     @DeleteMapping("/downloads/{id}")
     public ResponseEntity<Boolean> archive(@PathVariable("id") Long bundleId, Principal principal)
-            throws NotExistException, PermissionDeniedException {
+            throws NotExistException {
 
         final AthenaUser user = userService.getUser(principal);
         if (!user.getId().equals(downloadBundleService.getUserId(bundleId))) {
@@ -175,11 +175,11 @@ public class VocabularyController {
 
     @ApiOperation("Restore download history item.")
     @PutMapping("/restore/{id}")
-    public ResponseEntity restore(@PathVariable("id") Long bundleId)
+    public ResponseEntity<Void> restore(@PathVariable("id") Long bundleId)
             throws PermissionDeniedException {
 
-        DownloadBundle downloadBundle = downloadBundleService.get(bundleId);
-        vocabularyService.restoreDownloadBundle(downloadBundle);
+        Objects.nonNull(bundleId);
+        vocabularyService.restoreDownloadBundle(bundleId);
         return ResponseEntity.ok().build();
     }
 
@@ -188,9 +188,8 @@ public class VocabularyController {
     public LicenseExceptionDTO checkBundle(@PathVariable("id") Long bundleId)
             throws PermissionDeniedException {
 
-        DownloadBundle bundle = downloadBundleService.get(bundleId);
         AthenaUser currentUser = userService.getCurrentUser();
-        vocabularyService.checkBundleVocabularies(bundle, currentUser.getId());
+        vocabularyService.checkBundleVocabularies(bundleId, currentUser.getId());
         return new LicenseExceptionDTO(true);
     }
 
@@ -201,7 +200,7 @@ public class VocabularyController {
             @ModelAttribute PageDTO pageDTO, @RequestParam(name = "queryUser", defaultValue = "") String query,
             @RequestParam(name = "pendingOnly", defaultValue = "false") Boolean pendingOnly) {
 
-        PageRequest pageRequest = new PageRequest(pageDTO.getPage() - 1, pageDTO.getPageSize());
+        PageRequest pageRequest = PageRequest.of(pageDTO.getPage() - 1, pageDTO.getPageSize());
         final Page<AthenaUser> users = userService.getUsersWithLicenses(pageRequest, query, pendingOnly);
 
         List<UserLicensesDTO> dtos = converterUtils.convertList(users.getContent(), UserLicensesDTO.class);
@@ -220,7 +219,7 @@ public class VocabularyController {
     @Secured("ROLE_ADMIN")
     @ApiOperation("Add user's licenses.")
     @PostMapping("licenses")
-    public ResponseEntity saveLicenses(@RequestBody @Valid AddingUserLicensesDTO dto) {
+    public ResponseEntity<Void> saveLicenses(@RequestBody @Valid AddingUserLicensesDTO dto) {
 
         final AthenaUser user = userService.get(dto.getUserId());
         vocabularyService.grantLicenses(user, dto.getVocabularyV4Ids());
@@ -230,7 +229,7 @@ public class VocabularyController {
     @Secured("ROLE_ADMIN")
     @ApiOperation("Remove user's licenses.")
     @DeleteMapping("licenses/{id}")
-    public ResponseEntity removeLicenses(@PathVariable("id") Long licenseId) {
+    public ResponseEntity<Void> removeLicenses(@PathVariable("id") Long licenseId) {
 
         vocabularyService.deleteLicense(licenseId);
         return ResponseEntity.ok().build();
@@ -238,26 +237,18 @@ public class VocabularyController {
 
     @ApiOperation("Request user's license.")
     @PostMapping("licenses/request")
-    public ResponseEntity requestLicense(Principal principal, @Valid @RequestBody LicenseRequestDTO dto)
-            throws PermissionDeniedException {
+    public ResponseEntity<Void> requestLicense(Principal principal, @Valid @RequestBody LicenseRequestDTO dto) {
 
-        AthenaUser user = userService.getUser(principal);
-        License license = vocabularyService.get(user, dto.getVocabularyId());
-        if (license != null) {
-            throw new AlreadyExistException("License already exists");
-        }
-        Long licenseId = vocabularyService.requestLicense(user, dto.getVocabularyId());
-        emailService.sendLicenseRequestToAdmins(vocabularyService.get(licenseId));
+        licenseService.requestLicense(principal, dto.getVocabularyId());
         return ResponseEntity.ok().build();
     }
 
     @Secured("ROLE_ADMIN")
     @ApiOperation("Accept user's license.")
     @PostMapping("licenses/accept")
-    public ResponseEntity acceptLicense(@Valid @RequestBody AcceptDTO acceptDTO)
-            throws PermissionDeniedException {
+    public ResponseEntity<Void> acceptLicense(@Valid @RequestBody AcceptDTO acceptDTO) {
 
-        checkLicense(vocabularyService.get(acceptDTO.getId()));
+        licenseService.checkLicense(acceptDTO.getId());
         vocabularyService.acceptLicense(acceptDTO.getId(), acceptDTO.getAccepted());
         return ResponseEntity.ok().build();
     }
@@ -267,27 +258,19 @@ public class VocabularyController {
     public void acceptLicenseViaMail(@RequestParam("id") Long id,
                                      @RequestParam("accepted") Boolean accepted,
                                      @RequestParam("token") String token,
-                                     HttpServletResponse response)
-            throws PermissionDeniedException, IOException {
+                                     HttpServletResponse response) throws IOException {
 
-        checkLicense(vocabularyService.get(id, token));
+        licenseService.checkLicense(id, token);
         vocabularyService.acceptLicense(id, accepted);
         response.sendRedirect("/admin/licenses");
     }
 
-    private void checkLicense(License license) {
 
-        if (license == null) {
-            throw new NotExistException("License does not exist or has already been declined", License.class);
-        } else if (LicenseStatus.APPROVED == license.getStatus()) {
-            throw new AlreadyExistException("License has already been approved");
-        }
-    }
 
     @GetMapping("/release-version")
     public VocabularyVersionDTO releaseVersion() {
 
-        String vocabularyVersion = vocabularyService.getOMOPVocabularyVersion();
+        String vocabularyVersion = vocabularyServiceV5.getOMOPVocabularyVersion();
 
         return converterUtils.convert(vocabularyVersion, VocabularyVersionDTO.class);
     }

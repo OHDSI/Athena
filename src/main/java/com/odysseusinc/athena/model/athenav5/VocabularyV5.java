@@ -31,7 +31,7 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.NotBlank;
 
 @Entity
-@Table(name = "vocabulary")
+@Table(name = "vocabulary", schema = "public")
 public class VocabularyV5 extends EntityV5 {
 
     @Id

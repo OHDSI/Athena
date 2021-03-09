@@ -33,7 +33,6 @@ import javax.persistence.PersistenceContext;
 import java.util.List;
 
 @Repository
-@PersistenceContext(unitName = "athenaEntityManagerFactory")
 public interface DownloadShareRepository extends JpaRepository<DownloadShare, Long> {
     List<DownloadShare> findByBundle(DownloadBundle downloadBundle);
 
