@@ -66,10 +66,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.odysseusinc.athena.model.common.AthenaConstants.OMOP_VOCABULARY_ID;
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
 import static java.lang.String.format;
@@ -246,7 +246,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public void checkBundleAndSharedUser(AthenaUser user, DownloadBundle bundle){
         if (ObjectUtils.notEqual(user.getId(), bundle.getUserId())) {
-            // check whether this bundle was chared with current user
+            // check whether this bundle was shared with the current user
             List<DownloadShare> shares = downloadShareRepository.findByBundle(bundle);
             shares.stream()
                     .filter(s -> user.getEmail().equals(s.getUserEmail()))
@@ -308,9 +308,9 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public License get(Long licenseId) {
+    public Optional<License> get(Long licenseId) {
 
-        return licenseRepository.getOne(licenseId);
+        return licenseRepository.findById(licenseId);
     }
 
     @Override
@@ -340,7 +340,7 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     private License buildLicense(AthenaUser user,  Integer vocabularyV4Id, LicenseStatus status) {
 
-        VocabularyConversion vocabularyConversion = new VocabularyConversion(vocabularyV4Id);
+        VocabularyConversion vocabularyConversion = vocabularyConversionService.findByVocabularyV4Id(vocabularyV4Id);
         return new License(user, vocabularyConversion, status);
     }
 

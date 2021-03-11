@@ -30,6 +30,7 @@ import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.CDMVersion;
 import java.util.List;
+import java.util.Optional;
 
 public interface VocabularyService {
 
@@ -61,7 +62,7 @@ public interface VocabularyService {
 
     License get(AthenaUser user, Integer vocabularyId);
 
-    License get(Long licenseId);
+    Optional<License> get(Long licenseId);
 
     License get(Long licenseId, String token);
 

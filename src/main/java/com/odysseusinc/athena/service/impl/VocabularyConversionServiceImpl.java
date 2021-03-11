@@ -97,5 +97,11 @@ public class VocabularyConversionServiceImpl implements VocabularyConversionServ
         return vocabularyConversionRepository.findByOmopReqIsNotNull();
     }
 
+    @Override
+    public VocabularyConversion findByVocabularyV4Id(Integer vocabularyV4Id) {
+
+        return vocabularyConversionRepository.findByIdV4(vocabularyV4Id);
+    }
+
 
 }
