@@ -35,8 +35,8 @@ import com.odysseusinc.athena.model.athenav5.ConceptV5;
 import com.odysseusinc.athena.model.athenav5.RelationshipV5;
 import com.odysseusinc.athena.service.ConceptService;
 import com.odysseusinc.athena.util.JsonResult;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.hateoas.Resource;
@@ -55,21 +55,19 @@ import java.util.stream.Collectors;
 
 import static com.odysseusinc.athena.service.graph.RelationshipGraphFactory.getRelationshipGraph;
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-@Api
+@Tag(name = "ConceptController")
 @RestController
 @RequestMapping("/api/v1/concepts")
 public class ConceptController {
     private final ConceptService conceptService;
     private final GenericConversionService conversionService;
-    private ConverterUtils converterUtils;
+    private final ConverterUtils converterUtils;
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
@@ -82,7 +80,7 @@ public class ConceptController {
         this.converterUtils = converterUtils;
     }
 
-    @ApiOperation("Get concept details.")
+    @Operation(summary = "Get concept details.")
     @GetMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Resource<ConceptDetailsDTO>> getConcept(@PathVariable Long id) {
 
@@ -93,7 +91,7 @@ public class ConceptController {
         return new ResponseEntity<>(conceptResource, OK);
     }
 
-    @ApiOperation("Get relations for concept")
+    @Operation(summary = "Get relations for concept")
     @GetMapping(value = "/{id}/relations", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<ConceptAncestorRelationsDTO> relationsGraph(
             @PathVariable Long id, @RequestParam(name = "depth", defaultValue = "10") Integer depth,
@@ -104,7 +102,7 @@ public class ConceptController {
         return new ResponseEntity<>(dto, OK);
     }
 
-    @ApiOperation("Is any relations for the concept exists")
+    @Operation(summary = "Is any relations for the concept exists")
     @GetMapping(value = "/{id}/relations/any", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<JsonResult> hasAnyRelations(
             @PathVariable Long id) {
@@ -115,7 +113,7 @@ public class ConceptController {
         return ResponseEntity.ok(hasRelationsResult);
     }
 
-    @ApiOperation("Get concept relationships")
+    @Operation(summary = "Get concept relationships")
     @GetMapping(value = "/{id}/relationships", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<GroupedConceptRelationshipListDTO> relationships(
             @PathVariable Long id,
