@@ -39,7 +39,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,8 +56,8 @@ import java.util.stream.Collectors;
 import static com.odysseusinc.athena.service.graph.RelationshipGraphFactory.getRelationshipGraph;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.*;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -82,10 +82,10 @@ public class ConceptController {
 
     @Operation(summary = "Get concept details.")
     @GetMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<Resource<ConceptDetailsDTO>> getConcept(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<ConceptDetailsDTO>> getConcept(@PathVariable Long id) {
 
         ConceptV5 concept = conceptService.getByIdWithLicenseCheck(id);
-        Resource<ConceptDetailsDTO> conceptResource = new Resource<>(
+        EntityModel<ConceptDetailsDTO> conceptResource = new EntityModel<>(
                 conversionService.convert(concept, ConceptDetailsDTO.class),
                 linkTo(methodOn(ConceptController.class).getConcept(id)).withSelfRel());
         return new ResponseEntity<>(conceptResource, OK);
