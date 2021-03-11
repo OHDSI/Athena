@@ -16,9 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.util.Optional;
 
 @Service
-@Transactional(transactionManager = "athenaTransactionManager")
+@Transactional
 public class LicenseServiceImpl implements LicenseService {
 
     private final DownloadBundleService downloadBundleService;
@@ -49,13 +50,13 @@ public class LicenseServiceImpl implements LicenseService {
     public void checkLicense(Long id, String token) {
 
         final License license = vocabularyService.get(id, token);
-        check(license);
+        check(Optional.ofNullable(license));
     }
 
     @Override
     public void checkLicense(Long licenseId) {
 
-        final License license = vocabularyService.get(licenseId);
+        final Optional<License> license = vocabularyService.get(licenseId);
         check(license);
     }
 
@@ -68,14 +69,14 @@ public class LicenseServiceImpl implements LicenseService {
             throw new AlreadyExistException("License already exists");
         }
         Long licenseId = vocabularyService.requestLicense(user, vocabularyId);
-        emailService.sendLicenseRequestToAdmins(vocabularyService.get(licenseId));
+        emailService.sendLicenseRequestToAdmins(vocabularyService.get(licenseId).get());
         return licenseId;
     }
 
-    private void check(License license) {
-        if (license == null) {
+    private void check(Optional<License> license) {
+        if (license == null || !license.isPresent()) {
             throw new NotExistException("License does not exist or has already been declined", License.class);
-        } else if (LicenseStatus.APPROVED == license.getStatus()) {
+        } else if (LicenseStatus.APPROVED == license.get().getStatus()) {
             throw new AlreadyExistException("License has already been approved");
         }
     }
