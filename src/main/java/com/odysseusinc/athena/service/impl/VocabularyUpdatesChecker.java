@@ -2,9 +2,11 @@ package com.odysseusinc.athena.service.impl;
 
 import com.odysseusinc.athena.repositories.athena.NotificationRepository;
 import com.odysseusinc.athena.service.NotificationService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class VocabularyUpdatesChecker {
 
@@ -21,10 +23,12 @@ public class VocabularyUpdatesChecker {
 
     public void sendVocabularyUpdatesNotification() {
 
-        //notificationService.ensureVocabularyVersionAndCodeAreSet();
-
         for (Long subscribedUserId : notificationRepository.getSubscribedUserIds()) {
-            notificationService.processUsersVocabularyUpdateSubscriptions(subscribedUserId);
+            try {
+                notificationService.processUsersVocabularyUpdateSubscriptions(subscribedUserId);
+            } catch (Exception ex) {
+                log.error("notifications processing failure for the userId: {}", subscribedUserId, ex);
+            }
         }
     }
 }
