@@ -25,7 +25,7 @@ package com.odysseusinc.athena.api.v1.controller;
 
 import com.odysseusinc.athena.api.v1.controller.dto.DownloadHistoryDTO;
 import com.odysseusinc.athena.service.DownloadsHistoryService;
-import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +41,7 @@ import java.util.Collection;
 
 import static com.odysseusinc.athena.model.common.AthenaConstants.COMMON_DATE_FORMATTER;
 
-@Api
+@Tag(name = "StatisticsController")
 @RestController
 @RequestMapping("/api/v1/statistics")
 public class StatisticsController {

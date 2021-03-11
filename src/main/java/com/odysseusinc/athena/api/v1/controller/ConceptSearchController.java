@@ -29,8 +29,8 @@ import com.odysseusinc.athena.service.SearchService;
 import com.odysseusinc.athena.service.checker.CheckResult;
 import com.odysseusinc.athena.service.checker.LimitChecker;
 import com.odysseusinc.athena.service.search.SearchOverviewStatisticsLoader;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.json.JSONObject;
@@ -51,7 +51,7 @@ import java.util.Map;
 
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
-@Api
+@Tag(name = "ConceptSearchController")
 @RestController
 @RequestMapping("/api/v1/concepts")
 public class ConceptSearchController {
@@ -71,7 +71,7 @@ public class ConceptSearchController {
         this.searchService = searchService;
     }
 
-    @ApiOperation("Search concepts.")
+    @Operation(summary = "Search concepts.")
     @GetMapping
     public ResponseEntity<ConceptSearchResultDTO> search(
             @ModelAttribute ConceptSearchDTO searchDTO,
@@ -86,7 +86,7 @@ public class ConceptSearchController {
         return ResponseEntity.ok(searchService.search(searchDTO, debug));
     }
 
-    @ApiOperation("Show search ")
+    @Operation(summary = "Show search ")
     @GetMapping("/terms-count")
     public ResponseEntity<Map<String, Long>> showFacetsData() {
 
@@ -95,7 +95,7 @@ public class ConceptSearchController {
 
     }
 
-    @ApiOperation("Download csv file.")
+    @Operation(summary = "Download csv file.")
     @GetMapping(value = "/download/csv")
     public void downloadCsv(@ModelAttribute ConceptSearchDTO searchDTO, HttpServletResponse response)
             throws IOException, SolrServerException {

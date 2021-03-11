@@ -29,7 +29,7 @@ import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.service.NotificationService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.impl.UserService;
-import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +45,7 @@ import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 
-@Api
+@Tag(name = "NotificationController")
 @RestController
 @RequestMapping("/api/v1/notifications")
 public class NotificationController {

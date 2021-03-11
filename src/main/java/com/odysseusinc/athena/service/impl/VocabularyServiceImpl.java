@@ -120,7 +120,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public List<UserVocabularyDTO> getAllForCurrentUser() {
 
-        Sort sort = new Sort(Sort.Direction.ASC, DEFAULT_SORT_COLUMN);
+        Sort sort = Sort.by(Sort.Direction.ASC, DEFAULT_SORT_COLUMN);
         AthenaUser user = userService.getCurrentUser();
         List<VocabularyDTO> vocabularyDTOs = converterUtils.convertList(
                 vocabularyConversionService.findByOmopReqIsNull(sort), VocabularyDTO.class);
@@ -179,7 +179,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public List<DownloadBundleDTO> getDownloadHistory(AthenaUser user) {
 
-        Sort sort = new Sort(Sort.Direction.DESC, "created");
+        Sort sort = Sort.by(Sort.Direction.DESC, "created");
         List<DownloadBundle> history = downloadBundleRepository.findByUserId(user.getId(), sort);
 
         List<DownloadShare> shares = downloadShareRepository.findByUserEmail(user.getEmail());
