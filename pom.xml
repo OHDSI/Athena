@@ -6,7 +6,7 @@
 
     <groupId>com.odysseusinc.athena</groupId>
     <artifactId>athena</artifactId>
-    <version>1.12.1-SNAPSHOT</version>
+    <version>1.12.1-QA</version>
     <packaging>jar</packaging>
 
 
