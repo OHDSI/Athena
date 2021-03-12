@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Objects.isNull;
 import static org.apache.commons.lang.StringUtils.equalsIgnoreCase;
 
 @Service
@@ -58,11 +59,12 @@ public class NotificationServiceImpl implements NotificationService {
 
         vocabularyRepository.findByIdIn(newVocabulariesToSubscribe).forEach(vocabulary -> {
             final VocabularyConversion vocabularyConversion = vocabularyConversionRepository.findByIdV5(vocabulary.getId());
+            String theLatestVersion = null;
             if(vocabularyConversion.getLatestUpdate()!=null) {
-                String theLatestVersion = LATEST_UPDATE_FORMATTER.format(toOffsetDateTime(vocabularyConversion.getLatestUpdate()));
+                theLatestVersion = LATEST_UPDATE_FORMATTER.format(toOffsetDateTime(vocabularyConversion.getLatestUpdate()));
+            }
                 final Notification newNotification = new Notification(userId, vocabularyConversion, vocabulary.getId(), theLatestVersion);
                 notificationRepository.save(newNotification);
-            }
         });
     }
 
@@ -73,6 +75,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional
     public void processUsersVocabularyUpdateSubscriptions(Long userId) {
 
         Map<String, OffsetDateTime> vocabularyVersionMap = buildVocabularyVersionMap();
@@ -81,10 +84,9 @@ public class NotificationServiceImpl implements NotificationService {
         List<Notification> changedSubscriptions = new ArrayList<>();
         for (Notification notification : notificationsSubscriptions) {
             final String vocabularyCode = notification.getVocabularyCode();
-            OffsetDateTime latestUpdate = vocabularyVersionMap.get(vocabularyCode);
-            String theLatestVersion = LATEST_UPDATE_FORMATTER.format(latestUpdate);
-
-            if (!isPreviousVersionSet(notification)) {
+            OffsetDateTime latestUpdate = vocabularyVersionMap.getOrDefault(vocabularyCode, null);
+            String theLatestVersion = isNull(latestUpdate) ? null : LATEST_UPDATE_FORMATTER.format(latestUpdate);
+            if (notification.getActualVersion()!=null && !isPreviousVersionSet(notification)) {
                 notification.setActualVersion(theLatestVersion);
             } else if (!equalsIgnoreCase(notification.getActualVersion(), theLatestVersion)) {
                 notification.setActualVersion(theLatestVersion);

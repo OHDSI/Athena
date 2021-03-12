@@ -2,7 +2,7 @@ package com.odysseusinc.athena.model.athena;
 
 
 import com.odysseusinc.athena.model.security.AthenaUser;
-import org.hibernate.validator.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

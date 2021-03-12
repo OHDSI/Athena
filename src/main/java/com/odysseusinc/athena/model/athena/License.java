@@ -66,7 +66,7 @@ public class License {
     private AthenaUser user;
 
     @ManyToOne(optional = false, targetEntity = VocabularyConversion.class)
-    @JoinColumn(name = "vocabulary_id_v4")
+    @JoinColumn(name = "vocabulary_id_v4", referencedColumnName = "vocabulary_id_v4")
     private VocabularyConversion vocabularyConversion;
 
     @NotNull

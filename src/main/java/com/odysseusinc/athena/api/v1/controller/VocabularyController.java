@@ -46,8 +46,8 @@ import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.VocabularyServiceV5;
 import com.odysseusinc.athena.service.impl.UserService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +79,7 @@ import static com.odysseusinc.athena.util.CDMVersion.notExist;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
-@Api
+@Tag(name = "VocabularyController")
 @RestController
 @RequestMapping("/api/v1/vocabularies")
 public class VocabularyController {
@@ -106,14 +106,14 @@ public class VocabularyController {
         this.vocabularyServiceV5 = vocabularyServiceV5;
     }
 
-    @ApiOperation("Get vocabularies.")
+    @Operation(summary = "Get vocabularies.")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<UserVocabularyDTO>> getAllForCurrentUser() {
 
         return ResponseEntity.ok(vocabularyService.getAllForCurrentUser());
     }
 
-    @ApiOperation("Save vocabularies.")
+    @Operation(summary = "Save vocabularies.")
     @GetMapping("/save")
     public void save(@RequestParam(value = "cdmVersion", defaultValue = "5") float version,
                      @RequestParam(value = "ids") List<Integer> idV4s,
@@ -134,7 +134,7 @@ public class VocabularyController {
         LOGGER.info("Vocabulary saving is started, bundle name: {}, user id: {}", bundleName, currentUser.getId());
     }
 
-    @ApiOperation("Get download history.")
+    @Operation(summary = "Get download history.")
     @GetMapping("/downloads")
     public List<DownloadBundleDTO> getDownloadHistory(Principal principal)
             throws PermissionDeniedException {
@@ -143,7 +143,7 @@ public class VocabularyController {
         return vocabularyService.getDownloadHistory(user);
     }
 
-    @ApiOperation("Share bundle")
+    @Operation(summary = "Share bundle")
     @PostMapping(value = "/downloads/{id}/share")
     public ResponseEntity<Boolean> shareBundle(@PathVariable("id") Long bundleId,
                                                @RequestBody DownloadShareChangeDTO changeDTO,
@@ -160,7 +160,7 @@ public class VocabularyController {
         return ResponseEntity.ok(Boolean.TRUE);
     }
 
-    @ApiOperation("Archive download history item.")
+    @Operation(summary = "Archive download history item.")
     @DeleteMapping("/downloads/{id}")
     public ResponseEntity<Boolean> archive(@PathVariable("id") Long bundleId, Principal principal)
             throws NotExistException {
@@ -173,7 +173,7 @@ public class VocabularyController {
         return ResponseEntity.ok(Boolean.TRUE);
     }
 
-    @ApiOperation("Restore download history item.")
+    @Operation(summary = "Restore download history item.")
     @PutMapping("/restore/{id}")
     public ResponseEntity<Void> restore(@PathVariable("id") Long bundleId)
             throws PermissionDeniedException {
@@ -183,7 +183,7 @@ public class VocabularyController {
         return ResponseEntity.ok().build();
     }
 
-    @ApiOperation("Check bundle.")
+    @Operation(summary = "Check bundle.")
     @GetMapping("/check/{id}")
     public LicenseExceptionDTO checkBundle(@PathVariable("id") Long bundleId)
             throws PermissionDeniedException {
@@ -194,7 +194,7 @@ public class VocabularyController {
     }
 
     @Secured("ROLE_ADMIN")
-    @ApiOperation("Get users' licenses.")
+    @Operation(summary = "Get users' licenses.")
     @GetMapping("licenses")
     public Page<UserLicensesDTO> getLicenses(
             @ModelAttribute PageDTO pageDTO, @RequestParam(name = "queryUser", defaultValue = "") String query,
@@ -208,7 +208,7 @@ public class VocabularyController {
     }
 
     @Secured("ROLE_ADMIN")
-    @ApiOperation("Suggest licenses.")
+    @Operation(summary = "Suggest licenses.")
     @GetMapping("licenses/suggest")
     public List<VocabularyDTO> suggestLicenses(@RequestParam("userId") Long userId) {
         //PENDING licenses are added -> do not need to suggest
@@ -217,7 +217,7 @@ public class VocabularyController {
     }
 
     @Secured("ROLE_ADMIN")
-    @ApiOperation("Add user's licenses.")
+    @Operation(summary = "Add user's licenses.")
     @PostMapping("licenses")
     public ResponseEntity<Void> saveLicenses(@RequestBody @Valid AddingUserLicensesDTO dto) {
 
@@ -227,7 +227,7 @@ public class VocabularyController {
     }
 
     @Secured("ROLE_ADMIN")
-    @ApiOperation("Remove user's licenses.")
+    @Operation(summary = "Remove user's licenses.")
     @DeleteMapping("licenses/{id}")
     public ResponseEntity<Void> removeLicenses(@PathVariable("id") Long licenseId) {
 
@@ -235,7 +235,7 @@ public class VocabularyController {
         return ResponseEntity.ok().build();
     }
 
-    @ApiOperation("Request user's license.")
+    @Operation(summary = "Request user's license.")
     @PostMapping("licenses/request")
     public ResponseEntity<Void> requestLicense(Principal principal, @Valid @RequestBody LicenseRequestDTO dto) {
 
@@ -244,7 +244,7 @@ public class VocabularyController {
     }
 
     @Secured("ROLE_ADMIN")
-    @ApiOperation("Accept user's license.")
+    @Operation(summary = "Accept user's license.")
     @PostMapping("licenses/accept")
     public ResponseEntity<Void> acceptLicense(@Valid @RequestBody AcceptDTO acceptDTO) {
 
@@ -253,7 +253,7 @@ public class VocabularyController {
         return ResponseEntity.ok().build();
     }
 
-    @ApiOperation("Accept user's license via mail.")
+    @Operation(summary = "Accept user's license via mail.")
     @GetMapping("licenses/accept/mail")
     public void acceptLicenseViaMail(@RequestParam("id") Long id,
                                      @RequestParam("accepted") Boolean accepted,

@@ -39,4 +39,6 @@ public interface VocabularyConversionService {
     List<VocabularyConversion> findByOmopReqIsNull(Sort sort);
 
     List<VocabularyConversion> findByOmopReqIsNotNull();
+
+    VocabularyConversion findByVocabularyV4Id(Integer vocabularyV4Id);
 }

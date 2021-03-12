@@ -22,8 +22,6 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
-import static org.springframework.http.HttpStatus.OK;
-
 import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
 import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
@@ -34,13 +32,8 @@ import com.odysseusinc.athena.api.v1.controller.dto.ResetPasswordDTO;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.service.impl.UserService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.Principal;
-import java.util.List;
-import javax.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -57,50 +50,46 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-@Api
+import javax.validation.Valid;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.Principal;
+import java.util.List;
+
+import static org.springframework.http.HttpStatus.OK;
+
+@Tag(name = "UserController")
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
 
+    private final GenericConversionService conversionService;
     @Value("${athena.url}")
     private String athenaUrl;
-
     @Value("${arachne.portal.url}")
     private String arachneUrl;
-
     @Value("${arachne.portal.professionalTypesPath}")
     private String professionalTypesPath;
-
     @Value("${arachne.portal.countriesPath}")
     private String countriesPath;
-
     @Value("${arachne.portal.provincePath}")
     private String provincePath;
-
     @Value("${arachne.portal.registerPath}")
     private String registerPath;
-
     @Value("${arachne.portal.remindPasswordPath}")
     private String remindPasswordPath;
-
     @Value("${arachne.portal.resetPasswordPath}")
     private String resetPasswordPath;
-
     @Value("${arachne.portal.registerToken}")
     private String registerToken;
-
     @Value("${arachne.portal.remindToken}")
     private String remindToken;
+    private final String registerCallbackUrl = "/auth/login";
+    private final UserService userService;
 
-    private String registerCallbackUrl = "/auth/login";
+    private final RestTemplate restTemplate;
 
-    private final GenericConversionService conversionService;
-
-    private UserService userService;
-
-    private RestTemplate restTemplate;
-
-    private ConverterUtils converterUtils;
+    private final ConverterUtils converterUtils;
 
     @Autowired
     @SuppressWarnings("SpringJavaAutowiringInspection")
@@ -136,48 +125,48 @@ public class UserController {
 
     @GetMapping(value = "/countries")
     public JsonResult searchCountries(
-						@RequestParam("query") String query,
-						@RequestParam("limit") Integer limit,
-						@RequestParam(value = "includeId", required = false) Long includeId
-		) {
-    		String uri = UriComponentsBuilder
-								.fromUriString(arachneUrl)
-								.replacePath(countriesPath)
-								.queryParam("query", query)
-								.queryParam("limit", limit)
-								.queryParam("includeId", includeId)
-								.toUriString();
-    		ResponseEntity<JsonResult> responseEntity = restTemplate.exchange(
-    						uri,
-								HttpMethod.GET,
-								null,
-								JsonResult.class
-				);
-    		return responseEntity.getBody();
-		}
+            @RequestParam("query") String query,
+            @RequestParam("limit") Integer limit,
+            @RequestParam(value = "includeId", required = false) Long includeId
+    ) {
+        String uri = UriComponentsBuilder
+                .fromUriString(arachneUrl)
+                .replacePath(countriesPath)
+                .queryParam("query", query)
+                .queryParam("limit", limit)
+                .queryParam("includeId", includeId)
+                .toUriString();
+        ResponseEntity<JsonResult> responseEntity = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                null,
+                JsonResult.class
+        );
+        return responseEntity.getBody();
+    }
 
-		@GetMapping(value = "/provinces")
-		public JsonResult searchProvinces(
-						@RequestParam("countryId") String countryIdParam,
-						@RequestParam("query") String query,
-						@RequestParam("limit") Integer limit,
-						@RequestParam(value = "includeId", required = false) String includeIdParam
-		) {
-    		String uri = UriComponentsBuilder
-								.fromUriString(arachneUrl)
-								.replacePath(provincePath)
-								.queryParam("countryId", countryIdParam)
-								.queryParam("query", query)
-								.queryParam("limit", limit)
-								.queryParam("includeId", includeIdParam)
-								.toUriString();
-    		ResponseEntity<JsonResult> responseEntity = restTemplate.exchange(
-    						uri,
-								HttpMethod.GET,
-								null,
-								JsonResult.class);
-    		return responseEntity.getBody();
-		}
+    @GetMapping(value = "/provinces")
+    public JsonResult searchProvinces(
+            @RequestParam("countryId") String countryIdParam,
+            @RequestParam("query") String query,
+            @RequestParam("limit") Integer limit,
+            @RequestParam(value = "includeId", required = false) String includeIdParam
+    ) {
+        String uri = UriComponentsBuilder
+                .fromUriString(arachneUrl)
+                .replacePath(provincePath)
+                .queryParam("countryId", countryIdParam)
+                .queryParam("query", query)
+                .queryParam("limit", limit)
+                .queryParam("includeId", includeIdParam)
+                .toUriString();
+        ResponseEntity<JsonResult> responseEntity = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                null,
+                JsonResult.class);
+        return responseEntity.getBody();
+    }
 
     @PostMapping
     public ResponseEntity register(@RequestBody CommonUserRegistrationDTO dto) throws PermissionDeniedException {
@@ -210,7 +199,7 @@ public class UserController {
         return responseEntity.getBody();
     }
 
-    @ApiOperation("Request password reset e-mail.")
+    @Operation(summary = "Request password reset e-mail.")
     @PostMapping(value = "/remind-password")
     public ResponseEntity remindPassword(@RequestBody @Valid RemindPasswordDTO dto) {
 
@@ -226,7 +215,7 @@ public class UserController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-    @ApiOperation("Reset password for specified e-mail.")
+    @Operation(summary = "Reset password for specified e-mail.")
     @PostMapping(value = "/reset-password")
     public ResponseEntity resetPassword(@RequestBody @Valid ResetPasswordDTO dto)
             throws URISyntaxException, IOException {
