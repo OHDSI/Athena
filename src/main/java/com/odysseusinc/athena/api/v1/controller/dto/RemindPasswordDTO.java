@@ -22,8 +22,8 @@
 
 package com.odysseusinc.athena.api.v1.controller.dto;
 
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
-import org.hibernate.validator.constraints.Email;
 
 public class RemindPasswordDTO {
     @NotNull

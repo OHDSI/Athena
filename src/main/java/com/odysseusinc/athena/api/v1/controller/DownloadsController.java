@@ -28,8 +28,8 @@ import com.odysseusinc.athena.service.DownloadsHistoryService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.impl.UserService;
 import com.odysseusinc.athena.service.writer.FileHelper;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.io.IOUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,7 +43,7 @@ import java.io.IOException;
 
 import static java.lang.System.currentTimeMillis;
 
-@Api
+@Tag(name = "DownloadsController")
 @RestController
 @RequestMapping("/api/v1/vocabularies")
 public class DownloadsController {
@@ -61,7 +61,7 @@ public class DownloadsController {
         this.vocabularyService = vocabularyService;
     }
 
-    @ApiOperation("Get vocabularies bundle zip.")
+    @Operation(summary = "Get vocabularies bundle zip.")
     @GetMapping(value = "/zip/{uuid}")
     public void getZippedBundle(
             @PathVariable("uuid") String uuid,

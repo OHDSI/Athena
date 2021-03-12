@@ -25,8 +25,8 @@ package com.odysseusinc.athena.api.v1.controller.converter;
 import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_CODE;
 import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_NAME;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.solr.common.params.CommonParams.FQ;
-import static org.hibernate.validator.internal.util.StringHelper.join;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;

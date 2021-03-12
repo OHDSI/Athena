@@ -116,7 +116,7 @@ public class ConceptSearchResultToDTO {
         if (source.getSolrQuery().getStart() > 0) {
             pageNum += (source.getSolrQuery().getStart() / source.getSolrQuery().getRows());
         }
-        return new PageRequest(pageNum, itemsOnPage);
+        return PageRequest.of(pageNum, itemsOnPage);
     }
 
     private long getTotal(SearchResult source) {
