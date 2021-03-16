@@ -150,12 +150,8 @@ public class VocabularyController {
                                                Principal principal) {
 
         final AthenaUser user = userService.getUser(principal);
-        DownloadBundle bundle = downloadBundleService.get(bundleId);
-        if (!user.getId().equals(bundle.getUserId())) {
-            throw new PermissionDeniedException();
-        }
-
-        downloadShareService.change(bundle, changeDTO.getEmailList(), user);
+        downloadBundleService.checkBundleOwner(user, bundleId);
+        downloadShareService.change(bundleId, changeDTO.getEmailList(), user);
 
         return ResponseEntity.ok(Boolean.TRUE);
     }

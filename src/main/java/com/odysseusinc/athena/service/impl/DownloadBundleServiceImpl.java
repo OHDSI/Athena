@@ -22,23 +22,24 @@
 
 package com.odysseusinc.athena.service.impl;
 
-import static java.util.stream.Collectors.toList;
-
+import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.SavedFile;
+import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.SavedFileRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.service.writer.FileHelper;
-import java.io.File;
-import java.util.Date;
-import java.util.Set;
-
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.File;
+import java.util.Date;
+import java.util.Set;
+
+import static java.util.stream.Collectors.toList;
 
 @Transactional
 @Service
@@ -96,6 +97,15 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
         }
         archiveByUuid(downloadBundle.getUuid());
         fileRepository.deleteByDownloadBundleId(downloadBundle.getId());
+    }
+
+    @Override
+    public void checkBundleOwner(AthenaUser user, long bundleId) {
+
+        DownloadBundle bundle = get(bundleId);
+        if (!user.getId().equals(bundle.getUserId())) {
+            throw new PermissionDeniedException();
+        }
     }
 
     private void archiveByUuid(String uuid) {
