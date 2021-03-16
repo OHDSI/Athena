@@ -26,6 +26,7 @@ import com.google.common.base.Splitter;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.DownloadShare;
 import com.odysseusinc.athena.model.security.AthenaUser;
+import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadShareRepository;
 import com.odysseusinc.athena.service.DownloadShareService;
 import com.odysseusinc.athena.service.mail.EmailService;
@@ -42,24 +43,28 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class DownloadShareServiceImpl implements DownloadShareService {
 
-    private final DownloadShareRepository bundleShareRepository;
+    private final DownloadBundleRepository downloadBundleRepository;
+    private final DownloadShareRepository downloadShareRepository;
     private final EmailService emailService;
     private final UserService userService;
 
     @Autowired
-    public DownloadShareServiceImpl(DownloadShareRepository bundleShareRepository, EmailService emailService, UserService userService) {
-        this.bundleShareRepository = bundleShareRepository;
+    public DownloadShareServiceImpl(DownloadBundleRepository downloadBundleRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, UserService userService) {
+        this.downloadBundleRepository = downloadBundleRepository;
+        this.downloadShareRepository = downloadShareRepository;
         this.emailService = emailService;
         this.userService = userService;
     }
 
     @Override
     public List<DownloadShare> getBundleShares(DownloadBundle downloadBundle) {
-        return bundleShareRepository.findByBundle(downloadBundle);
+        return downloadShareRepository.findByBundle(downloadBundle);
     }
 
     @Override
-    public void change(DownloadBundle bundle, String emails, AthenaUser user) {
+    public void change(long bundleId, String emails, AthenaUser user) {
+
+        DownloadBundle bundle = downloadBundleRepository.getOne(bundleId);
         if (emails == null || emails.isEmpty()) {
             deleteByDownloadBundle(bundle);
             return;
@@ -79,12 +84,12 @@ public class DownloadShareServiceImpl implements DownloadShareService {
         List<DownloadShare> newSharedBundles = sharedBundles.stream()
                 .filter(bs -> !existingSharedBundles.contains(bs))
                 .collect(toList());
-        bundleShareRepository.saveAll(newSharedBundles);
+        downloadShareRepository.saveAll(newSharedBundles);
 
         List<DownloadShare> unusedSharedBundles = existingSharedBundles.stream()
                 .filter(existingBS -> !sharedBundles.contains(existingBS))
                 .collect(toList());
-        bundleShareRepository.deleteAll(unusedSharedBundles);
+        downloadShareRepository.deleteAll(unusedSharedBundles);
 
         sendNotification(newSharedBundles, bundle, user);
     }
@@ -100,6 +105,6 @@ public class DownloadShareServiceImpl implements DownloadShareService {
 
     @Override
     public void deleteByDownloadBundle(DownloadBundle downloadBundle) {
-        bundleShareRepository.deleteByBundle(downloadBundle);
+        downloadShareRepository.deleteByBundle(downloadBundle);
     }
 }

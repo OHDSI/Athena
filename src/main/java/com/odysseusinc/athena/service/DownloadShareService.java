@@ -33,5 +33,5 @@ public interface DownloadShareService {
 
     void deleteByDownloadBundle(DownloadBundle downloadBundle);
 
-    void change(DownloadBundle bundle, String emails, AthenaUser user);
+    void change(long bundleId, String emails, AthenaUser user);
 }

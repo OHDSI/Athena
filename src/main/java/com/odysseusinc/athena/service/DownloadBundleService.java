@@ -24,6 +24,8 @@ package com.odysseusinc.athena.service;
 
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.SavedFile;
+import com.odysseusinc.athena.model.security.AthenaUser;
+
 import java.util.Date;
 
 public interface DownloadBundleService {
@@ -39,4 +41,6 @@ public interface DownloadBundleService {
     void archiveBefore(Date before);
 
     void archive(Long id);
+
+    void checkBundleOwner(AthenaUser user, long bundleId);
 }
