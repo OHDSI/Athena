@@ -60,7 +60,7 @@ public class EmailSenderService {
         this.from = from;
     }
 
-    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = FIVE_SEC_MS, multiplier = 3))
+    @Retryable(maxAttempts = 5, backoff = @Backoff(delay = FIVE_SEC_MS, multiplier = 3))
     @Async("emailSenderExecutor")
     public CompletableFuture<Void> sendAsync(String subject, String emailBody, EmailRecipients recipients) {
 
