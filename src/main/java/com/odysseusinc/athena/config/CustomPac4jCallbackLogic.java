@@ -22,6 +22,7 @@
 
 package com.odysseusinc.athena.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.config.Config;
@@ -29,16 +30,14 @@ import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.engine.CallbackLogic;
 import org.pac4j.core.exception.HttpAction;
-import org.pac4j.core.http.HttpActionAdapter;
+import org.pac4j.core.http.adapter.HttpActionAdapter;
 import org.pac4j.core.profile.CommonProfile;
-import org.pac4j.core.profile.UserProfile;
 import org.pac4j.jwt.profile.JwtGenerator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.pac4j.saml.client.SAML2Client;
 import org.springframework.beans.factory.annotation.Value;
 
+@Slf4j
 public class CustomPac4jCallbackLogic<R, C extends WebContext> implements CallbackLogic<R, C> {
-    protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Value("${salt}")
     private String salt;
@@ -46,24 +45,28 @@ public class CustomPac4jCallbackLogic<R, C extends WebContext> implements Callba
     @Value("${athena.async-auth-redirect}")
     private String redirectPath;
 
-    private JwtGenerator<CommonProfile> jwtGenerator;
+    private final JwtGenerator<CommonProfile> jwtGenerator;
 
     public CustomPac4jCallbackLogic(JwtGenerator<CommonProfile> jwtGenerator) {
         this.jwtGenerator = jwtGenerator;
     }
 
+    @Override
     public R perform(
             C context,
             Config config,
             HttpActionAdapter<R, C> httpActionAdapter,
             String inputDefaultUrl,
             Boolean inputMultiProfile,
-            Boolean inputRenewSession) {
+            Boolean inputRenewSession,
+            Boolean renewSession,
+            String clientName
+    ) {
 
-        this.logger.debug("=== CALLBACK ===");
+        log.debug("=== CALLBACK ===");
 
         Clients clients = config.getClients();
-        Client client = clients.findClient(context);
+        Client client = clients.findClient(SAML2Client.class);
 
         HttpAction action;
         try {
@@ -72,16 +75,15 @@ public class CustomPac4jCallbackLogic<R, C extends WebContext> implements Callba
 
             String token = jwtGenerator.generate(profile);
 
-            logger.debug("jwt: " + token);
+            log.debug("jwt: " + token);
 
             action = HttpAction.redirect(
-                    "redirect",
                     context,
                     redirectPath + "?token=" + token
             );
-        } catch (HttpAction var15) {
-            this.logger.debug("extra HTTP action required in callback: {}", Integer.valueOf(var15.getCode()));
-            action = var15;
+        } catch (HttpAction ex) {
+            log.debug("extra HTTP action required in callback: {}", Integer.valueOf(ex.getCode()));
+            action = ex;
         }
 
         return httpActionAdapter.adapt(action.getCode(), context);
