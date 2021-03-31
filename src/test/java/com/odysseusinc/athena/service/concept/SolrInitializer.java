@@ -25,7 +25,10 @@ import com.opencsv.CSVReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -43,6 +46,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.CoreContainer;
+import org.apache.solr.core.NodeConfig;
+import org.apache.solr.core.SolrXmlConfig;
+import org.assertj.core.util.Files;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TestRule;
 import org.w3c.dom.Document;
@@ -89,9 +95,11 @@ public class SolrInitializer extends ExternalResource {
 
     private void runEmbeddedSolr() throws Exception {
 
-        CoreContainer container = new CoreContainer(TEST_SOLR_RESOURCES);
-        container.load();
-        server = new EmbeddedSolrServer(container, "concepts");
+        Path tempSolrRoot = Files.newTemporaryFolder().toPath();
+        Path baseConfigs = Paths.get(TEST_SOLR_RESOURCES);
+        FileUtils.copyDirectory(baseConfigs.toFile(), tempSolrRoot.toFile());
+        NodeConfig cfg = SolrXmlConfig.fromSolrHome(tempSolrRoot, new Properties());
+        server = new EmbeddedSolrServer(cfg, "concepts");
         reindexTestConcepts();
     }
 
