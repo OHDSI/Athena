@@ -101,9 +101,9 @@ public class QueryDebugUtils {
         File fileWithQuery = new File(String.format("%s%s", dir,  "query"));
         FileUtils.writeStringToFile(fileWithQuery, QueryDebugUtils.getQuery(query.getQuery()), Charset.defaultCharset());
 
-        for (Map.Entry<String, String> stringStringEntry : response.getExplainMap().entrySet()) {
+        for (Map.Entry<String, Object> stringStringEntry : response.getExplainMap().entrySet()) {
             String k = stringStringEntry.getKey();
-            String v = stringStringEntry.getValue();
+            String v = stringStringEntry.getValue().toString();
             File file = new File(dir + org.apache.commons.lang3.StringUtils.substringBetween(v, "\n", "=") + "_" + k);
             FileUtils.writeStringToFile(file, v, Charset.defaultCharset());
         }
