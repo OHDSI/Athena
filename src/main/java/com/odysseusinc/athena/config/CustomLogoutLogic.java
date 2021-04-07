@@ -26,7 +26,6 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
 import com.odysseusinc.athena.model.security.AthenaProfile;
 import com.odysseusinc.athena.service.security.RevokedTokenStore;
-import com.odysseusinc.athena.util.UserProfileUtil;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -39,7 +38,7 @@ import org.pac4j.core.context.WebContext;
 import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.engine.DefaultLogoutLogic;
 import org.pac4j.core.exception.HttpAction;
-import org.pac4j.core.http.HttpActionAdapter;
+import org.pac4j.core.http.adapter.HttpActionAdapter;
 import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.core.profile.ProfileManager;
 import org.pac4j.core.redirect.RedirectAction;
@@ -88,7 +87,7 @@ public class CustomLogoutLogic<R, C extends WebContext> extends DefaultLogoutLog
             centralLogout = inputCentralLogout;
         }
 
-        Object sessionAttribute = context.getSessionAttribute(Pac4jConstants.USER_PROFILES);
+        Object sessionAttribute = context.getSessionStore().get(context, Pac4jConstants.USER_PROFILES);
         if (sessionAttribute instanceof Map) {
             Map<String, CommonProfile> profileMap = (Map<String, CommonProfile>) sessionAttribute;
             profileMap.forEach((k, v) -> {
@@ -115,9 +114,9 @@ public class CustomLogoutLogic<R, C extends WebContext> extends DefaultLogoutLog
         }
         HttpAction action;
         if (redirectUrl != null) {
-            action = HttpAction.redirect("redirect", context, redirectUrl);
+            action = HttpAction.redirect(context, redirectUrl);
         } else {
-            action = HttpAction.ok("ok", context);
+            action = HttpAction.ok(context, "ok");
         }
 
         // local logout if requested or multiple profiles

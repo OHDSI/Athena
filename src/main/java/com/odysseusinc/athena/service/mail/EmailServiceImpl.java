@@ -30,7 +30,7 @@ import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.service.impl.UserService;
 import com.odysseusinc.athena.util.CDMVersion;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 

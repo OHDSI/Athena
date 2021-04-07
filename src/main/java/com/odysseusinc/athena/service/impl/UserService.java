@@ -30,6 +30,7 @@ import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.AthenaRoleRepository;
 import com.odysseusinc.athena.repositories.athena.AthenaUserRepository;
 import com.odysseusinc.athena.util.UserProfileUtil;
+import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
 import org.pac4j.core.authorization.generator.AuthorizationGenerator;
 import org.pac4j.core.context.WebContext;
@@ -56,6 +57,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class UserService implements ProfileCreator<TokenCredentials, CommonProfile>, AuthorizationGenerator<CommonProfile> {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
@@ -89,7 +91,7 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
 
         final CommonProfile profile = credentials.getUserProfile();
         AthenaProfile athenaProfile = new AthenaProfile();
-        athenaProfile.setClientName(credentials.getClientName());
+        athenaProfile.setClientName(profile.getClientName());
         athenaProfile.setId(profile.getId());
         athenaProfile.setRemembered(profile.isRemembered());
         athenaProfile.addAttributes(profile.getAttributes());
@@ -109,7 +111,8 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
         AthenaUser user = athenaUserRepository.findByUsernameIgnoreCaseAndOrigin(username, origin);
         if (user == null) {
             if (origin == null) {
-                throw HttpAction.unauthorized("User origin is not defined", webContext, "");
+                log.warn("User origin is not defined: {}", username);
+                throw HttpAction.unauthorized(webContext);
             }
             user = new AthenaUser();
             user.setUsername(username);

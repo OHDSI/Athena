@@ -6,7 +6,7 @@
 
     <groupId>com.odysseusinc.athena</groupId>
     <artifactId>athena</artifactId>
-    <version>1.12.1-QA</version>
+    <version>1.13.0-QA</version>
     <packaging>jar</packaging>
 
 
@@ -18,12 +18,12 @@
     </parent>
 
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
         <jjwt.version>0.9.1</jjwt.version>
         <opensaml.version>2.6.6-patched</opensaml.version>
-        <solr.version>7.7.1</solr.version>
-        <spring-security-pac4j.version>3.1.0</spring-security-pac4j.version>
-        <pac4j.version>2.3.1</pac4j.version>
+        <solr.version>8.8.1</solr.version>
+        <spring-security-pac4j.version>4.1.0</spring-security-pac4j.version>
+        <pac4j.version>3.3.0</pac4j.version>
         <opencsv.version>3.9</opencsv.version>
         <javax.mail.version>1.4</javax.mail.version>
         <dockerImagePrefix>hub.odysseusinc.com</dockerImagePrefix>
@@ -217,6 +217,11 @@
             <version>${pac4j.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.pac4j</groupId>
+            <artifactId>pac4j-core</artifactId>
+            <version>${pac4j.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
         </dependency>
@@ -259,6 +264,11 @@
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.4</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -276,6 +286,13 @@
             </resource>
         </resources>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.0.0</version>
@@ -330,7 +347,7 @@
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.13</version>
+                <version>1.2.2</version>
                 <configuration>
                     <imageName>${dockerImagePrefix}/${project.artifactId}</imageName>
                     <imageTags>
