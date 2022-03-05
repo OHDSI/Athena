@@ -811,7 +811,7 @@
       <lst name="datasource">
         <str name="name">data_source_cdm_db</str>
         <str name="driver">org.postgresql.Driver</str>
-        <str name="url">jdbc:postgresql://localhost:5432/athena_cdm_v5</str>
+        <str name="url">jdbc:postgresql://${dih.postgres.host:localhost}:5432/athena_cdm_v5</str>
         <str name="user">ohdsi</str>
         <str name="password">ohdsi</str>
      </lst>
