@@ -353,6 +353,10 @@
                             <directory>${project.build.directory}</directory>
                             <include>${project.build.finalName}.${project.packaging}</include>
                         </resource>
+                        <resource>
+                            <directory>${project.basedir}/properties/docker</directory>
+                            <include>application.properties</include>
+                        </resource>
                     </resources>
                     <serverId>arachne-hub</serverId>
                     <registryUrl>https://hub.odysseusinc.com/v2/</registryUrl>
