@@ -3,8 +3,16 @@
 athena.iml
 target/
 src/main/resources/public/
+src/test/resources/testdata/solr/
 
 ### Developer's personal properties ###
 **/resources/config/application*-dev-*.properties
 **/resources/config/application*-dev-*.yaml
 **/resources/config/application*-dev-*.yml
+
+## MacOS
+.DS_Store
+
+## Vocabulary
+vocabulary*/
+
