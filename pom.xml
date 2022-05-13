@@ -311,6 +311,15 @@
                             </artifactItems>
                         </configuration>
                     </execution>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -343,6 +352,10 @@
                             <!--<targetPath>/</targetPath>-->
                             <directory>${project.build.directory}</directory>
                             <include>${project.build.finalName}.${project.packaging}</include>
+                        </resource>
+                        <resource>
+                            <directory>${project.basedir}/properties/docker</directory>
+                            <include>application.properties</include>
                         </resource>
                     </resources>
                     <serverId>arachne-hub</serverId>

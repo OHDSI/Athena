@@ -2,9 +2,16 @@ FROM openjdk:8u282-jre-slim
 LABEL maintainer="Odysseus Inc."
 
 USER root
+
+RUN apt-get update -y
+
+# Install packages
+RUN apt-get install -y curl
+
 VOLUME /tmp
 COPY athena.jar /athena.jar
 COPY run.sh /bin/run.sh
+COPY application.properties /application.properties
 
 COPY cpt4_5 /opt/athena/addons/cpt4_5
 COPY cpt4_4_5 /opt/athena/addons/cpt4_4_5

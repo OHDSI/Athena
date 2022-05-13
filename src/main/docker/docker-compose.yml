@@ -1,0 +1,68 @@
+version: '3.9'
+
+services:
+  postgres:
+    container_name: postgres
+    image: "postgres:${POSTGRES_VERSION}"
+    restart: always
+    environment:
+    - POSTGRES_USER=${POSTGRES_USER}
+    - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    healthcheck:
+      test: "pg_isready -U ${POSTGRES_USER}"
+      interval: 10s
+      start_period: 10s
+    volumes:
+    - ../../../vocabulary:/home/athena_vocab_loader/
+    - ./postgres/create-databases.sql:/docker-entrypoint-initdb.d/create-databases.sql
+  solr:
+    container_name: solr
+    image: "solr:${SOLR_VERSION}"
+    ports:
+    - "${SOLR_PORT}:${SOLR_PORT}"
+    healthcheck:
+      test: "curl --fail --silent 'http://localhost:${SOLR_PORT}/solr/concepts/admin/ping' | grep OK || exit 1"
+      interval: 10s
+      start_period: 10s
+    volumes:
+    - ../resources/solr/solrconfig.xml:/opt/solr/server/solr/configsets/_default/conf/solrconfig.xml
+    - ../resources/solr/data-config.xml:/opt/solr/server/solr/configsets/_default/conf/data-config.xml
+    - ../resources/solr/managed-schema:/opt/solr/server/solr/configsets/_default/conf/managed-schema
+    - ../resources/solr/mapping-solr.txt:/opt/solr/server/solr/configsets/_default/conf/mapping-solr.txt
+    - ../../../target/lib/:/tmp/lib/
+    entrypoint:
+    - bash
+    - "-c"
+    - |
+      cp /tmp/lib/postgresql-*.jar /opt/solr/dist/;
+      precreate-core concepts && exec solr -Ddih.postgres.host=postgres -f
+  athena:
+    container_name: athena
+    image: hub.odysseusinc.com/athena:latest
+    ports:
+      - "${ATHENA_PORT}:${ATHENA_PORT}"
+    healthcheck:
+      test: "curl --fail --silent 'http://localhost:${ATHENA_PORT}/api/v1/vocabularies/release-version' | grep '^{' || exit 1"
+      interval: 10s
+      start_period: 20s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      solr:
+        condition: service_healthy
+    command: "/bin/run.sh"
+    volumes:
+      - ../resources/db/migration/:/db/migration
+  import:
+    container_name: import
+    image: jbergknoff/postgresql-client
+    entrypoint: >-
+      psql -h postgres -U ${POSTGRES_USER} -d ${POSTGRES_CDM_DB} -c
+    profiles: ["import"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      athena:
+        condition: service_healthy
