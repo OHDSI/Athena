@@ -1,4 +1,4 @@
-FROM openjdk:8u282-jre-slim
+FROM openjdk:8u332-slim-buster
 LABEL maintainer="Odysseus Inc."
 
 USER root
