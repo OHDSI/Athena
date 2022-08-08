@@ -25,7 +25,7 @@
         <spring-security-pac4j.version>4.1.0</spring-security-pac4j.version>
         <pac4j.version>3.3.0</pac4j.version>
         <opencsv.version>3.9</opencsv.version>
-        <javax.mail.version>1.6.2</javax.mail.version>
+        <jakarta.mail.version>1.6.7</jakarta.mail.version>
         <dockerImagePrefix>hub.odysseusinc.com</dockerImagePrefix>
         <arachne.version>1.19.0</arachne.version>
         <disruptor.version>3.4.2</disruptor.version>
@@ -189,9 +189,9 @@
         </dependency>
 
         <dependency>
-            <groupId>javax.mail</groupId>
-            <artifactId>javax.mail-api</artifactId>
-            <version>${javax.mail.version}</version>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>jakarta.mail</artifactId>
+            <version>${jakarta.mail.version}</version>
         </dependency>
 
         <dependency>
