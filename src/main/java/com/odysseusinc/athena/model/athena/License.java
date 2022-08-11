@@ -48,12 +48,13 @@ public class License {
 
     }
 
-    public License(AthenaUser user, VocabularyConversion vocabularyConversion, LicenseStatus status) {
+    public License(AthenaUser user, VocabularyConversion vocabularyConversion, LicenseStatus status, Date expirationDate) {
 
         this.user = user;
         this.vocabularyConversion = vocabularyConversion;
         this.status = status;
         this.token = UUID.randomUUID().toString().replace("-", "");
+        this.expiredDate = expiredDate;
     }
 
     @Id
@@ -80,6 +81,9 @@ public class License {
 
     @Column(name = "request_date")
     private Date requestDate;
+
+    @Column(name = "expired_date")
+    private Date expiredDate;
 
     public Long getId() {
 
@@ -139,5 +143,15 @@ public class License {
     public void setRequestDate(Date requestDate) {
 
         this.requestDate = requestDate;
+    }
+
+    public Date getExpiredDate() {
+
+        return expiredDate;
+    }
+
+    public void setExpiredDate(Date expiredDate) {
+
+        this.expiredDate = expiredDate;
     }
 }

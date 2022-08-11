@@ -61,6 +61,7 @@ public class VocabularyToUserVocabularyDTO {
             License license = map.get(each.getId());
             if (license != null) {
                 res.setStatus(license.getStatus());
+                res.setExpiredDate(license.getExpiredDate());
             }
             res.setAvailable(
                     isEmpty(each.getRequired()) || (availableIdV4s.contains(each.getId()) && each.getUrl() != null));

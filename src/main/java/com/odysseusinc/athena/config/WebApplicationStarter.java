@@ -64,4 +64,10 @@ public class WebApplicationStarter extends SpringBootServletInitializer {
 
         return Executors.newSingleThreadExecutor();
     }
+
+    @Bean(name = "emailSenderExecutor")
+    public Executor checkDownloadHistory() {
+
+        return Executors.newSingleThreadExecutor();
+    }
 }

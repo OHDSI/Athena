@@ -3,6 +3,7 @@ package com.odysseusinc.athena.service;
 import com.odysseusinc.athena.api.v1.controller.dto.LicenseExceptionDTO;
 
 import java.security.Principal;
+import java.util.Date;
 
 public interface LicenseService {
 
@@ -12,5 +13,5 @@ public interface LicenseService {
 
     void checkLicense(Long id);
 
-    Long requestLicense(Principal principal, Integer vocabularyId);
+    Long requestLicense(Principal principal, Integer vocabularyId, Date expirationDate);
 }

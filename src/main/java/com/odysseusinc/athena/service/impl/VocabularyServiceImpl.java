@@ -125,7 +125,18 @@ public class VocabularyServiceImpl implements VocabularyService {
         List<VocabularyDTO> vocabularyDTOs = converterUtils.convertList(
                 vocabularyConversionService.findByOmopReqIsNull(sort), VocabularyDTO.class);
 
-        return new VocabularyToUserVocabularyDTO(user.getLicenses()).convert(vocabularyDTOs);
+        VocabularyToUserVocabularyDTO vocabularyToUserVocabularyDTO = new VocabularyToUserVocabularyDTO(user.getLicenses());
+
+        user.getLicenses().forEach(license -> {
+//            vocabularyToUserVocabularyDTO.forEach( vocabularyDTO -> {
+//                if(vocabularyDTO.getId() == license.getVocabularyConversion().getIdV4()){
+//                    vocabularyDTO.setExpiredDate(license.getExpiredDate());
+//                }
+//            });
+        });
+        List<UserVocabularyDTO> vocabularyDTOS = vocabularyToUserVocabularyDTO.convert(vocabularyDTOs);
+
+        return vocabularyDTOS;
     }
 
     @Override
@@ -209,6 +220,61 @@ public class VocabularyServiceImpl implements VocabularyService {
         return dtos;
     }
 
+
+    @Override
+    public List<DownloadBundleDTO> checkDownloadHistory() {
+        Sort sort = Sort.by(Sort.Direction.DESC, "created");
+        List<DownloadShare> shares = downloadShareRepository.findByUserEmail("admin@admin.ru");
+        List<DownloadBundle> history = downloadBundleRepository.findByUserId(1L, sort);
+
+        List<DownloadBundleDTO> sharedDTOs = new ArrayList<>();
+        // add shared bundles to list of available downloads
+        if (!shares.isEmpty()) {
+            for (DownloadShare share : shares) {
+//                DownloadBundleDTO bundleDTO = conversionService.convert(share.getBundle(), DownloadBundleDTO.class);
+
+                DownloadBundle bundle = share.getBundle();
+                DownloadBundleDTO bundleDTO = conversionService.convert(bundle, DownloadBundleDTO.class);
+                List<VocabularyDTO> vocaDTOS = new ArrayList<>();
+                bundle.getVocabularies().forEach(downloadItem -> vocaDTOS.add(conversionService.convert(bundle.getVocabularies(), VocabularyDTO.class)));
+//                AthenaUser athenaUser = userService.getCurrentUser();
+                List<VocabularyDTO> vocabularyDTOS = new ArrayList<>();
+                for(VocabularyDTO item : vocaDTOS){
+                    License license = licenseRepository.findByUserIdAndVocabularyIdV4(1L, item.getId());
+                    item.setExpiredDate(license!=null ? license.getExpiredDate() : null);
+                    item.setStatusLicense(license!=null ? license.getStatus().toString() : "");
+//                    VocabularyConversion vocabularyConversion = vocabularyConversionService.findByVocabularyV4Id(item.getId());
+//                    item.set
+                    vocabularyDTOS.add(item);
+                }
+                assert bundleDTO != null;
+                bundleDTO.setVocabularies(vocabularyDTOS);
+                // remove from shares all references to shares with other users
+                List<DownloadShareDTO> filteredShares = bundleDTO.getDownloadShareDTOs().stream()
+                        .filter(s -> s.getEmail().equals("admin@admin.ru"))
+                        .collect(toList());
+                bundleDTO.setDownloadShareDTOs(filteredShares);
+                try {
+                    checkBundleVocabularies(bundle.getId(), 1L);
+                } catch (LicenseException e) {
+                    // if some vocabularies require licence and current user does not have it -
+                    // clear link to zip file
+                    bundleDTO.setLink(StringUtils.EMPTY);
+                }
+                sharedDTOs.add(bundleDTO);
+            }
+        }
+
+        List<DownloadBundleDTO> dtos = converterUtils.convertList(history, DownloadBundleDTO.class);
+        dtos.addAll(sharedDTOs);
+
+        if (!dtos.isEmpty()) {
+
+        }
+
+        return dtos;
+    }
+
     @Override
     public DownloadBundle getDownloadBundle(String uuid) {
 
@@ -256,10 +322,10 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public List<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids) {
+    public List<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, Date expirationDate) {
 
         final List<License> newLicenses = vocabularyV4Ids.stream()
-                .map(v4Id -> buildLicense(user, v4Id, APPROVED))
+                .map(v4Id -> buildLicense(user, v4Id, APPROVED, expirationDate))
                 .collect(toList());
 
         final List<License> savedLicenses = licenseRepository.saveAll(newLicenses);
@@ -268,10 +334,11 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public Long requestLicense(AthenaUser user, Integer vocabularyV4Id) {
+    public Long requestLicense(AthenaUser user, Integer vocabularyV4Id, Date expiredDate) {
 
-        final License requestedLicense = buildLicense(user, vocabularyV4Id, PENDING);
+        final License requestedLicense = buildLicense(user, vocabularyV4Id, PENDING, expiredDate);
         requestedLicense.setRequestDate(new Date());
+        requestedLicense.setExpiredDate(expiredDate);
         final License savedLicense = licenseRepository.save(requestedLicense);
         conceptService.invalidateGraphCache(user.getId());
         return savedLicense.getId();
@@ -286,13 +353,14 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public void acceptLicense(Long id, boolean accepted) {
+    public void acceptLicense(Long id, boolean accepted, Date expirationDate) {
 
         License userLicense = licenseRepository.getOne(id);
         String vocabularyName = userLicense.getVocabularyConversion().getName();
         AthenaUser user = userLicense.getUser();
         if (accepted) {
             userLicense.setStatus(LicenseStatus.APPROVED);
+            userLicense.setExpiredDate(expirationDate);
             licenseRepository.save(userLicense);
         } else {
             licenseRepository.deleteById(id);
@@ -338,10 +406,10 @@ public class VocabularyServiceImpl implements VocabularyService {
         return bundle;
     }
 
-    private License buildLicense(AthenaUser user,  Integer vocabularyV4Id, LicenseStatus status) {
+    private License buildLicense(AthenaUser user,  Integer vocabularyV4Id, LicenseStatus status, Date expirationDate) {
 
         VocabularyConversion vocabularyConversion = vocabularyConversionService.findByVocabularyV4Id(vocabularyV4Id);
-        return new License(user, vocabularyConversion, status);
+        return new License(user, vocabularyConversion, status, expirationDate);
     }
 
     private void checkBundleVocabularies(List<Integer> bundleVocabularyIdV4s, Long userId) {

@@ -34,7 +34,7 @@ import java.util.List;
 public interface AthenaUserRepository extends PagingAndSortingRepository<AthenaUser, Long> {
 
     String GET_USERS_WITH_LICENSES = " FROM users us WHERE "
-            + "id IN (SELECT DISTINCT user_id FROM licenses where status IN ('PENDING') OR :pendingOnly IS FALSE) "
+            + "id IN (SELECT DISTINCT user_id FROM licenses where status IN ('PENDING') OR :pendingOnly IS FALSE AND expired_date > CURRENT_DATE) "
             + "AND (lower(firstname) SIMILAR TO :suggestRequest "
             + "OR lower(lastname) SIMILAR TO :suggestRequest "
             + "OR lower(middlename) SIMILAR TO :suggestRequest) ";
@@ -56,5 +56,7 @@ public interface AthenaUserRepository extends PagingAndSortingRepository<AthenaU
     List<AthenaUser> findByRoles_name(String role);
 
     List<AthenaUser> findByEmail(String email);
+
+    AthenaUser findById(long id);
 
 }

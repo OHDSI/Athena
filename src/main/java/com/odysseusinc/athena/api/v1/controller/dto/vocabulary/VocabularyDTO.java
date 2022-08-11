@@ -33,6 +33,8 @@ public class VocabularyDTO {
     private boolean clickDefault;
     private boolean omopReq;
     private String url;
+    private Date expiredDate;
+    private String statusLicense;
 
     public VocabularyDTO() {
 
@@ -48,6 +50,8 @@ public class VocabularyDTO {
         this.clickDefault = other.clickDefault;
         this.omopReq = other.omopReq;
         this.url = other.url;
+        this.expiredDate = other.expiredDate;
+        this.statusLicense = other.statusLicense;
     }
 
     public static VocabularyDTO.VocabularyDTOBuilder builder() {
@@ -135,6 +139,25 @@ public class VocabularyDTO {
         this.url = url;
     }
 
+    public Date getExpiredDate() {
+
+        return expiredDate;
+    }
+
+    public void setExpiredDate(Date expiredDate) {
+
+        this.expiredDate = expiredDate;
+    }
+    public String getStatusLicense() {
+
+        return statusLicense;
+    }
+
+    public void setStatusLicense(String statusLicense) {
+
+        this.statusLicense = statusLicense;
+    }
+
     public class VocabularyDTOBuilder {
         private Integer id;
         private String code;
@@ -144,6 +167,9 @@ public class VocabularyDTO {
         private boolean clickDefault;
         private boolean omopReq;
         private String url;
+        private Date expiredDate;
+        private String statusLicense;
+
 
         private VocabularyDTOBuilder() {
 
@@ -204,6 +230,18 @@ public class VocabularyDTO {
         public VocabularyDTOBuilder setUrl(String url) {
 
             VocabularyDTO.this.url = url;
+            return this;
+        }
+
+        public VocabularyDTOBuilder setExpiredDate(Date expiredDate) {
+
+            VocabularyDTO.this.expiredDate = expiredDate;
+            return this;
+        }
+
+        public VocabularyDTOBuilder setStatusLicense(String statusLicense) {
+
+            VocabularyDTO.this.statusLicense = statusLicense;
             return this;
         }
 
