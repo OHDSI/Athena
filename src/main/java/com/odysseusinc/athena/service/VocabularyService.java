@@ -46,8 +46,6 @@ public interface VocabularyService {
 
     List<DownloadBundleDTO> getDownloadHistory(AthenaUser user);
 
-    List<DownloadBundleDTO> checkDownloadHistory();
-
     DownloadBundle getDownloadBundle(String uuid);
 
     DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Integer> idV4s);

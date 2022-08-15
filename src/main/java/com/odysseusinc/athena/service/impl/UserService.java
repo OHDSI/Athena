@@ -192,11 +192,6 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
         return null;
     }
 
-    public AthenaUser getUserById(long id){
-        AthenaUser athenaUser = athenaUserRepository.findById(id);
-        return athenaUser;
-    }
-
     public AthenaUser getUser(Principal principal) throws PermissionDeniedException {
 
         if (principal == null) {

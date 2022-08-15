@@ -85,17 +85,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             webSecurity
                     .ignoring()
                     .antMatchers("/api/v1/users**")
-
-                    .antMatchers("/save")
-                    .antMatchers("/downloads")
-                    .antMatchers("licenses/suggest")
-                    .antMatchers("licenses")
-                    .antMatchers("licenses/{id}")
-                    .antMatchers("licenses/request")
-                    .antMatchers("licenses/accept")
-                    .antMatchers("/admin/licenses**")
-                    .antMatchers("/admin/statistics**")
-
                     .antMatchers("/api/v1/users/remind-password**")
                     .antMatchers("/api/v1/users/reset-password**")
                     .antMatchers("/api/v1/users/professional-types**")

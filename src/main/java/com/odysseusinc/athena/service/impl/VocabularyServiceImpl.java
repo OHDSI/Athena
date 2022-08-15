@@ -128,11 +128,13 @@ public class VocabularyServiceImpl implements VocabularyService {
         VocabularyToUserVocabularyDTO vocabularyToUserVocabularyDTO = new VocabularyToUserVocabularyDTO(user.getLicenses());
 
         user.getLicenses().forEach(license -> {
-//            vocabularyToUserVocabularyDTO.forEach( vocabularyDTO -> {
-//                if(vocabularyDTO.getId() == license.getVocabularyConversion().getIdV4()){
-//                    vocabularyDTO.setExpiredDate(license.getExpiredDate());
-//                }
-//            });
+            vocabularyDTOs.forEach( vocabularyDTO -> {
+                if(license.getVocabularyConversion() != null){
+                    if(vocabularyDTO.getId() == license.getVocabularyConversion().getIdV4()){
+                        vocabularyDTO.setExpiredDate(license.getExpiredDate());
+                    }
+                }
+            });
         });
         List<UserVocabularyDTO> vocabularyDTOS = vocabularyToUserVocabularyDTO.convert(vocabularyDTOs);
 
@@ -198,64 +200,26 @@ public class VocabularyServiceImpl implements VocabularyService {
         // add shared bundles to list of available downloads
         if (!shares.isEmpty()) {
             for(DownloadShare share: shares) {
-                DownloadBundleDTO bundleDTO = conversionService.convert(share.getBundle(), DownloadBundleDTO.class);
-                // remove from shares all references to shares with other users
-                List<DownloadShareDTO> filteredShares = bundleDTO.getDownloadShareDTOs().stream()
-                        .filter(s -> s.getEmail().equals(user.getEmail()))
-                        .collect(toList());
-                bundleDTO.setDownloadShareDTOs(filteredShares);
-                try {
-                    checkBundleVocabularies(share.getBundle().getId(), user.getId());
-                } catch (LicenseException e) {
-                    // if some vocabularies require licence and current user does not have it -
-                    // clear link to zip file
-                    bundleDTO.setLink(StringUtils.EMPTY);
-                }
-                sharedDTOs.add(bundleDTO);
-            }
-        }
-
-        List<DownloadBundleDTO> dtos = converterUtils.convertList(history, DownloadBundleDTO.class);
-        dtos.addAll(sharedDTOs);
-        return dtos;
-    }
-
-
-    @Override
-    public List<DownloadBundleDTO> checkDownloadHistory() {
-        Sort sort = Sort.by(Sort.Direction.DESC, "created");
-        List<DownloadShare> shares = downloadShareRepository.findByUserEmail("admin@admin.ru");
-        List<DownloadBundle> history = downloadBundleRepository.findByUserId(1L, sort);
-
-        List<DownloadBundleDTO> sharedDTOs = new ArrayList<>();
-        // add shared bundles to list of available downloads
-        if (!shares.isEmpty()) {
-            for (DownloadShare share : shares) {
-//                DownloadBundleDTO bundleDTO = conversionService.convert(share.getBundle(), DownloadBundleDTO.class);
-
                 DownloadBundle bundle = share.getBundle();
                 DownloadBundleDTO bundleDTO = conversionService.convert(bundle, DownloadBundleDTO.class);
                 List<VocabularyDTO> vocaDTOS = new ArrayList<>();
                 bundle.getVocabularies().forEach(downloadItem -> vocaDTOS.add(conversionService.convert(bundle.getVocabularies(), VocabularyDTO.class)));
-//                AthenaUser athenaUser = userService.getCurrentUser();
                 List<VocabularyDTO> vocabularyDTOS = new ArrayList<>();
                 for(VocabularyDTO item : vocaDTOS){
-                    License license = licenseRepository.findByUserIdAndVocabularyIdV4(1L, item.getId());
+                    License license = licenseRepository.findByUserIdAndVocabularyIdV4(user.getId(), item.getId());
                     item.setExpiredDate(license!=null ? license.getExpiredDate() : null);
                     item.setStatusLicense(license!=null ? license.getStatus().toString() : "");
-//                    VocabularyConversion vocabularyConversion = vocabularyConversionService.findByVocabularyV4Id(item.getId());
-//                    item.set
                     vocabularyDTOS.add(item);
                 }
                 assert bundleDTO != null;
                 bundleDTO.setVocabularies(vocabularyDTOS);
                 // remove from shares all references to shares with other users
                 List<DownloadShareDTO> filteredShares = bundleDTO.getDownloadShareDTOs().stream()
-                        .filter(s -> s.getEmail().equals("admin@admin.ru"))
+                        .filter(s -> s.getEmail().equals(user.getEmail()))
                         .collect(toList());
                 bundleDTO.setDownloadShareDTOs(filteredShares);
                 try {
-                    checkBundleVocabularies(bundle.getId(), 1L);
+                    checkBundleVocabularies(bundle.getId(), user.getId());
                 } catch (LicenseException e) {
                     // if some vocabularies require licence and current user does not have it -
                     // clear link to zip file
@@ -267,11 +231,6 @@ public class VocabularyServiceImpl implements VocabularyService {
 
         List<DownloadBundleDTO> dtos = converterUtils.convertList(history, DownloadBundleDTO.class);
         dtos.addAll(sharedDTOs);
-
-        if (!dtos.isEmpty()) {
-
-        }
-
         return dtos;
     }
 

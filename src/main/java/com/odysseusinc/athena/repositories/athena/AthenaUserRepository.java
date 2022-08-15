@@ -57,6 +57,4 @@ public interface AthenaUserRepository extends PagingAndSortingRepository<AthenaU
 
     List<AthenaUser> findByEmail(String email);
 
-    AthenaUser findById(long id);
-
 }

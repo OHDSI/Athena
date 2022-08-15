@@ -56,6 +56,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -141,18 +142,8 @@ public class VocabularyController {
     public List<DownloadBundleDTO> getDownloadHistory(Principal principal)
             throws PermissionDeniedException {
 
-//        final AthenaUser user = userService.getUser(principal);
-//        return vocabularyService.getDownloadHistory(user);
-        return vocabularyService.checkDownloadHistory();
-    }
-
-    @Operation(summary = "Cuong test download history")
-    @GetMapping("/checkDownloadHistory")
-    public List<DownloadBundleDTO> checkDownloadHistory()
-            throws PermissionDeniedException {
-
-//        final AthenaUser user = userService.getUser(principal);
-        return vocabularyService.checkDownloadHistory();
+        final AthenaUser user = userService.getUser(principal);
+        return vocabularyService.getDownloadHistory(user);
     }
 
     @Operation(summary = "Share bundle")
@@ -201,7 +192,7 @@ public class VocabularyController {
         return new LicenseExceptionDTO(true);
     }
 
-//    @Secured("ROLE_ADMIN")
+    @Secured("ROLE_ADMIN")
     @Operation(summary = "Get users' licenses.")
     @GetMapping("licenses")
     public Page<UserLicensesDTO> getLicenses(
@@ -226,7 +217,7 @@ public class VocabularyController {
         return new CustomPageImpl(dtos, pageRequest, users.getTotalElements());
     }
 
-//    @Secured("ROLE_ADMIN")
+    @Secured("ROLE_ADMIN")
     @Operation(summary = "Suggest licenses.")
     @GetMapping("licenses/suggest")
     public List<VocabularyDTO> suggestLicenses(@RequestParam("userId") Long userId) {
@@ -235,7 +226,7 @@ public class VocabularyController {
         return vocabularies;
     }
 
-//    @Secured("ROLE_ADMIN")
+    @Secured("ROLE_ADMIN")
     @Operation(summary = "Add user's licenses.")
     @PostMapping("licenses")
     public ResponseEntity<Void> saveLicenses(@RequestBody @Valid AddingUserLicensesDTO dto) {
@@ -245,7 +236,7 @@ public class VocabularyController {
         return ResponseEntity.ok().build();
     }
 
-//    @Secured("ROLE_ADMIN")
+    @Secured("ROLE_ADMIN")
     @Operation(summary = "Remove user's licenses.")
     @DeleteMapping("licenses/{id}")
     public ResponseEntity<Void> removeLicenses(@PathVariable("id") Long licenseId) {
@@ -270,7 +261,7 @@ public class VocabularyController {
         return ResponseEntity.ok().build();
     }
 
-//    @Secured("ROLE_ADMIN")
+    @Secured("ROLE_ADMIN")
     @Operation(summary = "Accept user's license.")
     @PostMapping("licenses/accept")
     public ResponseEntity<Void> acceptLicense(@Valid @RequestBody AcceptDTO acceptDTO) {
