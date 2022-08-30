@@ -6,7 +6,7 @@
 
     <groupId>com.odysseusinc.athena</groupId>
     <artifactId>athena</artifactId>
-    <version>1.12.1-QA</version>
+    <version>1.13.0-QA</version>
     <packaging>jar</packaging>
 
 
@@ -21,19 +21,20 @@
         <java.version>1.8</java.version>
         <jjwt.version>0.9.1</jjwt.version>
         <opensaml.version>2.6.6-patched</opensaml.version>
-        <solr.version>7.7.1</solr.version>
-        <spring-security-pac4j.version>3.1.0</spring-security-pac4j.version>
-        <pac4j.version>2.3.1</pac4j.version>
+        <solr.version>8.11.2</solr.version>
+        <spring-security-pac4j.version>4.1.0</spring-security-pac4j.version>
+        <pac4j.version>3.3.0</pac4j.version>
         <opencsv.version>3.9</opencsv.version>
-        <javax.mail.version>1.4</javax.mail.version>
+        <jakarta.mail.version>1.6.7</jakarta.mail.version>
         <dockerImagePrefix>hub.odysseusinc.com</dockerImagePrefix>
-        <arachne.version>1.16.2</arachne.version>
+        <arachne.version>1.19.0</arachne.version>
         <disruptor.version>3.4.2</disruptor.version>
         <commons-lang3.version>3.11</commons-lang3.version>
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
         <guava.verson>30.1-jre</guava.verson>
         <lombok.version>1.18.18</lombok.version>
+        <postgresql.version>42.2.26</postgresql.version>
     </properties>
 
     <profiles>
@@ -132,6 +133,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.jtds</groupId>
@@ -187,9 +189,9 @@
         </dependency>
 
         <dependency>
-            <groupId>javax.mail</groupId>
-            <artifactId>mail</artifactId>
-            <version>${javax.mail.version}</version>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>jakarta.mail</artifactId>
+            <version>${jakarta.mail.version}</version>
         </dependency>
 
         <dependency>
@@ -214,6 +216,11 @@
         <dependency>
             <groupId>org.pac4j</groupId>
             <artifactId>pac4j-jwt</artifactId>
+            <version>${pac4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.pac4j</groupId>
+            <artifactId>pac4j-core</artifactId>
             <version>${pac4j.version}</version>
         </dependency>
         <dependency>
@@ -258,6 +265,11 @@
         <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.4</version>
         </dependency>
     </dependencies>
 
@@ -323,43 +335,6 @@
                     <execution>
                         <goals>
                             <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.13</version>
-                <configuration>
-                    <imageName>${dockerImagePrefix}/${project.artifactId}</imageName>
-                    <imageTags>
-                        <imageTag>${project.version}</imageTag>
-                        <imageTag>latest</imageTag>
-                    </imageTags>
-                    <dockerDirectory>src/main/docker</dockerDirectory>
-                    <resources>
-                        <resource>
-                            <!--<targetPath>/</targetPath>-->
-                            <directory>${project.build.directory}</directory>
-                            <include>${project.build.finalName}.${project.packaging}</include>
-                        </resource>
-                    </resources>
-                    <serverId>arachne-hub</serverId>
-                    <registryUrl>https://hub.odysseusinc.com/v2/</registryUrl>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>deploy</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>push</goal>
                         </goals>
                     </execution>
                 </executions>

@@ -20,9 +20,9 @@ public class TestQueryDebugUtils {
         System.out.println(QueryDebugUtils.getQuery(query.getQuery()));
         String dir = String.format("%s/%s/",DEBUG_INFO_FOR_SEARCH_DIR_BASE, dirName);
         FileUtils.deleteDirectory(new File(dir));
-        for (Map.Entry<String, String> stringStringEntry : response.getExplainMap().entrySet()) {
+        for (Map.Entry<String, Object> stringStringEntry : response.getExplainMap().entrySet()) {
             String k = stringStringEntry.getKey();
-            String v = stringStringEntry.getValue();
+            String v = stringStringEntry.getValue().toString();
             File file = new File(dir + StringUtils.substringBetween(v, "\n", "=") + "_" + k);
             FileUtils.writeStringToFile(file, v, Charset.defaultCharset());
         }
