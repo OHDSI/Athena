@@ -340,43 +340,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.13</version>
-                <configuration>
-                    <imageName>${dockerImagePrefix}/${project.artifactId}</imageName>
-                    <imageTags>
-                        <imageTag>${project.version}</imageTag>
-                        <imageTag>latest</imageTag>
-                    </imageTags>
-                    <dockerDirectory>src/main/docker</dockerDirectory>
-                    <resources>
-                        <resource>
-                            <!--<targetPath>/</targetPath>-->
-                            <directory>${project.build.directory}</directory>
-                            <include>${project.build.finalName}.${project.packaging}</include>
-                        </resource>
-                    </resources>
-                    <serverId>arachne-hub</serverId>
-                    <registryUrl>https://hub.odysseusinc.com/v2/</registryUrl>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>deploy</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>push</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.19.1</version>
