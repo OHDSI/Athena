@@ -34,7 +34,7 @@
         <build.id>${BUILD_TIMESTAMP}</build.id>
         <guava.verson>30.1-jre</guava.verson>
         <lombok.version>1.18.18</lombok.version>
-        <postgresql.version>42.2.26</postgresql.version>
+        <postgresql.version>42.4.1</postgresql.version>
     </properties>
 
     <profiles>
