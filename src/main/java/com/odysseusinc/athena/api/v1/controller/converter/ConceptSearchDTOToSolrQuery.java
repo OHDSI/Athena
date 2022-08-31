@@ -168,7 +168,7 @@ public class ConceptSearchDTOToSolrQuery {
         jsonFacet.put(getFacetLabel(facetField), new JSONObject()
                 .put("type", "terms")
                 .put("field", facetField)
-                .put("limit", 100)
+                .put("limit", -1)
                 .put("missing", true)
                 .put("mincount", 0)
                 .put("domain",
