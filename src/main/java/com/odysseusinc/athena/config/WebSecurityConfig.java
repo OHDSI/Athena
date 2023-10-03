@@ -22,6 +22,8 @@
 
 package com.odysseusinc.athena.config;
 
+import com.odysseusinc.athena.security.hmac.HmacVerifyingFilter;
+import com.odysseusinc.athena.security.pac4j.ApiTokenAuthClient;
 import com.odysseusinc.athena.service.security.RevokedTokenStore;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.profile.CommonProfile;
@@ -33,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -44,6 +47,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
+@ComponentScan(basePackageClasses = {ApiTokenAuthClient.class, HmacVerifyingFilter.class})
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(securedEnabled = true)
@@ -69,6 +73,31 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Configuration
     @Order(2)
+    public static class ApiTokenWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+        @Autowired
+        private Config config;
+
+        @Autowired
+        private HmacVerifyingFilter hmacVerifyingFilter;
+
+
+        @Override
+        protected void configure(final HttpSecurity http) throws Exception {
+            SecurityFilter filter = new SecurityFilter(config, "ApiTokenAuthClient");
+
+            http
+                    .antMatcher("/api/v1/vocabularies")
+                    .antMatcher("/api/v1/vocabularies/**")
+                    .addFilterBefore(filter, BasicAuthenticationFilter.class)
+                    .addFilterBefore(hmacVerifyingFilter, SecurityFilter.class)
+                    .csrf()
+                    .disable()
+                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
+        }
+    }
+
+    @Configuration
+    @Order(3)
     public static class JwtWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
         @Autowired
@@ -132,7 +161,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Configuration
-    @Order(3)
+    @Order(4)
     public static class DefaultWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
         @Autowired
