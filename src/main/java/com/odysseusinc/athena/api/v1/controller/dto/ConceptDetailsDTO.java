@@ -22,6 +22,8 @@
 
 package com.odysseusinc.athena.api.v1.controller.dto;
 
+import com.odysseusinc.athena.repositories.v5.ConceptV5Repository;
+
 import java.util.Date;
 import java.util.List;
 
@@ -39,7 +41,7 @@ public class ConceptDetailsDTO {
     private Date validEnd;
 
     private String invalidReason;
-    private List<String> synonyms;
+    private List<ConceptV5Repository.ConceptSynonymIDto> synonyms;
 
     private ShortConceptDTO validTerm;
 
@@ -151,12 +153,12 @@ public class ConceptDetailsDTO {
         this.invalidReason = invalidReason;
     }
 
-    public List<String> getSynonyms() {
+    public List<ConceptV5Repository.ConceptSynonymIDto> getSynonyms() {
 
         return synonyms;
     }
 
-    public void setSynonyms(List<String> synonyms) {
+    public void setSynonyms(List<ConceptV5Repository.ConceptSynonymIDto> synonyms) {
 
         this.synonyms = synonyms;
     }
