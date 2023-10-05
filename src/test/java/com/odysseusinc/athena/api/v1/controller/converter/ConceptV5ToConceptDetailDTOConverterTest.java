@@ -31,7 +31,6 @@ public class ConceptV5ToConceptDetailDTOConverterTest {
     public void setUp() {
         concept = new ConceptV5();
         concept.setVocabulary(new VocabularyV5());
-        concept.setSynonyms(new ArrayList<>());
     }
 
     @Test
