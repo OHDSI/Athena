@@ -53,9 +53,9 @@ public interface ConceptV5Repository extends JpaRepository<ConceptV5, Long> {
                     "        join concept c ON cs.language_concept_id = c.concept_id\n" +
                     "WHERE   cs.concept_id = :conceptId \n" +
                     "GROUP BY cs.concept_synonym_name,concept_name")
-    List<ConceptSynonymIDto> findSynonyms(@Param("conceptId") Long conceptId);
+    List<ConceptSynonymDto> findSynonyms(@Param("conceptId") Long conceptId);
 
-    public interface ConceptSynonymIDto{
+    public interface ConceptSynonymDto {
         public String getSynonymName();
         public String getLangName();
     }

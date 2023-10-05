@@ -41,7 +41,7 @@ public class ConceptDetailsDTO {
     private Date validEnd;
 
     private String invalidReason;
-    private List<ConceptV5Repository.ConceptSynonymIDto> synonyms;
+    private List<ConceptV5Repository.ConceptSynonymDto> synonyms;
 
     private ShortConceptDTO validTerm;
 
@@ -153,12 +153,12 @@ public class ConceptDetailsDTO {
         this.invalidReason = invalidReason;
     }
 
-    public List<ConceptV5Repository.ConceptSynonymIDto> getSynonyms() {
+    public List<ConceptV5Repository.ConceptSynonymDto> getSynonyms() {
 
         return synonyms;
     }
 
-    public void setSynonyms(List<ConceptV5Repository.ConceptSynonymIDto> synonyms) {
+    public void setSynonyms(List<ConceptV5Repository.ConceptSynonymDto> synonyms) {
 
         this.synonyms = synonyms;
     }
