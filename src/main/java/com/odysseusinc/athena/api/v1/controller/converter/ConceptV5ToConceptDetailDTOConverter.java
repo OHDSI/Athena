@@ -70,9 +70,7 @@ public class ConceptV5ToConceptDetailDTOConverter implements Converter<ConceptV5
 
         dto.setInvalidReason(mapInvalidReason(solrConcept.getInvalidReason()));
         dto.setStandardConcept(mapStandardConcept(solrConcept.getStandardConcept()));
-        dto.setSynonyms(solrConcept.getSynonyms().stream()
-                .map(ConceptSynonymV5::getName)
-                .collect(Collectors.toList()));
+        dto.setSynonyms(conceptV5Repository.findSynonyms(id));
         dto.setValidStart(solrConcept.getValidStart());
         dto.setValidEnd(solrConcept.getValidEnd());
 
