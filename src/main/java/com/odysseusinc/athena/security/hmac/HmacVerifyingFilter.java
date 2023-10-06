@@ -34,7 +34,7 @@ public class HmacVerifyingFilter extends OncePerRequestFilter {
     public static final List<String> BODY_METHODS = ImmutableList.of("POST", "PUT");
 
     public static final String HEADER_CLIENT_ID = "X-Athena-Client-Id";
-    public static final String HEADER_AUTHORIZATION = "X-Athena-Hmac";
+    public static final String HEADER_HMAC = "X-Athena-Hmac";
     public static final String HEADER_NONCE = "X-Athena-Nonce";
 
     @Autowired
@@ -69,7 +69,7 @@ public class HmacVerifyingFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         String uri = request.getRequestURI();
         String queryString = request.getQueryString();
-        String signature = request.getHeader(HEADER_AUTHORIZATION);
+        String signature = request.getHeader(HEADER_HMAC);
         try {
             String nonce = verifyNonce(request);
 

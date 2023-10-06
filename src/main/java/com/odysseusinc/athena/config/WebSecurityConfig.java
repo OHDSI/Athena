@@ -86,8 +86,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             SecurityFilter filter = new SecurityFilter(config, "ApiTokenAuthClient");
 
             http
-                    .antMatcher("/api/v1/vocabularies")
-                    .antMatcher("/api/v1/vocabularies/**")
+                    .antMatcher("/api/s2s/vocabularies")
+                    .antMatcher("/api/s2s/vocabularies/**")
                     .addFilterBefore(filter, BasicAuthenticationFilter.class)
                     .addFilterBefore(hmacVerifyingFilter, SecurityFilter.class)
                     .csrf()

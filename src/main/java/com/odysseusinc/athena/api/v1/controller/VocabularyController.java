@@ -22,38 +22,24 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
-import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.CustomPageImpl;
 import com.odysseusinc.athena.api.v1.controller.dto.LicenseExceptionDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.PageDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.AcceptDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.AddingUserLicensesDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareChangeDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.LicenseRequestDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserLicensesDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyVersionDTO;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.security.AthenaUser;
-import com.odysseusinc.athena.service.DownloadBundleService;
-import com.odysseusinc.athena.service.DownloadShareService;
-import com.odysseusinc.athena.service.LicenseService;
-import com.odysseusinc.athena.service.VocabularyConversionService;
-import com.odysseusinc.athena.service.VocabularyService;
-import com.odysseusinc.athena.service.VocabularyServiceV5;
-import com.odysseusinc.athena.service.impl.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -82,36 +68,7 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 @Tag(name = "VocabularyController")
 @RestController
 @RequestMapping("/api/v1/vocabularies")
-public class VocabularyController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyController.class);
-
-    private final ConverterUtils converterUtils;
-    private final DownloadBundleService downloadBundleService;
-    private final DownloadShareService downloadShareService;
-    private final UserService userService;
-    private final VocabularyConversionService vocabularyConversionService;
-    private final VocabularyService vocabularyService;
-    private final LicenseService licenseService;
-    private final VocabularyServiceV5 vocabularyServiceV5;
-
-    @Autowired
-    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, DownloadShareService downloadShareService, LicenseService licenseService, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService, VocabularyServiceV5 vocabularyServiceV5) {
-        this.converterUtils = converterUtils;
-        this.downloadBundleService = downloadBundleService;
-        this.downloadShareService = downloadShareService;
-        this.userService = userService;
-        this.vocabularyConversionService = vocabularyConversionService;
-        this.vocabularyService = vocabularyService;
-        this.licenseService = licenseService;
-        this.vocabularyServiceV5 = vocabularyServiceV5;
-    }
-
-    @Operation(summary = "Get vocabularies.")
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<UserVocabularyDTO>> getAllForCurrentUser() {
-
-        return ResponseEntity.ok(vocabularyService.getAllForCurrentUser());
-    }
+public class VocabularyController extends AbstractVocabularyController {
 
     @Operation(summary = "Save vocabularies.")
     @GetMapping("/save")
@@ -132,15 +89,6 @@ public class VocabularyController {
         DownloadBundle bundle = vocabularyService.saveBundle(bundleName, idV4s, currentUser, getByValue(version));
         vocabularyService.saveContent(bundle, currentUser);
         LOGGER.info("Vocabulary saving is started, bundle name: {}, user id: {}", bundleName, currentUser.getId());
-    }
-
-    @Operation(summary = "Get download history.")
-    @GetMapping("/downloads")
-    public List<DownloadBundleDTO> getDownloadHistory(Principal principal)
-            throws PermissionDeniedException {
-
-        final AthenaUser user = userService.getUser(principal);
-        return vocabularyService.getDownloadHistory(user);
     }
 
     @Operation(summary = "Share bundle")

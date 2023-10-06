@@ -8,7 +8,7 @@ import org.pac4j.core.exception.BadCredentialsException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static com.odysseusinc.athena.security.hmac.HmacVerifyingFilter.HEADER_AUTHORIZATION;
+import static com.odysseusinc.athena.security.hmac.HmacVerifyingFilter.HEADER_HMAC;
 
 public class ApiTokenBearerHeaderExtractor implements CredentialsExtractor<ApiTokenCredentials> {
     public static final String AUTH_PREFIX = "Bearer";
@@ -30,7 +30,7 @@ public class ApiTokenBearerHeaderExtractor implements CredentialsExtractor<ApiTo
                 }).orElse(null);
             } else {
                 // To
-                throw new BadCredentialsException("Valid hmac is required in [" + HEADER_AUTHORIZATION + "] header");
+                throw new BadCredentialsException("Valid hmac is required in [" + HEADER_HMAC + "] header");
             }
         }).orElse(null);
 
