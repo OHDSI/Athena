@@ -22,6 +22,7 @@
 
 package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
+import java.util.Date;
 import java.util.List;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -34,6 +35,8 @@ public class AddingUserLicensesDTO {
     @NotNull
     @Size(min = 1)
     private List<Integer> vocabularyV4Ids;
+
+    private Date expiredDate;
 
     public Long getUserId() {
 
@@ -53,5 +56,15 @@ public class AddingUserLicensesDTO {
     public void setVocabularyV4Ids(List<Integer> vocabularyV4Ids) {
 
         this.vocabularyV4Ids = vocabularyV4Ids;
+    }
+
+    public Date getExpiredDate() {
+
+        return expiredDate;
+    }
+
+    public void setVocabularyV4Ids(Date expiredDate) {
+
+        this.expiredDate = expiredDate;
     }
 }

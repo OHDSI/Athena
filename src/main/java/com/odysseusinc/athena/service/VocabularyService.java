@@ -29,9 +29,13 @@ import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.CDMVersion;
+import org.springframework.stereotype.Service;
+
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public interface VocabularyService {
 
     List<UserVocabularyDTO> getAllForCurrentUser();
@@ -52,13 +56,13 @@ public interface VocabularyService {
 
     void checkBundleAndSharedUser(AthenaUser user, DownloadBundle bundle);
 
-    Iterable<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids);
+    Iterable<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, Date expiredDate);
 
-    Long requestLicense(AthenaUser user, Integer vocabularyV4Id);
+    Long requestLicense(AthenaUser user, Integer vocabularyV4Id, Date expiredDate);
 
     void deleteLicense(Long licenseId);
 
-    void acceptLicense(Long id, boolean accepted);
+    void acceptLicense(Long id, boolean accepted, Date  expiredDate);
 
     License get(AthenaUser user, Integer vocabularyId);
 

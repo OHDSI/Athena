@@ -23,12 +23,15 @@
 package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 public class AcceptDTO {
     @NotNull
     private Long id;
     @NotNull
     private Boolean accepted;
+
+    private Date expiredDate;
 
     public Long getId() {
 
@@ -38,6 +41,16 @@ public class AcceptDTO {
     public void setId(Long id) {
 
         this.id = id;
+    }
+
+    public Date getExpiredDate() {
+
+        return expiredDate;
+    }
+
+    public void setExpiredDate(Date expiredDate) {
+
+        this.expiredDate = expiredDate;
     }
 
     public Boolean getAccepted() {

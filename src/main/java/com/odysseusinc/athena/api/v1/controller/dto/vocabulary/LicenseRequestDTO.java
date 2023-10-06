@@ -23,6 +23,7 @@
 package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 public class LicenseRequestDTO {
     @NotNull
@@ -36,5 +37,17 @@ public class LicenseRequestDTO {
     public void setVocabularyId(Integer vocabularyId) {
 
         this.vocabularyId = vocabularyId;
+    }
+
+    private Date expiredDate;
+
+    public Date getExpiredDate() {
+
+        return expiredDate;
+    }
+
+    public void setExpiredDate(Date expiredDate) {
+
+        this.expiredDate = expiredDate;
     }
 }

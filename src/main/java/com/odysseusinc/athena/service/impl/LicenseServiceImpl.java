@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -61,14 +62,14 @@ public class LicenseServiceImpl implements LicenseService {
     }
 
     @Override
-    public Long requestLicense(Principal principal, Integer vocabularyId) {
+    public Long requestLicense(Principal principal, Integer vocabularyId, Date expiredDate) {
 
         AthenaUser user = userService.getUser(principal);
         License license = vocabularyService.get(user, vocabularyId);
-        if (license != null) {
+        if (license != null && license.getExpiredDate().after(new Date())) {
             throw new AlreadyExistException("License already exists");
         }
-        Long licenseId = vocabularyService.requestLicense(user, vocabularyId);
+        Long licenseId = vocabularyService.requestLicense(user, vocabularyId, expiredDate);
         emailService.sendLicenseRequestToAdmins(vocabularyService.get(licenseId).get());
         return licenseId;
     }
@@ -76,7 +77,7 @@ public class LicenseServiceImpl implements LicenseService {
     private void check(Optional<License> license) {
         if (license == null || !license.isPresent()) {
             throw new NotExistException("License does not exist or has already been declined", License.class);
-        } else if (LicenseStatus.APPROVED == license.get().getStatus()) {
+        } else if (LicenseStatus.APPROVED == license.get().getStatus() && license.get().getExpiredDate().after(new Date())) {
             throw new AlreadyExistException("License has already been approved");
         }
     }

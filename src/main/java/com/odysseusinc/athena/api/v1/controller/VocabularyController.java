@@ -51,6 +51,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
@@ -71,8 +72,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.odysseusinc.athena.util.CDMVersion.getByValue;
 import static com.odysseusinc.athena.util.CDMVersion.notExist;
@@ -93,9 +94,10 @@ public class VocabularyController {
     private final VocabularyService vocabularyService;
     private final LicenseService licenseService;
     private final VocabularyServiceV5 vocabularyServiceV5;
+    private final GenericConversionService conversionService;
 
     @Autowired
-    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, DownloadShareService downloadShareService, LicenseService licenseService, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService, VocabularyServiceV5 vocabularyServiceV5) {
+    public VocabularyController(ConverterUtils converterUtils, DownloadBundleService downloadBundleService, DownloadShareService downloadShareService, LicenseService licenseService, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyService vocabularyService, VocabularyServiceV5 vocabularyServiceV5, GenericConversionService conversionService) {
         this.converterUtils = converterUtils;
         this.downloadBundleService = downloadBundleService;
         this.downloadShareService = downloadShareService;
@@ -104,6 +106,7 @@ public class VocabularyController {
         this.vocabularyService = vocabularyService;
         this.licenseService = licenseService;
         this.vocabularyServiceV5 = vocabularyServiceV5;
+        this.conversionService = conversionService;
     }
 
     @Operation(summary = "Get vocabularies.")
@@ -200,6 +203,17 @@ public class VocabularyController {
         final Page<AthenaUser> users = userService.getUsersWithLicenses(pageRequest, query, pendingOnly);
 
         List<UserLicensesDTO> dtos = converterUtils.convertList(users.getContent(), UserLicensesDTO.class);
+        users.getContent().forEach(athenaUser -> {
+            athenaUser.getLicenses().forEach(license -> {
+                dtos.forEach(userLicensesDTO -> {
+                    userLicensesDTO.getVocabularyDTOs().forEach(a -> {
+                        if (a.getId() == license.getId().intValue()) a.setExpiredDate(license.getExpiredDate());
+                    });
+                });
+            });
+
+        });
+
         return new CustomPageImpl(dtos, pageRequest, users.getTotalElements());
     }
 
@@ -218,7 +232,7 @@ public class VocabularyController {
     public ResponseEntity<Void> saveLicenses(@RequestBody @Valid AddingUserLicensesDTO dto) {
 
         final AthenaUser user = userService.get(dto.getUserId());
-        vocabularyService.grantLicenses(user, dto.getVocabularyV4Ids());
+        vocabularyService.grantLicenses(user, dto.getVocabularyV4Ids(), dto.getExpiredDate());
         return ResponseEntity.ok().build();
     }
 
@@ -235,7 +249,15 @@ public class VocabularyController {
     @PostMapping("licenses/request")
     public ResponseEntity<Void> requestLicense(Principal principal, @Valid @RequestBody LicenseRequestDTO dto) {
 
-        licenseService.requestLicense(principal, dto.getVocabularyId());
+        Date expiredDate;
+        if(dto.getExpiredDate() == null){
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) + 2);
+            expiredDate = cal.getTime();
+        }else{
+            expiredDate = dto.getExpiredDate();
+        }
+        licenseService.requestLicense(principal, dto.getVocabularyId(), expiredDate);
         return ResponseEntity.ok().build();
     }
 
@@ -245,7 +267,7 @@ public class VocabularyController {
     public ResponseEntity<Void> acceptLicense(@Valid @RequestBody AcceptDTO acceptDTO) {
 
         licenseService.checkLicense(acceptDTO.getId());
-        vocabularyService.acceptLicense(acceptDTO.getId(), acceptDTO.getAccepted());
+        vocabularyService.acceptLicense(acceptDTO.getId(), acceptDTO.getAccepted(), acceptDTO.getExpiredDate());
         return ResponseEntity.ok().build();
     }
 
@@ -254,10 +276,11 @@ public class VocabularyController {
     public void acceptLicenseViaMail(@RequestParam("id") Long id,
                                      @RequestParam("accepted") Boolean accepted,
                                      @RequestParam("token") String token,
+                                     @RequestParam("expiredDate") Date expiredDate,
                                      HttpServletResponse response) throws IOException {
 
         licenseService.checkLicense(id, token);
-        vocabularyService.acceptLicense(id, accepted);
+        vocabularyService.acceptLicense(id, accepted, expiredDate);
         response.sendRedirect("/admin/licenses");
     }
 
