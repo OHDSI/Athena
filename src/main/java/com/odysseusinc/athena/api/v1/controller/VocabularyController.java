@@ -34,6 +34,7 @@ import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyVersionDTO;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
+import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -75,16 +76,17 @@ public class VocabularyController extends AbstractVocabularyController {
     public void save(@RequestParam(value = "cdmVersion", defaultValue = "5") float version,
                      @RequestParam(value = "ids") List<Integer> idV4s,
                      @RequestParam(value = "name") String bundleName,
-                     HttpServletResponse response) throws IOException {
+                     @RequestParam(value = "vocabularyVersion", required = false) Integer vocabularyVersion,
+                     @RequestParam(value = "delta", defaultValue = "false") boolean delta,
+                     @RequestParam(value = "deltaVersion", required = false) Integer deltaVersion) throws IOException {
 
         if (notExist(version)) {
-            response.sendError(SC_BAD_REQUEST, "No supported version " + version);
-            return;
+            throw new ValidationException("No supported version " + version);
         }
-        if (isEmpty(bundleName)) {
-            response.sendError(SC_BAD_REQUEST, "Name cannot be empty");
-            return;
+        if (delta && !(deltaVersion < vocabularyVersion)) {
+            throw new ValidationException("The Delta version should be lower than the Vocabulary version");
         }
+
         AthenaUser currentUser = userService.getCurrentUser();
         DownloadBundle bundle = vocabularyService.saveBundle(bundleName, idV4s, currentUser, getByValue(version));
         vocabularyService.saveContent(bundle, currentUser);
