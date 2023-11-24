@@ -22,12 +22,12 @@
 
 package com.odysseusinc.athena.service.saver.v5;
 
-import com.odysseusinc.athena.service.saver.Saver;
+import com.odysseusinc.athena.service.saver.CSVSaver;
 import com.odysseusinc.athena.service.saver.SaverV5;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DomainSaver extends Saver implements SaverV5 {
+public class DomainSaver extends CSVSaver implements SaverV5 {
 
 
     @Override

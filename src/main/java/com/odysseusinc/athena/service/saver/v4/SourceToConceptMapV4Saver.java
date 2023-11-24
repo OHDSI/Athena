@@ -22,12 +22,12 @@
 
 package com.odysseusinc.athena.service.saver.v4;
 
-import com.odysseusinc.athena.service.saver.Saver;
+import com.odysseusinc.athena.service.saver.CSVSaver;
 import com.odysseusinc.athena.service.saver.SaverV4;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SourceToConceptMapV4Saver  extends Saver implements SaverV4 {
+public class SourceToConceptMapV4Saver  extends CSVSaver implements SaverV4 {
     @Override
     public String fileName() {
 

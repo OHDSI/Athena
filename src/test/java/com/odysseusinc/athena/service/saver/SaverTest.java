@@ -124,7 +124,7 @@ public class SaverTest {
 
     @Setter
     @Getter
-    public static class SaverDummy extends Saver {
+    public static class SaverDummy extends CSVSaver {
 
         private String query;
 
