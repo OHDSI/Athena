@@ -32,7 +32,7 @@
         <commons-lang3.version>3.11</commons-lang3.version>
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
-        <guava.verson>30.1-jre</guava.verson>
+        <guava.verson>32.0.0-jre</guava.verson>
         <lombok.version>1.18.18</lombok.version>
         <postgresql.version>42.2.26</postgresql.version>
     </properties>
