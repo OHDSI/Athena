@@ -76,6 +76,7 @@ public class VocabularyController extends AbstractVocabularyController {
     public void save(@RequestParam(value = "cdmVersion", defaultValue = "5") float version,
                      @RequestParam(value = "ids") List<Integer> idV4s,
                      @RequestParam(value = "name") String bundleName,
+                     // TODO DEV: The vocabulary versions should be extracted to a separate table. Currently, we just store them as integer numbers. AVD-13
                      @RequestParam(value = "vocabularyVersion", required = false) Integer vocabularyVersion,
                      @RequestParam(value = "delta", defaultValue = "false") boolean delta,
                      @RequestParam(value = "deltaVersion", required = false) Integer deltaVersion) throws IOException {
@@ -88,7 +89,10 @@ public class VocabularyController extends AbstractVocabularyController {
         }
 
         AthenaUser currentUser = userService.getCurrentUser();
-        DownloadBundle bundle = vocabularyService.saveBundle(bundleName, idV4s, currentUser, getByValue(version));
+        DownloadBundle bundle = vocabularyService.saveBundle(
+                bundleName, idV4s, currentUser, getByValue(version),
+                vocabularyVersion, delta, deltaVersion
+        );
         vocabularyService.saveContent(bundle, currentUser);
         LOGGER.info("Vocabulary saving is started, bundle name: {}, user id: {}", bundleName, currentUser.getId());
     }

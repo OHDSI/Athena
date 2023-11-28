@@ -37,14 +37,12 @@ import com.odysseusinc.athena.model.athena.DownloadShare;
 import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.athena.VocabularyConversion;
-import com.odysseusinc.athena.model.athenav5.VocabularyV5;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadItemRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadShareRepository;
 import com.odysseusinc.athena.repositories.athena.LicenseRepository;
 import com.odysseusinc.athena.repositories.athena.NotificationRepository;
-import com.odysseusinc.athena.repositories.v5.VocabularyRepository;
 import com.odysseusinc.athena.service.ConceptService;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
@@ -129,7 +127,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public DownloadBundle saveBundle(String bundleName, List<Integer> idV4s, AthenaUser currentUser, CDMVersion version) {
+    public DownloadBundle saveBundle(String bundleName, List<Integer> idV4s, AthenaUser currentUser, CDMVersion version, Integer vocabularyVersion, boolean delta, Integer deltaVersion) {
 
         String uuid = UUID.randomUUID().toString();
         LOGGER.info("Ready for save download items for bundle with name: [{}] and uuid: [{}], user id: [{}]",
@@ -142,7 +140,10 @@ public class VocabularyServiceImpl implements VocabularyService {
         withOmopReqIdV4s.addAll(idV4s);
         checkBundleVocabularies(withOmopReqIdV4s, currentUser.getId());
 
-        DownloadBundle bundle = buildDownloadBundle(version, uuid, bundleName, currentUser);
+        DownloadBundle bundle = new DownloadBundle(
+                uuid, version, new Date(), currentUser.getId(), bundleName, vocabularyServiceV5.getOMOPVocabularyVersion(), DownloadBundleStatus.PENDING,
+                vocabularyVersion, deltaVersion, delta
+        );
         bundle = saveDownloadItems(bundle, withOmopReqIdV4s);
         LOGGER.info("Download items are added, bundle: [{}]", bundle);
         return bundle;
@@ -325,18 +326,6 @@ public class VocabularyServiceImpl implements VocabularyService {
         return notificationRepository.findByUserId(userId);
     }
 
-    private DownloadBundle buildDownloadBundle(CDMVersion version, String uuid, String name, AthenaUser user) {
-
-        DownloadBundle bundle = new DownloadBundle();
-        bundle.setUserId(user.getId());
-        bundle.setCreated(new Date());
-        bundle.setUuid(uuid);
-        bundle.setCdmVersion(version);
-        bundle.setName(name);
-        bundle.setStatus(DownloadBundleStatus.PENDING);
-        bundle.setReleaseVersion(vocabularyServiceV5.getOMOPVocabularyVersion());
-        return bundle;
-    }
 
     private License buildLicense(AthenaUser user,  Integer vocabularyV4Id, LicenseStatus status) {
 
