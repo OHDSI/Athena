@@ -1,10 +1,8 @@
-package com.odysseusinc.athena.service.saver;
+package com.odysseusinc.athena.service.saver.statment;
 
 import com.odysseusinc.athena.util.CDMVersion;
-import lombok.AllArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -12,38 +10,31 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-//todo dev pls write here JDocs
-public class SqlStatementCreator {
+//TODO dev pls write here JDocs
+public class PreparedStatementCreator extends SqlStatementCreator {
 
     private static final String QUESTION_MARK = "?";
     private static final String COMMA = ",";
 
-    public <T> PreparedStatement getStatement(Connection conn, String query, List<T> ids, CDMVersion currentVersion) throws SQLException {
-        conn.setAutoCommit(false);
 
-        QueryAndParams queryAndParams = getQuery(query, ids);
-        PreparedStatement st = conn.prepareStatement(queryAndParams.query);
-        st.setFetchSize(500);
-        setParams(currentVersion, st, queryAndParams.params);
-        return st;
-    }
-
-    public <T> QueryAndParams getQuery(String query, List<T> ids) {
+    @Override
+    public <T> QueryAndParams getQuery(String query, Params paramsTtt) {
         int countParam = StringUtils.countMatches(query, QUESTION_MARK);
-        int countVocabs = ids.size();
+        int countVocabs = paramsTtt.getIds().size();
 
         query = query.replace(
                 QUESTION_MARK,
                 String.join(COMMA, Collections.nCopies(countVocabs, QUESTION_MARK))
         );
 
-        List<Object> params = Stream.generate(() -> ids)
+        List<Object> params = Stream.generate(paramsTtt::getIds)
                 .limit(countParam)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
         return new QueryAndParams(query, params);
     }
 
+    @Override
     public void setParams(CDMVersion currentVersion, PreparedStatement st, List<Object> params) throws SQLException {
         for (int j = 0; j < params.size(); j++) {
             if (CDMVersion.V4_5 == currentVersion) {
@@ -54,9 +45,5 @@ public class SqlStatementCreator {
         }
     }
 
-    @AllArgsConstructor
-    private static class QueryAndParams {
-        public final String query;
-        public final List<Object> params;
-    }
+
 }

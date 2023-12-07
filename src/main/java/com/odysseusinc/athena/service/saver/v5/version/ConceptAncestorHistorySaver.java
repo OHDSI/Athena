@@ -20,33 +20,31 @@
  *
  */
 
-package com.odysseusinc.athena.service.saver.common;
+package com.odysseusinc.athena.service.saver.v5.version;
 
-import com.odysseusinc.athena.service.saver.CSVSaver;
-import com.odysseusinc.athena.service.saver.SaverV4;
-import com.odysseusinc.athena.service.saver.SaverV5;
+import com.odysseusinc.athena.service.saver.SaverV5History;
 import org.springframework.stereotype.Service;
 
 @Service
-public class VocabularySaver extends CSVSaver implements SaverV4, SaverV5 {
+public class ConceptAncestorHistorySaver extends HistorySaver implements SaverV5History {
 
     @Override
     public String fileName() {
 
-        return "VOCABULARY.csv";
+        return "CONCEPT_ANCESTOR.csv";
     }
 
     @Override
     protected String query() {
 
         return "SELECT " +
-                "  vocabulary_id, " +
-                "  vocabulary_name, " +
-                "  vocabulary_reference, " +
-                "  vocabulary_version, " +
-                "  vocabulary_concept_id " +
-                "FROM vocabulary_history " +
-                "WHERE vocabulary_id IN (:vocabularyIds)";
-    }
+                "  ancestor_concept_id, " +
+                "  descendant_concept_id, " +
+                "  min_levels_of_separation, " +
+                "  max_levels_of_separation " +
+                "FROM concept_ancestor_history " +
+                "WHERE (ancestor_vocabulary_id IN (:vocabularyIds) OR descendant_vocabulary_id IN (:vocabularyIds))" +
+                "  AND version = :version ";
 
+    }
 }
