@@ -26,6 +26,8 @@ import com.odysseusinc.athena.exceptions.IORuntimeException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.SavedFile;
 import com.odysseusinc.athena.service.impl.AthenaCSVWriter;
+import com.odysseusinc.athena.service.saver.statment.Params;
+import com.odysseusinc.athena.service.saver.statment.PreparedStatementCreator;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.opencsv.CSVWriter;
 import lombok.Getter;
@@ -37,6 +39,7 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.zip.ZipOutputStream;
 
@@ -46,7 +49,7 @@ public abstract class CSVSaver extends Saver implements ISaver {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CSVSaver.class);
 
-    private final SqlStatementCreator sqlStatementCreator = new SqlStatementCreator();
+    private final PreparedStatementCreator sqlStatementCreator = new PreparedStatementCreator();
 
     @Value("${csv.separator:;}")
     @Getter
@@ -92,13 +95,18 @@ public abstract class CSVSaver extends Saver implements ISaver {
         CDMVersion currentVersion = bundle.getCdmVersion();
         try (
                 Connection conn = getDataSource(currentVersion).getConnection();
-                PreparedStatement st = sqlStatementCreator.getStatement(conn, query(), ids, currentVersion)
+                PreparedStatement st = getStatement(ids, conn, bundle)
         ) {
             LOGGER.info("Preparing to execute (bundle with uuid {}): {}", bundle.getUuid(), st);
             ResultSet rs = st.executeQuery();
             csvWriter.writeAll(rs, true, false);
+
             rs.close();
         }
+    }
+
+    protected  <T> PreparedStatement getStatement(List ids, Connection conn, DownloadBundle bundle) throws SQLException {
+        return sqlStatementCreator.getStatement(conn, query(), new Params(ids, bundle.getVocabularyVersion(), null), bundle.getCdmVersion());
     }
 
 

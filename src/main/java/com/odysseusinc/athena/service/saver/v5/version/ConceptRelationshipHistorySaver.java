@@ -20,33 +20,32 @@
  *
  */
 
-package com.odysseusinc.athena.service.saver.common;
+package com.odysseusinc.athena.service.saver.v5.version;
 
-import com.odysseusinc.athena.service.saver.CSVSaver;
-import com.odysseusinc.athena.service.saver.SaverV4;
-import com.odysseusinc.athena.service.saver.SaverV5;
+import com.odysseusinc.athena.service.saver.SaverV5History;
 import org.springframework.stereotype.Service;
 
 @Service
-public class VocabularySaver extends CSVSaver implements SaverV4, SaverV5 {
+public class ConceptRelationshipHistorySaver extends HistorySaver implements SaverV5History {
 
     @Override
     public String fileName() {
 
-        return "VOCABULARY.csv";
+        return "CONCEPT_RELATIONSHIP.csv";
     }
 
     @Override
     protected String query() {
-
+         // TODO Dev: Currently, the function only returns half of all relations; there should be duplicates with the reverse direction.
         return "SELECT " +
-                "  vocabulary_id, " +
-                "  vocabulary_name, " +
-                "  vocabulary_reference, " +
-                "  vocabulary_version, " +
-                "  vocabulary_concept_id " +
-                "FROM vocabulary_history " +
-                "WHERE vocabulary_id IN (:vocabularyIds)";
+                "  concept_id_1, " +
+                "  concept_id_2, " +
+                "  relationship_id, " +
+                "  valid_start_date, " +
+                "  valid_end_date, " +
+                "  invalid_reason " +
+                "FROM concept_relationship_history " +
+                "WHERE (vocabulary_id_1 IN( :vocabularyIds) OR vocabulary_id_2 IN (:vocabularyIds)) " +
+                "  AND version = :version";
     }
-
 }
