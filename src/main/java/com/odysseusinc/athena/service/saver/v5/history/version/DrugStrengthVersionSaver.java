@@ -15,56 +15,44 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Author: Yaroslav Molodkov
- * Created: December 7, 2023
+ * Authors: Pavel Grafkin, Vitaly Koulakov, Maria Pozhidaeva
+ * Created: April 4, 2018
  *
  */
 
-package com.odysseusinc.athena.service.saver.v5.version;
+package com.odysseusinc.athena.service.saver.v5.history.version;
 
+import com.odysseusinc.athena.service.saver.SaverV5History;
+import com.odysseusinc.athena.service.saver.v5.history.HistorySaver;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-
 @Service
-public class InvalidConceptCPT4HistorySaver extends ConceptCPT4HistorySaver {
-
-    @Override
-    public boolean includedInBundle(List ids) {
-
-        return false;
-    }
+public class DrugStrengthVersionSaver extends HistorySaver implements SaverV5History {
 
     @Override
     public String fileName() {
 
-        return "cpt4_ref.csv";
+        return "DRUG_STRENGTH.csv";
     }
 
     @Override
     protected String query() {
 
         return "SELECT " +
-                "  concept_id, " +
-                "  concept_name, " +
-                "  domain_id, " +
-                "  vocabulary_id, " +
-                "  concept_class_id, " +
-                "  standard_concept, " +
-                "  concept_code, " +
+                "  drug_concept_id, " +
+                "  ingredient_concept_id, " +
+                "  amount_value, " +
+                "  amount_unit_concept_id, " +
+                "  numerator_value, " +
+                "  numerator_unit_concept_id, " +
+                "  denominator_value, " +
+                "  denominator_unit_concept_id, " +
+                "  box_size, " +
                 "  valid_start_date, " +
                 "  valid_end_date, " +
                 "  invalid_reason " +
-                "FROM concept_history " +
+                "FROM drug_strength_history " +
                 "WHERE vocabulary_id IN (:vocabularyIds) " +
-                "  AND version = :version " +
-                "  AND valid_end_date <= NOW()";
-    }
-
-    @Override
-    public List getIds() {
-
-        return Collections.singletonList("CPT4");
+                "  AND version = :version";
     }
 }

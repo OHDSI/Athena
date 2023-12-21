@@ -32,10 +32,7 @@ import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.VocabularyConversionRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.service.mail.EmailService;
-import com.odysseusinc.athena.service.saver.ISaver;
-import com.odysseusinc.athena.service.saver.SaverV4;
-import com.odysseusinc.athena.service.saver.SaverV5;
-import com.odysseusinc.athena.service.saver.SaverV5History;
+import com.odysseusinc.athena.service.saver.*;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.service.writer.ZipWriter;
 import com.odysseusinc.athena.util.CDMVersion;
@@ -51,11 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.zip.ZipOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -72,11 +66,12 @@ public class AsyncVocabularyService {
     private final List<SaverV4> saversV4;
     private final List<SaverV5> saversV5;
     private final List<SaverV5History> saverV5Histories;
+    private final List<SaverV5Delta> saverV5Deltas;
     private final UrlBuilder urlBuilder;
     private final VocabularyConversionRepository vocabularyConversionRepository;
     private final ZipWriter zipWriter;
 
-    public AsyncVocabularyService(DownloadBundleRepository downloadBundleRepository, DownloadBundleService downloadBundleService, EmailService emailService, FileHelper fileHelper, List<SaverV4> saversV4, List<SaverV5> saversV5, List<SaverV5History> saverV5Histories, UrlBuilder urlBuilder, VocabularyConversionRepository vocabularyConversionRepository, ZipWriter zipWriter) {
+    public AsyncVocabularyService(DownloadBundleRepository downloadBundleRepository, DownloadBundleService downloadBundleService, EmailService emailService, FileHelper fileHelper, List<SaverV4> saversV4, List<SaverV5> saversV5, List<SaverV5History> saverV5Histories, List<SaverV5Delta> saverV5Deltas, UrlBuilder urlBuilder, VocabularyConversionRepository vocabularyConversionRepository, ZipWriter zipWriter) {
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadBundleService = downloadBundleService;
         this.emailService = emailService;
@@ -84,6 +79,7 @@ public class AsyncVocabularyService {
         this.saversV4 = saversV4;
         this.saversV5 = saversV5;
         this.saverV5Histories = saverV5Histories;
+        this.saverV5Deltas = saverV5Deltas;
         this.urlBuilder = urlBuilder;
         this.vocabularyConversionRepository = vocabularyConversionRepository;
         this.zipWriter = zipWriter;
@@ -125,12 +121,16 @@ public class AsyncVocabularyService {
         if (bundle.getCdmVersion() == CDMVersion.V4_5) {
             return saversV4;
         }
-        if (bundle.getCdmVersion() == CDMVersion.V5 && isCurrent(bundle.getVocabularyVersion())) {
+        if (bundle.getCdmVersion() == CDMVersion.V5 && bundle.isDelta()) {
+            return saverV5Deltas;
+        }
+        if (bundle.getCdmVersion() == CDMVersion.V5 && isCurrent(bundle.getVocabularyVersion()) && !bundle.isDelta()) {
             return saversV5;
         }
-        if (bundle.getCdmVersion() == CDMVersion.V5 && !isCurrent(bundle.getVocabularyVersion())) {
+        if (bundle.getCdmVersion() == CDMVersion.V5 && !isCurrent(bundle.getVocabularyVersion()) && !bundle.isDelta()) {
             return saverV5Histories;
         }
+
         throw new NotExistException("No savers for version " + bundle.getCdmVersion(), CDMVersion.class);
     }
 
@@ -148,7 +148,7 @@ public class AsyncVocabularyService {
 
     private boolean isCurrent(Integer version) {
         // TODO dev: This is currently hardcoded and will be implemented as part of the AVD-13 stories.
-        return Objects.equals(20231017, version);
+        return Objects.equals(20230831, version);
     }
 
 
@@ -157,5 +157,4 @@ public class AsyncVocabularyService {
         bundle.setStatus(status);
         downloadBundleRepository.save(bundle);
     }
-
 }
