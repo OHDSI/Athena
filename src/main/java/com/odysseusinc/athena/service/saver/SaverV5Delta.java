@@ -20,30 +20,8 @@
  *
  */
 
-package com.odysseusinc.athena.service.saver.v5.version;
+package com.odysseusinc.athena.service.saver;
 
-import com.odysseusinc.athena.service.saver.SaverV5History;
-import org.springframework.stereotype.Service;
-
-@Service
-public class ConceptSynonymHistorySaver extends HistorySaver implements SaverV5History {
-
-    @Override
-    public String fileName() {
-
-        return "CONCEPT_SYNONYM.csv";
-    }
-
-    @Override
-    protected String query() {
-
-        return " SELECT " +
-                "  concept_id, " +
-                "  concept_synonym_name, " +
-                "  language_concept_id " +
-                " FROM concept_synonym_history " +
-                " WHERE vocabulary_id IN (:vocabularyIds) " +
-                "   AND version = :version";
-    }
+public interface SaverV5Delta extends ISaver{
 
 }

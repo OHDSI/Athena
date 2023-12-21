@@ -87,7 +87,7 @@ public class VocabularyController extends AbstractVocabularyController {
         if (delta && !(deltaVersion < vocabularyVersion)) {
             throw new ValidationException("The Delta version should be lower than the Vocabulary version");
         }
-
+        //TODO DEV: check that delta version is set
         AthenaUser currentUser = userService.getCurrentUser();
         DownloadBundle bundle = vocabularyService.saveBundle(
                 bundleName, idV4s, currentUser, getByValue(version),

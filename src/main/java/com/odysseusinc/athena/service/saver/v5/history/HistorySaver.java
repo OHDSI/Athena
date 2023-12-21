@@ -1,9 +1,9 @@
-package com.odysseusinc.athena.service.saver.v5.version;
+package com.odysseusinc.athena.service.saver.v5.history;
 
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.service.saver.CSVSaver;
 import com.odysseusinc.athena.service.saver.statment.NamedStatementCreator;
-import com.odysseusinc.athena.service.saver.statment.Params;
+import com.odysseusinc.athena.service.saver.statment.Placeholders;
 import com.odysseusinc.athena.util.CDMVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,6 +30,6 @@ public abstract class HistorySaver extends CSVSaver {
 
     @Override
     protected <T> PreparedStatement getStatement(List ids, Connection conn, DownloadBundle bundle) throws SQLException {
-        return statementCreator.getStatement(conn, query(), new Params(ids, bundle.getVocabularyVersion(), null), bundle.getCdmVersion());
+        return statementCreator.getStatement(conn, query(), new Placeholders(ids, bundle.getVocabularyVersion(),  bundle.getDeltaVersion()), bundle.getCdmVersion());
     }
 }

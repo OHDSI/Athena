@@ -20,13 +20,14 @@
  *
  */
 
-package com.odysseusinc.athena.service.saver.v5.version;
+package com.odysseusinc.athena.service.saver.v5.history.delta;
 
-import com.odysseusinc.athena.service.saver.SaverV5History;
-import org.springframework.stereotype.Component;
+import com.odysseusinc.athena.service.saver.SaverV5Delta;
+import com.odysseusinc.athena.service.saver.v5.history.HistorySaver;
+import org.springframework.stereotype.Service;
 
-@Component
-public class DomainHistorySaver extends HistorySaver implements SaverV5History {
+@Service
+public class DomainDeltaSaver extends HistorySaver implements SaverV5Delta {
 
 
     @Override
@@ -38,11 +39,6 @@ public class DomainHistorySaver extends HistorySaver implements SaverV5History {
     @Override
     protected String query() {
 
-        return "SELECT " +
-                "  domain_id, " +
-                "  domain_name, " +
-                "  domain_concept_id " +
-                "FROM domain_history " +
-                "WHERE version = :version";
+        return "SELECT * FROM get_domain_delta(:version, :versionDelta, :vocabularyArr, TRUE)";
     }
 }

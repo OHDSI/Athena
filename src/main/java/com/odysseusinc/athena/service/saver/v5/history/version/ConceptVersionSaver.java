@@ -20,31 +20,49 @@
  *
  */
 
-package com.odysseusinc.athena.service.saver.v5.version;
+package com.odysseusinc.athena.service.saver.v5.history.version;
 
 import com.odysseusinc.athena.service.saver.SaverV5History;
+import com.odysseusinc.athena.service.saver.v5.history.HistorySaver;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
-public class ConceptAncestorHistorySaver extends HistorySaver implements SaverV5History {
+public class ConceptVersionSaver extends HistorySaver implements SaverV5History {
 
     @Override
     public String fileName() {
 
-        return "CONCEPT_ANCESTOR.csv";
+        return "CONCEPT.csv";
     }
 
     @Override
     protected String query() {
 
         return "SELECT " +
-                "  ancestor_concept_id, " +
-                "  descendant_concept_id, " +
-                "  min_levels_of_separation, " +
-                "  max_levels_of_separation " +
-                "FROM concept_ancestor_history " +
-                "WHERE (ancestor_vocabulary_id IN (:vocabularyIds) OR descendant_vocabulary_id IN (:vocabularyIds))" +
-                "  AND version = :version ";
+                "  concept_id, " +
+                "  concept_name, " +
+                "  domain_id, " +
+                "  vocabulary_id, " +
+                "  concept_class_id, " +
+                "  standard_concept, " +
+                "  concept_code, " +
+                "  valid_start_date, " +
+                "  valid_end_date, " +
+                "  invalid_reason " +
+                "FROM concept_history " +
+                "WHERE vocabulary_id IN (:vocabularyIds) " +
+                "  AND version = :version";
 
+    }
+
+    @Override
+    public List filter(List ids) {
+
+        List<String> filtered = new ArrayList<>(ids);
+        filtered.remove("CPT4");
+        return filtered;
     }
 }
