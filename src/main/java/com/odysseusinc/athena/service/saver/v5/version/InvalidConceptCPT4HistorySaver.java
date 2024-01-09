@@ -20,33 +20,51 @@
  *
  */
 
-package com.odysseusinc.athena.service.saver.common;
+package com.odysseusinc.athena.service.saver.v5.version;
 
-import com.odysseusinc.athena.service.saver.CSVSaver;
-import com.odysseusinc.athena.service.saver.SaverV4;
-import com.odysseusinc.athena.service.saver.SaverV5;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
+
 @Service
-public class VocabularySaver extends CSVSaver implements SaverV4, SaverV5 {
+public class InvalidConceptCPT4HistorySaver extends ConceptCPT4HistorySaver {
+
+    @Override
+    public boolean includedInBundle(List ids) {
+
+        return false;
+    }
 
     @Override
     public String fileName() {
 
-        return "VOCABULARY.csv";
+        return "cpt4_ref.csv";
     }
 
     @Override
     protected String query() {
 
         return "SELECT " +
+                "  concept_id, " +
+                "  concept_name, " +
+                "  domain_id, " +
                 "  vocabulary_id, " +
-                "  vocabulary_name, " +
-                "  vocabulary_reference, " +
-                "  vocabulary_version, " +
-                "  vocabulary_concept_id " +
-                "FROM vocabulary_history " +
-                "WHERE vocabulary_id IN (:vocabularyIds)";
+                "  concept_class_id, " +
+                "  standard_concept, " +
+                "  concept_code, " +
+                "  valid_start_date, " +
+                "  valid_end_date, " +
+                "  invalid_reason " +
+                "FROM concept_history " +
+                "WHERE vocabulary_id IN (:vocabularyIds) " +
+                "  AND version = :version " +
+                "  AND valid_end_date <= NOW()";
     }
 
+    @Override
+    public List getIds() {
+
+        return Collections.singletonList("CPT4");
+    }
 }

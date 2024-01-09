@@ -35,14 +35,21 @@ import com.odysseusinc.athena.service.mail.EmailService;
 import com.odysseusinc.athena.service.saver.ISaver;
 import com.odysseusinc.athena.service.saver.SaverV4;
 import com.odysseusinc.athena.service.saver.SaverV5;
+import com.odysseusinc.athena.service.saver.SaverV5History;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.service.writer.ZipWriter;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.zip.ZipOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,17 +71,19 @@ public class AsyncVocabularyService {
     private final FileHelper fileHelper;
     private final List<SaverV4> saversV4;
     private final List<SaverV5> saversV5;
+    private final List<SaverV5History> saverV5Histories;
     private final UrlBuilder urlBuilder;
     private final VocabularyConversionRepository vocabularyConversionRepository;
     private final ZipWriter zipWriter;
 
-    public AsyncVocabularyService(DownloadBundleRepository downloadBundleRepository, DownloadBundleService downloadBundleService, EmailService emailService, FileHelper fileHelper, List<SaverV4> saversV4, List<SaverV5> saversV5, UrlBuilder urlBuilder, VocabularyConversionRepository vocabularyConversionRepository, ZipWriter zipWriter) {
+    public AsyncVocabularyService(DownloadBundleRepository downloadBundleRepository, DownloadBundleService downloadBundleService, EmailService emailService, FileHelper fileHelper, List<SaverV4> saversV4, List<SaverV5> saversV5, List<SaverV5History> saverV5Histories, UrlBuilder urlBuilder, VocabularyConversionRepository vocabularyConversionRepository, ZipWriter zipWriter) {
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadBundleService = downloadBundleService;
         this.emailService = emailService;
         this.fileHelper = fileHelper;
         this.saversV4 = saversV4;
         this.saversV5 = saversV5;
+        this.saverV5Histories = saverV5Histories;
         this.urlBuilder = urlBuilder;
         this.vocabularyConversionRepository = vocabularyConversionRepository;
         this.zipWriter = zipWriter;
@@ -87,20 +96,9 @@ public class AsyncVocabularyService {
         try (FileOutputStream fout = new FileOutputStream(fileHelper.getZipPath(bundle.getUuid()));
              ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fout))) {
 
-            List ids;
-            List<? extends ISaver> savers;
-            switch (bundle.getCdmVersion()) {
-                case V4_5:
-                    ids = idV4s;
-                    savers = saversV4;
-                    break;
-                case V5:
-                    ids = vocabularyConversionRepository.findIdsV5ByIdsV4(idV4s);
-                    savers = saversV5;
-                    break;
-                default:
-                    throw new NotExistException("No savers for version " + bundle.getCdmVersion(), CDMVersion.class);
-            }
+            List<?> ids = getIds(bundle, idV4s);
+            List<? extends ISaver> savers = getSavers(bundle);
+
             SaverService saver = new SaverService(downloadBundleService, ids, fileHelper);
             bundle = saver.save(zos, bundle, savers);
             zipWriter.addCPT4Utility(zos, bundle);
@@ -122,6 +120,37 @@ public class AsyncVocabularyService {
             emailService.sendFailedSaving(user);
         }
     }
+
+    private List<? extends ISaver> getSavers(DownloadBundle bundle) {
+        if (bundle.getCdmVersion() == CDMVersion.V4_5) {
+            return saversV4;
+        }
+        if (bundle.getCdmVersion() == CDMVersion.V5 && isCurrent(bundle.getVocabularyVersion())) {
+            return saversV5;
+        }
+        if (bundle.getCdmVersion() == CDMVersion.V5 && !isCurrent(bundle.getVocabularyVersion())) {
+            return saverV5Histories;
+        }
+        throw new NotExistException("No savers for version " + bundle.getCdmVersion(), CDMVersion.class);
+    }
+
+
+    // TODO: Generics needs proper handling. We plan to eliminate the v4 version.
+    private List getIds(DownloadBundle bundle, List<Long> idV4s) {
+        switch (bundle.getCdmVersion()) {
+            case V4_5:
+                return idV4s;
+            case V5:
+                return vocabularyConversionRepository.findIdsV5ByIdsV4(idV4s);
+        }
+        throw new NotExistException("Unsupported CDM version: " + bundle.getCdmVersion(), CDMVersion.class);
+    }
+
+    private boolean isCurrent(Integer version) {
+        // TODO dev: This is currently hardcoded and will be implemented as part of the AVD-13 stories.
+        return Objects.equals(20231017, version);
+    }
+
 
     protected void updateStatus(DownloadBundle bundle, DownloadBundleStatus status) {
 

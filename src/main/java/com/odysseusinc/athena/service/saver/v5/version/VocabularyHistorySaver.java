@@ -20,15 +20,13 @@
  *
  */
 
-package com.odysseusinc.athena.service.saver.common;
+package com.odysseusinc.athena.service.saver.v5.version;
 
-import com.odysseusinc.athena.service.saver.CSVSaver;
-import com.odysseusinc.athena.service.saver.SaverV4;
-import com.odysseusinc.athena.service.saver.SaverV5;
+import com.odysseusinc.athena.service.saver.SaverV5History;
 import org.springframework.stereotype.Service;
 
 @Service
-public class VocabularySaver extends CSVSaver implements SaverV4, SaverV5 {
+public class VocabularyHistorySaver extends HistorySaver implements SaverV5History {
 
     @Override
     public String fileName() {
@@ -46,7 +44,8 @@ public class VocabularySaver extends CSVSaver implements SaverV4, SaverV5 {
                 "  vocabulary_version, " +
                 "  vocabulary_concept_id " +
                 "FROM vocabulary_history " +
-                "WHERE vocabulary_id IN (:vocabularyIds)";
+                "WHERE vocabulary_id IN (:vocabularyIds)" +
+                "  AND version = :version";
     }
 
 }
