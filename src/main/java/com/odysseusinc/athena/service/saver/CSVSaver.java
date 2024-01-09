@@ -26,7 +26,7 @@ import com.odysseusinc.athena.exceptions.IORuntimeException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.SavedFile;
 import com.odysseusinc.athena.service.impl.AthenaCSVWriter;
-import com.odysseusinc.athena.service.saver.statment.Params;
+import com.odysseusinc.athena.service.saver.statment.Placeholders;
 import com.odysseusinc.athena.service.saver.statment.PreparedStatementCreator;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.opencsv.CSVWriter;
@@ -49,7 +49,7 @@ public abstract class CSVSaver extends Saver implements ISaver {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CSVSaver.class);
 
-    private final PreparedStatementCreator sqlStatementCreator = new PreparedStatementCreator();
+    private final PreparedStatementCreator preparedStatementCreator = new PreparedStatementCreator();
 
     @Value("${csv.separator:;}")
     @Getter
@@ -99,14 +99,18 @@ public abstract class CSVSaver extends Saver implements ISaver {
         ) {
             LOGGER.info("Preparing to execute (bundle with uuid {}): {}", bundle.getUuid(), st);
             ResultSet rs = st.executeQuery();
-            csvWriter.writeAll(rs, true, false);
+            csvWriter.writeAll(rs, isIncludeColumnNames(), false);
 
             rs.close();
         }
     }
 
+    protected boolean isIncludeColumnNames() {
+        return true;
+    }
+
     protected  <T> PreparedStatement getStatement(List ids, Connection conn, DownloadBundle bundle) throws SQLException {
-        return sqlStatementCreator.getStatement(conn, query(), new Params(ids, bundle.getVocabularyVersion(), null), bundle.getCdmVersion());
+        return preparedStatementCreator.getStatement(conn, query(), new Placeholders(ids, bundle.getVocabularyVersion(), null), bundle.getCdmVersion());
     }
 
 

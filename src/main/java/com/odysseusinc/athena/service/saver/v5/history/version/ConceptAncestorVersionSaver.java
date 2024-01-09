@@ -15,43 +15,37 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Authors: Pavel Grafkin, Vitaly Koulakov, Maria Pozhidaeva
- * Created: April 4, 2018
+ * Author: Yaroslav Molodkov
+ * Created: December 7, 2023
  *
  */
 
-package com.odysseusinc.athena.service.saver.v5.version;
+package com.odysseusinc.athena.service.saver.v5.history.version;
 
 import com.odysseusinc.athena.service.saver.SaverV5History;
+import com.odysseusinc.athena.service.saver.v5.history.HistorySaver;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DrugStrengthHistorySaver extends HistorySaver implements SaverV5History {
+public class ConceptAncestorVersionSaver extends HistorySaver implements SaverV5History {
 
     @Override
     public String fileName() {
 
-        return "DRUG_STRENGTH.csv";
+        return "CONCEPT_ANCESTOR.csv";
     }
 
     @Override
     protected String query() {
 
         return "SELECT " +
-                "  drug_concept_id, " +
-                "  ingredient_concept_id, " +
-                "  amount_value, " +
-                "  amount_unit_concept_id, " +
-                "  numerator_value, " +
-                "  numerator_unit_concept_id, " +
-                "  denominator_value, " +
-                "  denominator_unit_concept_id, " +
-                "  box_size, " +
-                "  valid_start_date, " +
-                "  valid_end_date, " +
-                "  invalid_reason " +
-                "FROM drug_strength_history " +
-                "WHERE vocabulary_id IN (:vocabularyIds) " +
-                "  AND version = :version";
+                "  ancestor_concept_id, " +
+                "  descendant_concept_id, " +
+                "  min_levels_of_separation, " +
+                "  max_levels_of_separation " +
+                "FROM concept_ancestor_history " +
+                "WHERE (ancestor_vocabulary_id IN (:vocabularyIds) OR descendant_vocabulary_id IN (:vocabularyIds))" +
+                "  AND version = :version ";
+
     }
 }

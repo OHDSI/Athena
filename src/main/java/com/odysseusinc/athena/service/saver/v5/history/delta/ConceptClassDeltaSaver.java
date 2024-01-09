@@ -20,32 +20,24 @@
  *
  */
 
-package com.odysseusinc.athena.service.saver.v5.version;
+package com.odysseusinc.athena.service.saver.v5.history.delta;
 
-import com.odysseusinc.athena.service.saver.SaverV5History;
+import com.odysseusinc.athena.service.saver.SaverV5Delta;
+import com.odysseusinc.athena.service.saver.v5.history.HistorySaver;
 import org.springframework.stereotype.Service;
 
 @Service
-public class VocabularyHistorySaver extends HistorySaver implements SaverV5History {
+public class ConceptClassDeltaSaver extends HistorySaver implements SaverV5Delta {
 
     @Override
     public String fileName() {
 
-        return "VOCABULARY.csv";
+        return "CONCEPT_CLASS.csv";
     }
 
     @Override
     protected String query() {
 
-        return "SELECT " +
-                "  vocabulary_id, " +
-                "  vocabulary_name, " +
-                "  vocabulary_reference, " +
-                "  vocabulary_version, " +
-                "  vocabulary_concept_id " +
-                "FROM vocabulary_history " +
-                "WHERE vocabulary_id IN (:vocabularyIds)" +
-                "  AND version = :version";
+        return "SELECT * FROM get_concept_class_delta(:version, :versionDelta, :vocabularyArr, TRUE)";
     }
-
 }

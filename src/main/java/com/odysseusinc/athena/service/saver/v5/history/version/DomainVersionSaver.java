@@ -20,48 +20,30 @@
  *
  */
 
-package com.odysseusinc.athena.service.saver.v5.version;
+package com.odysseusinc.athena.service.saver.v5.history.version;
 
 import com.odysseusinc.athena.service.saver.SaverV5History;
-import org.springframework.stereotype.Service;
+import com.odysseusinc.athena.service.saver.v5.history.HistorySaver;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+@Component
+public class DomainVersionSaver extends HistorySaver implements SaverV5History {
 
-@Service
-public class ConceptHistorySaver extends HistorySaver implements SaverV5History {
 
     @Override
     public String fileName() {
 
-        return "CONCEPT.csv";
+        return "DOMAIN.csv";
     }
 
     @Override
     protected String query() {
 
         return "SELECT " +
-                "  concept_id, " +
-                "  concept_name, " +
                 "  domain_id, " +
-                "  vocabulary_id, " +
-                "  concept_class_id, " +
-                "  standard_concept, " +
-                "  concept_code, " +
-                "  valid_start_date, " +
-                "  valid_end_date, " +
-                "  invalid_reason " +
-                "FROM concept_history " +
-                "WHERE vocabulary_id IN (:vocabularyIds) " +
-                "  AND version = :version";
-
-    }
-
-    @Override
-    public List filter(List ids) {
-
-        List<String> filtered = new ArrayList<>(ids);
-        filtered.remove("CPT4");
-        return filtered;
+                "  domain_name, " +
+                "  domain_concept_id " +
+                "FROM domain_history " +
+                "WHERE version = :version";
     }
 }
