@@ -37,7 +37,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.odysseusinc.athena.service.impl.AthenaCSVWriter;
-import com.odysseusinc.athena.service.saver.Saver;
+import com.odysseusinc.athena.service.saver.CSVSaver;
 import com.odysseusinc.athena.service.saver.v4.InvalidConceptCPT4V4Saver;
 import com.odysseusinc.athena.service.saver.v5.InvalidConceptCPT4V5Saver;
 import com.opencsv.CSVWriter;
@@ -104,7 +104,7 @@ public class ZipWriter {
     }
 
     private void updateCPT4Utility(DownloadBundle bundle, String filePath) throws Exception {
-        Saver saver = V4_5 == bundle.getCdmVersion() ? cpt4V4DeprecatedSaver : cpt4V5DeprecatedSaver;
+        CSVSaver saver = V4_5 == bundle.getCdmVersion() ? cpt4V4DeprecatedSaver : cpt4V5DeprecatedSaver;
         Path path = fileHelper.getPath(bundle.getUuid(), saver.fileName());
         try (CSVWriter csvWriter = new AthenaCSVWriter(path.toString(), saver.getSeparator())) {
             saver.writeContent(bundle, csvWriter, saver.getIds());
