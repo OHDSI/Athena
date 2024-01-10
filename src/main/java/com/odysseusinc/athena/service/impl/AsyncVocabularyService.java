@@ -97,7 +97,7 @@ public class AsyncVocabularyService {
 
             SaverService saver = new SaverService(downloadBundleService, ids, fileHelper);
             bundle = saver.save(zos, bundle, savers);
-            zipWriter.addCPT4Utility(zos, bundle);
+            zipWriter.addExtraFiles(zos, bundle);
 
             LOGGER.info("Bundle is saved in zip: {}", bundle);
             updateStatus(bundle, DownloadBundleStatus.READY);

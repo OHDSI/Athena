@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,16 +47,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 
 @Component
 public class ZipWriter {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ZipWriter.class);
+    private static final String DELTA_FILES_PATH = "/delta";
 
     @Value("${cpt4.dir.v4}")
     private String cpt4V4Files;
 
     @Value("${cpt4.dir.v5}")
     private String cpt4V5Files;
+
+    @Value("${delta.dir}")
+    private String deltaFiles;
 
     @Autowired
     FileHelper fileHelper;
@@ -66,9 +72,15 @@ public class ZipWriter {
     @Autowired
     InvalidConceptCPT4V5Saver cpt4V5DeprecatedSaver;
 
-    public synchronized void addCPT4Utility(ZipOutputStream zos, DownloadBundle bundle) throws Exception {
-
-        if (bundle.isCpt4()) {
+    public synchronized void addExtraFiles(ZipOutputStream zos, DownloadBundle bundle) throws Exception {
+        if (bundle.isDelta()) {
+            File deltaDir = new File(deltaFiles);
+            if (deltaDir.exists()) {
+                addFolderToZip(deltaDir, zos, deltaDir.getAbsolutePath());
+            } else {
+                addResourceFolderToZip(zos, DELTA_FILES_PATH);
+            }
+        } else if (bundle.isCpt4()) {
             File filesStoreDir = V4_5 == bundle.getCdmVersion() ? new File(cpt4V4Files) : new File(cpt4V5Files);
             updateCPT4Utility(bundle, filesStoreDir.getAbsolutePath());
             addFolderToZip(filesStoreDir, zos, filesStoreDir.getAbsolutePath());
@@ -93,6 +105,14 @@ public class ZipWriter {
                 IOUtils.copy(new FileInputStream(file), zip);
                 zip.closeEntry();
             }
+        }
+    }
+
+    private void addResourceFolderToZip(ZipOutputStream zos, String deltaFilesPath) throws IOException {
+        URL resource = this.getClass().getResource(deltaFilesPath);
+        if (resource != null) {
+            File file = ResourceUtils.getFile(resource);
+            addFolderToZip(file, zos, file.getAbsolutePath());
         }
     }
 
