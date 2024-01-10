@@ -15,8 +15,8 @@
  *
  * Company: Odysseus Data Services, Inc.
  * Product Owner/Architecture: Gregory Klebanov
- * Author: Yaroslav Molodkov
- * Created: December 7, 2023
+ * Authors: Pavel Grafkin, Vitaly Koulakov, Maria Pozhidaeva
+ * Created: April 4, 2018
  *
  */
 
@@ -39,14 +39,7 @@ public class VocabularySaver extends CSVSaver implements SaverV4, SaverV5 {
     @Override
     protected String query() {
 
-        return "SELECT " +
-                "  vocabulary_id, " +
-                "  vocabulary_name, " +
-                "  vocabulary_reference, " +
-                "  vocabulary_version, " +
-                "  vocabulary_concept_id " +
-                "FROM vocabulary_history " +
-                "WHERE vocabulary_id IN (:vocabularyIds)";
+        return "SELECT * FROM VOCABULARY WHERE VOCABULARY_ID IN (?)";
     }
 
 }
