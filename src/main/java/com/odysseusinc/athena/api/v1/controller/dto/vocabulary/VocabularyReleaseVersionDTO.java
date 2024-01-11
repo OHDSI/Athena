@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class VocabularyReleaseVersionDTO {
-    private final String value;
+    private final Integer value;
     private final String label;
     private final boolean current;
 
