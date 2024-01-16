@@ -71,23 +71,13 @@ BEGIN
         SELECT cr.*, c1.VOCABULARY_ID AS VOCABULARY_ID_1, c2.VOCABULARY_ID AS VOCABULARY_ID_2, %s AS VERSION
         FROM %I.concept_relationship AS cr
                  JOIN %I.CONCEPT AS c1 ON cr.CONCEPT_ID_1 = c1.CONCEPT_ID
-                 JOIN %I.CONCEPT AS c2 ON cr.CONCEPT_ID_2 = c2.CONCEPT_ID
-            WHERE cr.CONCEPT_ID_1 > 36590474;',
+                 JOIN %I.CONCEPT AS c2 ON cr.CONCEPT_ID_2 = c2.CONCEPT_ID;',
                    p_target_schema, p_version, p_target_schema, p_version,
                    p_target_schema, p_version,
                    p_version, p_source_schema, p_source_schema, p_source_schema
         );
 
-    EXECUTE format('
-        INSERT INTO %I.concept_relationship_history_%s
-        SELECT cr.*, c1.VOCABULARY_ID AS VOCABULARY_ID_1, c2.VOCABULARY_ID AS VOCABULARY_ID_2, %s AS VERSION
-        FROM %I.concept_relationship AS cr
-                 JOIN %I.CONCEPT AS c1 ON cr.CONCEPT_ID_1 = c1.CONCEPT_ID
-                 JOIN %I.CONCEPT AS c2 ON cr.CONCEPT_ID_2 = c2.CONCEPT_ID
-            WHERE NOT cr.CONCEPT_ID_1 > 36590474;',
-                   p_target_schema, p_version,
-                   p_version, p_source_schema, p_source_schema, p_source_schema
-        );
+
 
     RAISE NOTICE 'Step 4: Concept Classes...';
     EXECUTE format('

@@ -41,7 +41,7 @@ BEGIN
                                                     CASE WHEN c1.valid_end_date IS DISTINCT FROM c2.valid_end_date THEN 'valid_end_date' ELSE '' END ||
                                                     CASE WHEN c1.invalid_reason IS DISTINCT FROM c2.invalid_reason THEN 'invalid_reason' ELSE '' END
                 END AS attribute_modified,
-            c1.concept_id,
+            COALESCE(c1.concept_id, c2.concept_id) AS concept_id,
             c1.concept_name,
             c1.domain_id,
             c1.vocabulary_id,
@@ -59,6 +59,32 @@ BEGIN
         WHERE
             ROW(c1.concept_name, c1.domain_id, c1.vocabulary_id, c1.concept_class_id, c1.standard_concept, c1.concept_code, c1.valid_start_date, c1.valid_end_date, c1.invalid_reason) IS DISTINCT FROM
             ROW(c2.concept_name, c2.domain_id, c2.vocabulary_id, c2.concept_class_id, c2.standard_concept, c2.concept_code, c2.valid_start_date, c2.valid_end_date, c2.invalid_reason);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_deleted_concepts_delta(
+    pVersion1 integer,
+    pVersion2 integer,
+    pVocabularies text[]
+)
+    RETURNS TABLE (concept_id bigint)
+AS $$
+BEGIN
+    RETURN QUERY
+        SELECT
+            c1.concept_id AS concept_id
+        FROM
+            concept_history c1
+        WHERE
+            c1.version = pVersion1 AND
+            c1.vocabulary_id = ANY(pVocabularies) AND
+            NOT EXISTS (
+                SELECT 1
+                FROM concept_history c2
+                WHERE c2.version = pVersion2 AND
+                    c2.vocabulary_id = ANY(pVocabularies) AND
+                    c2.concept_id = c1.concept_id
+            );
 END;
 $$ LANGUAGE plpgsql;
 
@@ -97,9 +123,9 @@ BEGIN
                               CASE WHEN c1.invalid_reason IS DISTINCT FROM c2.invalid_reason THEN 'invalid_reason' END
                         )
                 END AS attribute_modified,
-            c1.concept_id_1,
-            c1.concept_id_2,
-            c1.relationship_id,
+            COALESCE(c1.concept_id_1, c2.concept_id_1) AS concept_id_1,
+            COALESCE(c1.concept_id_2, c2.concept_id_2) AS concept_id_2,
+            COALESCE(c1.relationship_id, c2.relationship_id) AS relationship_id,
             c1.valid_start_date,
             c1.valid_end_date,
             c1.invalid_reason,
@@ -152,8 +178,8 @@ BEGIN
                               CASE WHEN c1.descendant_vocabulary_id IS DISTINCT FROM c2.descendant_vocabulary_id THEN 'descendant_vocabulary_id' END
                         )
                 END AS attribute_modified,
-            c1.ancestor_concept_id,
-            c1.descendant_concept_id,
+            COALESCE(c1.ancestor_concept_id, c2.ancestor_concept_id) AS ancestor_concept_id,
+            COALESCE(c1.descendant_concept_id, c2.descendant_concept_id) AS descendant_concept_id,
             c1.min_levels_of_separation,
             c1.max_levels_of_separation,
             c1.ancestor_vocabulary_id,
@@ -200,7 +226,7 @@ BEGIN
                               CASE WHEN c1.vocabulary_id IS DISTINCT FROM c2.vocabulary_id THEN 'vocabulary_id' END
                         )
                 END AS attribute_modified,
-            c1.concept_id,
+            COALESCE(c1.concept_id, c2.concept_id) AS concept_id,
             c1.concept_synonym_name,
             c1.language_concept_id,
             c1.vocabulary_id
@@ -244,7 +270,7 @@ BEGIN
                               CASE WHEN d1.domain_concept_id IS DISTINCT FROM d2.domain_concept_id THEN 'domain_concept_id' END
                         )
                 END AS attribute_modified,
-            d1.domain_id,
+            COALESCE(d1.domain_id, d2.domain_id) AS domain_id,
             d1.domain_name,
             d1.domain_concept_id
         FROM
@@ -293,7 +319,7 @@ BEGIN
                               CASE WHEN r1.relationship_concept_id IS DISTINCT FROM r2.relationship_concept_id THEN 'relationship_concept_id' END
                         )
                 END AS attribute_modified,
-            r1.relationship_id,
+            COALESCE(r1.relationship_id, r2.relationship_id) AS relationship_id,
             r1.relationship_name,
             r1.is_hierarchical,
             r1.defines_ancestry,
@@ -343,7 +369,7 @@ BEGIN
                               CASE WHEN v1.vocabulary_concept_id IS DISTINCT FROM v2.vocabulary_concept_id THEN 'vocabulary_concept_id' END
                         )
                 END AS attribute_modified,
-            v1.vocabulary_id,
+            COALESCE(v1.vocabulary_id, v2.vocabulary_id) AS vocabulary_id,
             v1.vocabulary_name,
             v1.vocabulary_reference,
             v1.vocabulary_version,
@@ -351,7 +377,7 @@ BEGIN
         FROM
             (SELECT * FROM vocabulary_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_id = ANY(pVocabularies)) v1
                 FULL JOIN
-            (SELECT * FROM vocabulary_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_id = ANY(pVocabularies)) v2
+            (SELECT * FROM vocabulary_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_id = ANY(pVocabularies) ) v2
             USING (vocabulary_id)
         WHERE
             ROW(v1.vocabulary_name, v1.vocabulary_reference, v1.vocabulary_version, v1.vocabulary_concept_id) IS DISTINCT FROM
@@ -406,7 +432,7 @@ BEGIN
                               CASE WHEN ds1.invalid_reason IS DISTINCT FROM ds2.invalid_reason THEN 'invalid_reason' END
                         )
                 END AS attribute_modified,
-            ds1.drug_concept_id,
+            COALESCE(ds1.drug_concept_id, ds2.drug_concept_id) AS drug_concept_id,
             ds1.ingredient_concept_id,
             ds1.amount_value,
             ds1.amount_unit_concept_id,
@@ -460,7 +486,7 @@ BEGIN
                               CASE WHEN cc1.concept_class_concept_id IS DISTINCT FROM cc2.concept_class_concept_id THEN 'concept_class_concept_id' END
                         )
                 END AS attribute_modified,
-            cc1.concept_class_id,
+            COALESCE(cc1.concept_class_id, cc2.concept_class_id) AS concept_class_id,
             cc1.concept_class_name,
             cc1.concept_class_concept_id,
             cc1.version
