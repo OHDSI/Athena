@@ -31,6 +31,7 @@ import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.VocabularyConversionRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
+import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import com.odysseusinc.athena.service.mail.EmailService;
 import com.odysseusinc.athena.service.saver.*;
 import com.odysseusinc.athena.service.writer.FileHelper;
@@ -46,7 +47,6 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.zip.ZipOutputStream;
 
 import org.springframework.scheduling.annotation.Async;
@@ -67,11 +67,12 @@ public class AsyncVocabularyService {
     private final List<SaverV5> saversV5;
     private final List<SaverV5History> saverV5Histories;
     private final List<SaverV5Delta> saverV5Deltas;
+    private final VocabularyReleaseVersionService versionService;
     private final UrlBuilder urlBuilder;
     private final VocabularyConversionRepository vocabularyConversionRepository;
     private final ZipWriter zipWriter;
 
-    public AsyncVocabularyService(DownloadBundleRepository downloadBundleRepository, DownloadBundleService downloadBundleService, EmailService emailService, FileHelper fileHelper, List<SaverV4> saversV4, List<SaverV5> saversV5, List<SaverV5History> saverV5Histories, List<SaverV5Delta> saverV5Deltas, UrlBuilder urlBuilder, VocabularyConversionRepository vocabularyConversionRepository, ZipWriter zipWriter) {
+    public AsyncVocabularyService(DownloadBundleRepository downloadBundleRepository, DownloadBundleService downloadBundleService, EmailService emailService, FileHelper fileHelper, List<SaverV4> saversV4, List<SaverV5> saversV5, List<SaverV5History> saverV5Histories, List<SaverV5Delta> saverV5Deltas, VocabularyReleaseVersionService versionService, UrlBuilder urlBuilder, VocabularyConversionRepository vocabularyConversionRepository, ZipWriter zipWriter) {
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadBundleService = downloadBundleService;
         this.emailService = emailService;
@@ -80,6 +81,7 @@ public class AsyncVocabularyService {
         this.saversV5 = saversV5;
         this.saverV5Histories = saverV5Histories;
         this.saverV5Deltas = saverV5Deltas;
+        this.versionService = versionService;
         this.urlBuilder = urlBuilder;
         this.vocabularyConversionRepository = vocabularyConversionRepository;
         this.zipWriter = zipWriter;
@@ -124,10 +126,10 @@ public class AsyncVocabularyService {
         if (bundle.getCdmVersion() == CDMVersion.V5 && bundle.isDelta()) {
             return saverV5Deltas;
         }
-        if (bundle.getCdmVersion() == CDMVersion.V5 && isCurrent(bundle.getVocabularyVersion()) && !bundle.isDelta()) {
+        if (bundle.getCdmVersion() == CDMVersion.V5 && versionService.isCurrent(bundle.getVocabularyVersion()) && !bundle.isDelta()) {
             return saversV5;
         }
-        if (bundle.getCdmVersion() == CDMVersion.V5 && !isCurrent(bundle.getVocabularyVersion()) && !bundle.isDelta()) {
+        if (bundle.getCdmVersion() == CDMVersion.V5 && !versionService.isCurrent(bundle.getVocabularyVersion()) && !bundle.isDelta()) {
             return saverV5Histories;
         }
 
@@ -144,11 +146,6 @@ public class AsyncVocabularyService {
                 return vocabularyConversionRepository.findIdsV5ByIdsV4(idV4s);
         }
         throw new NotExistException("Unsupported CDM version: " + bundle.getCdmVersion(), CDMVersion.class);
-    }
-
-    private boolean isCurrent(Integer version) {
-        // TODO dev: This is currently hardcoded and will be implemented as part of the AVD-13 stories.
-        return Objects.equals(20230831, version);
     }
 
 

@@ -42,6 +42,7 @@ import com.odysseusinc.athena.service.*;
 import com.odysseusinc.athena.service.impl.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +56,7 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.odysseusinc.athena.util.CDMVersion.getByValue;
 import static com.odysseusinc.athena.util.CDMVersion.notExist;
@@ -63,6 +65,9 @@ import static com.odysseusinc.athena.util.CDMVersion.notExist;
 @RestController
 @RequestMapping("/api/v1/vocabularies")
 public class VocabularyController extends AbstractVocabularyController {
+
+    @Autowired
+    private VocabularyReleaseVersionService versionService;
 
     @Operation(summary = "Save vocabularies.")
     @GetMapping("/save")
@@ -219,10 +224,10 @@ public class VocabularyController extends AbstractVocabularyController {
 
     @GetMapping("/vocabulary-release-versions")
     public List<VocabularyReleaseVersionDTO> releaseVersions() {
-        return Arrays.asList(
-                new VocabularyReleaseVersionDTO("20230831", "v20230831", true),
-                new VocabularyReleaseVersionDTO("20230131", "v20230131", false)
-        );
+
+        return this.versionService.getAll().stream().map(v ->
+                new VocabularyReleaseVersionDTO(v.getId(), v.getVocabularyName(), versionService.isCurrent(v))
+        ).collect(Collectors.toList());
     }
 
 }
