@@ -30,7 +30,7 @@ BEGIN
                 WHEN c1.concept_id IS NULL THEN 'D'
                 END AS row_change_type,
             CASE
-                WHEN pCsvView THEN
+                WHEN pCsvView AND c1.concept_id IS NOT NULL AND c2.concept_id IS NOT NULL THEN
                                                     CASE WHEN c1.concept_name IS DISTINCT FROM c2.concept_name THEN 'concept_name' ELSE '' END ||
                                                     CASE WHEN c1.domain_id IS DISTINCT FROM c2.domain_id THEN 'domain_id' ELSE '' END ||
                                                     CASE WHEN c1.vocabulary_id IS DISTINCT FROM c2.vocabulary_id THEN 'vocabulary_id' ELSE '' END ||
@@ -76,12 +76,12 @@ BEGIN
         FROM
             concept_history c1
         WHERE
-            c1.version = pVersion1 AND
+            c1.version = pVersion2 AND
             c1.vocabulary_id = ANY(pVocabularies) AND
             NOT EXISTS (
                 SELECT 1
                 FROM concept_history c2
-                WHERE c2.version = pVersion2 AND
+                WHERE c2.version = pVersion1 AND
                     c2.vocabulary_id = ANY(pVocabularies) AND
                     c2.concept_id = c1.concept_id
             );
@@ -102,9 +102,7 @@ CREATE OR REPLACE FUNCTION get_concept_relationship_delta(
                       relationship_id     varchar(20),
                       valid_start_date    date,
                       valid_end_date      date,
-                      invalid_reason      varchar(1),
-                      vocabulary_id_1     varchar(20),
-                      vocabulary_id_2     varchar(20)
+                      invalid_reason      varchar(1)
                   )
 AS $$
 BEGIN
@@ -116,7 +114,7 @@ BEGIN
                 ELSE 'U'
                 END AS row_change_type,
             CASE
-                WHEN pCsvView THEN
+                WHEN pCsvView AND c1.concept_id_1 IS NOT NULL AND c2.concept_id_1 IS NOT NULL THEN
                     CONCAT_WS(', ',
                               CASE WHEN c1.valid_start_date IS DISTINCT FROM c2.valid_start_date THEN 'valid_start_date' END,
                               CASE WHEN c1.valid_end_date IS DISTINCT FROM c2.valid_end_date THEN 'valid_end_date' END,
@@ -128,9 +126,7 @@ BEGIN
             COALESCE(c1.relationship_id, c2.relationship_id) AS relationship_id,
             c1.valid_start_date,
             c1.valid_end_date,
-            c1.invalid_reason,
-            c1.vocabulary_id_1,
-            c1.vocabulary_id_2
+            c1.invalid_reason
         FROM
             (SELECT * FROM concept_relationship_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_id_1 = ANY(pVocabularies) AND a1.vocabulary_id_2 = ANY(pVocabularies)) c1
                 FULL JOIN
@@ -154,9 +150,7 @@ CREATE OR REPLACE FUNCTION get_concept_ancestor_delta(
                       ancestor_concept_id       bigint,
                       descendant_concept_id     bigint,
                       min_levels_of_separation  bigint,
-                      max_levels_of_separation  bigint,
-                      ancestor_vocabulary_id    varchar(20),
-                      descendant_vocabulary_id  varchar(20)
+                      max_levels_of_separation  bigint
                   )
 AS $$
 BEGIN
@@ -181,9 +175,7 @@ BEGIN
             COALESCE(c1.ancestor_concept_id, c2.ancestor_concept_id) AS ancestor_concept_id,
             COALESCE(c1.descendant_concept_id, c2.descendant_concept_id) AS descendant_concept_id,
             c1.min_levels_of_separation,
-            c1.max_levels_of_separation,
-            c1.ancestor_vocabulary_id,
-            c1.descendant_vocabulary_id
+            c1.max_levels_of_separation
         FROM
             (SELECT * FROM concept_ancestor_history a1 WHERE a1.version = pVersion1 AND (a1.ancestor_vocabulary_id = ANY(pVocabularies) OR a1.descendant_vocabulary_id = ANY(pVocabularies))) c1
                 FULL JOIN
@@ -206,8 +198,7 @@ CREATE OR REPLACE FUNCTION get_concept_synonym_delta(
                       attribute_modified      text,
                       concept_id              bigint,
                       concept_synonym_name    varchar(1000),
-                      language_concept_id     bigint,
-                      vocabulary_id           varchar(20)
+                      language_concept_id     bigint
                   )
 AS $$
 BEGIN
@@ -227,14 +218,13 @@ BEGIN
                         )
                 END AS attribute_modified,
             COALESCE(c1.concept_id, c2.concept_id) AS concept_id,
-            c1.concept_synonym_name,
-            c1.language_concept_id,
-            c1.vocabulary_id
+            COALESCE(c1.concept_synonym_name, c2.concept_synonym_name) AS concept_synonym_name,
+            COALESCE(c1.language_concept_id, c2.language_concept_id) AS language_concept_id
         FROM
             (SELECT * FROM concept_synonym_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_id = ANY(pVocabularies)) c1
                 FULL JOIN
             (SELECT * FROM concept_synonym_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_id = ANY(pVocabularies)) c2
-            USING (concept_id)
+            USING (concept_id, concept_synonym_name, language_concept_id)
         WHERE
             ROW(c1.concept_synonym_name, c1.language_concept_id, c1.vocabulary_id) IS DISTINCT FROM
             ROW(c2.concept_synonym_name, c2.language_concept_id, c2.vocabulary_id);
@@ -405,8 +395,7 @@ CREATE OR REPLACE FUNCTION get_drug_strength_delta(
                       box_size                          integer,
                       valid_start_date                  date,
                       valid_end_date                    date,
-                      invalid_reason                    varchar(1),
-                      vocabulary_id                     varchar(20)
+                      invalid_reason                    varchar(1)
                   )
 AS $$
 BEGIN
@@ -433,7 +422,7 @@ BEGIN
                         )
                 END AS attribute_modified,
             COALESCE(ds1.drug_concept_id, ds2.drug_concept_id) AS drug_concept_id,
-            ds1.ingredient_concept_id,
+            COALESCE(ds1.ingredient_concept_id, ds2.ingredient_concept_id) AS ingredient_concept_id,
             ds1.amount_value,
             ds1.amount_unit_concept_id,
             ds1.numerator_value,
@@ -443,13 +432,12 @@ BEGIN
             ds1.box_size,
             ds1.valid_start_date,
             ds1.valid_end_date,
-            ds1.invalid_reason,
-            ds1.vocabulary_id
+            ds1.invalid_reason
         FROM
             (SELECT * FROM drug_strength_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_id = ANY(pVocabularies)) ds1
                 FULL JOIN
             (SELECT * FROM drug_strength_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_id = ANY(pVocabularies)) ds2
-            USING (drug_concept_id)
+            USING (drug_concept_id, ingredient_concept_id)
         WHERE
             ROW(ds1.amount_value, ds1.amount_unit_concept_id, ds1.numerator_value, ds1.numerator_unit_concept_id, ds1.denominator_value, ds1.denominator_unit_concept_id, ds1.box_size, ds1.valid_start_date, ds1.valid_end_date, ds1.invalid_reason) IS DISTINCT FROM
             ROW(ds2.amount_value, ds2.amount_unit_concept_id, ds2.numerator_value, ds2.numerator_unit_concept_id, ds2.denominator_value, ds2.denominator_unit_concept_id, ds2.box_size, ds2.valid_start_date, ds2.valid_end_date, ds2.invalid_reason);
@@ -467,8 +455,7 @@ CREATE OR REPLACE FUNCTION get_concept_class_delta(
                       attribute_modified         text,
                       concept_class_id           varchar(20),
                       concept_class_name         varchar(255),
-                      concept_class_concept_id   numeric(38),
-                      version                    integer
+                      concept_class_concept_id   numeric(38)
                   )
 AS $$
 BEGIN
@@ -488,12 +475,11 @@ BEGIN
                 END AS attribute_modified,
             COALESCE(cc1.concept_class_id, cc2.concept_class_id) AS concept_class_id,
             cc1.concept_class_name,
-            cc1.concept_class_concept_id,
-            cc1.version
+            cc1.concept_class_concept_id
         FROM
-            (SELECT * FROM concept_class_history a1 WHERE a1.version = pVersion1 AND a1.concept_class_id = ANY(pVocabularies)) cc1
+            (SELECT * FROM concept_class_history a1 WHERE a1.version = pVersion1) cc1
                 FULL JOIN
-            (SELECT * FROM concept_class_history a2 WHERE a2.version = pVersion2 AND a2.concept_class_id = ANY(pVocabularies)) cc2
+            (SELECT * FROM concept_class_history a2 WHERE a2.version = pVersion2) cc2
             USING (concept_class_id)
         WHERE
             ROW(cc1.concept_class_name, cc1.concept_class_concept_id) IS DISTINCT FROM

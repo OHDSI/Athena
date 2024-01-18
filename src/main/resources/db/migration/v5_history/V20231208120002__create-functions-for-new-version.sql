@@ -5,30 +5,36 @@ DECLARE
     table_name text;
 BEGIN
     table_name := format('%I.concept_history_%s', p_schema, p_version);
-    EXECUTE format('DROP TABLE IF EXISTS %I CASCADE;', table_name);
+    EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
 
     table_name := format('%I.concept_ancestor_history_%s', p_schema, p_version);
-    EXECUTE format('DROP TABLE IF EXISTS %I CASCADE;', table_name);
+    EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
 
     table_name := format('%I.concept_class_history_%s', p_schema, p_version);
-    EXECUTE format('DROP TABLE IF EXISTS %I CASCADE;', table_name);
+    EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
 
     table_name := format('%I.concept_relationship_history_%s', p_schema, p_version);
-    EXECUTE format('DROP TABLE IF EXISTS %I CASCADE;', table_name);
+    EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
 
     table_name := format('%I.concept_synonym_history_%s', p_schema, p_version);
-    EXECUTE format('DROP TABLE IF EXISTS %I CASCADE;', table_name);
+    EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
 
-    EXECUTE format('DROP TABLE IF EXISTS %I CASCADE;', table_name);
+    table_name := format('%I.concept_relationship_history_%s', p_schema, p_version);
+    EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
 
     table_name := format('%I.domain_history_%s', p_schema, p_version);
-    EXECUTE format('DROP TABLE IF EXISTS %I CASCADE;', table_name);
+    EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
+
+    table_name := format('%I.drug_strength_history_%s', p_schema, p_version);
+    EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
 
     table_name := format('%I.relationship_history_%s', p_schema, p_version);
-    EXECUTE format('DROP TABLE IF EXISTS %I CASCADE;', table_name);
+    EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
 
     table_name := format('%I.vocabulary_history_%s', p_schema, p_version);
-    EXECUTE format('DROP TABLE IF EXISTS %I CASCADE;', table_name);
+    EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
+
+    DELETE FROM vocabulary_release_version WHERE id = p_version;
 
     RAISE NOTICE 'Partitions for version % in schema % have been removed.', p_version, p_schema;
 END;
@@ -39,6 +45,15 @@ CREATE OR REPLACE FUNCTION addVersionToHistory(p_version integer, p_target_schem
     RETURNS void AS
 $$
 BEGIN
+    RAISE NOTICE 'Step 0: Add new version to the vocabulary_release_version...';
+    INSERT INTO vocabulary_release_version (id, vocabulary_name, athena_name)
+    VALUES (
+               p_version,
+               TO_CHAR(to_date(CAST(p_version as text), 'YYYYMMDD'), '"v"YYYYMMDD'),
+               TO_CHAR(to_date(CAST(p_version as text), 'YYYYMMDD'), '"v5.0 "DD-MON-YY')
+           );
+
+
     RAISE NOTICE 'Step 1: Concepts...';
     EXECUTE format('
         CREATE TABLE %I.concept_history_%s PARTITION OF %I.concept_history FOR VALUES IN (%s);
