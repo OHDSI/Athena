@@ -78,7 +78,8 @@ public class ZipWriter {
             if (deltaDir.exists()) {
                 addFolderToZip(deltaDir, zos, deltaDir.getAbsolutePath());
             } else {
-                addResourceFolderToZip(zos, DELTA_FILES_PATH);
+//                TODO DEV AVD-39 The default README is not obtained from the resources.
+//                addResourceFolderToZip(zos, DELTA_FILES_PATH);
             }
         } else if (bundle.isCpt4()) {
             File filesStoreDir = V4_5 == bundle.getCdmVersion() ? new File(cpt4V4Files) : new File(cpt4V5Files);
