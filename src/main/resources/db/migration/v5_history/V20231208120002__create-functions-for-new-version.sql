@@ -1,9 +1,10 @@
-CREATE OR REPLACE FUNCTION removeVersionFromHistory(p_version integer, p_schema text)
+CREATE OR REPLACE FUNCTION remove_version_from_history(p_version integer, p_schema text)
     RETURNS void AS
 $$
 DECLARE
     table_name text;
 BEGIN
+
     table_name := format('%I.concept_history_%s', p_schema, p_version);
     EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
 
@@ -19,9 +20,6 @@ BEGIN
     table_name := format('%I.concept_synonym_history_%s', p_schema, p_version);
     EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
 
-    table_name := format('%I.concept_relationship_history_%s', p_schema, p_version);
-    EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
-
     table_name := format('%I.domain_history_%s', p_schema, p_version);
     EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
 
@@ -34,25 +32,40 @@ BEGIN
     table_name := format('%I.vocabulary_history_%s', p_schema, p_version);
     EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', table_name);
 
-    DELETE FROM vocabulary_release_version WHERE id = p_version;
-
+    EXECUTE format('DELETE FROM %I.vocabulary_release_version WHERE id = %s', p_schema, p_version, p_schema);
     RAISE NOTICE 'Partitions for version % in schema % have been removed.', p_version, p_schema;
 END;
 $$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION addVersionToHistory(p_version integer, p_target_schema text, p_source_schema text)
+CREATE OR REPLACE FUNCTION get_vocabulary_version(
+    p_schema VARCHAR,
+    OUT v_version INTEGER,
+    OUT p_version_label VARCHAR(50)
+) RETURNS RECORD AS $$
+DECLARE
+    version_text VARCHAR(50);
+    version_date DATE;
+BEGIN
+    EXECUTE 'SELECT vocabulary_version FROM ' || p_schema || '.vocabulary WHERE vocabulary_id = ''None'' ' INTO version_text;
+    version_date := TO_DATE(SUBSTRING(version_text FROM '\d{2}-[A-Za-z]{3}-\d{2}'), 'DD-Mon-YY');
+
+    v_version := EXTRACT(YEAR FROM version_date) * 10000 + EXTRACT(MONTH FROM version_date) * 100 + EXTRACT(DAY FROM version_date);
+    p_version_label := version_text;
+    RETURN;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION add_version_to_history(p_version integer, p_version_label text, p_target_schema text, p_source_schema text)
     RETURNS void AS
 $$
 BEGIN
     RAISE NOTICE 'Step 0: Add new version to the vocabulary_release_version...';
-    INSERT INTO vocabulary_release_version (id, vocabulary_name, athena_name)
-    VALUES (
-               p_version,
-               TO_CHAR(to_date(CAST(p_version as text), 'YYYYMMDD'), '"v"YYYYMMDD'),
-               TO_CHAR(to_date(CAST(p_version as text), 'YYYYMMDD'), '"v5.0 "DD-MON-YY')
-           );
-
+    EXECUTE format(
+            'INSERT INTO %I.vocabulary_release_version (id, vocabulary_name, athena_name) VALUES (%s, %L, %L)',
+            p_target_schema,
+            p_version, 'v'||p_version, p_version_label
+    );
 
     RAISE NOTICE 'Step 1: Concepts...';
     EXECUTE format('
@@ -78,7 +91,6 @@ BEGIN
                     p_version, p_source_schema, p_source_schema, p_source_schema
         );
 
-
     RAISE NOTICE 'Step 3: Concept Relationships...';
     EXECUTE format('
         CREATE TABLE %I.concept_relationship_history_%s PARTITION OF %I.concept_relationship_history FOR VALUES IN (%s);
@@ -92,8 +104,6 @@ BEGIN
                    p_version, p_source_schema, p_source_schema, p_source_schema
         );
 
-
-
     RAISE NOTICE 'Step 4: Concept Classes...';
     EXECUTE format('
         CREATE TABLE %I.concept_class_history_%s PARTITION OF %I.concept_class_history FOR VALUES IN (%s);
@@ -104,8 +114,6 @@ BEGIN
                    p_target_schema, p_version,
                    p_version, p_source_schema
         );
-
-
 
     RAISE NOTICE 'Step 5: Concept Synonyms...';
     EXECUTE format('
@@ -163,7 +171,31 @@ BEGIN
                    p_target_schema, p_version,
                    p_version, p_source_schema
         );
+END;
+$$
+LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION import_new_version(
+    p_target_schema VARCHAR,
+    p_source_schema VARCHAR
+) RETURNS VOID AS
+$$
+DECLARE
+    v_version INTEGER;
+    v_version_label VARCHAR(50);
+BEGIN
+    RAISE NOTICE 'Get new version information...';
+--    For some reason this simple SELECT INTO does not work here, as workaround split it to the two queries. SELECT get_vocabulary_version(p_source_schema) INTO v_version, v_version_label
+    SELECT (get_vocabulary_version(p_source_schema)).v_version INTO v_version;
+    SELECT (get_vocabulary_version(p_source_schema)).p_version_label INTO v_version_label;
+
+    RAISE NOTICE 'Remove version % from history...', v_version;
+    PERFORM remove_version_from_history(v_version, p_target_schema);
+
+    RAISE NOTICE 'Add new version to history...';
+    PERFORM add_version_to_history(v_version, v_version_label, p_target_schema, p_source_schema);
+
+    RAISE NOTICE 'Import process completed successfully.';
 END;
 $$
 LANGUAGE plpgsql;
