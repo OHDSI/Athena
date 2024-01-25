@@ -60,7 +60,7 @@ CREATE OR REPLACE FUNCTION add_version_to_history(p_version integer, p_version_l
     RETURNS void AS
 $$
 BEGIN
-    RAISE NOTICE 'Step 0: Add new version to the vocabulary_release_version...';
+    RAISE NOTICE 'Step 0: Add new version to the vocabulary_release_version. Version: %, Label: %', p_version, p_version_label;
     EXECUTE format(
             'INSERT INTO %I.vocabulary_release_version (id, vocabulary_name, athena_name) VALUES (%s, %L, %L)',
             p_target_schema,

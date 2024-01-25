@@ -39,7 +39,6 @@ import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.service.*;
-import com.odysseusinc.athena.service.impl.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,10 +52,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static com.odysseusinc.athena.util.CDMVersion.getByValue;
 import static com.odysseusinc.athena.util.CDMVersion.notExist;
@@ -71,7 +68,7 @@ public class VocabularyController extends AbstractVocabularyController {
 
     @Operation(summary = "Save vocabularies.")
     @GetMapping("/save")
-    public void save(@RequestParam(value = "cdmVersion", defaultValue = "5") float version,
+    public void save(@RequestParam(value = "cmdVersion", defaultValue = "5") float cmdVersion,
                      @RequestParam(value = "ids") List<Integer> idV4s,
                      @RequestParam(value = "name") String bundleName,
                      // TODO DEV: The vocabulary versions should be extracted to a separate table. Currently, we just store them as integer numbers. AVD-13
@@ -79,16 +76,22 @@ public class VocabularyController extends AbstractVocabularyController {
                      @RequestParam(value = "delta", defaultValue = "false") boolean delta,
                      @RequestParam(value = "deltaVersion", required = false) Integer deltaVersion) throws IOException {
 
-        if (notExist(version)) {
-            throw new ValidationException("No supported version " + version);
+        if (notExist(cmdVersion)) {
+            throw new ValidationException("No supported CDM version " + cmdVersion);
+        }
+        if (delta && versionService.isCurrentMissingInHistory(vocabularyVersion)){
+            throw new ValidationException("The current version has not been uploaded to historical data. The delta cannot be created. Please contact the administrator.");
+        }
+        if (delta && deltaVersion== null) {
+            throw new ValidationException("The Delta version should be set.");
         }
         if (delta && !(deltaVersion < vocabularyVersion)) {
             throw new ValidationException("The Delta version should be lower than the Vocabulary version");
         }
-        //TODO DEV: check that delta version is set
+
         AthenaUser currentUser = userService.getCurrentUser();
         DownloadBundle bundle = vocabularyService.saveBundle(
-                bundleName, idV4s, currentUser, getByValue(version),
+                bundleName, idV4s, currentUser, getByValue(cmdVersion),
                 vocabularyVersion, delta, deltaVersion
         );
         vocabularyService.saveContent(bundle, currentUser);
@@ -225,9 +228,7 @@ public class VocabularyController extends AbstractVocabularyController {
     @GetMapping("/vocabulary-release-versions")
     public List<VocabularyReleaseVersionDTO> releaseVersions() {
 
-        return this.versionService.getAll().stream().map(v ->
-                new VocabularyReleaseVersionDTO(v.getId(), v.getVocabularyName(), versionService.isCurrent(v))
-        ).collect(Collectors.toList());
+        return versionService.getReleaseVersions();
     }
 
 }
