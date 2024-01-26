@@ -31,15 +31,17 @@ BEGIN
                 END AS row_change_type,
             CASE
                 WHEN pCsvView AND c1.concept_id IS NOT NULL AND c2.concept_id IS NOT NULL THEN
-                                                    CASE WHEN c1.concept_name IS DISTINCT FROM c2.concept_name THEN 'concept_name' ELSE '' END ||
-                                                    CASE WHEN c1.domain_id IS DISTINCT FROM c2.domain_id THEN 'domain_id' ELSE '' END ||
-                                                    CASE WHEN c1.vocabulary_id IS DISTINCT FROM c2.vocabulary_id THEN 'vocabulary_id' ELSE '' END ||
-                                                    CASE WHEN c1.concept_class_id IS DISTINCT FROM c2.concept_class_id THEN 'concept_class_id' ELSE '' END ||
-                                                    CASE WHEN c1.standard_concept IS DISTINCT FROM c2.standard_concept THEN 'standard_concept' ELSE '' END ||
-                                                    CASE WHEN c1.concept_code IS DISTINCT FROM c2.concept_code THEN 'concept_code' ELSE '' END ||
-                                                    CASE WHEN c1.valid_start_date IS DISTINCT FROM c2.valid_start_date THEN 'valid_start_date' ELSE '' END ||
-                                                    CASE WHEN c1.valid_end_date IS DISTINCT FROM c2.valid_end_date THEN 'valid_end_date' ELSE '' END ||
-                                                    CASE WHEN c1.invalid_reason IS DISTINCT FROM c2.invalid_reason THEN 'invalid_reason' ELSE '' END
+                    CONCAT_WS(', ',
+                              CASE WHEN c1.concept_name IS DISTINCT FROM c2.concept_name THEN 'concept_name' END,
+                              CASE WHEN c1.domain_id IS DISTINCT FROM c2.domain_id THEN 'domain_id' END,
+                              CASE WHEN c1.vocabulary_id IS DISTINCT FROM c2.vocabulary_id THEN 'vocabulary_id' END,
+                              CASE WHEN c1.concept_class_id IS DISTINCT FROM c2.concept_class_id THEN 'concept_class_id' END,
+                              CASE WHEN c1.standard_concept IS DISTINCT FROM c2.standard_concept THEN 'standard_concept' END,
+                              CASE WHEN c1.concept_code IS DISTINCT FROM c2.concept_code THEN 'concept_code' END,
+                              CASE WHEN c1.valid_start_date IS DISTINCT FROM c2.valid_start_date THEN 'valid_start_date' END,
+                              CASE WHEN c1.valid_end_date IS DISTINCT FROM c2.valid_end_date THEN 'valid_end_date' END,
+                              CASE WHEN c1.invalid_reason IS DISTINCT FROM c2.invalid_reason THEN 'invalid_reason' END
+                    )
                 END AS attribute_modified,
             COALESCE(c1.concept_id, c2.concept_id) AS concept_id,
             c1.concept_name,
