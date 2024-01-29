@@ -109,34 +109,59 @@ CREATE OR REPLACE FUNCTION get_concept_relationship_delta(
 AS $$
 BEGIN
     RETURN QUERY
-        SELECT
-            CASE
-                WHEN c2.concept_id_1 IS NULL THEN 'I'
-                WHEN c1.concept_id_1 IS NULL THEN 'D'
-                ELSE 'U'
-                END AS row_change_type,
-            CASE
-                WHEN pCsvView AND c1.concept_id_1 IS NOT NULL AND c2.concept_id_1 IS NOT NULL THEN
-                    CONCAT_WS(', ',
-                              CASE WHEN c1.valid_start_date IS DISTINCT FROM c2.valid_start_date THEN 'valid_start_date' END,
-                              CASE WHEN c1.valid_end_date IS DISTINCT FROM c2.valid_end_date THEN 'valid_end_date' END,
-                              CASE WHEN c1.invalid_reason IS DISTINCT FROM c2.invalid_reason THEN 'invalid_reason' END
+        WITH concept_relationship_changes AS (
+            SELECT
+                CASE
+                    WHEN c2.concept_id_1 IS NULL THEN 'I'
+                    WHEN c1.concept_id_1 IS NULL THEN 'D'
+                    ELSE 'U'
+                    END AS row_change_type,
+                CASE
+                    WHEN pCsvView AND c1.concept_id_1 IS NOT NULL AND c2.concept_id_1 IS NOT NULL THEN
+                        CONCAT_WS(', ',
+                                  CASE WHEN c1.valid_start_date IS DISTINCT FROM c2.valid_start_date THEN 'valid_start_date' END,
+                                  CASE WHEN c1.valid_end_date IS DISTINCT FROM c2.valid_end_date THEN 'valid_end_date' END,
+                                  CASE WHEN c1.invalid_reason IS DISTINCT FROM c2.invalid_reason THEN 'invalid_reason' END
                         )
-                END AS attribute_modified,
-            COALESCE(c1.concept_id_1, c2.concept_id_1) AS concept_id_1,
-            COALESCE(c1.concept_id_2, c2.concept_id_2) AS concept_id_2,
-            COALESCE(c1.relationship_id, c2.relationship_id) AS relationship_id,
-            c1.valid_start_date,
-            c1.valid_end_date,
-            c1.invalid_reason
-        FROM
-            (SELECT * FROM concept_relationship_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_id_1 = ANY(pVocabularies) AND a1.vocabulary_id_2 = ANY(pVocabularies)) c1
-                FULL JOIN
-            (SELECT * FROM concept_relationship_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_id_1 = ANY(pVocabularies) AND a2.vocabulary_id_2 = ANY(pVocabularies)) c2
-            USING (concept_id_1, concept_id_2, relationship_id)
-        WHERE
-            ROW(c1.valid_start_date, c1.valid_end_date, c1.invalid_reason) IS DISTINCT FROM
-            ROW(c2.valid_start_date, c2.valid_end_date, c2.invalid_reason);
+                    END AS attribute_modified,
+                COALESCE(c1.concept_id_1, c2.concept_id_1) AS concept_id_1,
+                COALESCE(c1.concept_id_2, c2.concept_id_2) AS concept_id_2,
+                COALESCE(c1.relationship_id, c2.relationship_id) AS relationship_id,
+                COALESCE(c1.reverse_relationship_id, c2.reverse_relationship_id) AS reverse_relationship_id,
+                c1.valid_start_date,
+                c1.valid_end_date,
+                c1.invalid_reason
+            FROM
+                (SELECT * FROM concept_relationship_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_id_1 = ANY(pVocabularies) AND a1.vocabulary_id_2 = ANY(pVocabularies)) c1
+                    FULL JOIN
+                (SELECT * FROM concept_relationship_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_id_1 = ANY(pVocabularies) AND a2.vocabulary_id_2 = ANY(pVocabularies)) c2
+                USING (concept_id_1, concept_id_2, relationship_id)
+            WHERE
+                ROW(c1.valid_start_date, c1.valid_end_date, c1.invalid_reason) IS DISTINCT FROM
+                ROW(c2.valid_start_date, c2.valid_end_date, c2.invalid_reason)
+        )
+        SELECT
+            crc1.row_change_type,
+            crc1.attribute_modified,
+            crc1.concept_id_1,
+            crc1.concept_id_2,
+            crc1.relationship_id,
+            crc1.valid_start_date,
+            crc1.valid_end_date,
+            crc1.invalid_reason
+        FROM concept_relationship_changes crc1
+        UNION ALL
+        -- reversed relationships
+        SELECT
+            crc2.row_change_type,
+            crc2.attribute_modified,
+            crc2.concept_id_2 AS concept_id_1,
+            crc2.concept_id_1 AS concept_id_2,
+            crc2.reverse_relationship_id,
+            crc2.valid_start_date,
+            crc2.valid_end_date,
+            crc2.invalid_reason
+     FROM concept_relationship_changes crc2;
 END;
 $$ LANGUAGE plpgsql;
 
