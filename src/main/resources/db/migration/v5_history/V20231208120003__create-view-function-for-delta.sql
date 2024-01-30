@@ -64,32 +64,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION get_deleted_concepts_delta(
-    pVersion1 integer,
-    pVersion2 integer,
-    pVocabularies text[]
-)
-    RETURNS TABLE (concept_id bigint)
-AS $$
-BEGIN
-    RETURN QUERY
-        SELECT
-            c1.concept_id AS concept_id
-        FROM
-            concept_history c1
-        WHERE
-            c1.version = pVersion2 AND
-            c1.vocabulary_id = ANY(pVocabularies) AND
-            NOT EXISTS (
-                SELECT 1
-                FROM concept_history c2
-                WHERE c2.version = pVersion1 AND
-                    c2.vocabulary_id = ANY(pVocabularies) AND
-                    c2.concept_id = c1.concept_id
-            );
-END;
-$$ LANGUAGE plpgsql;
-
 CREATE OR REPLACE FUNCTION get_concept_relationship_delta(
     pVersion1 integer,
     pVersion2 integer,
