@@ -16,11 +16,13 @@ BEGIN
                 WHEN row_change_type = 'U' THEN FORMAT('UPDATE concept SET  (concept_name, domain_id, vocabulary_id, concept_class_id, standard_concept, concept_code, valid_start_date, valid_end_date, invalid_reason) = ' ||
                                                                            '(%L, %L, %L, %L, %L, %L, %L, %L, %L) WHERE concept_id=%s;',
                                                                              concept_name, domain_id, vocabulary_id, concept_class_id, standard_concept, concept_code, valid_start_date, valid_end_date, invalid_reason, concept_id)
+                WHEN row_change_type = 'D' THEN FORMAT('DELETE FROM concept WHERE concept_id=%s;', concept_id)
+
                 END AS script_text,
             row_change_type,
             concept_class_id
         FROM get_concept_delta(pVersion1, pVersion2, pVocabularies, false)
-        WHERE row_change_type IN ('I', 'U')),
+        ),
          RelationshipScript AS (
              SELECT
                  CASE
