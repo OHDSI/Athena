@@ -37,7 +37,6 @@ public class ConceptRelationshipVersionSaver extends HistorySaver implements Sav
 
     @Override
     protected String query() {
-         // TODO Dev: Currently, the function only returns half of all relations; there should be duplicates with the reverse direction.
         return "SELECT " +
                 "  concept_id_1, " +
                 "  concept_id_2, " +
@@ -46,7 +45,19 @@ public class ConceptRelationshipVersionSaver extends HistorySaver implements Sav
                 "  valid_end_date, " +
                 "  invalid_reason " +
                 "FROM concept_relationship_history " +
-                "WHERE (vocabulary_id_1 IN( :vocabularyIds) OR vocabulary_id_2 IN (:vocabularyIds)) " +
+                "WHERE (vocabulary_id_1 IN (:vocabularyIds) OR vocabulary_id_2 IN (:vocabularyIds)) " +
+                "  AND version = :version " +
+                "UNION ALL " +
+                "SELECT " +
+                "  concept_id_2 AS concept_id_1, " +
+                "  concept_id_1 AS concept_id_2, " +
+                "  reverse_relationship_id AS relationship_id, " +
+                "  valid_start_date, " +
+                "  valid_end_date, " +
+                "  invalid_reason " +
+                "FROM concept_relationship_history " +
+                "WHERE (vocabulary_id_1 IN (:vocabularyIds) OR vocabulary_id_2 IN (:vocabularyIds)) " +
                 "  AND version = :version";
+
     }
 }

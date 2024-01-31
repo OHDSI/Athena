@@ -92,17 +92,31 @@ BEGIN
         );
 
     RAISE NOTICE 'Step 3: Concept Relationships...';
+    -- Inserting only half of the concept relationships
     EXECUTE format('
         CREATE TABLE %I.concept_relationship_history_%s PARTITION OF %I.concept_relationship_history FOR VALUES IN (%s);
         INSERT INTO %I.concept_relationship_history_%s
-        SELECT cr.*, c1.VOCABULARY_ID AS VOCABULARY_ID_1, c2.VOCABULARY_ID AS VOCABULARY_ID_2, %s AS VERSION
+        SELECT
+            cr.concept_id_1,
+            cr.concept_id_2,
+            rl.relationship_id,
+            rl.reverse_relationship_id,
+            cr.valid_start_date,
+            cr.valid_end_date,
+            cr.invalid_reason,
+            c1.VOCABULARY_ID AS VOCABULARY_ID_1,
+            c2.VOCABULARY_ID AS VOCABULARY_ID_2,
+            %s AS VERSION
         FROM %I.concept_relationship AS cr
-                 JOIN %I.CONCEPT AS c1 ON cr.CONCEPT_ID_1 = c1.CONCEPT_ID
-                 JOIN %I.CONCEPT AS c2 ON cr.CONCEPT_ID_2 = c2.CONCEPT_ID;',
+        JOIN %I.relationship AS rl ON cr.relationship_id = rl.relationship_id
+        JOIN %I.concept AS c1 ON cr.CONCEPT_ID_1 = c1.CONCEPT_ID
+        JOIN %I.concept AS c2 ON cr.CONCEPT_ID_2 = c2.CONCEPT_ID
+        WHERE cr.relationship_id > rl.reverse_relationship_id ',
                    p_target_schema, p_version, p_target_schema, p_version,
                    p_target_schema, p_version,
-                   p_version, p_source_schema, p_source_schema, p_source_schema
-        );
+                   p_version, p_source_schema, p_source_schema, p_source_schema, p_source_schema
+            );
+
 
     RAISE NOTICE 'Step 4: Concept Classes...';
     EXECUTE format('

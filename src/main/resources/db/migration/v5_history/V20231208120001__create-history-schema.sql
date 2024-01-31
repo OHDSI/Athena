@@ -37,6 +37,7 @@ CREATE TABLE public.concept_relationship_history
     concept_id_1     bigint      not null,
     concept_id_2     bigint      not null,
     relationship_id  varchar(20) not null,
+    reverse_relationship_id  varchar(20) not null,
     valid_start_date date        not null,
     valid_end_date   date        not null,
     invalid_reason   varchar(1),
