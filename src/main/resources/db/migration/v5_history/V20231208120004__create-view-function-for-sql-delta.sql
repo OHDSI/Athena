@@ -127,9 +127,9 @@ BEGIN
         FROM (
                  SELECT
                      CASE
-                         WHEN cs.row_change_type = 'D' AND cs.script_text IN ('Concept Class', 'Domain', 'Relationship', 'Vocabulary') THEN 16
+                         WHEN cs.row_change_type = 'D' AND cs.concept_class_id IN ('Concept Class', 'Domain', 'Relationship', 'Vocabulary') THEN 16
                          WHEN cs.row_change_type = 'D' THEN 11
-                         WHEN cs.script_text IN ('Concept Class', 'Domain', 'Relationship', 'Vocabulary') THEN 1 ELSE 6
+                         WHEN cs.concept_class_id IN ('Concept Class', 'Domain', 'Relationship', 'Vocabulary') THEN 1 ELSE 6
                      END AS script_number, cs.script_text
                  FROM ConceptScript cs
                  UNION ALL

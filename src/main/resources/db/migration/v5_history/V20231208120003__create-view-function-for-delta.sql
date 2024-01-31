@@ -153,9 +153,9 @@ BEGIN
             c1.min_levels_of_separation,
             c1.max_levels_of_separation
         FROM
-            (SELECT * FROM concept_ancestor_history a1 WHERE a1.version = pVersion1 AND (a1.ancestor_vocabulary_id = ANY(pVocabularies) OR a1.descendant_vocabulary_id = ANY(pVocabularies))) c1
+            (SELECT * FROM concept_ancestor_history a1 WHERE a1.version = pVersion1 AND (a1.ancestor_vocabulary_id = ANY(pVocabularies) AND a1.descendant_vocabulary_id = ANY(pVocabularies))) c1
                 FULL JOIN
-            (SELECT * FROM concept_ancestor_history a2 WHERE a2.version = pVersion2 AND (a2.ancestor_vocabulary_id = ANY(pVocabularies) OR a2.descendant_vocabulary_id = ANY(pVocabularies))) c2
+            (SELECT * FROM concept_ancestor_history a2 WHERE a2.version = pVersion2 AND (a2.ancestor_vocabulary_id = ANY(pVocabularies) AND a2.descendant_vocabulary_id = ANY(pVocabularies))) c2
             USING (ancestor_concept_id, descendant_concept_id)
         WHERE
             ROW(c1.min_levels_of_separation, c1.max_levels_of_separation) IS DISTINCT FROM
