@@ -28,7 +28,7 @@ BEGIN
                  CASE
                      WHEN row_change_type = 'I' THEN FORMAT ('INSERT INTO relationship (relationship_name, is_hierarchical, defines_ancestry, reverse_relationship_id, relationship_concept_id, relationship_id) VALUES ' ||
                                                                                       '(%L, %L, %L, %L, %s, %L);',
-                                                                                        relationship_name, is_hierarchical, defines_ancestry, reverse_relationship_id, relationship_concept_id, relationship_id)
+                                                                                        relationship_name, is_hierarchical, defines_ancestry, relationship_id, relationship_concept_id, relationship_id)
                      WHEN row_change_type = 'U' THEN FORMAT ('UPDATE relationship SET  (relationship_name, is_hierarchical, defines_ancestry, reverse_relationship_id, relationship_concept_id) = ' ||
                                                                                       '(%L, %L, %L, %L, %s) WHERE relationship_id = %L;',
                                                                                         relationship_name, is_hierarchical, defines_ancestry, reverse_relationship_id, relationship_concept_id,    relationship_id)
@@ -36,6 +36,23 @@ BEGIN
                      END AS script_text,
                  row_change_type
              FROM get_relationship_delta(pVersion1, pVersion2, pVocabularies, false)
+         ),
+         --We cannot directly set the reverse_relationship_id for a recursive relationship.
+        -- All relationships should be added first. Only after that, the proper reverse_relationship_id can be set.
+         RelationshipUpdateForInsertScript AS (
+             SELECT
+                 FORMAT ('UPDATE relationship SET reverse_relationship_id = %L WHERE relationship_id = %L;', reverse_relationship_id, relationship_id)
+                  script_text
+             FROM get_relationship_delta(pVersion1, pVersion2, pVocabularies, false) r
+             WHERE r.row_change_type = 'I'
+         ),
+
+         RelationshipUpdateForDeleteScript AS (
+             SELECT
+                 FORMAT ('UPDATE relationship SET reverse_relationship_id = %L WHERE relationship_id = %L;', relationship_id, relationship_id)
+                     script_text
+             FROM get_relationship_delta(pVersion1, pVersion2, pVocabularies, false) r
+             WHERE r.row_change_type = 'D'
          ),
 
          ConceptAncestorScript AS (
@@ -127,46 +144,52 @@ BEGIN
         FROM (
                  SELECT
                      CASE
-                         WHEN cs.row_change_type = 'D' AND cs.concept_class_id IN ('Concept Class', 'Domain', 'Relationship', 'Vocabulary') THEN 16
-                         WHEN cs.row_change_type = 'D' THEN 11
-                         WHEN cs.concept_class_id IN ('Concept Class', 'Domain', 'Relationship', 'Vocabulary') THEN 1 ELSE 6
+                         WHEN cs.row_change_type = 'D' AND cs.concept_class_id IN ('Concept Class', 'Domain', 'Relationship', 'Vocabulary') THEN 160
+                         WHEN cs.row_change_type = 'D' THEN 110
+                         WHEN cs.concept_class_id IN ('Concept Class', 'Domain', 'Relationship', 'Vocabulary') THEN 10 ELSE 60
                      END AS script_number, cs.script_text
                  FROM ConceptScript cs
                  UNION ALL
                  SELECT
                      CASE
-                         WHEN ccs.row_change_type = 'D' THEN 12 ELSE 2
+                         WHEN ccs.row_change_type = 'D' THEN 120 ELSE 20
                      END AS script_number, ccs.script_text
                  FROM ConceptClassScript ccs
                  UNION ALL
                  SELECT
                      CASE
-                         WHEN ds.row_change_type = 'D' THEN 13 ELSE 3
+                         WHEN ds.row_change_type = 'D' THEN 130 ELSE 30
                      END AS script_number, ds.script_text
                  FROM DomainScript ds
                  UNION ALL
                  SELECT
                      CASE
-                         WHEN rs.row_change_type = 'D' THEN 14 ELSE 4
+                         WHEN rs.row_change_type = 'D' THEN 140 ELSE 40
                      END AS script_number, rs.script_text
                  FROM RelationshipScript rs
                  UNION ALL
+                 SELECT 41 AS script_number, rs.script_text
+                 FROM RelationshipUpdateForInsertScript rs
+                 UNION ALL
+                 SELECT 139 AS script_number, rs.script_text
+                 FROM RelationshipUpdateForDeleteScript rs
+                 UNION ALL
                  SELECT
                      CASE
-                         WHEN vs.row_change_type = 'D' THEN 15 ELSE 5
+                         WHEN vs.row_change_type = 'D' THEN 150 ELSE 50
                      END AS script_number, vs.script_text
                  FROM VocabularyScript vs
                  UNION ALL
-                 SELECT 7 script_number, cas.script_text
+                 SELECT 70 script_number, cas.script_text
                  FROM ConceptAncestorScript cas
                  UNION ALL
-                 SELECT 8 script_number, crs.script_text
+                 SELECT 80 script_number, crs.script_text
                  FROM ConceptRelationshipScript crs
                  UNION ALL
-                 SELECT 9 script_number, css.script_text
+                 SELECT 90 script_number, css.script_text
                  FROM ConceptSynonymScript css
                  UNION ALL
-                 SELECT 10 script_number, dss.script_text
+                 SELECT 100 script_number, dss.script_text
                  FROM DrugStrengthScript dss
              ) as sqls
         ORDER BY sqls.script_number;
