@@ -5,6 +5,32 @@ CREATE OR REPLACE FUNCTION get_sql_statements_delta(
 )
     RETURNS TABLE (script_text TEXT)
 AS $$
+DECLARE
+    -- Constants for Delete Operations (D)
+    CONCEPT_ANCESTOR_D      CONSTANT INTEGER := 10;
+    CONCEPT_RELATIONSHIP_D  CONSTANT INTEGER := 20;
+    CONCEPT_SYNONYM_D       CONSTANT INTEGER := 30;
+    DRUG_STRENGTH_D         CONSTANT INTEGER := 40;
+    CONCEPT_D               CONSTANT INTEGER := 50;
+    CONCEPT_CLASS_D         CONSTANT INTEGER := 60;
+    DOMAIN_D                CONSTANT INTEGER := 70;
+    RELATIONSHIP_U_FOR_D    CONSTANT INTEGER := 76;
+    RELATIONSHIP_D          CONSTANT INTEGER := 80;
+    VOCABULARY_D            CONSTANT INTEGER := 90;
+    CONCEPT_DICT_D          CONSTANT INTEGER := 90;
+
+    -- Constants for Insert/Update Operations (I/U)
+    CONCEPT                 CONSTANT INTEGER := 110;
+    CONCEPT_CLASS           CONSTANT INTEGER := 120;
+    DOMAIN                  CONSTANT INTEGER := 130;
+    RELATIONSHIP            CONSTANT INTEGER := 140;
+    RELATIONSHIP_U_FOR_I    CONSTANT INTEGER := 145;
+    VOCABULARY              CONSTANT INTEGER := 150;
+    CONCEPT_DICT            CONSTANT INTEGER := 160;
+    CONCEPT_ANCESTOR        CONSTANT INTEGER := 170;
+    CONCEPT_RELATIONSHIP    CONSTANT INTEGER := 180;
+    CONCEPT_SYNONYM         CONSTANT INTEGER := 190;
+    DRUG_STRENGTH           CONSTANT INTEGER := 200;
 BEGIN
     RETURN QUERY
     WITH ConceptScript AS (
@@ -65,7 +91,8 @@ BEGIN
                                                                                           '(%s, %s) WHERE ancestor_concept_id = %s AND descendant_concept_id = %s;',
                                                                                            min_levels_of_separation, max_levels_of_separation, ancestor_concept_id, descendant_concept_id)
                      WHEN row_change_type = 'D' THEN FORMAT('DELETE FROM concept_ancestor WHERE ancestor_concept_id = %s AND descendant_concept_id = %s;', ancestor_concept_id, descendant_concept_id)
-                     END AS script_text
+                     END AS script_text,
+                 row_change_type
              FROM get_concept_ancestor_delta(pVersion1, pVersion2, pVocabularies, false)
          ),
          ConceptRelationshipScript AS (
@@ -76,7 +103,8 @@ BEGIN
                      WHEN row_change_type = 'U' THEN FORMAT ('UPDATE concept_relationship SET  (valid_start_date, valid_end_date, invalid_reason) = (%L, %L, %L) WHERE concept_id_1 = %s AND concept_id_2 = %s AND relationship_id = %L;',
                                                              valid_start_date, valid_end_date, invalid_reason, concept_id_1, concept_id_2, relationship_id)
                      WHEN row_change_type = 'D' THEN FORMAT ('DELETE FROM concept_relationship WHERE concept_id_1 = %s AND concept_id_2 = %s AND relationship_id = %L;', concept_id_1, concept_id_2, relationship_id)
-                     END AS script_text
+                     END AS script_text,
+                 row_change_type
              FROM get_concept_relationship_delta(pVersion1, pVersion2, pVocabularies, false)
          ),
          ConceptSynonymScript AS (
@@ -85,7 +113,8 @@ BEGIN
                      WHEN row_change_type = 'I' THEN FORMAT ('INSERT INTO concept_synonym (concept_synonym_name, language_concept_id, concept_id) VALUES (%L, %s, %s);',
                                                              concept_synonym_name, language_concept_id, concept_id)
                      WHEN row_change_type = 'D' THEN FORMAT ('DELETE FROM concept_synonym WHERE concept_id = %s AND concept_synonym_name = %L AND language_concept_id = %L;', concept_id, concept_synonym_name, language_concept_id)
-                     END AS script_text
+                     END AS script_text,
+                 row_change_type
              FROM get_concept_synonym_delta(pVersion1, pVersion2, pVocabularies, false)
          ),
          DomainScript AS (
@@ -111,7 +140,8 @@ BEGIN
                                                              amount_value, amount_unit_concept_id, numerator_value, numerator_unit_concept_id, denominator_value, denominator_unit_concept_id, box_size, valid_start_date, valid_end_date, invalid_reason, ingredient_concept_id, drug_concept_id, ingredient_concept_id)
                      WHEN row_change_type = 'D' THEN
                          FORMAT ('DELETE FROM drug_strength WHERE drug_concept_id = %s AND ingredient_concept_id = %s;', drug_concept_id, ingredient_concept_id)
-                     END AS script_text
+                     END AS script_text,
+                 row_change_type
              FROM get_drug_strength_delta(pVersion1, pVersion2, pVocabularies, false)
          ),
 
@@ -143,53 +173,78 @@ BEGIN
     SELECT sqls.script_text
         FROM (
                  SELECT
-                     CASE
-                         WHEN cs.row_change_type = 'D' AND cs.concept_class_id IN ('Concept Class', 'Domain', 'Relationship', 'Vocabulary') THEN 160
-                         WHEN cs.row_change_type = 'D' THEN 110
-                         WHEN cs.concept_class_id IN ('Concept Class', 'Domain', 'Relationship', 'Vocabulary') THEN 10 ELSE 60
+                     CASE WHEN cs.row_change_type = 'D' AND cs.concept_class_id IN ('Concept Class', 'Domain', 'Relationship', 'Vocabulary')
+                            THEN CONCEPT_DICT_D
+                          WHEN cs.row_change_type = 'D'
+                            THEN CONCEPT_D
+                          WHEN cs.concept_class_id IN ('Concept Class', 'Domain', 'Relationship', 'Vocabulary')
+                            THEN CONCEPT_DICT
+                            ELSE CONCEPT
                      END AS script_number, cs.script_text
                  FROM ConceptScript cs
                  UNION ALL
                  SELECT
-                     CASE
-                         WHEN ccs.row_change_type = 'D' THEN 120 ELSE 20
+                     CASE WHEN ccs.row_change_type = 'D'
+                            THEN CONCEPT_CLASS_D
+                            ELSE CONCEPT_CLASS
                      END AS script_number, ccs.script_text
                  FROM ConceptClassScript ccs
                  UNION ALL
                  SELECT
-                     CASE
-                         WHEN ds.row_change_type = 'D' THEN 130 ELSE 30
+                     CASE WHEN ds.row_change_type = 'D'
+                             THEN DOMAIN_D
+                             ELSE DOMAIN
                      END AS script_number, ds.script_text
                  FROM DomainScript ds
                  UNION ALL
                  SELECT
-                     CASE
-                         WHEN rs.row_change_type = 'D' THEN 140 ELSE 40
+                     CASE WHEN rs.row_change_type = 'D'
+                             THEN RELATIONSHIP_D
+                             ELSE RELATIONSHIP
                      END AS script_number, rs.script_text
                  FROM RelationshipScript rs
                  UNION ALL
-                 SELECT 41 AS script_number, rs.script_text
+                 SELECT RELATIONSHIP_U_FOR_I
+                     AS script_number, rs.script_text
                  FROM RelationshipUpdateForInsertScript rs
                  UNION ALL
-                 SELECT 139 AS script_number, rs.script_text
+                 SELECT RELATIONSHIP_U_FOR_D
+                     AS script_number, rs.script_text
                  FROM RelationshipUpdateForDeleteScript rs
                  UNION ALL
                  SELECT
-                     CASE
-                         WHEN vs.row_change_type = 'D' THEN 150 ELSE 50
+                     CASE WHEN vs.row_change_type = 'D'
+                            THEN VOCABULARY_D
+                            ELSE VOCABULARY
                      END AS script_number, vs.script_text
                  FROM VocabularyScript vs
                  UNION ALL
-                 SELECT 70 script_number, cas.script_text
+                 SELECT
+                     CASE WHEN cas.row_change_type = 'D'
+                            THEN CONCEPT_ANCESTOR_D
+                            ELSE CONCEPT_ANCESTOR
+                     END AS script_number, cas.script_text
                  FROM ConceptAncestorScript cas
                  UNION ALL
-                 SELECT 80 script_number, crs.script_text
+                 SELECT
+                     CASE WHEN crs.row_change_type = 'D'
+                            THEN CONCEPT_RELATIONSHIP_D
+                            ELSE CONCEPT_RELATIONSHIP
+                     END AS script_number, crs.script_text
                  FROM ConceptRelationshipScript crs
                  UNION ALL
-                 SELECT 90 script_number, css.script_text
+                 SELECT
+                     CASE WHEN css.row_change_type = 'D'
+                            THEN CONCEPT_SYNONYM_D
+                            ELSE CONCEPT_SYNONYM
+                     END AS script_number, css.script_text
                  FROM ConceptSynonymScript css
                  UNION ALL
-                 SELECT 100 script_number, dss.script_text
+                 SELECT
+                     CASE WHEN dss.row_change_type = 'D'
+                            THEN DRUG_STRENGTH_D
+                            ELSE DRUG_STRENGTH
+                     END AS script_number, dss.script_text
                  FROM DrugStrengthScript dss
              ) as sqls
         ORDER BY sqls.script_number;

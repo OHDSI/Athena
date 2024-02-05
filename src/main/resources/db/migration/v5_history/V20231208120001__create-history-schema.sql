@@ -46,7 +46,7 @@ CREATE TABLE public.concept_relationship_history
     version          INT
 ) PARTITION BY LIST (version);
 
-CREATE TABLE public.concept_synonym_history
+CREATE TABLE concept_synonym_history
 (
     concept_id           bigint        not null,
     concept_synonym_name varchar(1000) not null,
@@ -55,7 +55,7 @@ CREATE TABLE public.concept_synonym_history
     version              INT
 ) PARTITION BY LIST (version);
 
-create table public.drug_strength_history
+create table drug_strength_history
 (
     drug_concept_id             bigint      not null,
     ingredient_concept_id       bigint      not null,
@@ -73,7 +73,7 @@ create table public.drug_strength_history
     version                     INT
 ) PARTITION BY LIST (version);
 
-CREATE TABLE public.concept_versions_history
+CREATE TABLE concept_versions_history
 (
     conept_id    integer,
     concept_name text,
@@ -84,7 +84,7 @@ CREATE TABLE public.concept_versions_history
     version      INT
 ) PARTITION BY LIST (version);
 
-CREATE TABLE public.domain_history
+CREATE TABLE domain_history
 (
     domain_id         varchar(20)  not null,
     domain_name       varchar(255) not null,
@@ -92,7 +92,7 @@ CREATE TABLE public.domain_history
     version           INT
 ) PARTITION BY LIST (version);
 
-CREATE TABLE public.relationship_history
+CREATE TABLE relationship_history
 (
     relationship_id         varchar(20)  not null,
     relationship_name       varchar(255) not null,
@@ -103,7 +103,7 @@ CREATE TABLE public.relationship_history
     version                 INT
 ) PARTITION BY LIST (version);
 
-CREATE TABLE public.vocabulary_history
+CREATE TABLE vocabulary_history
 (
     vocabulary_id         varchar(20)  not null,
     vocabulary_name       varchar(255) not null,

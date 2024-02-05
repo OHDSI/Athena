@@ -1,4 +1,4 @@
-CREATE TABLE public.vocabulary_release_version
+CREATE TABLE vocabulary_release_version
 (
     id INT,
     vocabulary_name VARCHAR(255) NOT NULL,
