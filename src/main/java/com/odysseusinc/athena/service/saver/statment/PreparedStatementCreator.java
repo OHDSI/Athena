@@ -11,7 +11,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-//TODO dev pls write here JDocs
+/**
+ * This class  provides functionality for preparing SQL statements with placeholders using vocabulary-based parameters.
+ * It is designed to work ONLY with vocabularies  as placeholders in the SQL query.
+ */
 public class PreparedStatementCreator extends SqlStatementCreator {
 
     private static final String QUESTION_MARK = "?";
