@@ -32,8 +32,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.*;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -47,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ResourceUtils;
 
 @Component
@@ -76,34 +80,41 @@ public class ZipWriter {
         if (bundle.isDelta()) {
             File deltaDir = new File(deltaFiles);
             if (deltaDir.exists()) {
-                addFolderToZip(deltaDir, zos, deltaDir.getAbsolutePath());
+                addToZip(deltaDir, zos, deltaDir.getAbsolutePath());
             } else {
-//                TODO DEV AVD-39 The default README is not obtained from the resources.
-//                addResourceFolderToZip(zos, DELTA_FILES_PATH);
+                addResourceFolderToZip(zos, DELTA_FILES_PATH);
             }
         } else if (bundle.isCpt4()) {
             File filesStoreDir = V4_5 == bundle.getCdmVersion() ? new File(cpt4V4Files) : new File(cpt4V5Files);
             updateCPT4Utility(bundle, filesStoreDir.getAbsolutePath());
-            addFolderToZip(filesStoreDir, zos, filesStoreDir.getAbsolutePath());
+            addToZip(filesStoreDir, zos, filesStoreDir.getAbsolutePath());
         }
     }
 
-    private void addFolderToZip(File folder, ZipOutputStream zip, String baseName) throws IOException {
-
+    private void addToZip(File folder, ZipOutputStream zip, String baseName) throws IOException {
         File[] files = folder.listFiles();
         if (files == null) {
             return;
         }
-        for (File file : files) {
+        List<String> filePaths = Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.toList());
+        addToZipByPath(filePaths, zip, baseName);
+    }
+
+    private void addToZipByPath(List<String> filePaths, ZipOutputStream zip, String baseName) throws IOException {
+        if (CollectionUtils.isEmpty(filePaths)) {
+            return;
+        }
+        for (String filePath : filePaths) {
+            File file = new File(filePath);
             if (file.isDirectory()) {
-                addFolderToZip(file, zip, baseName);
+                addToZip(file, zip, baseName);
             } else {
-                String name = file.getAbsolutePath().substring(baseName.length() + 1);
+                String name = filePath.substring(baseName.length() + 1);
                 LOGGER.info("Adding zip entry : absolute path file {}, baseName {}, baseName length {}, entry name {}",
-                        file.getAbsolutePath(), baseName, baseName.length(), name);
+                        filePath, baseName, baseName.length(), name);
                 ZipEntry zipEntry = new ZipEntry(name);
                 zip.putNextEntry(zipEntry);
-                IOUtils.copy(new FileInputStream(file), zip);
+                IOUtils.copy(Files.newInputStream(Paths.get(filePath)), zip);
                 zip.closeEntry();
             }
         }
@@ -113,7 +124,7 @@ public class ZipWriter {
         URL resource = this.getClass().getResource(deltaFilesPath);
         if (resource != null) {
             File file = ResourceUtils.getFile(resource);
-            addFolderToZip(file, zos, file.getAbsolutePath());
+            addToZip(file, zos, file.getAbsolutePath());
         }
     }
 
