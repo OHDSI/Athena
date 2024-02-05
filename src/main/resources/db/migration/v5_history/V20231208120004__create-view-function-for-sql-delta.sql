@@ -6,31 +6,37 @@ CREATE OR REPLACE FUNCTION get_sql_statements_delta(
     RETURNS TABLE (script_text TEXT)
 AS $$
 DECLARE
-    -- Constants for Delete Operations (D)
-    CONCEPT_ANCESTOR_D      CONSTANT INTEGER := 10;
-    CONCEPT_RELATIONSHIP_D  CONSTANT INTEGER := 20;
-    CONCEPT_SYNONYM_D       CONSTANT INTEGER := 30;
-    DRUG_STRENGTH_D         CONSTANT INTEGER := 40;
-    CONCEPT_D               CONSTANT INTEGER := 50;
-    CONCEPT_CLASS_D         CONSTANT INTEGER := 60;
-    DOMAIN_D                CONSTANT INTEGER := 70;
-    RELATIONSHIP_U_FOR_D    CONSTANT INTEGER := 76;
-    RELATIONSHIP_D          CONSTANT INTEGER := 80;
-    VOCABULARY_D            CONSTANT INTEGER := 90;
-    CONCEPT_DICT_D          CONSTANT INTEGER := 90;
+
 
     -- Constants for Insert/Update Operations (I/U)
-    CONCEPT                 CONSTANT INTEGER := 110;
+    CONCEPT_DICT            CONSTANT INTEGER := 110;
     CONCEPT_CLASS           CONSTANT INTEGER := 120;
     DOMAIN                  CONSTANT INTEGER := 130;
     RELATIONSHIP            CONSTANT INTEGER := 140;
     RELATIONSHIP_U_FOR_I    CONSTANT INTEGER := 145;
     VOCABULARY              CONSTANT INTEGER := 150;
-    CONCEPT_DICT            CONSTANT INTEGER := 160;
+    CONCEPT                 CONSTANT INTEGER := 160;
     CONCEPT_ANCESTOR        CONSTANT INTEGER := 170;
     CONCEPT_RELATIONSHIP    CONSTANT INTEGER := 180;
     CONCEPT_SYNONYM         CONSTANT INTEGER := 190;
     DRUG_STRENGTH           CONSTANT INTEGER := 200;
+
+    -- Constants for Delete Operations (D)
+    CONCEPT_ANCESTOR_D      CONSTANT INTEGER := 210;
+    CONCEPT_RELATIONSHIP_D  CONSTANT INTEGER := 220;
+    CONCEPT_SYNONYM_D       CONSTANT INTEGER := 230;
+    DRUG_STRENGTH_D         CONSTANT INTEGER := 240;
+    CONCEPT_D               CONSTANT INTEGER := 250;
+    CONCEPT_CLASS_D         CONSTANT INTEGER := 260;
+    DOMAIN_D                CONSTANT INTEGER := 270;
+    RELATIONSHIP_U_FOR_D    CONSTANT INTEGER := 275;
+    RELATIONSHIP_D          CONSTANT INTEGER := 280;
+    VOCABULARY_D            CONSTANT INTEGER := 290;
+    CONCEPT_DICT_D          CONSTANT INTEGER := 300;
+    CONCEPT_U               CONSTANT INTEGER := 310;
+
+    -- This mock value helps overcome the inactive idx_unique_concept_code constraint in the code. We can set it initially and update with proper values later.
+    MOCK_CODE               CONSTANT VARCHAR= 'OMOP generated';
 BEGIN
     RETURN QUERY
     WITH ConceptScript AS (
@@ -38,16 +44,21 @@ BEGIN
             CASE
                 WHEN row_change_type = 'I' THEN FORMAT('INSERT INTO concept (concept_name, domain_id, vocabulary_id, concept_class_id, standard_concept, concept_code, valid_start_date, valid_end_date, invalid_reason, concept_id) VALUES ' ||
                                                                             '(%L, %L, %L, %L, %L, %L, %L, %L, %L, %s);',
-                                                                             concept_name, domain_id, vocabulary_id, concept_class_id, standard_concept, concept_code, valid_start_date, valid_end_date, invalid_reason, concept_id)
+                                                                             concept_name, domain_id, vocabulary_id, concept_class_id, standard_concept, MOCK_CODE,    valid_start_date, valid_end_date, invalid_reason, concept_id)
                 WHEN row_change_type = 'U' THEN FORMAT('UPDATE concept SET  (concept_name, domain_id, vocabulary_id, concept_class_id, standard_concept, concept_code, valid_start_date, valid_end_date, invalid_reason) = ' ||
                                                                            '(%L, %L, %L, %L, %L, %L, %L, %L, %L) WHERE concept_id=%s;',
-                                                                             concept_name, domain_id, vocabulary_id, concept_class_id, standard_concept, concept_code, valid_start_date, valid_end_date, invalid_reason, concept_id)
+                                                                             concept_name, domain_id, vocabulary_id, concept_class_id, standard_concept, MOCK_CODE,    valid_start_date, valid_end_date, invalid_reason, concept_id)
                 WHEN row_change_type = 'D' THEN FORMAT('DELETE FROM concept WHERE concept_id=%s;', concept_id)
 
                 END AS script_text,
             row_change_type,
             concept_class_id
         FROM get_concept_delta(pVersion1, pVersion2, pVocabularies, false)
+        ),
+        ConceptUpdateScript AS (
+            SELECT FORMAT('UPDATE concept SET concept_code = %L WHERE concept_id=%s;', concept_code, concept_id) AS script_text
+            FROM get_concept_delta(pVersion1, pVersion2, pVocabularies, false)
+            WHERE row_change_type IN ('I','U')
         ),
          RelationshipScript AS (
              SELECT
@@ -246,6 +257,11 @@ BEGIN
                             ELSE DRUG_STRENGTH
                      END AS script_number, dss.script_text
                  FROM DrugStrengthScript dss
+                 UNION ALL
+                 SELECT
+                     CONCEPT_U script_number,
+                     cus.script_text
+                 FROM ConceptUpdateScript cus
              ) as sqls
         ORDER BY sqls.script_number;
 END;
