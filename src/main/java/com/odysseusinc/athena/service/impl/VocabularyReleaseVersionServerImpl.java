@@ -28,7 +28,10 @@ public class VocabularyReleaseVersionServerImpl implements VocabularyReleaseVers
 
 
     @Override
-    public boolean isCurrent(int versionId) {
+    public boolean isCurrent(Integer versionId) {
+        if (versionId == null) {
+            return false;
+        }
         if (isCurrentMissingInHistory(versionId)) {
             return true;
         }
@@ -44,7 +47,10 @@ public class VocabularyReleaseVersionServerImpl implements VocabularyReleaseVers
     }
 
     @Override
-    public String toReleaseVersion(int versionId) {
+    public String toReleaseVersion(Integer versionId) {
+        if (versionId == null) {
+            return null;
+        }
         return vocabularyReleaseVersionRepository.findById(versionId).map(VocabularyReleaseVersion::getAthenaName).orElse(String.valueOf(versionId));
     }
 
