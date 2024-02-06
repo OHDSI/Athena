@@ -110,9 +110,9 @@ BEGIN
              SELECT
                  CASE
                      WHEN row_change_type = 'I' THEN FORMAT ('INSERT INTO concept_relationship (valid_start_date, valid_end_date, invalid_reason, concept_id_1, concept_id_2, relationship_id) VALUES (%L, %L, %L, %s, %s, %L);',
-                                                             valid_start_date, valid_end_date, invalid_reason, concept_id_1, concept_id_2, relationship_id)
+                                                                                                valid_start_date, valid_end_date, invalid_reason, concept_id_1, concept_id_2, relationship_id)
                      WHEN row_change_type = 'U' THEN FORMAT ('UPDATE concept_relationship SET  (valid_start_date, valid_end_date, invalid_reason) = (%L, %L, %L) WHERE concept_id_1 = %s AND concept_id_2 = %s AND relationship_id = %L;',
-                                                             valid_start_date, valid_end_date, invalid_reason, concept_id_1, concept_id_2, relationship_id)
+                                                                                                valid_start_date, valid_end_date, invalid_reason, concept_id_1, concept_id_2, relationship_id)
                      WHEN row_change_type = 'D' THEN FORMAT ('DELETE FROM concept_relationship WHERE concept_id_1 = %s AND concept_id_2 = %s AND relationship_id = %L;', concept_id_1, concept_id_2, relationship_id)
                      END AS script_text,
                  row_change_type
