@@ -35,7 +35,11 @@ public interface EmailService {
 
     void sendVocabularyUpdateNotification(AthenaUser user, List<Notification> updatedVocabularies);
 
-    void sendVocabularyDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion, String bundleName, Map<String, String> requestedVocabularies);
+    void sendVocabularyDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion,
+                                    String bundleName, Map<String, String> requestedVocabularies);
+
+    void sendDeltaDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion, String deltaReleaseVersion,
+                               String bundleName, Map<String, String> requestedVocabularies);
 
     void sendLicenseRequestToAdmins(License license);
 

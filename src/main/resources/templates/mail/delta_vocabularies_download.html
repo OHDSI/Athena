@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<p>
+
+<h3>Link for downloading the Standardized Vocabularies Delta</h3>
+<p>
+    Delta between vocabulary release versions: <strong><span th:text="${vocabularyReleaseVersion}"></span></strong> and <strong><span th:text="${deltaReleaseVersion}"></span></strong>
+</p>
+
+<div>
+    <table>
+        <thead>
+        <tr>
+            <th colspan="3" align="left"><span th:text="${bundleName}"></span> Vocabularies:</th>
+        </tr>
+        </thead>
+        <tr th:each="vocabulary : ${vocabularies}">
+            <td th:text="${vocabulary.key}"></td>
+            <td>-</td>
+            <td th:text="${vocabulary.value}">Normal User</td>
+        </tr>
+    </table>
+</div>
+
+<p>Please download and load the Standardized Vocabularies as following:</p>
+<ol>
+    <li>Click on this <a th:href="${url}">link</a> to download the zip file.
+        Typical file sizes, depending on the number of vocabularies selected, are between 30 and 400 MB.
+    </li>
+    <li>Unpack the downloaded zip file.</li>
+    <li>
+        Apply changes:
+        <ol type="a">
+            <li>For relative databases, execute the <strong><span>delta.sql</span></strong> script.</li>
+            <li>For other databases, gather information about changes from the CSV files (refer to the readme for more details).</li>
+        </ol>
+    </li>
+</ol>
+
+<p>If you hit problems please use the <a th:href="${forumUrl}"
+                                         target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en
+&amp;q=th:text=${forumUrl}&amp;source=gmail&amp;ust=1488877772753000
+&amp;usg=AFQjCNHTlB0rs1HpEwZjvho6sUaciuSA5w">OHDSI Forum pages</a>,
+    and somebody will help you. You will need to register.</p>
+
+Regards,<br/>
+Odysseus Data Services, Inc.
+</p></body>
+</html>

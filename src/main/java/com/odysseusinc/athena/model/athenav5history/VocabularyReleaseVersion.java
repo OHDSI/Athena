@@ -42,10 +42,17 @@ public class VocabularyReleaseVersion extends EntityV5 {
     @Column(name = "id")
     private Integer id;
 
+    /**
+     * In vocabularies, it is called vocabulary version and has the vYYYYMMDD format.
+     */
+
     @NotBlank
     @Column(name = "vocabulary_name", nullable = false)
     private String vocabularyName;
 
+    /**
+     * In Athena, it is called vocabulary release version and has the v5 DD-MON-YY format.
+     */
     @NotBlank
     @Column(name = "athena_name", nullable = false)
     private String athenaName;

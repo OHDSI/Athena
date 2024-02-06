@@ -44,6 +44,11 @@ public class VocabularyReleaseVersionServerImpl implements VocabularyReleaseVers
     }
 
     @Override
+    public String toReleaseVersion(int versionId) {
+        return vocabularyReleaseVersionRepository.findById(versionId).map(VocabularyReleaseVersion::getAthenaName).orElse(String.valueOf(versionId));
+    }
+
+    @Override
     public List<VocabularyReleaseVersionDTO> getReleaseVersions() {
         List<VocabularyReleaseVersionDTO> releaseVersions = vocabularyReleaseVersionRepository.findAll().stream()
                 .map(v -> new VocabularyReleaseVersionDTO(v.getId(), v.getVocabularyName(), isCurrent(v)))

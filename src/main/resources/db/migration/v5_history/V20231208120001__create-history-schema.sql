@@ -1,4 +1,4 @@
-CREATE TABLE public.concept_history
+CREATE TABLE concept_history
 (
     concept_id       bigint,
     concept_name     varchar(255) not null,
@@ -13,7 +13,7 @@ CREATE TABLE public.concept_history
     version          INT
 ) PARTITION BY LIST (version);
 
-CREATE TABLE public.concept_ancestor_history
+CREATE TABLE concept_ancestor_history
 (
     ancestor_concept_id      bigint      not null,
     descendant_concept_id    bigint      not null,
@@ -24,7 +24,7 @@ CREATE TABLE public.concept_ancestor_history
     version                  INT
 ) PARTITION BY LIST (version);
 
-CREATE TABLE public.concept_class_history
+CREATE TABLE concept_class_history
 (
     concept_class_id         varchar(20)  not null,
     concept_class_name       varchar(255) not null,
@@ -32,7 +32,7 @@ CREATE TABLE public.concept_class_history
     version                  INT
 ) PARTITION BY LIST (version);
 
-CREATE TABLE public.concept_relationship_history
+CREATE TABLE concept_relationship_history
 (
     concept_id_1     bigint      not null,
     concept_id_2     bigint      not null,
