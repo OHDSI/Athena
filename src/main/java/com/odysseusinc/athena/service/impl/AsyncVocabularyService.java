@@ -31,6 +31,7 @@ import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.VocabularyConversionRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
+import com.odysseusinc.athena.service.DownloadBundleService.BundleType;
 import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import com.odysseusinc.athena.service.mail.EmailService;
 import com.odysseusinc.athena.service.saver.*;
@@ -95,7 +96,9 @@ public class AsyncVocabularyService {
              ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fout))) {
 
             List<?> ids = getIds(bundle, idV4s);
-            List<? extends ISaver> savers = getSavers(bundle);
+
+            BundleType type = downloadBundleService.getType(bundle);
+            List<? extends ISaver> savers = getSavers(type);
 
             SaverService saver = new SaverService(downloadBundleService, ids, fileHelper);
             bundle = saver.save(zos, bundle, savers);
@@ -109,8 +112,7 @@ public class AsyncVocabularyService {
                     .filter(vocab -> !vocab.getOmopReqValue())
                     .collect(toMap(VocabularyConversion::getIdV5, VocabularyConversion::getName));
 
-            emailService.sendVocabularyDownloadLink(user, urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
-                    bundle.getCdmVersion(), bundle.getReleaseVersion(), bundle.getName(), includedVocabularies);
+            sendEmail(bundle, user, type, includedVocabularies);
 
         } catch (Exception ex) {
             updateStatus(bundle, DownloadBundleStatus.FAILED);
@@ -119,22 +121,37 @@ public class AsyncVocabularyService {
         }
     }
 
-    private List<? extends ISaver> getSavers(DownloadBundle bundle) {
-        if (bundle.getCdmVersion() == CDMVersion.V4_5) {
-            return saversV4;
+    private List<? extends ISaver> getSavers(BundleType type) {
+        switch (type) {
+            case V4_5:
+                return saversV4;
+            case V5_HISTORIES:
+                return saverV5Histories;
+            case V5_DELTAS:
+                return saverV5Deltas;
+            default:
+                return saversV5;
         }
-        if (bundle.getCdmVersion() == CDMVersion.V5 && bundle.isDelta()) {
-            return saverV5Deltas;
-        }
-        if (bundle.getCdmVersion() == CDMVersion.V5 && versionService.isCurrent(bundle.getVocabularyVersion()) && !bundle.isDelta()) {
-            return saversV5;
-        }
-        if (bundle.getCdmVersion() == CDMVersion.V5 && !versionService.isCurrent(bundle.getVocabularyVersion()) && !bundle.isDelta()) {
-            return saverV5Histories;
-        }
-
-        throw new NotExistException("No savers for version " + bundle.getCdmVersion(), CDMVersion.class);
     }
+
+    private void sendEmail(DownloadBundle bundle, AthenaUser user, BundleType type, Map<String, String> includedVocabularies) {
+        switch (type) {
+            case V5_DELTAS:
+                emailService.sendDeltaDownloadLink(user, urlBuilder.downloadVocabulariesLink(bundle.getUuid()), bundle.getCdmVersion(),
+                        versionService.toReleaseVersion(bundle.getVocabularyVersion()), versionService.toReleaseVersion(bundle.getDeltaVersion()),
+                        bundle.getName(), includedVocabularies);
+            case V5_HISTORIES:
+                emailService.sendVocabularyDownloadLink(user, urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
+                        bundle.getCdmVersion(), versionService.toReleaseVersion(bundle.getVocabularyVersion()),
+                        bundle.getName(), includedVocabularies);
+            default:
+                emailService.sendVocabularyDownloadLink(user, urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
+                        bundle.getCdmVersion(), bundle.getReleaseVersion(),
+                        bundle.getName(), includedVocabularies);
+        }
+    }
+
+
 
 
     // TODO: Generics needs proper handling. We plan to eliminate the v4 version.

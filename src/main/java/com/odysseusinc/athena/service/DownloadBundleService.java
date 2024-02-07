@@ -43,4 +43,13 @@ public interface DownloadBundleService {
     void archive(Long id);
 
     void checkBundleOwner(AthenaUser user, long bundleId);
+
+    BundleType getType(DownloadBundle bundle);
+
+    enum BundleType {
+        V4_5,
+        V5,
+        V5_DELTAS,
+        V5_HISTORIES
+    }
 }

@@ -94,6 +94,21 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
+    public void sendDeltaDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion, String deltaReleaseVersion,
+                                      String bundleName, Map<String, String> requestedVocabularies) {
+        final EmailRecipients recipients = EmailRecipients.builder().to(asList(user.getEmail())).build();
+        send(EmailType.VOCABULARIES_DELTA_LINK, buildDeltaParameters(url, version, vocabularyReleaseVersion, deltaReleaseVersion, bundleName, requestedVocabularies), recipients, getAdminEmails());
+        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", user.getId(), url);
+    }
+
+    private Map<String, Object> buildDeltaParameters(String url, CDMVersion version, String vocabularyReleaseVersion, String deltaReleaseVersion, String bundleName, Map<String, String> requestedVocabularies) {
+        Map<String, Object> parameters = buildParameters(url, version, vocabularyReleaseVersion, bundleName, requestedVocabularies);
+        parameters.put("deltaReleaseVersion", deltaReleaseVersion);
+        return parameters;
+    }
+
+
+    @Override
     public void sendFailedSaving(AthenaUser user) {
 
         final EmailRecipients recipients = EmailRecipients.builder().to(asList(user.getEmail())).build();
