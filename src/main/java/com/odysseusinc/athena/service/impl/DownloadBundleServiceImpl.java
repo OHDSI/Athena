@@ -22,6 +22,7 @@
 
 package com.odysseusinc.athena.service.impl;
 
+import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.SavedFile;
@@ -29,7 +30,9 @@ import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.SavedFileRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
+import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import com.odysseusinc.athena.service.writer.FileHelper;
+import com.odysseusinc.athena.util.CDMVersion;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,12 +52,15 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
     private final SavedFileRepository fileRepository;
     private final FileHelper fileHelper;
 
+    private final VocabularyReleaseVersionService versionService;
+
     @Autowired
-    public DownloadBundleServiceImpl(DownloadBundleRepository bundleRepository, SavedFileRepository fileRepository, FileHelper fileHelper) {
+    public DownloadBundleServiceImpl(DownloadBundleRepository bundleRepository, SavedFileRepository fileRepository, FileHelper fileHelper, VocabularyReleaseVersionService versionService) {
 
         this.bundleRepository = bundleRepository;
         this.fileRepository = fileRepository;
         this.fileHelper = fileHelper;
+        this.versionService = versionService;
     }
 
     @Override
@@ -106,6 +112,20 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
         if (!user.getId().equals(bundle.getUserId())) {
             throw new PermissionDeniedException();
         }
+    }
+
+    @Override
+    public BundleType getType(DownloadBundle bundle) {
+        if (bundle.getCdmVersion() == CDMVersion.V4_5) {
+            return BundleType.V4_5;
+        } else if (bundle.getCdmVersion() == CDMVersion.V5 && bundle.isDelta()) {
+            return BundleType.V5_DELTAS;
+        } else if (bundle.getCdmVersion() == CDMVersion.V5 && versionService.isCurrent(bundle.getVocabularyVersion()) && !bundle.isDelta()) {
+            return BundleType.V5;
+        } else if (bundle.getCdmVersion() == CDMVersion.V5 && !versionService.isCurrent(bundle.getVocabularyVersion()) && !bundle.isDelta()) {
+            return BundleType.V5_HISTORIES;
+        }
+        throw new NotExistException("No savers for version " + bundle.getCdmVersion(), CDMVersion.class);
     }
 
     private void archiveByUuid(String uuid) {

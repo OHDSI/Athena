@@ -65,7 +65,7 @@ BEGIN
                  CASE
                      WHEN row_change_type = 'I' THEN FORMAT ('INSERT INTO relationship (relationship_name, is_hierarchical, defines_ancestry, reverse_relationship_id, relationship_concept_id, relationship_id) VALUES ' ||
                                                                                       '(%L, %L, %L, %L, %s, %L);',
-                                                                                        relationship_name, is_hierarchical, defines_ancestry, relationship_id, relationship_concept_id, relationship_id)
+                                                                                        relationship_name, is_hierarchical, defines_ancestry, relationship_id,         relationship_concept_id, relationship_id)
                      WHEN row_change_type = 'U' THEN FORMAT ('UPDATE relationship SET  (relationship_name, is_hierarchical, defines_ancestry, reverse_relationship_id, relationship_concept_id) = ' ||
                                                                                       '(%L, %L, %L, %L, %s) WHERE relationship_id = %L;',
                                                                                         relationship_name, is_hierarchical, defines_ancestry, reverse_relationship_id, relationship_concept_id,    relationship_id)
