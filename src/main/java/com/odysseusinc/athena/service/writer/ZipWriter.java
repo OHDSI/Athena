@@ -27,10 +27,8 @@ import static com.odysseusinc.athena.util.CDMVersion.V4_5;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.nio.file.*;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,12 +49,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ResourceUtils;
 
 @Component
 public class ZipWriter {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ZipWriter.class);
-    private static final String DELTA_FILES_PATH = "/delta";
 
     @Value("${cpt4.dir.v4}")
     private String cpt4V4Files;
@@ -81,8 +77,6 @@ public class ZipWriter {
             File deltaDir = new File(deltaFiles);
             if (deltaDir.exists()) {
                 addToZip(deltaDir, zos, deltaDir.getAbsolutePath());
-            } else {
-                addResourceFolderToZip(zos, DELTA_FILES_PATH);
             }
         } else if (bundle.isCpt4()) {
             File filesStoreDir = V4_5 == bundle.getCdmVersion() ? new File(cpt4V4Files) : new File(cpt4V5Files);
@@ -117,14 +111,6 @@ public class ZipWriter {
                 IOUtils.copy(Files.newInputStream(Paths.get(filePath)), zip);
                 zip.closeEntry();
             }
-        }
-    }
-
-    private void addResourceFolderToZip(ZipOutputStream zos, String deltaFilesPath) throws IOException {
-        URL resource = this.getClass().getResource(deltaFilesPath);
-        if (resource != null) {
-            File file = ResourceUtils.getFile(resource);
-            addToZip(file, zos, file.getAbsolutePath());
         }
     }
 
