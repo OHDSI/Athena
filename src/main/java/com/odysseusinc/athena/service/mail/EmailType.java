@@ -29,12 +29,10 @@ public enum EmailType {
     LICENSE_ACCEPTANCE("Licensing acceptance", "mail/license_acceptance"),
     LICENSE_REQUEST("License request", "mail/license_request"),
     VOCABULARIES_LINK("OMOP Vocabularies. Your download link", "mail/vocabularies_download"),
-    VOCABULARIES_DELTA_LINK("OMOP Vocabularies Delta. Your download link", "mail/delta_vocabularies_download.html"),
-
+    VOCABULARIES_DELTA_LINK("OMOP Vocabularies Delta. Your download link", "mail/vocabularies_delta_download"),
     VOCABULARIES_UPDATE_NOTIFICATION("Vocabulary version update", "mail/vocabularies_update"),
-
-    //TODO DEV add the same for the delta
-    VOCABULARIES_SHARED_DOWNLOAD("OMOP Vocabularies. Your download link", "mail/vocabularies_share_download");
+    VOCABULARIES_SHARED_DOWNLOAD("OMOP Vocabularies. Your download link", "mail/vocabularies_share_download"),
+    VOCABULARIES_DELTA_SHARED_DOWNLOAD("OMOP Vocabularies. Your download link", "mail/vocabularies_delta_share_download");
 
     private final String subject;
     private final String template;

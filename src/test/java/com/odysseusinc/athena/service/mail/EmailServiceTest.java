@@ -61,7 +61,7 @@ public class EmailServiceTest {
     public void shouldSendVocabularyDownloadLink() {
         when(emailSenderService.sendAsync(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
-        emailService.sendVocabularyDownloadLink(athenaUser, EMPTY, CDMVersion.V5, EMPTY, EMPTY, new HashMap<>());
+        emailService.sendVocabularyDownloadLink(athenaUser, EMPTY, EMPTY, CDMVersion.V5, new HashMap<>(), EMPTY);
 
         verify(emailSenderService).sendAsync(EmailType.VOCABULARIES_LINK.getSubject(), EMPTY, recipients);
     }
@@ -75,7 +75,7 @@ public class EmailServiceTest {
         });
         when(emailSenderService.sendAsync(any(), any(), any())).thenReturn(failureAction);
 
-        emailService.sendVocabularyDownloadLink(athenaUser, EMPTY, CDMVersion.V5, EMPTY, EMPTY, new HashMap<>());
+        emailService.sendVocabularyDownloadLink(athenaUser, EMPTY, EMPTY, CDMVersion.V5, new HashMap<>(), EMPTY);
 
         verify(emailSenderService).sendAsync(EmailType.VOCABULARIES_LINK.getSubject(), EMPTY, recipients);
         verify(emailSenderService).sendAsync(EmailType.FAILED_SENDING_TO_ADMIN.getSubject(), EMPTY, EmailRecipients.builder().to(Arrays.asList(TEST_ADMIN_EMAIL)).build());
