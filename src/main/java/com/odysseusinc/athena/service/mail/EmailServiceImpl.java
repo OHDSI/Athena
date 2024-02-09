@@ -23,8 +23,8 @@
 package com.odysseusinc.athena.service.mail;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.odysseusinc.athena.api.v1.controller.converter.UrlBuilder;
-import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
@@ -86,27 +86,21 @@ public class EmailServiceImpl implements EmailService {
 
 
     @Override
-    public void sendVocabularyDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion, String bundleName, Map<String, String> requestedVocabularies) {
+    public void sendVocabularyDownloadLink(AthenaUser recipient, String bundleName, String url, CDMVersion version, Map<String, String> requestedVocabularies,
+                                           String vocabularyReleaseVersion) {
 
-        final EmailRecipients recipients = EmailRecipients.builder().to(asList(user.getEmail())).build();
+        final EmailRecipients recipients = EmailRecipients.builder().to(asList(recipient.getEmail())).build();
         send(EmailType.VOCABULARIES_LINK, buildParameters(url, version, vocabularyReleaseVersion, bundleName, requestedVocabularies), recipients, getAdminEmails());
-        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", user.getId(), url);
+        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", recipient.getId(), url);
     }
 
     @Override
-    public void sendDeltaDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion, String deltaReleaseVersion,
-                                      String bundleName, Map<String, String> requestedVocabularies) {
-        final EmailRecipients recipients = EmailRecipients.builder().to(asList(user.getEmail())).build();
-        send(EmailType.VOCABULARIES_DELTA_LINK, buildDeltaParameters(url, version, vocabularyReleaseVersion, deltaReleaseVersion, bundleName, requestedVocabularies), recipients, getAdminEmails());
-        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", user.getId(), url);
+    public void sendDeltaDownloadLink(AthenaUser recipient, String bundleName, String url, CDMVersion version, Map<String, String> requestedVocabularies,
+                                      String vocabularyReleaseVersion, String deltaReleaseVersion) {
+        final EmailRecipients recipients = EmailRecipients.builder().to(asList(recipient.getEmail())).build();
+        send(EmailType.VOCABULARIES_DELTA_LINK, deltaParameters(buildParameters(url, version, vocabularyReleaseVersion, bundleName, requestedVocabularies), deltaReleaseVersion), recipients, getAdminEmails());
+        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", recipient.getId(), url);
     }
-
-    private Map<String, Object> buildDeltaParameters(String url, CDMVersion version, String vocabularyReleaseVersion, String deltaReleaseVersion, String bundleName, Map<String, String> requestedVocabularies) {
-        Map<String, Object> parameters = buildParameters(url, version, vocabularyReleaseVersion, bundleName, requestedVocabularies);
-        parameters.put("deltaReleaseVersion", deltaReleaseVersion);
-        return parameters;
-    }
-
 
     @Override
     public void sendFailedSaving(AthenaUser user) {
@@ -134,15 +128,24 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendVocabulariesWereSharedNotification(AthenaUser recipient, AthenaUser bundleOwner, DownloadBundle bundle) {
-
-        final String bundleUrl = urlBuilder.downloadVocabulariesLink(bundle.getUuid());
-        final Map<String, Object> emailParameters = getParameters(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(), bundle.getReleaseVersion());
+    public void sendVocabulariesWereSharedNotification(AthenaUser recipient, AthenaUser bundleOwner, String url, CDMVersion cdmVersion,
+                                                       String vocabularyReleaseVersion) {
+        final Map<String, Object> emailParameters = getParameters(recipient, bundleOwner, url, cdmVersion, vocabularyReleaseVersion);
 
         final EmailRecipients recipients = EmailRecipients.builder().to(asList(recipient.getEmail())).build();
         send(EmailType.VOCABULARIES_SHARED_DOWNLOAD, emailParameters, recipients, getAdminEmails());
-        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", recipient.getId(), bundleUrl);
+        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", recipient.getId(), url);
     }
+
+    @Override
+    public void sendDeltaWereSharedNotification(AthenaUser recipient, AthenaUser bundleOwner, String url, CDMVersion cdmVersion,
+                                                String vocabularyReleaseVersion, String deltaReleaseVersion) {
+        final Map<String, Object> emailParameters = deltaParameters(getParameters(recipient, bundleOwner, url, cdmVersion, vocabularyReleaseVersion), deltaReleaseVersion);
+        final EmailRecipients recipients = EmailRecipients.builder().to(asList(recipient.getEmail())).build();
+        send(EmailType.VOCABULARIES_DELTA_LINK, emailParameters, recipients, getAdminEmails());
+        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", recipient.getId(), url);
+    }
+
 
     private void send(EmailType messageType, Map<String, Object> parameters, EmailRecipients recipients, List<String> notifyOnFailureEmails) {
 
@@ -156,7 +159,7 @@ public class EmailServiceImpl implements EmailService {
     private Void handleError(Throwable ex, EmailType messageType, String emailBody, String recipients, List<String> notifyOnFailureEmails) {
 
         log.error("Failed email {} \n\n\n{}\n\n\n, to: {}", messageType, emailBody, recipients, ex);
-        if (CollectionUtils.isNotEmpty(notifyOnFailureEmails)) {
+         if (CollectionUtils.isNotEmpty(notifyOnFailureEmails)) {
             final Map<String, Object> parameters = Collections.singletonMap("exception", ex.getCause());
 
             final EmailRecipients supportEmails = EmailRecipients.builder().to(notifyOnFailureEmails).build();
@@ -219,5 +222,11 @@ public class EmailServiceImpl implements EmailService {
         parameters.put("name", recipient.getUsername());
         parameters.put("owner_name", owner.getUsername());
         return parameters;
+    }
+
+    private Map<String, Object> deltaParameters(Map<String, Object> parameters,  String deltaReleaseVersion) {
+        Map<String, Object> newParameters = Maps.newHashMap(parameters);
+        newParameters.put("deltaReleaseVersion", deltaReleaseVersion);
+        return newParameters;
     }
 }

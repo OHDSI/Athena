@@ -137,17 +137,17 @@ public class AsyncVocabularyService {
     private void sendEmail(DownloadBundle bundle, AthenaUser user, BundleType type, Map<String, String> includedVocabularies) {
         switch (type) {
             case V5_DELTAS:
-                emailService.sendDeltaDownloadLink(user, urlBuilder.downloadVocabulariesLink(bundle.getUuid()), bundle.getCdmVersion(),
-                        versionService.toReleaseVersion(bundle.getVocabularyVersion()), versionService.toReleaseVersion(bundle.getDeltaVersion()),
-                        bundle.getName(), includedVocabularies);
+                emailService.sendDeltaDownloadLink(user, bundle.getName(), urlBuilder.downloadVocabulariesLink(bundle.getUuid()), bundle.getCdmVersion(),
+                        includedVocabularies, versionService.toReleaseVersion(bundle.getVocabularyVersion()), versionService.toReleaseVersion(bundle.getDeltaVersion())
+                );
             case V5_HISTORIES:
-                emailService.sendVocabularyDownloadLink(user, urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
-                        bundle.getCdmVersion(), versionService.toReleaseVersion(bundle.getVocabularyVersion()),
-                        bundle.getName(), includedVocabularies);
+                emailService.sendVocabularyDownloadLink(user, bundle.getName(), urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
+                        bundle.getCdmVersion(), includedVocabularies, versionService.toReleaseVersion(bundle.getVocabularyVersion())
+                );
             default:
-                emailService.sendVocabularyDownloadLink(user, urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
-                        bundle.getCdmVersion(), bundle.getReleaseVersion(),
-                        bundle.getName(), includedVocabularies);
+                emailService.sendVocabularyDownloadLink(user, bundle.getName(), urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
+                        bundle.getCdmVersion(), includedVocabularies, bundle.getReleaseVersion()
+                );
         }
     }
 
