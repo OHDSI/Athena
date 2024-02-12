@@ -34,16 +34,17 @@ CREATE TABLE concept_class_history
 
 CREATE TABLE concept_relationship_history
 (
-    concept_id_1     bigint      not null,
-    concept_id_2     bigint      not null,
-    relationship_id  varchar(20) not null,
+    concept_id_1             bigint      not null,
+    concept_id_2             bigint      not null,
+    relationship_id          varchar(20) not null,
     reverse_relationship_id  varchar(20) not null,
-    valid_start_date date        not null,
-    valid_end_date   date        not null,
-    invalid_reason   varchar(1),
-    vocabulary_id_1  varchar(20) not null,
-    vocabulary_id_2  varchar(20) not null,
-    version          INT
+    valid_start_date         date        not null,
+    reverse_valid_start_date date        not null,
+    valid_end_date           date        not null,
+    invalid_reason           varchar(1),
+    vocabulary_id_1          varchar(20) not null,
+    vocabulary_id_2          varchar(20) not null,
+    version                  INT
 ) PARTITION BY LIST (version);
 
 CREATE TABLE concept_synonym_history

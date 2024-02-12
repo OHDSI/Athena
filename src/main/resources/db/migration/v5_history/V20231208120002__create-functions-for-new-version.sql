@@ -102,6 +102,7 @@ BEGIN
             rl.relationship_id,
             rl.reverse_relationship_id,
             cr.valid_start_date,
+            cr2.valid_start_date AS reverse_valid_start_date,
             cr.valid_end_date,
             cr.invalid_reason,
             c1.VOCABULARY_ID AS VOCABULARY_ID_1,
@@ -111,12 +112,12 @@ BEGIN
         JOIN %I.relationship AS rl ON cr.relationship_id = rl.relationship_id
         JOIN %I.concept AS c1 ON cr.CONCEPT_ID_1 = c1.CONCEPT_ID
         JOIN %I.concept AS c2 ON cr.CONCEPT_ID_2 = c2.CONCEPT_ID
+        JOIN %I.concept_relationship AS cr2 on cr.CONCEPT_ID_1 = cr2.CONCEPT_ID_2 AND cr.CONCEPT_ID_2 = cr2.CONCEPT_ID_1 AND cr2.relationship_id = reverse_relationship_id
         WHERE cr.relationship_id > rl.reverse_relationship_id ',
-                   p_target_schema, p_version, p_target_schema, p_version,
-                   p_target_schema, p_version,
-                   p_version, p_source_schema, p_source_schema, p_source_schema, p_source_schema
+                   p_target_schema, p_version, p_target_schema, p_version,                                          --create table params
+                   p_target_schema, p_version,                                                                      --insert params
+                   p_version, p_source_schema, p_source_schema, p_source_schema, p_source_schema, p_source_schema   --select params
             );
-
 
     RAISE NOTICE 'Step 4: Concept Classes...';
     EXECUTE format('
