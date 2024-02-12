@@ -103,6 +103,7 @@ BEGIN
                 COALESCE(c1.relationship_id, c2.relationship_id) AS relationship_id,
                 COALESCE(c1.reverse_relationship_id, c2.reverse_relationship_id) AS reverse_relationship_id,
                 c1.valid_start_date,
+                c1.reverse_valid_start_date,
                 c1.valid_end_date,
                 c1.invalid_reason
             FROM
@@ -131,8 +132,8 @@ BEGIN
             crc2.attribute_modified,
             crc2.concept_id_2 AS concept_id_1,
             crc2.concept_id_1 AS concept_id_2,
-            crc2.reverse_relationship_id,
-            crc2.valid_start_date,
+            crc2.reverse_relationship_id as relationship_id,
+            crc2.reverse_valid_start_date AS valid_end_date,
             crc2.valid_end_date,
             crc2.invalid_reason
      FROM concept_relationship_changes crc2;
