@@ -32,7 +32,6 @@ import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.VocabularyConversionRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.service.DownloadBundleService.BundleType;
-import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import com.odysseusinc.athena.service.mail.EmailService;
 import com.odysseusinc.athena.service.saver.*;
 import com.odysseusinc.athena.service.writer.FileHelper;
@@ -68,12 +67,11 @@ public class AsyncVocabularyService {
     private final List<SaverV5> saversV5;
     private final List<SaverV5History> saverV5Histories;
     private final List<SaverV5Delta> saverV5Deltas;
-    private final VocabularyReleaseVersionService versionService;
     private final UrlBuilder urlBuilder;
     private final VocabularyConversionRepository vocabularyConversionRepository;
     private final ZipWriter zipWriter;
 
-    public AsyncVocabularyService(DownloadBundleRepository downloadBundleRepository, DownloadBundleService downloadBundleService, EmailService emailService, FileHelper fileHelper, List<SaverV4> saversV4, List<SaverV5> saversV5, List<SaverV5History> saverV5Histories, List<SaverV5Delta> saverV5Deltas, VocabularyReleaseVersionService versionService, UrlBuilder urlBuilder, VocabularyConversionRepository vocabularyConversionRepository, ZipWriter zipWriter) {
+    public AsyncVocabularyService(DownloadBundleRepository downloadBundleRepository, DownloadBundleService downloadBundleService, EmailService emailService, FileHelper fileHelper, List<SaverV4> saversV4, List<SaverV5> saversV5, List<SaverV5History> saverV5Histories, List<SaverV5Delta> saverV5Deltas, UrlBuilder urlBuilder, VocabularyConversionRepository vocabularyConversionRepository, ZipWriter zipWriter) {
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadBundleService = downloadBundleService;
         this.emailService = emailService;
@@ -82,7 +80,6 @@ public class AsyncVocabularyService {
         this.saversV5 = saversV5;
         this.saverV5Histories = saverV5Histories;
         this.saverV5Deltas = saverV5Deltas;
-        this.versionService = versionService;
         this.urlBuilder = urlBuilder;
         this.vocabularyConversionRepository = vocabularyConversionRepository;
         this.zipWriter = zipWriter;
@@ -138,15 +135,15 @@ public class AsyncVocabularyService {
         switch (type) {
             case V5_DELTAS:
                 emailService.sendDeltaDownloadLink(user, bundle.getName(), urlBuilder.downloadVocabulariesLink(bundle.getUuid()), bundle.getCdmVersion(),
-                        includedVocabularies, versionService.toReleaseVersion(bundle.getVocabularyVersion()), versionService.toReleaseVersion(bundle.getDeltaVersion())
+                        includedVocabularies, bundle.formattedVocabularyVersion(), bundle.formattedDeltaVersion()
                 );
             case V5_HISTORIES:
                 emailService.sendVocabularyDownloadLink(user, bundle.getName(), urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
-                        bundle.getCdmVersion(), includedVocabularies, versionService.toReleaseVersion(bundle.getVocabularyVersion())
+                        bundle.getCdmVersion(), includedVocabularies, bundle.formattedVocabularyVersion()
                 );
             default:
                 emailService.sendVocabularyDownloadLink(user, bundle.getName(), urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
-                        bundle.getCdmVersion(), includedVocabularies, bundle.getReleaseVersion()
+                        bundle.getCdmVersion(), includedVocabularies, bundle.formattedReleaseVersion()
                 );
         }
     }

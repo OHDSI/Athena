@@ -23,6 +23,7 @@
 package com.odysseusinc.athena.model.athena;
 
 import com.google.common.base.MoreObjects;
+import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyVersionConverter;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import lombok.Getter;
@@ -94,19 +95,17 @@ public class DownloadBundle {
     @Enumerated(EnumType.STRING)
     private DownloadBundleStatus status;
 
-
-    //TODO DEV rename it to historical version?
+    //TODO DEV rename it to historical version id?
     @Column(name = "vocabulary_version")
     private Integer vocabularyVersion;
-
-    @Column(name = "delta")
-    private boolean delta;
 
     @Column(name = "delta_version")
     private Integer deltaVersion;
 
-    private boolean cpt4;
+    @Column(name = "delta")
+    private boolean delta;
 
+    private boolean cpt4;
 
     public DownloadBundle() {
     }
@@ -140,6 +139,18 @@ public class DownloadBundle {
         return vocabularies.stream()
                 .filter(item -> !item.getVocabularyConversion().getOmopReqValue())
                 .collect(Collectors.toList());
+    }
+
+    public String formattedReleaseVersion() {
+        return VocabularyVersionConverter.fromOldToNew(releaseVersion);
+    }
+
+    public String formattedVocabularyVersion() {
+        return VocabularyVersionConverter.toNewFormat(vocabularyVersion);
+    }
+
+    public String formattedDeltaVersion() {
+        return VocabularyVersionConverter.toNewFormat(deltaVersion);
     }
 
     @Override
