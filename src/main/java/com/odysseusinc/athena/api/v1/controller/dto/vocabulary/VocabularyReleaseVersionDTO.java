@@ -10,7 +10,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class VocabularyReleaseVersionDTO {
-    private final Integer value;
+    private final Integer value; //TODO DEV rename it to the id or code.
     private final String label;
     private final boolean current;
 }

@@ -24,6 +24,7 @@ package com.odysseusinc.athena.service.impl;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyToUserVocabularyDTO;
+import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyVersionConverter;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
@@ -141,7 +142,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         checkBundleVocabularies(withOmopReqIdV4s, currentUser.getId());
 
         DownloadBundle bundle = new DownloadBundle(
-                uuid, version, new Date(), currentUser.getId(), bundleName, vocabularyServiceV5.getOMOPVocabularyVersion(), DownloadBundleStatus.PENDING,
+                uuid, version, new Date(), currentUser.getId(), bundleName, VocabularyVersionConverter.toOldFormat(vocabularyServiceV5.getReleaseVocabularyVersionId()), DownloadBundleStatus.PENDING,
                 vocabularyVersion, deltaVersion, delta
         );
         bundle = saveDownloadItems(bundle, withOmopReqIdV4s);

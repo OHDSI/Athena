@@ -29,7 +29,6 @@ import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.service.DownloadBundleService;
-import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,18 +46,16 @@ public class DownloadBundleToDTO implements Converter<DownloadBundle, DownloadBu
     private UrlBuilder urlBuilder;
     private ConverterUtils converterUtils;
     private DownloadBundleService downloadBundleService;
-    private VocabularyReleaseVersionService versionService;
 
     @Autowired
     public DownloadBundleToDTO(GenericConversionService conversionService,
                                UrlBuilder urlBuilder,
-                               ConverterUtils converterUtils, DownloadBundleService downloadBundleService, VocabularyReleaseVersionService versionService) {
+                               ConverterUtils converterUtils, DownloadBundleService downloadBundleService) {
 
         this.conversionService = conversionService;
         this.urlBuilder = urlBuilder;
         this.converterUtils = converterUtils;
         this.downloadBundleService = downloadBundleService;
-        this.versionService = versionService;
     }
 
     @Override
@@ -85,13 +82,13 @@ public class DownloadBundleToDTO implements Converter<DownloadBundle, DownloadBu
         dto.setType(type);
         switch (type) {
             case V5_DELTAS:
-                dto.setVocabularyReleaseVersion(versionService.toReleaseVersion(bundle.getVocabularyVersion()));
-                dto.setDeltaReleaseVersion(versionService.toReleaseVersion(bundle.getDeltaVersion()));
+                dto.setVocabularyReleaseVersion(bundle.formattedVocabularyVersion());
+                dto.setDeltaReleaseVersion(bundle.formattedDeltaVersion());
             case V5_HISTORIES:
-                dto.setVocabularyReleaseVersion(versionService.toReleaseVersion(bundle.getVocabularyVersion()));
+                dto.setVocabularyReleaseVersion(bundle.formattedVocabularyVersion());
         }
 
-        dto.setReleaseVersion(bundle.getReleaseVersion());
+        dto.setReleaseVersion(bundle.formattedReleaseVersion());
         List<VocabularyDTO> dtos = converterUtils.convertList(bundle.getVocabulariesWithoutOmopReq(),
                 VocabularyDTO.class);
         dto.setVocabularies(dtos);

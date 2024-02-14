@@ -23,37 +23,26 @@
 package com.odysseusinc.athena.model.athenav5history;
 
 import com.odysseusinc.athena.model.common.EntityV5;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "vocabulary_release_version")
 @Getter
 @Setter
+@AllArgsConstructor(staticName = "of")
+@NoArgsConstructor
 public class VocabularyReleaseVersion extends EntityV5 {
 
     @Id
     @Column(name = "id")
     private Integer id;
 
-    /**
-     * In vocabularies, it is called vocabulary version and has the vYYYYMMDD format.
-     */
-
-    @NotBlank
-    @Column(name = "vocabulary_name", nullable = false)
-    private String vocabularyName;
-
-    /**
-     * In Athena, it is called vocabulary release version and has the v5 DD-MON-YY format.
-     */
-    @NotBlank
-    @Column(name = "athena_name", nullable = false)
-    private String athenaName;
 }

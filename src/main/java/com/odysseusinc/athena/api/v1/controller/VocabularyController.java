@@ -22,6 +22,7 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
+import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyVersionConverter;
 import com.odysseusinc.athena.api.v1.controller.dto.CustomPageImpl;
 import com.odysseusinc.athena.api.v1.controller.dto.LicenseExceptionDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.PageDTO;
@@ -216,17 +217,17 @@ public class VocabularyController extends AbstractVocabularyController {
     }
 
 
+    //TODO DEV rename it to vocabulary-release-version
     @GetMapping("/release-version")
     public VocabularyVersionDTO releaseVersion() {
 
-        String vocabularyVersion = vocabularyServiceV5.getOMOPVocabularyVersion();
-
+        Integer vocabularyVersionId = vocabularyServiceV5.getReleaseVocabularyVersionId();
+        String vocabularyVersion = VocabularyVersionConverter.toNewFormat(vocabularyVersionId);
         return converterUtils.convert(vocabularyVersion, VocabularyVersionDTO.class);
     }
 
     @GetMapping("/vocabulary-release-versions")
     public List<VocabularyReleaseVersionDTO> releaseVersions() {
-
         return versionService.getReleaseVersions();
     }
 

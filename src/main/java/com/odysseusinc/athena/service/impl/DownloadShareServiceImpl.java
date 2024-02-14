@@ -52,17 +52,14 @@ public class DownloadShareServiceImpl implements DownloadShareService {
     private final EmailService emailService;
     private final UserService userService;
     private final UrlBuilder urlBuilder;
-    private final VocabularyReleaseVersionService versionService;
-
     @Autowired
-    public DownloadShareServiceImpl(DownloadBundleService downloadBundleService, DownloadBundleRepository downloadBundleRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, UserService userService, UrlBuilder urlBuilder, VocabularyReleaseVersionService versionService) {
+    public DownloadShareServiceImpl(DownloadBundleService downloadBundleService, DownloadBundleRepository downloadBundleRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, UserService userService, UrlBuilder urlBuilder) {
         this.downloadBundleService = downloadBundleService;
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadShareRepository = downloadShareRepository;
         this.emailService = emailService;
         this.userService = userService;
         this.urlBuilder = urlBuilder;
-        this.versionService = versionService;
     }
 
     @Override
@@ -110,13 +107,14 @@ public class DownloadShareServiceImpl implements DownloadShareService {
                 final String bundleUrl = urlBuilder.downloadVocabulariesLink(bundle.getUuid());
                 switch (this.downloadBundleService.getType(bundle)) {
                     case V5_DELTAS:
-                        emailService.sendDeltaWereSharedNotification(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(), bundle.getReleaseVersion(),
-                                versionService.toReleaseVersion(bundle.getDeltaVersion()));
+                        emailService.sendDeltaWereSharedNotification(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(),
+                                bundle.formattedVocabularyVersion(), bundle.formattedDeltaVersion());
                     case V5_HISTORIES:
                         emailService.sendVocabulariesWereSharedNotification(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(),
-                                versionService.toReleaseVersion(bundle.getVocabularyVersion()));
+                                bundle.formattedVocabularyVersion());
                     default:
-                        emailService.sendVocabulariesWereSharedNotification(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(), bundle.getReleaseVersion());
+                        emailService.sendVocabulariesWereSharedNotification(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(),
+                                bundle.formattedReleaseVersion());
                 }
             }
         });
