@@ -162,8 +162,11 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     @Override
     public void saveContent(DownloadBundle bundle, AthenaUser user) {
-
-        asyncVocabularyService.saveContent(bundle, user);
+        if (bundle.isDelta()){
+            asyncVocabularyService.saveDeltaContent(bundle, user);
+        } else {
+            asyncVocabularyService.saveContent(bundle, user);
+        }
     }
 
     @Override

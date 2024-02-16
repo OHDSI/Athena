@@ -88,6 +88,16 @@ public class AsyncVocabularyService {
     @Async
     public void saveContent(DownloadBundle bundle, AthenaUser user) {
 
+        save(bundle, user);
+    }
+
+    @Async("deltaExecutor")
+    public void saveDeltaContent(DownloadBundle bundle, AthenaUser user) {
+
+        save(bundle, user);
+    }
+
+    private void save(DownloadBundle bundle, AthenaUser user) {
         List<Long> idV4s = bundle.getVocabularyV4Ids();
         try (FileOutputStream fout = new FileOutputStream(fileHelper.getZipPath(bundle.getUuid()));
              ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fout))) {
