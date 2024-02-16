@@ -5,6 +5,22 @@ CREATE OR REPLACE FUNCTION get_sql_statements_delta(
 )
     RETURNS TABLE (script_text TEXT)
 AS $$
+
+-- Clarification: The following comments provide explanations for the use of placeholders in the context of the function below.
+-- %s: Simple string substitution.
+-- Example: format('This is a simple string: %s', 'Hello')
+-- Output: 'This is a simple string: Hello'
+-- %s is used for simple string values and doesn't perform any quoting or escaping.
+
+-- %I: Identifier substitution (used for identifiers like table or column names).
+-- Example: format('SELECT * FROM %I WHERE column = %s', 'my_table', 'some_value')
+-- Output: 'SELECT * FROM "my_table" WHERE column = some_value'
+-- %I is used to safely include identifiers in SQL statements, ensuring proper quoting to prevent SQL injection.
+
+-- %L: Literal substitution (used for string literals, providing automatic quoting and escaping).
+-- Example: format('This is a literal string: %L', 'Hello, World!')
+-- Output: 'This is a literal string: 'Hello, World!''
+-- %L is used for safely including string literals in SQL statements, automatically handling quoting and escaping.
 DECLARE
 
 
