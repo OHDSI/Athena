@@ -69,11 +69,11 @@ BEGIN
                 END AS script_text,
             row_change_type,
             concept_class_id
-        FROM get_concept_delta(pVersion1, pVersion2, pVocabularies, false)
+        FROM get_concept_delta_cached(pVersion1, pVersion2, pVocabularies, false)
         ),
         ConceptUpdateScript AS (
             SELECT FORMAT('UPDATE concept SET concept_code = %L WHERE concept_id=%s;', concept_code, concept_id) AS script_text
-            FROM get_concept_delta(pVersion1, pVersion2, pVocabularies, false)
+            FROM get_concept_delta_cached(pVersion1, pVersion2, pVocabularies, false)
             WHERE row_change_type IN ('I','U')
         ),
          RelationshipScript AS (
@@ -120,7 +120,7 @@ BEGIN
                      WHEN row_change_type = 'D' THEN FORMAT('DELETE FROM concept_ancestor WHERE ancestor_concept_id = %s AND descendant_concept_id = %s;', ancestor_concept_id, descendant_concept_id)
                      END AS script_text,
                  row_change_type
-             FROM get_concept_ancestor_delta(pVersion1, pVersion2, pVocabularies, false)
+             FROM get_concept_ancestor_delta_cached(pVersion1, pVersion2, pVocabularies, false)
          ),
          ConceptRelationshipScript AS (
              SELECT
@@ -132,7 +132,7 @@ BEGIN
                      WHEN row_change_type = 'D' THEN FORMAT ('DELETE FROM concept_relationship WHERE concept_id_1 = %s AND concept_id_2 = %s AND relationship_id = %L;', concept_id_1, concept_id_2, relationship_id)
                      END AS script_text,
                  row_change_type
-             FROM get_concept_relationship_delta(pVersion1, pVersion2, pVocabularies, false)
+             FROM get_concept_relationship_delta_cached(pVersion1, pVersion2, pVocabularies, false)
          ),
          ConceptSynonymScript AS (
              SELECT

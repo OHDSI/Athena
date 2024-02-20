@@ -17,11 +17,16 @@ CREATE OR REPLACE FUNCTION get_concept_delta(
                 concept_code        varchar(50),
                 valid_start_date    date,
                 valid_end_date      date,
-                invalid_reason      varchar(1)
+                invalid_reason      varchar(1),
+                vocabulary_id_v1    varchar(20),
+                vocabulary_id_v2    varchar(20)
             )
 AS
 $$
 BEGIN
+    IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
+        RETURN;
+    END IF;
     RETURN QUERY
         SELECT
             CASE
@@ -52,11 +57,13 @@ BEGIN
             c1.concept_code,
             c1.valid_start_date,
             c1.valid_end_date,
-            c1.invalid_reason
+            c1.invalid_reason,
+            c1.vocabulary_id vocabulary_id_v1,
+            c2.vocabulary_id vocabulary_id_v2
         FROM
-            (SELECT * FROM concept_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_id=ANY(pVocabularies)) c1
+            (SELECT * FROM concept_history a1 WHERE a1.version = pVersion1 AND(pVocabularies IS NULL OR a1.vocabulary_id=ANY(pVocabularies))) c1
                 FULL JOIN
-            (SELECT * FROM concept_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_id=ANY(pVocabularies)) c2
+            (SELECT * FROM concept_history a2 WHERE a2.version = pVersion2 AND(pVocabularies IS NULL OR  a2.vocabulary_id=ANY(pVocabularies))) c2
             USING (concept_id)
         WHERE
             ROW(c1.concept_name, c1.domain_id, c1.vocabulary_id, c1.concept_class_id, c1.standard_concept, c1.concept_code, c1.valid_start_date, c1.valid_end_date, c1.invalid_reason) IS DISTINCT FROM
@@ -78,10 +85,17 @@ CREATE OR REPLACE FUNCTION get_concept_relationship_delta(
                       relationship_id     varchar(20),
                       valid_start_date    date,
                       valid_end_date      date,
-                      invalid_reason      varchar(1)
+                      invalid_reason      varchar(1),
+                      vocabulary_id_1_v1  varchar(20),
+                      vocabulary_id_2_v1  varchar(20),
+                      vocabulary_id_1_v2  varchar(20),
+                      vocabulary_id_2_v2  varchar(20)
                   )
 AS $$
 BEGIN
+    IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
+        RETURN;
+    END IF;
     RETURN QUERY
         WITH concept_relationship_changes AS (
             SELECT
@@ -105,11 +119,15 @@ BEGIN
                 c1.valid_start_date,
                 c1.reverse_valid_start_date,
                 c1.valid_end_date,
-                c1.invalid_reason
+                c1.invalid_reason,
+                c1.vocabulary_id_1 vocabulary_id_1_v1,
+                c1.vocabulary_id_2 vocabulary_id_2_v1,
+                c2.vocabulary_id_1 vocabulary_id_1_v2,
+                c2.vocabulary_id_2 vocabulary_id_2_v2
             FROM
-                (SELECT * FROM concept_relationship_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_id_1 = ANY(pVocabularies) AND a1.vocabulary_id_2 = ANY(pVocabularies)) c1
+                (SELECT * FROM concept_relationship_history a1 WHERE a1.version = pVersion1 AND (pVocabularies IS NULL OR (a1.vocabulary_id_1 = ANY(pVocabularies) AND a1.vocabulary_id_2 = ANY(pVocabularies)))) c1
                     FULL JOIN
-                (SELECT * FROM concept_relationship_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_id_1 = ANY(pVocabularies) AND a2.vocabulary_id_2 = ANY(pVocabularies)) c2
+                (SELECT * FROM concept_relationship_history a2 WHERE a2.version = pVersion2 AND (pVocabularies IS NULL OR (a2.vocabulary_id_1 = ANY(pVocabularies) AND a2.vocabulary_id_2 = ANY(pVocabularies)))) c2
                 USING (concept_id_1, concept_id_2, relationship_id)
             WHERE
                 ROW(c1.valid_start_date, c1.valid_end_date, c1.invalid_reason) IS DISTINCT FROM
@@ -123,7 +141,11 @@ BEGIN
             crc1.relationship_id,
             crc1.valid_start_date,
             crc1.valid_end_date,
-            crc1.invalid_reason
+            crc1.invalid_reason,
+            crc1.vocabulary_id_1_v1,
+            crc1.vocabulary_id_2_v1,
+            crc1.vocabulary_id_1_v2,
+            crc1.vocabulary_id_2_v2
         FROM concept_relationship_changes crc1
         UNION ALL
         -- reversed relationships
@@ -135,7 +157,11 @@ BEGIN
             crc2.reverse_relationship_id as relationship_id,
             crc2.reverse_valid_start_date AS valid_end_date,
             crc2.valid_end_date,
-            crc2.invalid_reason
+            crc2.invalid_reason,
+            crc2.vocabulary_id_1_v1,
+            crc2.vocabulary_id_2_v1,
+            crc2.vocabulary_id_1_v2,
+            crc2.vocabulary_id_2_v2
      FROM concept_relationship_changes crc2;
 END;
 $$ LANGUAGE plpgsql;
@@ -146,16 +172,24 @@ CREATE OR REPLACE FUNCTION get_concept_ancestor_delta(
     pVocabularies text[],
     pCsvView boolean
 )
+
     RETURNS TABLE (
-                      row_change_type           text,
-                      attribute_modified        text,
-                      ancestor_concept_id       bigint,
-                      descendant_concept_id     bigint,
-                      min_levels_of_separation  bigint,
-                      max_levels_of_separation  bigint
+                      row_change_type             text,
+                      attribute_modified          text,
+                      ancestor_concept_id         bigint,
+                      descendant_concept_id       bigint,
+                      min_levels_of_separation    bigint,
+                      max_levels_of_separation    bigint,
+                      ancestor_vocabulary_id_v1   varchar(20),
+                      descendant_vocabulary_id_v1 varchar(20),
+                      ancestor_vocabulary_id_v2   varchar(20),
+                      descendant_vocabulary_id_v2 varchar(20)
                   )
 AS $$
 BEGIN
+    IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
+        RETURN;
+    END IF;
     RETURN QUERY
         SELECT
             CASE
@@ -177,11 +211,15 @@ BEGIN
             COALESCE(c1.ancestor_concept_id, c2.ancestor_concept_id) AS ancestor_concept_id,
             COALESCE(c1.descendant_concept_id, c2.descendant_concept_id) AS descendant_concept_id,
             c1.min_levels_of_separation,
-            c1.max_levels_of_separation
+            c1.max_levels_of_separation,
+            c1.ancestor_vocabulary_id    ancestor_vocabulary_id_v1,
+            c1.descendant_vocabulary_id  descendant_vocabulary_id_v1,
+            c2.ancestor_vocabulary_id    ancestor_vocabulary_id_v2,
+            c2.descendant_vocabulary_id  descendant_vocabulary_id_v2
         FROM
-            (SELECT * FROM concept_ancestor_history a1 WHERE a1.version = pVersion1 AND (a1.ancestor_vocabulary_id = ANY(pVocabularies) AND a1.descendant_vocabulary_id = ANY(pVocabularies))) c1
+            (SELECT * FROM concept_ancestor_history a1 WHERE a1.version = pVersion1 AND (pVocabularies IS NULL OR (a1.ancestor_vocabulary_id = ANY(pVocabularies) AND a1.descendant_vocabulary_id = ANY(pVocabularies)))) c1
                 FULL JOIN
-            (SELECT * FROM concept_ancestor_history a2 WHERE a2.version = pVersion2 AND (a2.ancestor_vocabulary_id = ANY(pVocabularies) AND a2.descendant_vocabulary_id = ANY(pVocabularies))) c2
+            (SELECT * FROM concept_ancestor_history a2 WHERE a2.version = pVersion2 AND (pVocabularies IS NULL OR (a2.ancestor_vocabulary_id = ANY(pVocabularies) AND a2.descendant_vocabulary_id = ANY(pVocabularies)))) c2
             USING (ancestor_concept_id, descendant_concept_id)
         WHERE
             ROW(c1.min_levels_of_separation, c1.max_levels_of_separation) IS DISTINCT FROM
@@ -204,6 +242,9 @@ CREATE OR REPLACE FUNCTION get_concept_synonym_delta(
                   )
 AS $$
 BEGIN
+    IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
+        RETURN;
+    END IF;
     RETURN QUERY
         SELECT
             CASE
@@ -248,6 +289,9 @@ CREATE OR REPLACE FUNCTION get_domain_delta(
                   )
 AS $$
 BEGIN
+    IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
+        RETURN;
+    END IF;
     RETURN QUERY
         SELECT
             CASE
@@ -294,6 +338,9 @@ CREATE OR REPLACE FUNCTION get_relationship_delta(
                   )
 AS $$
 BEGIN
+    IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
+        RETURN;
+    END IF;
     RETURN QUERY
         SELECT
             CASE
@@ -345,6 +392,9 @@ CREATE OR REPLACE FUNCTION get_vocabulary_delta(
                   )
 AS $$
 BEGIN
+    IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
+        RETURN;
+    END IF;
     RETURN QUERY
         SELECT
             CASE
@@ -401,6 +451,9 @@ CREATE OR REPLACE FUNCTION get_drug_strength_delta(
                   )
 AS $$
 BEGIN
+    IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
+        RETURN;
+    END IF;
     RETURN QUERY
         SELECT
             CASE
@@ -461,6 +514,9 @@ CREATE OR REPLACE FUNCTION get_concept_class_delta(
                   )
 AS $$
 BEGIN
+    IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
+        RETURN;
+    END IF;
     RETURN QUERY
         SELECT
             CASE
@@ -488,6 +544,3 @@ BEGIN
             ROW(cc2.concept_class_name, cc2.concept_class_concept_id);
 END;
 $$ LANGUAGE plpgsql;
-
-
-
