@@ -115,6 +115,19 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION refresh_delta_caches_if_necessary(p_version INTEGER)
+    RETURNS VOID AS $$
+
+BEGIN
+    IF p_version in (
+                     get_latest_version(),
+                     get_second_latest_version(),
+                     get_third_latest_version())  THEN
+        PERFORM refresh_delta_caches();
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION get_concept_delta_cached(
     pVersion1 integer,
     pVersion2 integer,

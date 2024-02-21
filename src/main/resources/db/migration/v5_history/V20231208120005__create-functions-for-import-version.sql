@@ -209,6 +209,9 @@ BEGIN
     RAISE NOTICE 'Populate new version to history...';
     PERFORM add_version_to_history(v_version, v_version_label, p_target_schema, p_source_schema);
 
+    RAISE NOTICE 'Refresh delta caches...';
+    PERFORM refresh_delta_caches_if_necessary(v_version);
+
     RAISE NOTICE 'Import process completed successfully.';
 END;
 $$
