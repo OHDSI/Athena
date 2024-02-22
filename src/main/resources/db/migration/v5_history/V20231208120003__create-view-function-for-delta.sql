@@ -1,3 +1,22 @@
+CREATE OR REPLACE FUNCTION get_vocabulary_history_ids(
+    pVocabularies text[],
+    pVersion integer
+)
+    RETURNS integer[]
+AS
+$$
+DECLARE
+    result integer[];
+BEGIN
+    SELECT ARRAY_AGG(vocabulary_history_id)
+    INTO result
+    FROM vocabulary_history
+    WHERE version = pVersion AND (pVocabularies IS NULL OR vocabulary_id = ANY(pVocabularies));
+
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION get_concept_delta(
     pVersion1 integer,
     pVersion2 integer,
@@ -6,27 +25,33 @@ CREATE OR REPLACE FUNCTION get_concept_delta(
 )
     RETURNS TABLE
             (
-                row_change_type     text,
-                attribute_modified  text,
-                concept_id          bigint,
-                concept_name        varchar(255),
-                domain_id           varchar(20),
-                vocabulary_id       varchar(20),
-                concept_class_id    varchar(20),
-                standard_concept    varchar(1),
-                concept_code        varchar(50),
-                valid_start_date    date,
-                valid_end_date      date,
-                invalid_reason      varchar(1),
-                vocabulary_id_v1    varchar(20),
-                vocabulary_id_v2    varchar(20)
+                row_change_type          text,
+                attribute_modified       text,
+                concept_id               bigint,
+                concept_name             varchar(255),
+                domain_id                varchar(20),
+                vocabulary_id            varchar(20),
+                concept_class_id         varchar(20),
+                standard_concept         varchar(1),
+                concept_code             varchar(50),
+                valid_start_date         date,
+                valid_end_date           date,
+                invalid_reason           varchar(1),
+                vocabulary_history_id_v1 integer,
+                vocabulary_history_id_v2 integer
             )
 AS
 $$
+DECLARE
+    pVocabulariesHistoryV1 integer[];
+    pVocabulariesHistoryV2 integer[];
 BEGIN
     IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
         RETURN;
     END IF;
+    pVocabulariesHistoryV1 := get_vocabulary_history_ids(pVocabularies, pVersion1);
+    pVocabulariesHistoryV2 := get_vocabulary_history_ids(pVocabularies, pVersion2);
+
     RETURN QUERY
         SELECT
             CASE
@@ -58,12 +83,12 @@ BEGIN
             c1.valid_start_date,
             c1.valid_end_date,
             c1.invalid_reason,
-            c1.vocabulary_id vocabulary_id_v1,
-            c2.vocabulary_id vocabulary_id_v2
+            c1.vocabulary_history_id vocabulary_history_id_v1,
+            c2.vocabulary_history_id vocabulary_history_id_v2
         FROM
-            (SELECT * FROM concept_history a1 WHERE a1.version = pVersion1 AND(pVocabularies IS NULL OR a1.vocabulary_id=ANY(pVocabularies))) c1
+            (SELECT * FROM concept_history a1 WHERE a1.version = pVersion1 AND(pVocabularies IS NULL OR a1.vocabulary_history_id=ANY(pVocabulariesHistoryV1))) c1
                 FULL JOIN
-            (SELECT * FROM concept_history a2 WHERE a2.version = pVersion2 AND(pVocabularies IS NULL OR  a2.vocabulary_id=ANY(pVocabularies))) c2
+            (SELECT * FROM concept_history a2 WHERE a2.version = pVersion2 AND(pVocabularies IS NULL OR  a2.vocabulary_history_id=ANY(pVocabulariesHistoryV2))) c2
             USING (concept_id)
         WHERE
             ROW(c1.concept_name, c1.domain_id, c1.vocabulary_id, c1.concept_class_id, c1.standard_concept, c1.concept_code, c1.valid_start_date, c1.valid_end_date, c1.invalid_reason) IS DISTINCT FROM
@@ -86,16 +111,22 @@ CREATE OR REPLACE FUNCTION get_concept_relationship_delta(
                       valid_start_date    date,
                       valid_end_date      date,
                       invalid_reason      varchar(1),
-                      vocabulary_id_1_v1  varchar(20),
-                      vocabulary_id_2_v1  varchar(20),
-                      vocabulary_id_1_v2  varchar(20),
-                      vocabulary_id_2_v2  varchar(20)
+                      vocabulary_history_id_1_v1  integer,
+                      vocabulary_history_id_2_v1  integer,
+                      vocabulary_history_id_1_v2  integer,
+                      vocabulary_history_id_2_v2  integer
                   )
 AS $$
+DECLARE
+    pVocabulariesHistoryV1 integer[];
+    pVocabulariesHistoryV2 integer[];
 BEGIN
     IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
         RETURN;
     END IF;
+    pVocabulariesHistoryV1 := get_vocabulary_history_ids(pVocabularies, pVersion1);
+    pVocabulariesHistoryV2 := get_vocabulary_history_ids(pVocabularies, pVersion2);
+
     RETURN QUERY
         WITH concept_relationship_changes AS (
             SELECT
@@ -120,14 +151,14 @@ BEGIN
                 c1.reverse_valid_start_date,
                 c1.valid_end_date,
                 c1.invalid_reason,
-                c1.vocabulary_id_1 vocabulary_id_1_v1,
-                c1.vocabulary_id_2 vocabulary_id_2_v1,
-                c2.vocabulary_id_1 vocabulary_id_1_v2,
-                c2.vocabulary_id_2 vocabulary_id_2_v2
+                c1.vocabulary_history_id_1 vocabulary_history_id_1_v1,
+                c1.vocabulary_history_id_2 vocabulary_history_id_2_v1,
+                c2.vocabulary_history_id_1 vocabulary_history_id_1_v2,
+                c2.vocabulary_history_id_2 vocabulary_history_id_2_v2
             FROM
-                (SELECT * FROM concept_relationship_history a1 WHERE a1.version = pVersion1 AND (pVocabularies IS NULL OR (a1.vocabulary_id_1 = ANY(pVocabularies) AND a1.vocabulary_id_2 = ANY(pVocabularies)))) c1
+                (SELECT * FROM concept_relationship_history a1 WHERE a1.version = pVersion1 AND (pVocabularies IS NULL OR (a1.vocabulary_history_id_1 = ANY(pVocabulariesHistoryV1) AND a1.vocabulary_history_id_2 = ANY(pVocabulariesHistoryV1)))) c1
                     FULL JOIN
-                (SELECT * FROM concept_relationship_history a2 WHERE a2.version = pVersion2 AND (pVocabularies IS NULL OR (a2.vocabulary_id_1 = ANY(pVocabularies) AND a2.vocabulary_id_2 = ANY(pVocabularies)))) c2
+                (SELECT * FROM concept_relationship_history a2 WHERE a2.version = pVersion2 AND (pVocabularies IS NULL OR (a2.vocabulary_history_id_1 = ANY(pVocabulariesHistoryV2) AND a2.vocabulary_history_id_2 = ANY(pVocabulariesHistoryV2)))) c2
                 USING (concept_id_1, concept_id_2, relationship_id)
             WHERE
                 ROW(c1.valid_start_date, c1.valid_end_date, c1.invalid_reason) IS DISTINCT FROM
@@ -142,10 +173,10 @@ BEGIN
             crc1.valid_start_date,
             crc1.valid_end_date,
             crc1.invalid_reason,
-            crc1.vocabulary_id_1_v1,
-            crc1.vocabulary_id_2_v1,
-            crc1.vocabulary_id_1_v2,
-            crc1.vocabulary_id_2_v2
+            crc1.vocabulary_history_id_1_v1,
+            crc1.vocabulary_history_id_2_v1,
+            crc1.vocabulary_history_id_1_v2,
+            crc1.vocabulary_history_id_2_v2
         FROM concept_relationship_changes crc1
         UNION ALL
         -- reversed relationships
@@ -158,10 +189,10 @@ BEGIN
             crc2.reverse_valid_start_date AS valid_end_date,
             crc2.valid_end_date,
             crc2.invalid_reason,
-            crc2.vocabulary_id_1_v1,
-            crc2.vocabulary_id_2_v1,
-            crc2.vocabulary_id_1_v2,
-            crc2.vocabulary_id_2_v2
+            crc2.vocabulary_history_id_1_v1,
+            crc2.vocabulary_history_id_2_v1,
+            crc2.vocabulary_history_id_1_v2,
+            crc2.vocabulary_history_id_2_v2
      FROM concept_relationship_changes crc2;
 END;
 $$ LANGUAGE plpgsql;
@@ -180,16 +211,21 @@ CREATE OR REPLACE FUNCTION get_concept_ancestor_delta(
                       descendant_concept_id       bigint,
                       min_levels_of_separation    bigint,
                       max_levels_of_separation    bigint,
-                      ancestor_vocabulary_id_v1   varchar(20),
-                      descendant_vocabulary_id_v1 varchar(20),
-                      ancestor_vocabulary_id_v2   varchar(20),
-                      descendant_vocabulary_id_v2 varchar(20)
+                      ancestor_vocabulary_history_id_v1   integer,
+                      descendant_vocabulary_history_id_v1 integer,
+                      ancestor_vocabulary_history_id_v2   integer,
+                      descendant_vocabulary_history_id_v2 integer
                   )
 AS $$
+DECLARE
+    pVocabulariesHistoryV1 integer[];
+    pVocabulariesHistoryV2 integer[];
 BEGIN
     IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
         RETURN;
     END IF;
+    pVocabulariesHistoryV1 := get_vocabulary_history_ids(pVocabularies, pVersion1);
+    pVocabulariesHistoryV2 := get_vocabulary_history_ids(pVocabularies, pVersion2);
     RETURN QUERY
         SELECT
             CASE
@@ -203,23 +239,21 @@ BEGIN
                               CASE WHEN c1.ancestor_concept_id IS DISTINCT FROM c2.ancestor_concept_id THEN 'ancestor_concept_id' END,
                               CASE WHEN c1.descendant_concept_id IS DISTINCT FROM c2.descendant_concept_id THEN 'descendant_concept_id' END,
                               CASE WHEN c1.min_levels_of_separation IS DISTINCT FROM c2.min_levels_of_separation THEN 'min_levels_of_separation' END,
-                              CASE WHEN c1.max_levels_of_separation IS DISTINCT FROM c2.max_levels_of_separation THEN 'max_levels_of_separation' END,
-                              CASE WHEN c1.ancestor_vocabulary_id IS DISTINCT FROM c2.ancestor_vocabulary_id THEN 'ancestor_vocabulary_id' END,
-                              CASE WHEN c1.descendant_vocabulary_id IS DISTINCT FROM c2.descendant_vocabulary_id THEN 'descendant_vocabulary_id' END
+                              CASE WHEN c1.max_levels_of_separation IS DISTINCT FROM c2.max_levels_of_separation THEN 'max_levels_of_separation' END
                         )
                 END AS attribute_modified,
             COALESCE(c1.ancestor_concept_id, c2.ancestor_concept_id) AS ancestor_concept_id,
             COALESCE(c1.descendant_concept_id, c2.descendant_concept_id) AS descendant_concept_id,
             c1.min_levels_of_separation,
             c1.max_levels_of_separation,
-            c1.ancestor_vocabulary_id    ancestor_vocabulary_id_v1,
-            c1.descendant_vocabulary_id  descendant_vocabulary_id_v1,
-            c2.ancestor_vocabulary_id    ancestor_vocabulary_id_v2,
-            c2.descendant_vocabulary_id  descendant_vocabulary_id_v2
+            c1.ancestor_vocabulary_history_id    ancestor_vocabulary_id_v1,
+            c1.descendant_vocabulary_history_id  descendant_vocabulary_id_v1,
+            c2.ancestor_vocabulary_history_id    ancestor_vocabulary_id_v2,
+            c2.descendant_vocabulary_history_id  descendant_vocabulary_id_v2
         FROM
-            (SELECT * FROM concept_ancestor_history a1 WHERE a1.version = pVersion1 AND (pVocabularies IS NULL OR (a1.ancestor_vocabulary_id = ANY(pVocabularies) AND a1.descendant_vocabulary_id = ANY(pVocabularies)))) c1
+            (SELECT * FROM concept_ancestor_history a1 WHERE a1.version = pVersion1 AND (pVocabularies IS NULL OR (a1.ancestor_vocabulary_history_id = ANY(pVocabulariesHistoryV1) AND a1.descendant_vocabulary_history_id = ANY(pVocabulariesHistoryV1)))) c1
                 FULL JOIN
-            (SELECT * FROM concept_ancestor_history a2 WHERE a2.version = pVersion2 AND (pVocabularies IS NULL OR (a2.ancestor_vocabulary_id = ANY(pVocabularies) AND a2.descendant_vocabulary_id = ANY(pVocabularies)))) c2
+            (SELECT * FROM concept_ancestor_history a2 WHERE a2.version = pVersion2 AND (pVocabularies IS NULL OR (a2.ancestor_vocabulary_history_id = ANY(pVocabulariesHistoryV2) AND a2.descendant_vocabulary_history_id = ANY(pVocabulariesHistoryV2)))) c2
             USING (ancestor_concept_id, descendant_concept_id)
         WHERE
             ROW(c1.min_levels_of_separation, c1.max_levels_of_separation) IS DISTINCT FROM
@@ -241,10 +275,15 @@ CREATE OR REPLACE FUNCTION get_concept_synonym_delta(
                       language_concept_id     bigint
                   )
 AS $$
+DECLARE
+    pVocabulariesHistoryV1 integer[];
+    pVocabulariesHistoryV2 integer[];
 BEGIN
     IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
         RETURN;
     END IF;
+    pVocabulariesHistoryV1 := get_vocabulary_history_ids(pVocabularies, pVersion1);
+    pVocabulariesHistoryV2 := get_vocabulary_history_ids(pVocabularies, pVersion2);
     RETURN QUERY
         SELECT
             CASE
@@ -252,25 +291,16 @@ BEGIN
                 WHEN c1.concept_id IS NULL THEN 'D'
                 ELSE 'U'
                 END AS row_change_type,
-            CASE
-                WHEN pCsvView AND c1.concept_id IS NOT NULL AND c2.concept_id IS NOT NULL THEN
-                    CONCAT_WS(', ',
-                              CASE WHEN c1.concept_synonym_name IS DISTINCT FROM c2.concept_synonym_name THEN 'concept_synonym_name' END,
-                              CASE WHEN c1.language_concept_id IS DISTINCT FROM c2.language_concept_id THEN 'language_concept_id' END,
-                              CASE WHEN c1.vocabulary_id IS DISTINCT FROM c2.vocabulary_id THEN 'vocabulary_id' END
-                        )
-                END AS attribute_modified,
+            NULL AS attribute_modified, -- There is not field to modify, the all fields are used in the join
             COALESCE(c1.concept_id, c2.concept_id) AS concept_id,
             COALESCE(c1.concept_synonym_name, c2.concept_synonym_name) AS concept_synonym_name,
             COALESCE(c1.language_concept_id, c2.language_concept_id) AS language_concept_id
         FROM
-            (SELECT * FROM concept_synonym_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_id = ANY(pVocabularies)) c1
+            (SELECT * FROM concept_synonym_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_history_id = ANY(pVocabulariesHistoryV1)) c1
                 FULL JOIN
-            (SELECT * FROM concept_synonym_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_id = ANY(pVocabularies)) c2
-            USING (concept_id, concept_synonym_name, language_concept_id)
-        WHERE
-            ROW(c1.concept_synonym_name, c1.language_concept_id, c1.vocabulary_id) IS DISTINCT FROM
-            ROW(c2.concept_synonym_name, c2.language_concept_id, c2.vocabulary_id);
+            (SELECT * FROM concept_synonym_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_history_id = ANY(pVocabulariesHistoryV2)) c2
+            USING (concept_id, concept_synonym_name, language_concept_id);
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -391,10 +421,15 @@ CREATE OR REPLACE FUNCTION get_vocabulary_delta(
                       vocabulary_concept_id       bigint
                   )
 AS $$
+DECLARE
+    pVocabulariesHistoryV1 integer[];
+    pVocabulariesHistoryV2 integer[];
 BEGIN
     IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
         RETURN;
     END IF;
+    pVocabulariesHistoryV1 := get_vocabulary_history_ids(pVocabularies, pVersion1);
+    pVocabulariesHistoryV2 := get_vocabulary_history_ids(pVocabularies, pVersion2);
     RETURN QUERY
         SELECT
             CASE
@@ -417,9 +452,9 @@ BEGIN
             v1.vocabulary_version,
             v1.vocabulary_concept_id
         FROM
-            (SELECT * FROM vocabulary_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_id = ANY(pVocabularies)) v1
+            (SELECT * FROM vocabulary_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_history_id = ANY(pVocabulariesHistoryV1)) v1
                 FULL JOIN
-            (SELECT * FROM vocabulary_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_id = ANY(pVocabularies) ) v2
+            (SELECT * FROM vocabulary_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_history_id = ANY(pVocabulariesHistoryV2) ) v2
             USING (vocabulary_id)
         WHERE
             ROW(v1.vocabulary_name, v1.vocabulary_reference, v1.vocabulary_version, v1.vocabulary_concept_id) IS DISTINCT FROM
@@ -450,10 +485,15 @@ CREATE OR REPLACE FUNCTION get_drug_strength_delta(
                       invalid_reason                    varchar(1)
                   )
 AS $$
+DECLARE
+    pVocabulariesHistoryV1 integer[];
+    pVocabulariesHistoryV2 integer[];
 BEGIN
     IF pVersion1 IS NULL OR pVersion2 IS NULL THEN
         RETURN;
     END IF;
+    pVocabulariesHistoryV1 := get_vocabulary_history_ids(pVocabularies, pVersion1);
+    pVocabulariesHistoryV2 := get_vocabulary_history_ids(pVocabularies, pVersion2);
     RETURN QUERY
         SELECT
             CASE
@@ -489,9 +529,9 @@ BEGIN
             ds1.valid_end_date,
             ds1.invalid_reason
         FROM
-            (SELECT * FROM drug_strength_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_id = ANY(pVocabularies)) ds1
+            (SELECT * FROM drug_strength_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_history_id = ANY(pVocabulariesHistoryV1)) ds1
                 FULL JOIN
-            (SELECT * FROM drug_strength_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_id = ANY(pVocabularies)) ds2
+            (SELECT * FROM drug_strength_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_history_id = ANY(pVocabulariesHistoryV2)) ds2
             USING (drug_concept_id, ingredient_concept_id)
         WHERE
             ROW(ds1.amount_value, ds1.amount_unit_concept_id, ds1.numerator_value, ds1.numerator_unit_concept_id, ds1.denominator_value, ds1.denominator_unit_concept_id, ds1.box_size, ds1.valid_start_date, ds1.valid_end_date, ds1.invalid_reason) IS DISTINCT FROM

@@ -1,3 +1,55 @@
+CREATE OR REPLACE FUNCTION populate_import_temp_tables(p_schema VARCHAR)
+    RETURNS void AS $$
+BEGIN
+    RAISE NOTICE '[%] Populating import_vocabulary_temp table from % schema', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS'), p_schema;
+    -- Splitting into separate CREATE and INSERT-SELECT statements to populate vocabulary_history_id using a serial type.
+    EXECUTE format('
+        CREATE TEMPORARY TABLE import_vocabulary_temp (
+            vocabulary_history_id serial,
+            vocabulary_id         varchar(20),
+            vocabulary_name       varchar(255),
+            vocabulary_reference  varchar(255),
+            vocabulary_version    varchar(255),
+            vocabulary_concept_id bigint
+        )
+    ');
+
+    EXECUTE format('
+        INSERT INTO import_vocabulary_temp(
+            vocabulary_id, vocabulary_name, vocabulary_reference, vocabulary_version, vocabulary_concept_id)
+        SELECT
+            vocabulary_id, vocabulary_name, vocabulary_reference, vocabulary_version, vocabulary_concept_id
+        FROM %I.vocabulary',
+                   p_schema
+            );
+
+    RAISE NOTICE '[%] Populating import_concept_temp table from % schema', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS'), p_schema;
+    EXECUTE format('
+        CREATE TEMPORARY TABLE import_concept_temp AS
+        SELECT
+            c.concept_id,
+            c.concept_name,
+            c.domain_id,
+            c.vocabulary_id,
+            c.concept_class_id,
+            c.standard_concept,
+            c.concept_code,
+            c.valid_start_date,
+            c.valid_end_date,
+            c.invalid_reason,
+            v.vocabulary_history_id
+        FROM import_vocabulary_temp v
+        JOIN %I.concept c
+        ON v.vocabulary_id = c.vocabulary_id',
+                   p_schema
+            );
+
+    -- Add the index creation statement
+    EXECUTE 'CREATE INDEX idx_concept_id ON import_concept_temp (concept_id)';
+
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION remove_version_from_history(p_version integer, p_schema text)
     RETURNS void AS
 $$
@@ -22,14 +74,14 @@ BEGIN
             -- Use IF ELSE  to avoid the message "table does not exist, skipping" during DROP IF EXISTS TABLE
             IF EXISTS (SELECT 1 FROM information_schema.tables t WHERE t.table_schema = p_schema AND t.table_name = partition_table_name) THEN
                 EXECUTE format('DROP TABLE IF EXISTS %s.%s CASCADE;', p_schema, partition_table_name);
-                RAISE NOTICE '- Table %s.%s has been dropped.', p_schema, partition_table_name;
+                RAISE NOTICE '[%] Table %s.%s has been dropped.', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS'), p_schema, partition_table_name;
             ELSE
-                RAISE NOTICE '- Table %s.%s does not exist, skipping.', p_schema, partition_table_name;
+                RAISE NOTICE '[%] Table %s.%s does not exist, skipping.', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS'), p_schema, partition_table_name;
             END IF;
         END LOOP;
     EXECUTE format('DELETE FROM %I.vocabulary_release_version WHERE id = %s', p_schema, p_version);
 
-    RAISE NOTICE '- Partitions for version % in schema % have been removed.', p_version, p_schema;
+    RAISE NOTICE '[%] Partitions for version % in schema % have been removed.', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS'), p_version, p_schema;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -55,9 +107,9 @@ BEGIN
         LOOP
             partition_table_name := format('%s_%s', table_name, p_version);
             EXECUTE format('CREATE TABLE %s.%s PARTITION OF %s.%s FOR VALUES IN (%s);', p_schema, partition_table_name, p_schema, table_name, p_version);
-            RAISE NOTICE '- Partition %s.%s has been created.', p_schema, partition_table_name;
+            RAISE NOTICE '[%] Partition %s.%s has been created.', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS'), p_schema, partition_table_name;
         END LOOP;
-    RAISE NOTICE '- Partitions for version % in schema % have been created.', p_version, p_schema;
+    RAISE NOTICE '[%] Partitions for version % in schema % have been created.', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS'), p_version, p_schema;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -83,31 +135,43 @@ CREATE OR REPLACE FUNCTION add_version_to_history(p_version integer, p_version_l
     RETURNS void AS
 $$
 BEGIN
-    RAISE NOTICE '- Add new version to the vocabulary_release_version. Version: %, Label: %', p_version, p_version_label;
+    RAISE NOTICE '[%] Add new version to the vocabulary_release_version. Version: %, Label: %', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS'), p_version, p_version_label;
     EXECUTE format(
-            'INSERT INTO %I.vocabulary_release_version (id, vocabulary_name, athena_name, import_datetime) VALUES (%s, %L, %L, CURRENT_TIMESTAMP)',
+            'INSERT INTO %I.vocabulary_release_version (id, vocabulary_name, athena_name, import_datetime) VALUES (%s, %L, %L, clock_timestamp())',
             p_target_schema,
             p_version, 'v'||p_version, p_version_label
             );
 
-    RAISE NOTICE '- Concepts...';
+    RAISE NOTICE '[%] Concepts...', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     EXECUTE format('INSERT INTO %I.concept_history_%s
-                    SELECT c.*, %s AS version FROM %I.concept c;',
+                SELECT
+                    c.concept_id,
+                    c.concept_name,
+                    c.domain_id,
+                    c.vocabulary_id,
+                    c.vocabulary_history_id,
+                    c.concept_class_id,
+                    c.standard_concept,
+                    c.concept_code,
+                    c.valid_start_date,
+                    c.valid_end_date,
+                    c.invalid_reason,
+                    %s AS version
+                FROM import_concept_temp c',
                    p_target_schema, p_version,
-                   p_version, p_source_schema);
+                   p_version);
 
-
-    RAISE NOTICE '- Concept Ancestors...';
+    RAISE NOTICE '[%] Concept Ancestors...', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     EXECUTE format('INSERT INTO %I.concept_ancestor_history_%s
-                    SELECT ca.*, a.VOCABULARY_ID AS ANCESTOR_VOCABULARY_ID, d.VOCABULARY_ID AS DESCENDANT_VOCABULARY_ID, %s AS version
+                    SELECT ca.*, a.VOCABULARY_HISTORY_ID AS ANCESTOR_VOCABULARY_HISTORY_ID, d.VOCABULARY_HISTORY_ID AS DESCENDANT_HISTORY_VOCABULARY_ID, %s AS version
                     FROM %I.concept_ancestor AS ca
-                             JOIN %I.CONCEPT AS a ON ca.ANCESTOR_CONCEPT_ID = a.CONCEPT_ID
-                             JOIN %I.CONCEPT AS d ON ca.DESCENDANT_CONCEPT_ID = d.CONCEPT_ID;',
+                             JOIN import_concept_temp AS a ON ca.ANCESTOR_CONCEPT_ID = a.CONCEPT_ID
+                             JOIN import_concept_temp AS d ON ca.DESCENDANT_CONCEPT_ID = d.CONCEPT_ID;',
                    p_target_schema, p_version,
-                   p_version, p_source_schema, p_source_schema, p_source_schema);
+                   p_version,
+                   p_source_schema);
 
-
-    RAISE NOTICE '- Concept Relationships...';
+    RAISE NOTICE '[%] Concept Relationships...', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
 -- Inserting only half of the concept relationships
     EXECUTE format('INSERT INTO %I.concept_relationship_history_%s
                     SELECT
@@ -119,66 +183,62 @@ BEGIN
                         cr2.valid_start_date AS reverse_valid_start_date,
                         cr.valid_end_date,
                         cr.invalid_reason,
-                        c1.VOCABULARY_ID AS VOCABULARY_ID_1,
-                        c2.VOCABULARY_ID AS VOCABULARY_ID_2,
+                        c1.VOCABULARY_HISTORY_ID AS VOCABULARY_HISTORY_ID_1,
+                        c2.VOCABULARY_HISTORY_ID AS VOCABULARY_HISTORY_ID_2,
                         %s AS VERSION
                     FROM %I.concept_relationship AS cr
                     JOIN %I.relationship AS rl ON cr.relationship_id = rl.relationship_id
-                    JOIN %I.concept AS c1 ON cr.CONCEPT_ID_1 = c1.CONCEPT_ID
-                    JOIN %I.concept AS c2 ON cr.CONCEPT_ID_2 = c2.CONCEPT_ID
+                    JOIN import_concept_temp AS c1 ON cr.CONCEPT_ID_1 = c1.CONCEPT_ID
+                    JOIN import_concept_temp AS c2 ON cr.CONCEPT_ID_2 = c2.CONCEPT_ID
                     JOIN %I.concept_relationship AS cr2 on cr.CONCEPT_ID_1 = cr2.CONCEPT_ID_2 AND cr.CONCEPT_ID_2 = cr2.CONCEPT_ID_1 AND cr2.relationship_id = reverse_relationship_id
                     WHERE cr.relationship_id > rl.reverse_relationship_id;',
-                   p_target_schema, p_version,                                                                        --insert params
-                   p_version, p_source_schema, p_source_schema, p_source_schema, p_source_schema, p_source_schema);   --select params
+                   p_target_schema, p_version,                             --insert params
+                   p_version,                                              --select params
+                   p_source_schema, p_source_schema, p_source_schema);     --from/where params
 
-
-    RAISE NOTICE '- Concept Classes...';
+    RAISE NOTICE '[%] Concept Classes...', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     EXECUTE format('INSERT INTO %I.concept_class_history_%s
                     SELECT cc.*, %s AS version
                     FROM %I.concept_class cc;',
                    p_target_schema, p_version,
                    p_version, p_source_schema);
 
-
-    RAISE NOTICE '- Concept Synonyms...';
+    RAISE NOTICE '[%] Concept Synonyms... ', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     EXECUTE format('INSERT INTO %I.concept_synonym_history_%s
-                    SELECT cs.*, c.vocabulary_id, %s AS version
+                    SELECT cs.*, c.vocabulary_history_id, %s AS version
                     FROM %I.concept_synonym AS cs
-                    JOIN %I.concept AS c ON cs.CONCEPT_ID = c.CONCEPT_ID;',
+                    JOIN import_concept_temp AS c ON cs.CONCEPT_ID = c.CONCEPT_ID;',
                    p_target_schema, p_version,
-                   p_version, p_source_schema, p_source_schema);
+                   p_version, p_source_schema);
 
-
-
-    RAISE NOTICE '- Drug Strength...';
+    RAISE NOTICE '[%] Concept Synonyms... ', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     EXECUTE format('INSERT INTO %I.drug_strength_history_%s
-                    SELECT ds.*, c.vocabulary_id, %s AS version
+                    SELECT ds.*, c.vocabulary_history_id, %s AS version
                     FROM %I.drug_strength AS ds
-                    JOIN %I.concept AS c ON ds.DRUG_CONCEPT_ID = c.CONCEPT_ID;',
+                    JOIN import_concept_temp AS c ON ds.DRUG_CONCEPT_ID = c.CONCEPT_ID;',
                    p_target_schema, p_version,
-                   p_version, p_source_schema, p_source_schema);
+                   p_version, p_source_schema);
 
-    RAISE NOTICE '- Domains...';
+    RAISE NOTICE '[%] Domains...', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     EXECUTE format('INSERT INTO %I.domain_history_%s
                     SELECT d.*, %s AS version
                     FROM %I.domain d;',
                    p_target_schema, p_version,
                    p_version, p_source_schema);
 
-
-    RAISE NOTICE '- Relationship History...';
+    RAISE NOTICE '[%] Relationship History...', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     EXECUTE format('INSERT INTO %I.relationship_history_%s
                     SELECT r.*, %s AS version
                     FROM %I.relationship r;',
                    p_target_schema, p_version,
                    p_version, p_source_schema);
 
-    RAISE NOTICE '- Vocabulary History...';
+    RAISE NOTICE '[%] Vocabulary History...', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     EXECUTE format('INSERT INTO %I.vocabulary_history_%s
                     SELECT v.*, %s AS version
-                    FROM %I.vocabulary v;',
+                    FROM import_vocabulary_temp v;',
                    p_target_schema, p_version,
-                   p_version, p_source_schema);
+                   p_version);
 
 END;
 $$
@@ -199,6 +259,9 @@ BEGIN
 --    For some reason this simple SELECT INTO does not work here, as workaround split it to the two queries. SELECT get_vocabulary_version(p_source_schema) INTO v_version, v_version_label
     SELECT (get_vocabulary_version(p_source_schema)).v_version INTO v_version;
     SELECT (get_vocabulary_version(p_source_schema)).p_version_label INTO v_version_label;
+
+    RAISE NOTICE 'Populating import temp tables...';
+    PERFORM populate_import_temp_tables(p_source_schema);
 
     RAISE NOTICE 'Remove version from history...';
     PERFORM remove_version_from_history(v_version, p_target_schema);

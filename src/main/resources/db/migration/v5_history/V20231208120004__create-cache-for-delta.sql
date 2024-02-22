@@ -38,15 +38,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION is_cached(p_version1 INT, p_version2 INT)
+CREATE OR REPLACE FUNCTION is_cached(p_version1 integer, p_version2 integer)
     RETURNS BOOLEAN AS
 $$
 -- This function checks if the cache contains data for the VERSION, 
 -- preventing the use of outdated cache and avoiding the retrieval of incorrect data.
 DECLARE
-    max_import_datetime TIMESTAMP;
+    max_cached_datetime TIMESTAMP;
 BEGIN
-    SELECT MAX(import_datetime) INTO max_import_datetime
+    SELECT MAX(cached_datetime) INTO max_cached_datetime
     FROM vocabulary_release_version;
 
     return p_version1 = get_latest_version()
@@ -54,8 +54,8 @@ BEGIN
        AND  EXISTS (SELECT 1
                     FROM vocabulary_release_version
                     WHERE id = p_version1
-                      AND cached_datetime > max_import_datetime
-                      AND cached_datetime > import_datetime
+                      AND cached_datetime = max_cached_datetime
+                      AND cached_datetime >= import_datetime
                     );
 END;
 $$ LANGUAGE plpgsql;
@@ -87,31 +87,31 @@ SELECT * FROM get_concept_relationship_delta(get_latest_version(), get_third_lat
 CREATE OR REPLACE FUNCTION refresh_delta_caches()
     RETURNS VOID AS $$
 DECLARE
-    latest_version_id INT;
+    latest_version_id integer;
 BEGIN
-    RAISE NOTICE '[%] Refreshing concept_ancestor_delta_cache', TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS');
+    RAISE NOTICE '[%] Refreshing concept_ancestor_delta_cache', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     REFRESH MATERIALIZED VIEW concept_ancestor_delta_cache;
 
-    RAISE NOTICE '[%] Refreshing concept_delta_cache', TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS');
+    RAISE NOTICE '[%] Refreshing concept_delta_cache', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     REFRESH MATERIALIZED VIEW concept_delta_cache;
 
-    RAISE NOTICE '[%] Refreshing concept_relationship_delta_cache', TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS');
+    RAISE NOTICE '[%] Refreshing concept_relationship_delta_cache', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     REFRESH MATERIALIZED VIEW concept_relationship_delta_cache;
 
-    RAISE NOTICE '[%] Refreshing concept_ancestor_delta_cache_2', TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS');
+    RAISE NOTICE '[%] Refreshing concept_ancestor_delta_cache_2', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     REFRESH MATERIALIZED VIEW concept_ancestor_delta_cache_2;
 
-    RAISE NOTICE '[%] Refreshing concept_delta_cache_2', TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS');
+    RAISE NOTICE '[%] Refreshing concept_delta_cache_2', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     REFRESH MATERIALIZED VIEW concept_delta_cache_2;
 
-    RAISE NOTICE '[%] Refreshing concept_relationship_delta_cache_2', TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS');
+    RAISE NOTICE '[%] Refreshing concept_relationship_delta_cache_2', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     REFRESH MATERIALIZED VIEW concept_relationship_delta_cache_2;
 
     SELECT get_latest_version() INTO latest_version_id;
-    UPDATE vocabulary_release_version SET cached_datetime = CURRENT_TIMESTAMP WHERE id = latest_version_id;
-    RAISE NOTICE '[%] Cached_datetime updated successfully', TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS');
+    UPDATE vocabulary_release_version SET cached_datetime = clock_timestamp() WHERE id = latest_version_id;
+    RAISE NOTICE '[%] Cached_datetime updated successfully', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
 
-    RAISE NOTICE '[%] Caches refreshed successfully', TO_CHAR(NOW(), 'YYYY-MM-DD HH24:MI:SS');
+    RAISE NOTICE '[%] Caches refreshed successfully', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
 END;
 $$ LANGUAGE plpgsql;
 
@@ -151,7 +151,12 @@ CREATE OR REPLACE FUNCTION get_concept_delta_cached(
             )
 AS
 $$
+DECLARE
+    pVocabulariesHistoryV1 integer[];
+    pVocabulariesHistoryV2 integer[];
 BEGIN
+    pVocabulariesHistoryV1 := get_vocabulary_history_ids(pVocabularies, pVersion1);
+    pVocabulariesHistoryV2 := get_vocabulary_history_ids(pVocabularies, pVersion2);
     IF is_cached(pVersion1, pVersion2) AND are_latest_and_second_latest(pVersion1, pVersion2) AND EXISTS (SELECT 1 FROM concept_delta_cache) THEN
         RAISE NOTICE 'Hit the concept_delta_cache...';
         RETURN QUERY
@@ -169,8 +174,8 @@ BEGIN
                 c.valid_end_date,
                 c.invalid_reason
             FROM concept_delta_cache c
-            WHERE (vocabulary_id_v1 IS NULL OR vocabulary_id_v1 = ANY(pVocabularies))
-              AND (vocabulary_id_v2 IS NULL OR vocabulary_id_v2 = ANY(pVocabularies));
+            WHERE (vocabulary_history_id_v1 IS NULL OR vocabulary_history_id_v1 = ANY(pVocabulariesHistoryV1))
+              AND (vocabulary_history_id_v2 IS NULL OR vocabulary_history_id_v2 = ANY(pVocabulariesHistoryV2));
     ELSIF are_latest_and_third_latest(pVersion1, pVersion2) AND EXISTS (SELECT 1 FROM concept_delta_cache_2) THEN
         RAISE NOTICE 'Hit the concept_delta_cache_2...';
         RETURN QUERY
@@ -188,8 +193,8 @@ BEGIN
                 c.valid_end_date,
                 c.invalid_reason
             FROM concept_delta_cache_2 c
-            WHERE (vocabulary_id_v1 IS NULL OR vocabulary_id_v1 = ANY(pVocabularies))
-              AND (vocabulary_id_v2 IS NULL OR vocabulary_id_v2 = ANY(pVocabularies));
+            WHERE (vocabulary_history_id_v1 IS NULL OR vocabulary_history_id_v1 = ANY(pVocabulariesHistoryV1))
+              AND (vocabulary_history_id_v2 IS NULL OR vocabulary_history_id_v2 = ANY(pVocabulariesHistoryV2));
     ELSE
         RAISE NOTICE 'Missed the concept_delta_caches...';
         RETURN QUERY
@@ -228,7 +233,12 @@ CREATE OR REPLACE FUNCTION get_concept_relationship_delta_cached(
                       invalid_reason      varchar(1)
                   )
 AS $$
+DECLARE
+    pVocabulariesHistoryV1 integer[];
+    pVocabulariesHistoryV2 integer[];
 BEGIN
+    pVocabulariesHistoryV1 := get_vocabulary_history_ids(pVocabularies, pVersion1);
+    pVocabulariesHistoryV2 := get_vocabulary_history_ids(pVocabularies, pVersion2);
     IF is_cached(pVersion1, pVersion2) AND are_latest_and_second_latest(pVersion1, pVersion2) AND EXISTS (SELECT 1 FROM concept_relationship_delta_cache) THEN
         RAISE NOTICE 'Hit the concept_relationship_delta_cache...';
         RETURN QUERY
@@ -242,8 +252,8 @@ BEGIN
                 crdc.valid_end_date,
                 crdc.invalid_reason
             FROM concept_relationship_delta_cache crdc
-            WHERE (crdc.vocabulary_id_1_v1 IS NULL OR (crdc.vocabulary_id_1_v1 = ANY(pVocabularies) AND crdc.vocabulary_id_2_v1 = ANY(pVocabularies)))
-              AND (crdc.vocabulary_id_2_v2 IS NULL OR (crdc.vocabulary_id_2_v2 = ANY(pVocabularies) AND crdc.vocabulary_id_2_v2 = ANY(pVocabularies)));
+            WHERE (crdc.vocabulary_history_id_1_v1 IS NULL OR (crdc.vocabulary_history_id_1_v1 = ANY(pVocabulariesHistoryV1) AND crdc.vocabulary_history_id_2_v1 = ANY(pVocabulariesHistoryV1)))
+              AND (crdc.vocabulary_history_id_2_v2 IS NULL OR (crdc.vocabulary_history_id_2_v2 = ANY(pVocabulariesHistoryV2) AND crdc.vocabulary_history_id_2_v2 = ANY(pVocabulariesHistoryV2)));
 
     ELSIF are_latest_and_third_latest(pVersion1, pVersion2) AND EXISTS (SELECT 1 FROM concept_relationship_delta_cache_2) THEN
         RAISE NOTICE 'Hit the concept_relationship_delta_cache_2...';
@@ -258,8 +268,8 @@ BEGIN
                 crdc2.valid_end_date,
                 crdc2.invalid_reason
             FROM concept_relationship_delta_cache_2 crdc2
-            WHERE (crdc2.vocabulary_id_1_v1 IS NULL OR (crdc2.vocabulary_id_1_v1 = ANY(pVocabularies) AND crdc2.vocabulary_id_2_v1 = ANY(pVocabularies)))
-              AND (crdc2.vocabulary_id_1_v2 IS NULL OR (crdc2.vocabulary_id_1_v2 = ANY(pVocabularies) AND crdc2.vocabulary_id_2_v2 = ANY(pVocabularies)));
+            WHERE (crdc2.vocabulary_history_id_1_v1 IS NULL OR (crdc2.vocabulary_history_id_1_v1 = ANY(pVocabulariesHistoryV1) AND crdc2.vocabulary_history_id_2_v1 = ANY(pVocabulariesHistoryV1)))
+              AND (crdc2.vocabulary_history_id_1_v2 IS NULL OR (crdc2.vocabulary_history_id_1_v2 = ANY(pVocabulariesHistoryV2) AND crdc2.vocabulary_history_id_2_v2 = ANY(pVocabulariesHistoryV2)));
     ELSE
         RAISE NOTICE 'Missed the concept_relationship_delta_caches...';
         RETURN QUERY
@@ -292,7 +302,12 @@ CREATE OR REPLACE FUNCTION get_concept_ancestor_delta_cached(
                       max_levels_of_separation    bigint
                   )
 AS $$
+DECLARE
+    pVocabulariesHistoryV1 integer[];
+    pVocabulariesHistoryV2 integer[];
 BEGIN
+    pVocabulariesHistoryV1 := get_vocabulary_history_ids(pVocabularies, pVersion1);
+    pVocabulariesHistoryV2 := get_vocabulary_history_ids(pVocabularies, pVersion2);
     IF is_cached(pVersion1, pVersion2) AND are_latest_and_second_latest(pVersion1, pVersion2) AND EXISTS (SELECT 1 FROM concept_ancestor_delta_cache) THEN
         RAISE NOTICE 'Hit the concept_ancestor_delta_cache...';
         RETURN QUERY
@@ -304,8 +319,8 @@ BEGIN
                 cadc.min_levels_of_separation,
                 cadc.max_levels_of_separation
             FROM concept_ancestor_delta_cache cadc
-            WHERE (cadc.ancestor_vocabulary_id_v1 IS NULL OR (cadc.ancestor_vocabulary_id_v1 = ANY(pVocabularies) AND cadc.descendant_vocabulary_id_v1 = ANY(pVocabularies)))
-              AND (cadc.ancestor_vocabulary_id_v2 IS NULL OR (cadc.ancestor_vocabulary_id_v2 = ANY(pVocabularies) AND cadc.descendant_vocabulary_id_v2 = ANY(pVocabularies)));
+            WHERE (cadc.ancestor_vocabulary_history_id_v1 IS NULL OR (cadc.ancestor_vocabulary_history_id_v1 = ANY(pVocabulariesHistoryV1) AND cadc.descendant_vocabulary_history_id_v1 = ANY(pVocabulariesHistoryV1)))
+              AND (cadc.ancestor_vocabulary_history_id_v2 IS NULL OR (cadc.ancestor_vocabulary_history_id_v2 = ANY(pVocabulariesHistoryV2) AND cadc.descendant_vocabulary_history_id_v2 = ANY(pVocabulariesHistoryV2)));
     ELSIF are_latest_and_third_latest(pVersion1, pVersion2) AND EXISTS (SELECT 1 FROM concept_ancestor_delta_cache_2) THEN
         RAISE NOTICE 'Hit the concept_ancestor_delta_cache_2...';
         RETURN QUERY
@@ -317,8 +332,8 @@ BEGIN
                 cadc2.min_levels_of_separation,
                 cadc2.max_levels_of_separation
             FROM concept_ancestor_delta_cache_2 cadc2
-            WHERE (cadc2.ancestor_vocabulary_id_v1 IS NULL OR (cadc2.ancestor_vocabulary_id_v1 = ANY(pVocabularies) AND cadc2.descendant_vocabulary_id_v1 = ANY(pVocabularies)))
-              AND (cadc2.ancestor_vocabulary_id_v2 IS NULL OR (cadc2.ancestor_vocabulary_id_v2 = ANY(pVocabularies) AND cadc2.descendant_vocabulary_id_v2 = ANY(pVocabularies)));
+            WHERE (cadc2.ancestor_vocabulary_history_id_v1 IS NULL OR (cadc2.ancestor_vocabulary_history_id_v1 = ANY(pVocabulariesHistoryV1) AND cadc2.descendant_vocabulary_history_id_v1 = ANY(pVocabulariesHistoryV1)))
+              AND (cadc2.ancestor_vocabulary_history_id_v2 IS NULL OR (cadc2.ancestor_vocabulary_history_id_v2 = ANY(pVocabulariesHistoryV2) AND cadc2.descendant_vocabulary_history_id_v2 = ANY(pVocabulariesHistoryV2)));
     ELSE
         RAISE NOTICE 'Missed the concept_ancestor_delta_caches...';
         RETURN QUERY
