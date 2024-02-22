@@ -1,65 +1,66 @@
 CREATE TABLE concept_history
 (
-    concept_id       bigint,
-    concept_name     varchar(255) not null,
-    domain_id        varchar(20)  not null,
-    vocabulary_id    varchar(20)  not null,
-    concept_class_id varchar(20)  not null,
-    standard_concept varchar(1),
-    concept_code     varchar(50)  not null,
-    valid_start_date date         not null,
-    valid_end_date   date         not null,
-    invalid_reason   varchar(1),
-    version          INT
+    concept_id            bigint,
+    concept_name          varchar(255),
+    domain_id             varchar(20),
+    vocabulary_id         varchar(20),
+    vocabulary_history_id integer,
+    concept_class_id      varchar(20),
+    standard_concept      varchar(1),
+    concept_code          varchar(50),
+    valid_start_date      date,
+    valid_end_date        date,
+    invalid_reason        varchar(1),
+    version               integer
 ) PARTITION BY LIST (version);
 
 CREATE TABLE concept_ancestor_history
 (
-    ancestor_concept_id      bigint      not null,
-    descendant_concept_id    bigint      not null,
-    min_levels_of_separation bigint      not null,
-    max_levels_of_separation bigint      not null,
-    ancestor_vocabulary_id   varchar(20) not null,
-    descendant_vocabulary_id varchar(20) not null,
-    version                  INT
+    ancestor_concept_id      bigint,
+    descendant_concept_id    bigint,
+    min_levels_of_separation bigint,
+    max_levels_of_separation bigint,
+    ancestor_vocabulary_history_id   integer,
+    descendant_vocabulary_history_id integer,
+    version                  integer
 ) PARTITION BY LIST (version);
 
 CREATE TABLE concept_class_history
 (
-    concept_class_id         varchar(20)  not null,
-    concept_class_name       varchar(255) not null,
-    concept_class_concept_id numeric(38)  not null,
-    version                  INT
+    concept_class_id         varchar(20),
+    concept_class_name       varchar(255),
+    concept_class_concept_id numeric(38),
+    version                  integer
 ) PARTITION BY LIST (version);
 
 CREATE TABLE concept_relationship_history
 (
-    concept_id_1             bigint      not null,
-    concept_id_2             bigint      not null,
-    relationship_id          varchar(20) not null,
-    reverse_relationship_id  varchar(20) not null,
-    valid_start_date         date        not null,
-    reverse_valid_start_date date        not null,
-    valid_end_date           date        not null,
+    concept_id_1             bigint,
+    concept_id_2             bigint,
+    relationship_id          varchar(20),
+    reverse_relationship_id  varchar(20),
+    valid_start_date         date,
+    reverse_valid_start_date date,
+    valid_end_date           date,
     invalid_reason           varchar(1),
-    vocabulary_id_1          varchar(20) not null,
-    vocabulary_id_2          varchar(20) not null,
-    version                  INT
+    vocabulary_history_id_1  integer,
+    vocabulary_history_id_2  integer,
+    version                  integer
 ) PARTITION BY LIST (version);
 
 CREATE TABLE concept_synonym_history
 (
-    concept_id           bigint        not null,
-    concept_synonym_name varchar(1000) not null,
-    language_concept_id  bigint        not null,
-    vocabulary_id        varchar(20)   not null,
-    version              INT
+    concept_id            bigint,
+    concept_synonym_name  varchar(1000),
+    language_concept_id   bigint,
+    vocabulary_history_id integer,
+    version               integer
 ) PARTITION BY LIST (version);
 
 create table drug_strength_history
 (
-    drug_concept_id             bigint      not null,
-    ingredient_concept_id       bigint      not null,
+    drug_concept_id             bigint,
+    ingredient_concept_id       bigint,
     amount_value                numeric,
     amount_unit_concept_id      bigint,
     numerator_value             numeric,
@@ -67,11 +68,11 @@ create table drug_strength_history
     denominator_value           numeric,
     denominator_unit_concept_id bigint,
     box_size                    integer,
-    valid_start_date            date        not null,
-    valid_end_date              date        not null,
+    valid_start_date            date,
+    valid_end_date              date,
     invalid_reason              varchar(1),
-    vocabulary_id               varchar(20) not null,
-    version                     INT
+    vocabulary_history_id       integer,
+    version                     integer
 ) PARTITION BY LIST (version);
 
 CREATE TABLE concept_versions_history
@@ -82,34 +83,35 @@ CREATE TABLE concept_versions_history
     is_deleted   boolean,
     version_from integer,
     version_to   integer,
-    version      INT
+    version      integer
 ) PARTITION BY LIST (version);
 
 CREATE TABLE domain_history
 (
-    domain_id         varchar(20)  not null,
-    domain_name       varchar(255) not null,
-    domain_concept_id bigint       not null,
-    version           INT
+    domain_id         varchar(20),
+    domain_name       varchar(255),
+    domain_concept_id bigint,
+    version           integer
 ) PARTITION BY LIST (version);
 
 CREATE TABLE relationship_history
 (
-    relationship_id         varchar(20)  not null,
-    relationship_name       varchar(255) not null,
-    is_hierarchical         varchar(1)   not null,
-    defines_ancestry        varchar(1)   not null,
-    reverse_relationship_id varchar(20)  not null,
-    relationship_concept_id bigint       not null,
-    version                 INT
+    relationship_id         varchar(20),
+    relationship_name       varchar(255),
+    is_hierarchical         varchar(1),
+    defines_ancestry        varchar(1),
+    reverse_relationship_id varchar(20),
+    relationship_concept_id bigint,
+    version                 integer
 ) PARTITION BY LIST (version);
 
 CREATE TABLE vocabulary_history
 (
-    vocabulary_id         varchar(20)  not null,
-    vocabulary_name       varchar(255) not null,
+    vocabulary_history_id integer,
+    vocabulary_id         varchar(20),
+    vocabulary_name       varchar(255),
     vocabulary_reference  varchar(255),
     vocabulary_version    varchar(255),
-    vocabulary_concept_id bigint       not null,
-    version               INT
+    vocabulary_concept_id bigint,
+    version               integer
 ) PARTITION BY LIST (version);
