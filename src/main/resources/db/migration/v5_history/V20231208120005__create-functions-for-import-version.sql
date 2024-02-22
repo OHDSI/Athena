@@ -1,11 +1,22 @@
-CREATE OR REPLACE FUNCTION remove_version_from_history(p_version integer, p_schema text, p_tables_to_remove text[])
+CREATE OR REPLACE FUNCTION remove_version_from_history(p_version integer, p_schema text)
     RETURNS void AS
 $$
 DECLARE
     table_name text;
     partition_table_name text;
+    vocabulary_tables CONSTANT text[] := ARRAY[
+        'concept_history',
+        'concept_ancestor_history',
+        'concept_class_history',
+        'concept_relationship_history',
+        'concept_synonym_history',
+        'domain_history',
+        'drug_strength_history',
+        'relationship_history',
+        'vocabulary_history'
+        ];
 BEGIN
-    FOREACH table_name IN ARRAY p_tables_to_remove
+    FOREACH table_name IN ARRAY vocabulary_tables
         LOOP
             partition_table_name := format('%s_%s', table_name, p_version);
             -- Use IF ELSE  to avoid the message "table does not exist, skipping" during DROP IF EXISTS TABLE
@@ -22,14 +33,25 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION create_partitions_for_version(p_version integer, p_schema text, p_tables_to_partition text[])
+CREATE OR REPLACE FUNCTION create_partitions_for_version(p_version integer, p_schema text)
     RETURNS void AS
 $$
 DECLARE
     table_name text;
     partition_table_name text;
+    vocabulary_tables CONSTANT text[] := ARRAY[
+        'concept_history',
+        'concept_ancestor_history',
+        'concept_class_history',
+        'concept_relationship_history',
+        'concept_synonym_history',
+        'domain_history',
+        'drug_strength_history',
+        'relationship_history',
+        'vocabulary_history'
+        ];
 BEGIN
-    FOREACH table_name IN ARRAY p_tables_to_partition
+    FOREACH table_name IN ARRAY vocabulary_tables
         LOOP
             partition_table_name := format('%s_%s', table_name, p_version);
             EXECUTE format('CREATE TABLE %s.%s PARTITION OF %s.%s FOR VALUES IN (%s);', p_schema, partition_table_name, p_schema, table_name, p_version);
@@ -63,10 +85,10 @@ $$
 BEGIN
     RAISE NOTICE '- Add new version to the vocabulary_release_version. Version: %, Label: %', p_version, p_version_label;
     EXECUTE format(
-            'INSERT INTO %I.vocabulary_release_version (id, vocabulary_name, athena_name) VALUES (%s, %L, %L)',
+            'INSERT INTO %I.vocabulary_release_version (id, vocabulary_name, athena_name, import_datetime) VALUES (%s, %L, %L, CURRENT_TIMESTAMP)',
             p_target_schema,
             p_version, 'v'||p_version, p_version_label
-    );
+            );
 
     RAISE NOTICE '- Concepts...';
     EXECUTE format('INSERT INTO %I.concept_history_%s
@@ -168,18 +190,6 @@ CREATE OR REPLACE FUNCTION import_new_version(
 ) RETURNS VOID AS
 $$
 DECLARE
-    vocabulary_tables CONSTANT text[] := ARRAY[
-        'concept_history',
-        'concept_ancestor_history',
-        'concept_class_history',
-        'concept_relationship_history',
-        'concept_synonym_history',
-        'domain_history',
-        'drug_strength_history',
-        'relationship_history',
-        'vocabulary_history'
-        ];
-
     v_version INTEGER;
     v_version_label VARCHAR(50);
 
@@ -191,13 +201,16 @@ BEGIN
     SELECT (get_vocabulary_version(p_source_schema)).p_version_label INTO v_version_label;
 
     RAISE NOTICE 'Remove version from history...';
-    PERFORM remove_version_from_history(v_version, p_target_schema, vocabulary_tables);
+    PERFORM remove_version_from_history(v_version, p_target_schema);
 
     RAISE NOTICE 'Create version in history ...';
-    PERFORM create_partitions_for_version(v_version, p_target_schema, vocabulary_tables);
+    PERFORM create_partitions_for_version(v_version, p_target_schema);
 
     RAISE NOTICE 'Populate new version to history...';
     PERFORM add_version_to_history(v_version, v_version_label, p_target_schema, p_source_schema);
+
+    RAISE NOTICE 'Refresh delta caches...';
+    PERFORM refresh_delta_caches_if_necessary(v_version);
 
     RAISE NOTICE 'Import process completed successfully.';
 END;

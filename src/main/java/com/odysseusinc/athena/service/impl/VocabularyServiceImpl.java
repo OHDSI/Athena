@@ -49,6 +49,7 @@ import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.VocabularyServiceV5;
 import com.odysseusinc.athena.service.mail.EmailService;
+import com.odysseusinc.athena.service.saver.v5.history.delta.CacheDeltaService;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
@@ -97,9 +98,10 @@ public class VocabularyServiceImpl implements VocabularyService {
     private final UserService userService;
     private final VocabularyConversionService vocabularyConversionService;
     private final VocabularyServiceV5 vocabularyServiceV5;
+    protected final CacheDeltaService cacheDeltaService;
 
     @Autowired
-    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyServiceV5 vocabularyServiceV5) {
+    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyServiceV5 vocabularyServiceV5, CacheDeltaService cacheDeltaService) {
 
         this.asyncVocabularyService = asyncVocabularyService;
         this.conceptService = conceptService;
@@ -114,6 +116,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         this.userService = userService;
         this.vocabularyConversionService = vocabularyConversionService;
         this.vocabularyServiceV5 = vocabularyServiceV5;
+        this.cacheDeltaService = cacheDeltaService;
     }
 
     @Override
@@ -162,8 +165,8 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     @Override
     public void saveContent(DownloadBundle bundle, AthenaUser user) {
-        if (bundle.isDelta()){
-            asyncVocabularyService.saveDeltaContent(bundle, user);
+        if (bundle.isDelta() && !cacheDeltaService.isDeltaVersionCached(bundle.getVocabularyVersion(), bundle.getDeltaVersion())) {
+            asyncVocabularyService.saveSlowDeltaContent(bundle, user);
         } else {
             asyncVocabularyService.saveContent(bundle, user);
         }

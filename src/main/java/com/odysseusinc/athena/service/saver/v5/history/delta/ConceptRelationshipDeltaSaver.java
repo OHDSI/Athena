@@ -38,6 +38,6 @@ public class ConceptRelationshipDeltaSaver extends HistorySaver implements Saver
     @Override
     protected String query() {
 
-        return "SELECT * FROM get_concept_relationship_delta(:version, :versionDelta, :vocabularyArr, TRUE)";
+        return "SELECT * FROM get_concept_relationship_delta_cached(:version, :versionDelta, :vocabularyArr, TRUE)";
     }
 }

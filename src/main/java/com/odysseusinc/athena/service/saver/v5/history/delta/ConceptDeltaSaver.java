@@ -38,6 +38,6 @@ public class ConceptDeltaSaver extends HistorySaver implements SaverV5Delta {
     @Override
     protected String query() {
 
-        return  "SELECT * FROM get_concept_delta(:version, :versionDelta, :vocabularyArr, TRUE)";
+        return  "SELECT * FROM get_concept_delta_cached(:version, :versionDelta, :vocabularyArr, TRUE)";
     }
 }
