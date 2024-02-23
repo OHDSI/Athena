@@ -51,7 +51,7 @@ DECLARE
     CONCEPT_DICT_D          CONSTANT INTEGER := 300;
     CONCEPT_U               CONSTANT INTEGER := 310;
 
-    -- This mock value helps overcome the inactive idx_unique_concept_code constraint in the code. We can set it initially and update with proper values later.
+    -- This mock value helps overcome the idx_unique_concept_code constraint in the code. We can set it initially and update with proper values later.
     MOCK_CODE               CONSTANT VARCHAR= 'OMOP generated';
 BEGIN
     RETURN QUERY

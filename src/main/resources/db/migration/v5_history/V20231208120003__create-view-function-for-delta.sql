@@ -296,10 +296,13 @@ BEGIN
             COALESCE(c1.concept_synonym_name, c2.concept_synonym_name) AS concept_synonym_name,
             COALESCE(c1.language_concept_id, c2.language_concept_id) AS language_concept_id
         FROM
-            (SELECT * FROM concept_synonym_history a1 WHERE a1.version = pVersion1 AND a1.vocabulary_history_id = ANY(pVocabulariesHistoryV1)) c1
+            (SELECT * FROM concept_synonym_history a1 WHERE a1.version = pVersion1 AND (pVocabularies IS NULL OR a1.vocabulary_history_id = ANY(pVocabulariesHistoryV1))) c1
                 FULL JOIN
-            (SELECT * FROM concept_synonym_history a2 WHERE a2.version = pVersion2 AND a2.vocabulary_history_id = ANY(pVocabulariesHistoryV2)) c2
-            USING (concept_id, concept_synonym_name, language_concept_id);
+            (SELECT * FROM concept_synonym_history a2 WHERE a2.version = pVersion2 AND (pVocabularies IS NULL OR a2.vocabulary_history_id = ANY(pVocabulariesHistoryV2))) c2
+            USING (concept_id, concept_synonym_name, language_concept_id)
+    WHERE
+        ROW(c1.concept_synonym_name, c1.language_concept_id, c1.concept_id) IS DISTINCT FROM
+        ROW(c2.concept_synonym_name, c2.language_concept_id, c2.concept_id);
 
 END;
 $$ LANGUAGE plpgsql;
