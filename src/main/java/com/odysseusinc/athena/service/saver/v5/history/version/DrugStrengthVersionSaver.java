@@ -52,7 +52,7 @@ public class DrugStrengthVersionSaver extends HistorySaver implements SaverV5His
                 "  valid_end_date, " +
                 "  invalid_reason " +
                 "FROM drug_strength_history " +
-                "WHERE vocabulary_id IN (:vocabularyIds) " +
+                "WHERE vocabulary_history_id = ANY (get_vocabulary_history_ids(:vocabularyArr, :version)) " +
                 "  AND version = :version";
     }
 }

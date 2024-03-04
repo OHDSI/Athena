@@ -15,7 +15,7 @@ BEGIN
 
     RETURN result;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 CREATE OR REPLACE FUNCTION get_concept_delta(
     pVersion1 integer,

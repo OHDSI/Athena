@@ -43,7 +43,7 @@ public class ConceptSynonymVersionSaver extends HistorySaver implements SaverV5H
                 "  concept_synonym_name, " +
                 "  language_concept_id " +
                 " FROM concept_synonym_history " +
-                " WHERE vocabulary_id IN (:vocabularyIds) " +
+                " WHERE vocabulary_history_id = ANY (get_vocabulary_history_ids(:vocabularyArr, :version)) " +
                 "   AND version = :version";
     }
 

@@ -211,7 +211,7 @@ BEGIN
                    p_target_schema, p_version,
                    p_version, p_source_schema);
 
-    RAISE NOTICE '[%] Concept Synonyms... ', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
+    RAISE NOTICE '[%] Drug Strength... ', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS');
     EXECUTE format('INSERT INTO %I.drug_strength_history_%s
                     SELECT ds.*, c.vocabulary_history_id, %s AS version
                     FROM %I.drug_strength AS ds

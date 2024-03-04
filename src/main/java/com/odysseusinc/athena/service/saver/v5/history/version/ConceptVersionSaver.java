@@ -53,7 +53,7 @@ public class ConceptVersionSaver extends HistorySaver implements SaverV5History 
                 "  valid_end_date, " +
                 "  invalid_reason " +
                 "FROM concept_history " +
-                "WHERE vocabulary_id IN (:vocabularyIds) " +
+                "WHERE vocabulary_history_id = ANY (get_vocabulary_history_ids(:vocabularyArr, :version)) " +
                 "  AND version = :version";
 
     }

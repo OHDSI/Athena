@@ -45,18 +45,20 @@ public class ConceptRelationshipVersionSaver extends HistorySaver implements Sav
                 "  valid_end_date, " +
                 "  invalid_reason " +
                 "FROM concept_relationship_history " +
-                "WHERE (vocabulary_id_1 IN (:vocabularyIds) OR vocabulary_id_2 IN (:vocabularyIds)) " +
+                "WHERE (vocabulary_history_id_1 = ANY (get_vocabulary_history_ids(:vocabularyArr, :version)) OR " +
+                "       vocabulary_history_id_2 = ANY (get_vocabulary_history_ids(:vocabularyArr, :version))) " +
                 "  AND version = :version " +
                 "UNION ALL " +
                 "SELECT " +
                 "  concept_id_2 AS concept_id_1, " +
                 "  concept_id_1 AS concept_id_2, " +
                 "  reverse_relationship_id AS relationship_id, " +
-                "  valid_start_date, " +
+                "  reverse_valid_start_date AS valid_start_date, " +
                 "  valid_end_date, " +
                 "  invalid_reason " +
                 "FROM concept_relationship_history " +
-                "WHERE (vocabulary_id_1 IN (:vocabularyIds) OR vocabulary_id_2 IN (:vocabularyIds)) " +
+                "WHERE (vocabulary_history_id_1 = ANY (get_vocabulary_history_ids(:vocabularyArr, :version)) " +
+                "    OR vocabulary_history_id_2 = ANY (get_vocabulary_history_ids(:vocabularyArr, :version))) " +
                 "  AND version = :version";
 
     }
