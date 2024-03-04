@@ -45,13 +45,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
 import org.springframework.scheduling.annotation.Async;
-
-import static java.util.stream.Collectors.toMap;
 
 
 @Service
@@ -117,7 +118,13 @@ public class AsyncVocabularyService {
             final Map<String, String> includedVocabularies = bundle.getVocabularies().stream()
                     .map(DownloadItem::getVocabularyConversion)
                     .filter(vocab -> !vocab.getOmopReqValue())
-                    .collect(toMap(VocabularyConversion::getIdV5, VocabularyConversion::getName));
+                    .sorted(Comparator.comparing(VocabularyConversion::getIdV4))
+                    .collect(Collectors.toMap(
+                            VocabularyConversion::getIdV5,
+                            VocabularyConversion::getName,
+                            (existing, replacement) -> existing,
+                            LinkedHashMap::new
+                    ));
 
             sendEmail(bundle, user, type, includedVocabularies);
 
