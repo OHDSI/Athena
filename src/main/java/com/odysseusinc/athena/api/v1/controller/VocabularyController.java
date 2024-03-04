@@ -76,6 +76,8 @@ public class VocabularyController extends AbstractVocabularyController {
                      @RequestParam(value = "delta", defaultValue = "false") boolean delta,
                      @RequestParam(value = "deltaVersion", required = false) Integer deltaVersion) throws IOException {
 
+        vocabularyVersion = vocabularyVersion != null ? vocabularyVersion :
+                vocabularyServiceV5.getReleaseVocabularyVersionId();
         if (notExist(cmdVersion)) {
             throw new ValidationException("No supported CDM version " + cmdVersion);
         }
