@@ -61,27 +61,27 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE MATERIALIZED VIEW concept_ancestor_delta_cache AS
-SELECT * FROM get_concept_ancestor_delta(get_latest_version(), get_second_latest_version(), NULL, false)
+SELECT * FROM get_concept_ancestor_delta(get_latest_version(), get_second_latest_version(), NULL, true)
                   WITH NO DATA;
 
 CREATE MATERIALIZED VIEW concept_delta_cache AS
-SELECT * FROM get_concept_delta(get_latest_version(), get_second_latest_version(), NULL, false)
+SELECT * FROM get_concept_delta(get_latest_version(), get_second_latest_version(), NULL, true)
                   WITH NO DATA;
 
 CREATE MATERIALIZED VIEW concept_relationship_delta_cache AS
-SELECT * FROM get_concept_relationship_delta(get_latest_version(), get_second_latest_version(), NULL, false)
+SELECT * FROM get_concept_relationship_delta(get_latest_version(), get_second_latest_version(), NULL, true)
                   WITH NO DATA;
 
 CREATE MATERIALIZED VIEW concept_ancestor_delta_cache_2 AS
-SELECT * FROM get_concept_ancestor_delta(get_latest_version(), get_third_latest_version(), NULL, false)
+SELECT * FROM get_concept_ancestor_delta(get_latest_version(), get_third_latest_version(), NULL, true)
                   WITH NO DATA;
 
 CREATE MATERIALIZED VIEW concept_delta_cache_2 AS
-SELECT * FROM get_concept_delta(get_latest_version(), get_third_latest_version(), NULL, false)
+SELECT * FROM get_concept_delta(get_latest_version(), get_third_latest_version(), NULL, true)
                   WITH NO DATA;
 
 CREATE MATERIALIZED VIEW concept_relationship_delta_cache_2 AS
-SELECT * FROM get_concept_relationship_delta(get_latest_version(), get_third_latest_version(), NULL, false)
+SELECT * FROM get_concept_relationship_delta(get_latest_version(), get_third_latest_version(), NULL, true)
                   WITH NO DATA;
 
 CREATE OR REPLACE FUNCTION refresh_delta_caches()
