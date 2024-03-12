@@ -42,7 +42,7 @@ public class VocabularyVersionConverter {
 
     public static String toOldFormat(Integer id) {
         if (id == null) {
-            return Strings.EMPTY;
+            return null;
         }
         String stringToConvert = String.valueOf(id);
         if (stringToConvert.matches("\\d{8}")) {
@@ -59,7 +59,7 @@ public class VocabularyVersionConverter {
 
     public static String toNewFormat(Integer id) {
         if (id == null) {
-            return Strings.EMPTY;
+            return null;
         }
         String stringToConvert = String.valueOf(id);
         if (stringToConvert.matches("\\d{8}")) {

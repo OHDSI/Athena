@@ -80,15 +80,10 @@ public class DownloadBundleToDTO implements Converter<DownloadBundle, DownloadBu
 
         DownloadBundleService.BundleType type = downloadBundleService.getType(bundle);
         dto.setType(type);
-        switch (type) {
-            case V5_DELTAS:
-                dto.setVocabularyReleaseVersion(bundle.formattedVocabularyVersion());
-                dto.setDeltaReleaseVersion(bundle.formattedDeltaVersion());
-            case V5_HISTORIES:
-                dto.setVocabularyReleaseVersion(bundle.formattedVocabularyVersion());
-        }
-
         dto.setReleaseVersion(bundle.formattedReleaseVersion());
+        dto.setVocabularyReleaseVersion(bundle.formattedVocabularyVersion());
+        dto.setDeltaReleaseVersion(bundle.formattedDeltaVersion());
+        dto.setDelta(bundle.isDelta());
         List<VocabularyDTO> dtos = converterUtils.convertList(bundle.getVocabulariesWithoutOmopReq(),
                 VocabularyDTO.class);
         dto.setVocabularies(dtos);
