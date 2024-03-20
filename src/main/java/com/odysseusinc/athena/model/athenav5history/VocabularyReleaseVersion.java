@@ -39,7 +39,7 @@ import javax.persistence.Table;
 @Setter
 @AllArgsConstructor(staticName = "of")
 @NoArgsConstructor
-public class VocabularyReleaseVersion extends EntityV5 {
+public class VocabularyReleaseVersion {
 
     @Id
     @Column(name = "id")

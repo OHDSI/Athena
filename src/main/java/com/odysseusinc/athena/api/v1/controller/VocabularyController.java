@@ -55,8 +55,7 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 
-import static com.odysseusinc.athena.util.CDMVersion.getByValue;
-import static com.odysseusinc.athena.util.CDMVersion.notExist;
+import static com.odysseusinc.athena.util.CDMVersion.V5;
 
 @Tag(name = "VocabularyController")
 @RestController
@@ -68,8 +67,7 @@ public class VocabularyController extends AbstractVocabularyController {
 
     @Operation(summary = "Save vocabularies.")
     @GetMapping("/save")
-    public void save(@RequestParam(value = "cmdVersion", defaultValue = "5") float cmdVersion,
-                     @RequestParam(value = "ids") List<Integer> idV4s,
+    public void save(@RequestParam(value = "ids") List<Integer> idV4s,
                      @RequestParam(value = "name") String bundleName,
                      @RequestParam(value = "vocabularyVersion", required = false) Integer vocabularyVersion,
                      @RequestParam(value = "delta", defaultValue = "false") boolean delta,
@@ -77,22 +75,10 @@ public class VocabularyController extends AbstractVocabularyController {
 
         vocabularyVersion = vocabularyVersion != null ? vocabularyVersion :
                 vocabularyServiceV5.getReleaseVocabularyVersionId();
-        if (notExist(cmdVersion)) {
-            throw new ValidationException("No supported CDM version " + cmdVersion);
-        }
-        if (delta && versionService.isCurrentMissingInHistory(vocabularyVersion)){
-            throw new ValidationException("The current version has not been uploaded to historical data. The delta cannot be created. Please contact the administrator.");
-        }
-        if (delta && deltaVersion== null) {
-            throw new ValidationException("The Delta version should be set.");
-        }
-        if (delta && !(deltaVersion < vocabularyVersion)) {
-            throw new ValidationException("The Delta version should be lower than the Vocabulary version");
-        }
 
         AthenaUser currentUser = userService.getCurrentUser();
         DownloadBundle bundle = vocabularyService.saveBundle(
-                bundleName, idV4s, currentUser, getByValue(cmdVersion),
+                bundleName, idV4s, currentUser, V5,
                 vocabularyVersion, delta, deltaVersion
         );
         vocabularyService.saveContent(bundle, currentUser);

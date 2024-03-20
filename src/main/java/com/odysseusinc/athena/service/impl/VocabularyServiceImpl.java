@@ -24,7 +24,6 @@ package com.odysseusinc.athena.service.impl;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyToUserVocabularyDTO;
-import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyVersionConverter;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
@@ -44,19 +43,15 @@ import com.odysseusinc.athena.repositories.athena.DownloadItemRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadShareRepository;
 import com.odysseusinc.athena.repositories.athena.LicenseRepository;
 import com.odysseusinc.athena.repositories.athena.NotificationRepository;
-import com.odysseusinc.athena.service.ConceptService;
-import com.odysseusinc.athena.service.VocabularyConversionService;
-import com.odysseusinc.athena.service.VocabularyService;
-import com.odysseusinc.athena.service.VocabularyServiceV5;
+import com.odysseusinc.athena.service.*;
 import com.odysseusinc.athena.service.mail.EmailService;
 import com.odysseusinc.athena.service.saver.v5.history.delta.CacheDeltaService;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Sort;
@@ -67,7 +62,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
@@ -77,11 +71,10 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.ListUtils.intersection;
 import static org.thymeleaf.util.ListUtils.isEmpty;
 
+@Slf4j
 @Service
 @Transactional
 public class VocabularyServiceImpl implements VocabularyService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(VocabularyServiceImpl.class);
-
     private static final String DEFAULT_SORT_COLUMN = "idV4";
     public static final Integer CPT4_ID_V4 = 4;
 
@@ -97,11 +90,13 @@ public class VocabularyServiceImpl implements VocabularyService {
     private final NotificationRepository notificationRepository;
     private final UserService userService;
     private final VocabularyConversionService vocabularyConversionService;
-    private final VocabularyServiceV5 vocabularyServiceV5;
+
     protected final CacheDeltaService cacheDeltaService;
 
+    private final DownloadBundleService downloadBundleService;
+
     @Autowired
-    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, VocabularyServiceV5 vocabularyServiceV5, CacheDeltaService cacheDeltaService) {
+    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, CacheDeltaService cacheDeltaService, DownloadBundleService downloadBundleService) {
 
         this.asyncVocabularyService = asyncVocabularyService;
         this.conceptService = conceptService;
@@ -115,8 +110,8 @@ public class VocabularyServiceImpl implements VocabularyService {
         this.notificationRepository = notificationRepository;
         this.userService = userService;
         this.vocabularyConversionService = vocabularyConversionService;
-        this.vocabularyServiceV5 = vocabularyServiceV5;
         this.cacheDeltaService = cacheDeltaService;
+        this.downloadBundleService = downloadBundleService;
     }
 
     @Override
@@ -133,9 +128,10 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public DownloadBundle saveBundle(String bundleName, List<Integer> idV4s, AthenaUser currentUser, CDMVersion version, Integer vocabularyVersion, boolean delta, Integer deltaVersion) {
 
-        String uuid = UUID.randomUUID().toString();
-        LOGGER.info("Ready for save download items for bundle with name: [{}] and uuid: [{}], user id: [{}]",
-                bundleName, uuid, currentUser.getId());
+        DownloadBundle bundle = downloadBundleService.initBundle(bundleName, currentUser, version, vocabularyVersion, delta, deltaVersion);
+        downloadBundleService.validate(bundle);
+        log.info("Ready for save download items for bundle with name: [{}] and uuid: [{}], user id: [{}]",
+                bundleName, bundle.getUuid(), bundle.getUserId());
 
         List<Integer> withOmopReqIdV4s = vocabularyConversionService.findByOmopReqIsNotNull()
                 .stream()
@@ -144,12 +140,9 @@ public class VocabularyServiceImpl implements VocabularyService {
         withOmopReqIdV4s.addAll(idV4s);
         checkBundleVocabularies(withOmopReqIdV4s, currentUser.getId());
 
-        DownloadBundle bundle = new DownloadBundle(
-                uuid, version, new Date(), currentUser.getId(), bundleName, VocabularyVersionConverter.toOldFormat(vocabularyServiceV5.getReleaseVocabularyVersionId()), DownloadBundleStatus.PENDING,
-                vocabularyVersion, deltaVersion, delta
-        );
+
         bundle = saveDownloadItems(bundle, withOmopReqIdV4s);
-        LOGGER.info("Download items are added, bundle: [{}]", bundle);
+        log.info("Download items are added, bundle: [{}]", bundle);
         return bundle;
     }
 
@@ -236,10 +229,11 @@ public class VocabularyServiceImpl implements VocabularyService {
         if (!downloadBundle.isArchived()) {
             return;
         }
+        downloadBundleService.validate(downloadBundle);
         checkBundleVocabularies(downloadBundle.getId(), currentUser.getId());
         asyncVocabularyService.updateStatus(downloadBundle, DownloadBundleStatus.PENDING);
         saveContent(downloadBundle, currentUser);
-        LOGGER.info("Vocabulary restoring is started, bundle id: {}, user id: {}", downloadBundle.getId(),
+        log.info("Vocabulary restoring is started, bundle id: {}, user id: {}", downloadBundle.getId(),
                 currentUser.getId());
     }
 

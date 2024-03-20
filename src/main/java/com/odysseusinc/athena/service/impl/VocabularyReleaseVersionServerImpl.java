@@ -36,6 +36,11 @@ public class VocabularyReleaseVersionServerImpl implements VocabularyReleaseVers
     }
 
     @Override
+    public boolean isPresentInHistory(Integer versionId) {
+        return vocabularyReleaseVersionRepository.existsById(versionId);
+    }
+
+    @Override
     public List<VocabularyReleaseVersionDTO> getReleaseVersions() {
         List<VocabularyReleaseVersionDTO> releaseVersions = vocabularyReleaseVersionRepository.findAll().stream()
                 .map(v -> new VocabularyReleaseVersionDTO(
@@ -63,6 +68,6 @@ public class VocabularyReleaseVersionServerImpl implements VocabularyReleaseVers
         if (!isCurrent(versionId)) {
             return false;
         }
-        return !this.vocabularyReleaseVersionRepository.existsById(versionId);
+        return !isPresentInHistory(versionId);
     }
 }
