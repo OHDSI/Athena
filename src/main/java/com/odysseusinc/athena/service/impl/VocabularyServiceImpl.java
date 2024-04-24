@@ -159,7 +159,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public void saveContent(DownloadBundle bundle, AthenaUser user) {
         if (bundle.isDelta() && !cacheDeltaService.isDeltaVersionCached(bundle.getVocabularyVersion(), bundle.getDeltaVersion())) {
-            asyncVocabularyService.saveSlowDeltaContent(bundle, user);
+            asyncVocabularyService.saveSlowExecutableContent(bundle, user);
         } else {
             asyncVocabularyService.saveContent(bundle, user);
         }

@@ -163,6 +163,7 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
                 if (!versionService.isPresentInHistory(bundle.getVocabularyVersion())) {
                     throw new ValidationException("Vocabulary version is not found in the history.");
                 }
+                break;
             case V5_DELTAS:
                 if (bundle.getVocabularyVersion() == null) {
                     throw new ValidationException("The Vocabulary version should be set.");
@@ -182,6 +183,7 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
                 if (!versionService.isPresentInHistory(bundle.getDeltaVersion())) {
                     throw new ValidationException("Delta version is not found in the history.");
                 }
+                break;
         }
     }
 

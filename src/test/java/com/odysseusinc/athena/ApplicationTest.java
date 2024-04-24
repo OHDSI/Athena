@@ -22,6 +22,7 @@
 
 package com.odysseusinc.athena;
 
+import com.odysseusinc.athena.glue.LocalEnvironmentInitializer;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.service.VocabularyService;
@@ -30,17 +31,11 @@ import com.odysseusinc.athena.util.CDMVersion;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
 
 import java.io.*;
@@ -51,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.zip.ZipFile;
 
 
 @ActiveProfiles("test")
@@ -60,6 +54,7 @@ import java.util.zip.ZipFile;
         properties = "spring.main.allow-bean-definition-overriding=true",
         classes = TestConfiguration.class)
 @ContextConfiguration(initializers = LocalEnvironmentInitializer.class)
+@Deprecated
 public class ApplicationTest {
 
 

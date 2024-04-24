@@ -17,20 +17,20 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: test; Type: SCHEMA; Schema: -; Owner: ohdsi
+-- Name: vocabulary_testdata; Type: SCHEMA; Schema: -; Owner: ohdsi
 --
 
-CREATE SCHEMA test;
+CREATE SCHEMA vocabulary_testdata;
 
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: concept; Type: TABLE; Schema: test; Owner: ohdsi
+-- Name: concept; Type: TABLE; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE TABLE test.concept (
+CREATE TABLE vocabulary_testdata.concept (
     concept_id integer NOT NULL,
     concept_name character varying(255) NOT NULL,
     domain_id character varying(20) NOT NULL,
@@ -46,10 +46,10 @@ CREATE TABLE test.concept (
 
 
 --
--- Name: concept_ancestor; Type: TABLE; Schema: test; Owner: ohdsi
+-- Name: concept_ancestor; Type: TABLE; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE TABLE test.concept_ancestor (
+CREATE TABLE vocabulary_testdata.concept_ancestor (
     ancestor_concept_id integer NOT NULL,
     descendant_concept_id integer NOT NULL,
     min_levels_of_separation integer NOT NULL,
@@ -59,10 +59,10 @@ CREATE TABLE test.concept_ancestor (
 
 
 --
--- Name: concept_class; Type: TABLE; Schema: test; Owner: ohdsi
+-- Name: concept_class; Type: TABLE; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE TABLE test.concept_class (
+CREATE TABLE vocabulary_testdata.concept_class (
     concept_class_id character varying(20) NOT NULL,
     concept_class_name character varying(255) NOT NULL,
     concept_class_concept_id integer NOT NULL
@@ -71,10 +71,10 @@ CREATE TABLE test.concept_class (
 
 
 --
--- Name: concept_relationship; Type: TABLE; Schema: test; Owner: ohdsi
+-- Name: concept_relationship; Type: TABLE; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE TABLE test.concept_relationship (
+CREATE TABLE vocabulary_testdata.concept_relationship (
     concept_id_1 integer NOT NULL,
     concept_id_2 integer NOT NULL,
     relationship_id character varying(20) NOT NULL,
@@ -86,10 +86,10 @@ CREATE TABLE test.concept_relationship (
 
 
 --
--- Name: concept_synonym; Type: TABLE; Schema: test; Owner: ohdsi
+-- Name: concept_synonym; Type: TABLE; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE TABLE test.concept_synonym (
+CREATE TABLE vocabulary_testdata.concept_synonym (
     concept_id integer NOT NULL,
     concept_synonym_name character varying(1000) NOT NULL,
     language_concept_id integer NOT NULL
@@ -98,10 +98,10 @@ CREATE TABLE test.concept_synonym (
 
 
 --
--- Name: domain; Type: TABLE; Schema: test; Owner: ohdsi
+-- Name: domain; Type: TABLE; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE TABLE test.domain (
+CREATE TABLE vocabulary_testdata.domain (
     domain_id character varying(20) NOT NULL,
     domain_name character varying(255) NOT NULL,
     domain_concept_id integer NOT NULL
@@ -110,10 +110,10 @@ CREATE TABLE test.domain (
 
 
 --
--- Name: drug_strength; Type: TABLE; Schema: test; Owner: ohdsi
+-- Name: drug_strength; Type: TABLE; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE TABLE test.drug_strength (
+CREATE TABLE vocabulary_testdata.drug_strength (
     drug_concept_id integer NOT NULL,
     ingredient_concept_id integer NOT NULL,
     amount_value numeric,
@@ -131,10 +131,10 @@ CREATE TABLE test.drug_strength (
 
 
 --
--- Name: relationship; Type: TABLE; Schema: test; Owner: ohdsi
+-- Name: relationship; Type: TABLE; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE TABLE test.relationship (
+CREATE TABLE vocabulary_testdata.relationship (
     relationship_id character varying(20) NOT NULL,
     relationship_name character varying(255) NOT NULL,
     is_hierarchical character varying(1) NOT NULL,
@@ -146,10 +146,10 @@ CREATE TABLE test.relationship (
 
 
 --
--- Name: vocabulary; Type: TABLE; Schema: test; Owner: ohdsi
+-- Name: vocabulary; Type: TABLE; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE TABLE test.vocabulary (
+CREATE TABLE vocabulary_testdata.vocabulary (
     vocabulary_id character varying(20) NOT NULL,
     vocabulary_name character varying(255) NOT NULL,
     vocabulary_reference character varying(255) NOT NULL,
@@ -160,10 +160,10 @@ CREATE TABLE test.vocabulary (
 
 
 --
--- Data for Name: concept; Type: TABLE DATA; Schema: test; Owner: ohdsi
+-- Data for Name: concept; Type: TABLE DATA; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-COPY test.concept (concept_id, concept_name, domain_id, vocabulary_id, concept_class_id, standard_concept, concept_code, valid_start_date, valid_end_date, invalid_reason) FROM stdin;
+COPY vocabulary_testdata.concept (concept_id, concept_name, domain_id, vocabulary_id, concept_class_id, standard_concept, concept_code, valid_start_date, valid_end_date, invalid_reason) FROM stdin;
 200962	Primary malignant neoplasm of prostate	Condition	SNOMED	Clinical Finding	S	93974005	1970-01-01	2099-12-31	\N
 197804	Primary malignant neoplasm of intra-abdominal organs	Condition	SNOMED	Clinical Finding	S	93839008	1970-01-01	2099-12-31	\N
 1406289	Malignant neoplasm of prostate	Condition	ICD10CN	ICD10 Hierarchy	\N	C61	2016-01-01	2099-12-31	\N
@@ -353,10 +353,10 @@ COPY test.concept (concept_id, concept_name, domain_id, vocabulary_id, concept_c
 
 
 --
--- Data for Name: concept_ancestor; Type: TABLE DATA; Schema: test; Owner: ohdsi
+-- Data for Name: concept_ancestor; Type: TABLE DATA; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-COPY test.concept_ancestor (ancestor_concept_id, descendant_concept_id, min_levels_of_separation, max_levels_of_separation) FROM stdin;
+COPY vocabulary_testdata.concept_ancestor (ancestor_concept_id, descendant_concept_id, min_levels_of_separation, max_levels_of_separation) FROM stdin;
 197804	200962	1	1
 200962	36528448	1	1
 200962	36534262	1	1
@@ -684,10 +684,10 @@ COPY test.concept_ancestor (ancestor_concept_id, descendant_concept_id, min_leve
 
 
 --
--- Data for Name: concept_class; Type: TABLE DATA; Schema: test; Owner: ohdsi
+-- Data for Name: concept_class; Type: TABLE DATA; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-COPY test.concept_class (concept_class_id, concept_class_name, concept_class_concept_id) FROM stdin;
+COPY vocabulary_testdata.concept_class (concept_class_id, concept_class_name, concept_class_concept_id) FROM stdin;
 10th level	10th administrative level	32559
 11-digit NDC	11-digit NDC code	44819243
 11th level	11th administrative level	32567
@@ -1083,10 +1083,10 @@ Workflow	Workflow	45905723
 
 
 --
--- Data for Name: concept_relationship; Type: TABLE DATA; Schema: test; Owner: ohdsi
+-- Data for Name: concept_relationship; Type: TABLE DATA; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-COPY test.concept_relationship (concept_id_1, concept_id_2, relationship_id, valid_start_date, valid_end_date, invalid_reason) FROM stdin;
+COPY vocabulary_testdata.concept_relationship (concept_id_1, concept_id_2, relationship_id, valid_start_date, valid_end_date, invalid_reason) FROM stdin;
 200962	44500494	Subsumes	2015-09-18	2099-12-31	\N
 200962	44501544	Subsumes	2015-09-18	2099-12-31	\N
 200962	44499734	Subsumes	2015-09-18	2099-12-31	\N
@@ -1766,10 +1766,10 @@ COPY test.concept_relationship (concept_id_1, concept_id_2, relationship_id, val
 
 
 --
--- Data for Name: concept_synonym; Type: TABLE DATA; Schema: test; Owner: ohdsi
+-- Data for Name: concept_synonym; Type: TABLE DATA; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-COPY test.concept_synonym (concept_id, concept_synonym_name, language_concept_id) FROM stdin;
+COPY vocabulary_testdata.concept_synonym (concept_id, concept_synonym_name, language_concept_id) FROM stdin;
 197804	Primary malignant neoplasm of intra-abdominal organs (disorder)	4180186
 200962	Primary malignant neoplasm of prostate (disorder)	4180186
 4082919	Endometrioid carcinoma of prostate (disorder)	4180186
@@ -1800,10 +1800,10 @@ COPY test.concept_synonym (concept_id, concept_synonym_name, language_concept_id
 
 
 --
--- Data for Name: domain; Type: TABLE DATA; Schema: test; Owner: ohdsi
+-- Data for Name: domain; Type: TABLE DATA; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-COPY test.domain (domain_id, domain_name, domain_concept_id) FROM stdin;
+COPY vocabulary_testdata.domain (domain_id, domain_name, domain_concept_id) FROM stdin;
 Condition	Condition	19
 Condition/Device	Condition/Device	235
 Condition/Drug	Condition/Drug	53
@@ -1856,10 +1856,10 @@ Language	Language	33068
 
 
 --
--- Data for Name: drug_strength; Type: TABLE DATA; Schema: test; Owner: ohdsi
+-- Data for Name: drug_strength; Type: TABLE DATA; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-COPY test.drug_strength (drug_concept_id, ingredient_concept_id, amount_value, amount_unit_concept_id, numerator_value, numerator_unit_concept_id, denominator_value, denominator_unit_concept_id, box_size, valid_start_date, valid_end_date, invalid_reason) FROM stdin;
+COPY vocabulary_testdata.drug_strength (drug_concept_id, ingredient_concept_id, amount_value, amount_unit_concept_id, numerator_value, numerator_unit_concept_id, denominator_value, denominator_unit_concept_id, box_size, valid_start_date, valid_end_date, invalid_reason) FROM stdin;
 4180186	44502766	0	\N	10	44501528	\N	44501528	\N	1970-01-01	2099-12-31	\N
 45547509	44501968	0	44501528	\N	\N	\N	\N	\N	1970-01-01	2099-12-31	\N
 45910570	44502000	0	44501528	\N	\N	\N	\N	\N	1970-01-01	2099-12-31	\N
@@ -1870,10 +1870,10 @@ COPY test.drug_strength (drug_concept_id, ingredient_concept_id, amount_value, a
 
 
 --
--- Data for Name: relationship; Type: TABLE DATA; Schema: test; Owner: ohdsi
+-- Data for Name: relationship; Type: TABLE DATA; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-COPY test.relationship (relationship_id, relationship_name, is_hierarchical, defines_ancestry, reverse_relationship_id, relationship_concept_id) FROM stdin;
+COPY vocabulary_testdata.relationship (relationship_id, relationship_name, is_hierarchical, defines_ancestry, reverse_relationship_id, relationship_concept_id) FROM stdin;
 Concept same_as from	Active same_as inactive (SNOMED)	0	0	Concept same_as to	44818959
 Concept same_as to	Inactive same_as active (SNOMED)	0	0	Concept same_as from	44818958
 Is a	Is a	1	0	Subsumes	44818821
@@ -1890,10 +1890,10 @@ Contains	Contains (RxNorm)	1	0	Contained in	44818959
 
 
 --
--- Data for Name: vocabulary; Type: TABLE DATA; Schema: test; Owner: ohdsi
+-- Data for Name: vocabulary; Type: TABLE DATA; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-COPY test.vocabulary (vocabulary_id, vocabulary_name, vocabulary_reference, vocabulary_version, vocabulary_concept_id) FROM stdin;
+COPY vocabulary_testdata.vocabulary (vocabulary_id, vocabulary_name, vocabulary_reference, vocabulary_version, vocabulary_concept_id) FROM stdin;
 ABMS	Provider Specialty (American Board of Medical Specialties)	http://www.abms.org/member-boards/specialty-subspecialty-certificates	2018-06-26 ABMS	45756746
 AMT	Australian Medicines Terminology (NEHTA)	https://www.nehta.gov.au/implementation-resources/terminology-access	AMT 01-SEP-17	238
 APC	Ambulatory Payment Classification (CMS)	http://www.cms.gov/Medicare/Medicare-Fee-for-Service-Payment/HospitalOutpatientPPS/Hospital-Outpatient-Regulations-and-Notices.html	2018-January-Addendum-A	44819132
@@ -2002,330 +2002,330 @@ Vocabulary	OMOP Vocabulary	OMOP generated	\N	44819232
 
 
 --
--- Name: concept_synonym uq_concept_synonym; Type: CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept_synonym uq_concept_synonym; Type: CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept_synonym
+ALTER TABLE ONLY vocabulary_testdata.concept_synonym
     ADD CONSTRAINT uq_concept_synonym UNIQUE (concept_id, concept_synonym_name, language_concept_id);
 
 
 --
--- Name: concept xpk_concept; Type: CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept xpk_concept; Type: CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept
+ALTER TABLE ONLY vocabulary_testdata.concept
     ADD CONSTRAINT xpk_concept PRIMARY KEY (concept_id);
 
 
 --
--- Name: concept_ancestor xpk_concept_ancestor; Type: CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept_ancestor xpk_concept_ancestor; Type: CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept_ancestor
+ALTER TABLE ONLY vocabulary_testdata.concept_ancestor
     ADD CONSTRAINT xpk_concept_ancestor PRIMARY KEY (ancestor_concept_id, descendant_concept_id);
 
 
 --
--- Name: concept_class xpk_concept_class; Type: CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept_class xpk_concept_class; Type: CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept_class
+ALTER TABLE ONLY vocabulary_testdata.concept_class
     ADD CONSTRAINT xpk_concept_class PRIMARY KEY (concept_class_id);
 
 
 --
--- Name: concept_relationship xpk_concept_relationship; Type: CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept_relationship xpk_concept_relationship; Type: CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept_relationship
+ALTER TABLE ONLY vocabulary_testdata.concept_relationship
     ADD CONSTRAINT xpk_concept_relationship PRIMARY KEY (concept_id_1, concept_id_2, relationship_id);
 
 
 --
--- Name: domain xpk_domain; Type: CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: domain xpk_domain; Type: CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.domain
+ALTER TABLE ONLY vocabulary_testdata.domain
     ADD CONSTRAINT xpk_domain PRIMARY KEY (domain_id);
 
 
 --
--- Name: drug_strength xpk_drug_strength; Type: CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: drug_strength xpk_drug_strength; Type: CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.drug_strength
+ALTER TABLE ONLY vocabulary_testdata.drug_strength
     ADD CONSTRAINT xpk_drug_strength PRIMARY KEY (drug_concept_id, ingredient_concept_id);
 
 
 --
--- Name: relationship xpk_relationship; Type: CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: relationship xpk_relationship; Type: CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.relationship
+ALTER TABLE ONLY vocabulary_testdata.relationship
     ADD CONSTRAINT xpk_relationship PRIMARY KEY (relationship_id);
 
 
 --
--- Name: vocabulary xpk_vocabulary; Type: CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: vocabulary xpk_vocabulary; Type: CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.vocabulary
+ALTER TABLE ONLY vocabulary_testdata.vocabulary
     ADD CONSTRAINT xpk_vocabulary PRIMARY KEY (vocabulary_id);
 
 
 --
--- Name: idx_concept_ancestor_id_1; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_concept_ancestor_id_1; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE INDEX idx_concept_ancestor_id_1 ON test.concept_ancestor USING btree (ancestor_concept_id);
+CREATE INDEX idx_concept_ancestor_id_1 ON vocabulary_testdata.concept_ancestor USING btree (ancestor_concept_id);
 
 
 --
--- Name: idx_concept_ancestor_id_2; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_concept_ancestor_id_2; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE INDEX idx_concept_ancestor_id_2 ON test.concept_ancestor USING btree (descendant_concept_id);
+CREATE INDEX idx_concept_ancestor_id_2 ON vocabulary_testdata.concept_ancestor USING btree (descendant_concept_id);
 
 
 --
--- Name: idx_concept_class_class_id; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_concept_class_class_id; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE UNIQUE INDEX idx_concept_class_class_id ON test.concept_class USING btree (concept_class_id);
+CREATE UNIQUE INDEX idx_concept_class_class_id ON vocabulary_testdata.concept_class USING btree (concept_class_id);
 
 
 --
--- Name: idx_concept_class_id; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_concept_class_id; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE INDEX idx_concept_class_id ON test.concept USING btree (concept_class_id);
+CREATE INDEX idx_concept_class_id ON vocabulary_testdata.concept USING btree (concept_class_id);
 
 
 --
--- Name: idx_concept_code; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_concept_code; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE INDEX idx_concept_code ON test.concept USING btree (concept_code);
+CREATE INDEX idx_concept_code ON vocabulary_testdata.concept USING btree (concept_code);
 
 
 --
--- Name: idx_concept_concept_id; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_concept_concept_id; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE UNIQUE INDEX idx_concept_concept_id ON test.concept USING btree (concept_id);
+CREATE UNIQUE INDEX idx_concept_concept_id ON vocabulary_testdata.concept USING btree (concept_id);
 
 
 --
--- Name: idx_concept_domain_id; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_concept_domain_id; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE INDEX idx_concept_domain_id ON test.concept USING btree (domain_id);
+CREATE INDEX idx_concept_domain_id ON vocabulary_testdata.concept USING btree (domain_id);
 
 
 --
--- Name: idx_concept_relationship_id_1; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_concept_relationship_id_1; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE INDEX idx_concept_relationship_id_1 ON test.concept_relationship USING btree (concept_id_1);
+CREATE INDEX idx_concept_relationship_id_1 ON vocabulary_testdata.concept_relationship USING btree (concept_id_1);
 
 
 --
--- Name: idx_concept_relationship_id_2; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_concept_relationship_id_2; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE INDEX idx_concept_relationship_id_2 ON test.concept_relationship USING btree (concept_id_2);
+CREATE INDEX idx_concept_relationship_id_2 ON vocabulary_testdata.concept_relationship USING btree (concept_id_2);
 
 
 --
--- Name: idx_concept_relationship_id_3; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_concept_relationship_id_3; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE INDEX idx_concept_relationship_id_3 ON test.concept_relationship USING btree (relationship_id);
+CREATE INDEX idx_concept_relationship_id_3 ON vocabulary_testdata.concept_relationship USING btree (relationship_id);
 
 
 --
--- Name: idx_concept_synonym_id; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_concept_synonym_id; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE INDEX idx_concept_synonym_id ON test.concept_synonym USING btree (concept_id);
+CREATE INDEX idx_concept_synonym_id ON vocabulary_testdata.concept_synonym USING btree (concept_id);
 
 
 --
--- Name: idx_concept_vocabluary_id; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_concept_vocabluary_id; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE INDEX idx_concept_vocabluary_id ON test.concept USING btree (vocabulary_id);
+CREATE INDEX idx_concept_vocabluary_id ON vocabulary_testdata.concept USING btree (vocabulary_id);
 
 
 --
--- Name: idx_domain_domain_id; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_domain_domain_id; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE UNIQUE INDEX idx_domain_domain_id ON test.domain USING btree (domain_id);
+CREATE UNIQUE INDEX idx_domain_domain_id ON vocabulary_testdata.domain USING btree (domain_id);
 
 
 --
--- Name: idx_drug_strength_id_1; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_drug_strength_id_1; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE INDEX idx_drug_strength_id_1 ON test.drug_strength USING btree (drug_concept_id);
+CREATE INDEX idx_drug_strength_id_1 ON vocabulary_testdata.drug_strength USING btree (drug_concept_id);
 
 
 --
--- Name: idx_drug_strength_id_2; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_drug_strength_id_2; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE INDEX idx_drug_strength_id_2 ON test.drug_strength USING btree (ingredient_concept_id);
+CREATE INDEX idx_drug_strength_id_2 ON vocabulary_testdata.drug_strength USING btree (ingredient_concept_id);
 
 
 --
--- Name: idx_relationship_rel_id; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_relationship_rel_id; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE UNIQUE INDEX idx_relationship_rel_id ON test.relationship USING btree (relationship_id);
+CREATE UNIQUE INDEX idx_relationship_rel_id ON vocabulary_testdata.relationship USING btree (relationship_id);
 
 
 --
--- Name: idx_vocabulary_vocabulary_id; Type: INDEX; Schema: test; Owner: ohdsi
+-- Name: idx_vocabulary_vocabulary_id; Type: INDEX; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-CREATE UNIQUE INDEX idx_vocabulary_vocabulary_id ON test.vocabulary USING btree (vocabulary_id);
+CREATE UNIQUE INDEX idx_vocabulary_vocabulary_id ON vocabulary_testdata.vocabulary USING btree (vocabulary_id);
 
 
 --
--- Name: concept_ancestor fpk_concept_ancestor_concept_1; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept_ancestor fpk_concept_ancestor_concept_1; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept_ancestor
-    ADD CONSTRAINT fpk_concept_ancestor_concept_1 FOREIGN KEY (ancestor_concept_id) REFERENCES test.concept(concept_id);
+ALTER TABLE ONLY vocabulary_testdata.concept_ancestor
+    ADD CONSTRAINT fpk_concept_ancestor_concept_1 FOREIGN KEY (ancestor_concept_id) REFERENCES vocabulary_testdata.concept(concept_id);
 
 
 --
--- Name: concept_ancestor fpk_concept_ancestor_concept_2; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept_ancestor fpk_concept_ancestor_concept_2; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept_ancestor
-    ADD CONSTRAINT fpk_concept_ancestor_concept_2 FOREIGN KEY (descendant_concept_id) REFERENCES test.concept(concept_id);
+ALTER TABLE ONLY vocabulary_testdata.concept_ancestor
+    ADD CONSTRAINT fpk_concept_ancestor_concept_2 FOREIGN KEY (descendant_concept_id) REFERENCES vocabulary_testdata.concept(concept_id);
 
 
 --
--- Name: concept fpk_concept_class; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept fpk_concept_class; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept
-    ADD CONSTRAINT fpk_concept_class FOREIGN KEY (concept_class_id) REFERENCES test.concept_class(concept_class_id);
+ALTER TABLE ONLY vocabulary_testdata.concept
+    ADD CONSTRAINT fpk_concept_class FOREIGN KEY (concept_class_id) REFERENCES vocabulary_testdata.concept_class(concept_class_id);
 
 
 --
--- Name: concept fpk_concept_domain; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept fpk_concept_domain; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept
-    ADD CONSTRAINT fpk_concept_domain FOREIGN KEY (domain_id) REFERENCES test.domain(domain_id);
+ALTER TABLE ONLY vocabulary_testdata.concept
+    ADD CONSTRAINT fpk_concept_domain FOREIGN KEY (domain_id) REFERENCES vocabulary_testdata.domain(domain_id);
 
 
 --
--- Name: concept_relationship fpk_concept_relationship_c_1; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept_relationship fpk_concept_relationship_c_1; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept_relationship
-    ADD CONSTRAINT fpk_concept_relationship_c_1 FOREIGN KEY (concept_id_1) REFERENCES test.concept(concept_id);
+ALTER TABLE ONLY vocabulary_testdata.concept_relationship
+    ADD CONSTRAINT fpk_concept_relationship_c_1 FOREIGN KEY (concept_id_1) REFERENCES vocabulary_testdata.concept(concept_id);
 
 
 --
--- Name: concept_relationship fpk_concept_relationship_c_2; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept_relationship fpk_concept_relationship_c_2; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept_relationship
-    ADD CONSTRAINT fpk_concept_relationship_c_2 FOREIGN KEY (concept_id_2) REFERENCES test.concept(concept_id);
+ALTER TABLE ONLY vocabulary_testdata.concept_relationship
+    ADD CONSTRAINT fpk_concept_relationship_c_2 FOREIGN KEY (concept_id_2) REFERENCES vocabulary_testdata.concept(concept_id);
 
 
 --
--- Name: concept_relationship fpk_concept_relationship_id; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept_relationship fpk_concept_relationship_id; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept_relationship
-    ADD CONSTRAINT fpk_concept_relationship_id FOREIGN KEY (relationship_id) REFERENCES test.relationship(relationship_id);
+ALTER TABLE ONLY vocabulary_testdata.concept_relationship
+    ADD CONSTRAINT fpk_concept_relationship_id FOREIGN KEY (relationship_id) REFERENCES vocabulary_testdata.relationship(relationship_id);
 
 
 --
--- Name: concept_synonym fpk_concept_synonym_concept; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept_synonym fpk_concept_synonym_concept; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept_synonym
-    ADD CONSTRAINT fpk_concept_synonym_concept FOREIGN KEY (concept_id) REFERENCES test.concept(concept_id);
+ALTER TABLE ONLY vocabulary_testdata.concept_synonym
+    ADD CONSTRAINT fpk_concept_synonym_concept FOREIGN KEY (concept_id) REFERENCES vocabulary_testdata.concept(concept_id);
 
 
 --
--- Name: concept_synonym fpk_concept_synonym_language; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept_synonym fpk_concept_synonym_language; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept_synonym
-    ADD CONSTRAINT fpk_concept_synonym_language FOREIGN KEY (language_concept_id) REFERENCES test.concept(concept_id);
+ALTER TABLE ONLY vocabulary_testdata.concept_synonym
+    ADD CONSTRAINT fpk_concept_synonym_language FOREIGN KEY (language_concept_id) REFERENCES vocabulary_testdata.concept(concept_id);
 
 
 --
--- Name: concept fpk_concept_vocabulary; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: concept fpk_concept_vocabulary; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.concept
-    ADD CONSTRAINT fpk_concept_vocabulary FOREIGN KEY (vocabulary_id) REFERENCES test.vocabulary(vocabulary_id);
+ALTER TABLE ONLY vocabulary_testdata.concept
+    ADD CONSTRAINT fpk_concept_vocabulary FOREIGN KEY (vocabulary_id) REFERENCES vocabulary_testdata.vocabulary(vocabulary_id);
 
 
 --
--- Name: drug_strength fpk_drug_strength_concept_1; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: drug_strength fpk_drug_strength_concept_1; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.drug_strength
-    ADD CONSTRAINT fpk_drug_strength_concept_1 FOREIGN KEY (drug_concept_id) REFERENCES test.concept(concept_id);
+ALTER TABLE ONLY vocabulary_testdata.drug_strength
+    ADD CONSTRAINT fpk_drug_strength_concept_1 FOREIGN KEY (drug_concept_id) REFERENCES vocabulary_testdata.concept(concept_id);
 
 
 --
--- Name: drug_strength fpk_drug_strength_concept_2; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: drug_strength fpk_drug_strength_concept_2; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.drug_strength
-    ADD CONSTRAINT fpk_drug_strength_concept_2 FOREIGN KEY (ingredient_concept_id) REFERENCES test.concept(concept_id);
+ALTER TABLE ONLY vocabulary_testdata.drug_strength
+    ADD CONSTRAINT fpk_drug_strength_concept_2 FOREIGN KEY (ingredient_concept_id) REFERENCES vocabulary_testdata.concept(concept_id);
 
 
 --
--- Name: drug_strength fpk_drug_strength_unit_1; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: drug_strength fpk_drug_strength_unit_1; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.drug_strength
-    ADD CONSTRAINT fpk_drug_strength_unit_1 FOREIGN KEY (amount_unit_concept_id) REFERENCES test.concept(concept_id);
+ALTER TABLE ONLY vocabulary_testdata.drug_strength
+    ADD CONSTRAINT fpk_drug_strength_unit_1 FOREIGN KEY (amount_unit_concept_id) REFERENCES vocabulary_testdata.concept(concept_id);
 
 
 --
--- Name: drug_strength fpk_drug_strength_unit_2; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: drug_strength fpk_drug_strength_unit_2; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.drug_strength
-    ADD CONSTRAINT fpk_drug_strength_unit_2 FOREIGN KEY (numerator_unit_concept_id) REFERENCES test.concept(concept_id);
+ALTER TABLE ONLY vocabulary_testdata.drug_strength
+    ADD CONSTRAINT fpk_drug_strength_unit_2 FOREIGN KEY (numerator_unit_concept_id) REFERENCES vocabulary_testdata.concept(concept_id);
 
 
 --
--- Name: drug_strength fpk_drug_strength_unit_3; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: drug_strength fpk_drug_strength_unit_3; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.drug_strength
-    ADD CONSTRAINT fpk_drug_strength_unit_3 FOREIGN KEY (denominator_unit_concept_id) REFERENCES test.concept(concept_id);
+ALTER TABLE ONLY vocabulary_testdata.drug_strength
+    ADD CONSTRAINT fpk_drug_strength_unit_3 FOREIGN KEY (denominator_unit_concept_id) REFERENCES vocabulary_testdata.concept(concept_id);
 
 
 --
--- Name: relationship fpk_relationship_concept; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: relationship fpk_relationship_concept; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.relationship
-    ADD CONSTRAINT fpk_relationship_concept FOREIGN KEY (relationship_concept_id) REFERENCES test.concept(concept_id);
+ALTER TABLE ONLY vocabulary_testdata.relationship
+    ADD CONSTRAINT fpk_relationship_concept FOREIGN KEY (relationship_concept_id) REFERENCES vocabulary_testdata.concept(concept_id);
 
 
 --
--- Name: relationship fpk_relationship_reverse; Type: FK CONSTRAINT; Schema: test; Owner: ohdsi
+-- Name: relationship fpk_relationship_reverse; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
 --
 
-ALTER TABLE ONLY test.relationship
-    ADD CONSTRAINT fpk_relationship_reverse FOREIGN KEY (reverse_relationship_id) REFERENCES test.relationship(relationship_id);
+ALTER TABLE ONLY vocabulary_testdata.relationship
+    ADD CONSTRAINT fpk_relationship_reverse FOREIGN KEY (reverse_relationship_id) REFERENCES vocabulary_testdata.relationship(relationship_id);
 
 
 --

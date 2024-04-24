@@ -3,6 +3,7 @@ package com.odysseusinc.athena.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -17,5 +18,10 @@ public final class Fn {
         initializer.accept(result);
         return result;
     }
+
+    public static <T, V extends T> Optional<V> castAs(T object, Class<V> clazz) {
+        return clazz.isInstance(object) ? Optional.of((V) object) : Optional.empty();
+    }
+
 
 }

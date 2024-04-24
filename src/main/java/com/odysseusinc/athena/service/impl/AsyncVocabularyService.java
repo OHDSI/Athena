@@ -86,14 +86,14 @@ public class AsyncVocabularyService {
         this.zipWriter = zipWriter;
     }
 
-    @Async
+    @Async("bundleExecutor")
     public void saveContent(DownloadBundle bundle, AthenaUser user) {
 
         save(bundle, user);
     }
 
-    @Async("deltaExecutor")
-    public void saveSlowDeltaContent(DownloadBundle bundle, AthenaUser user) {
+    @Async("bundleDeltaExecutor")
+    public void saveSlowExecutableContent(DownloadBundle bundle, AthenaUser user) {
 
         save(bundle, user);
     }
