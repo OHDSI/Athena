@@ -19,9 +19,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Objects;
 
 public class AbstractVocabularyController {
     protected static final Logger LOGGER = LoggerFactory.getLogger(VocabularyController.class);
@@ -53,5 +56,15 @@ public class AbstractVocabularyController {
     public List<DownloadBundleDTO> getDownloadHistory(Principal principal) throws PermissionDeniedException {
         AthenaUser user = userService.getUser(principal);
         return vocabularyService.getDownloadHistory(user);
+    }
+
+    @Operation(summary = "Restore download history item.")
+    @PutMapping("/restore/{id}")
+    public ResponseEntity<Void> restore(@PathVariable("id") Long bundleId)
+            throws PermissionDeniedException {
+
+        Objects.nonNull(bundleId);
+        vocabularyService.restoreDownloadBundle(bundleId);
+        return ResponseEntity.ok().build();
     }
 }

@@ -54,7 +54,6 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
-import java.util.Objects;
 
 import static com.odysseusinc.athena.util.CDMVersion.getByValue;
 import static com.odysseusinc.athena.util.CDMVersion.notExist;
@@ -124,16 +123,6 @@ public class VocabularyController extends AbstractVocabularyController {
         }
         downloadBundleService.archive(bundleId);
         return ResponseEntity.ok(Boolean.TRUE);
-    }
-
-    @Operation(summary = "Restore download history item.")
-    @PutMapping("/restore/{id}")
-    public ResponseEntity<Void> restore(@PathVariable("id") Long bundleId)
-            throws PermissionDeniedException {
-
-        Objects.nonNull(bundleId);
-        vocabularyService.restoreDownloadBundle(bundleId);
-        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Check bundle.")
