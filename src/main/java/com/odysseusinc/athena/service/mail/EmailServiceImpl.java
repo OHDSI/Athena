@@ -63,6 +63,8 @@ public class EmailServiceImpl implements EmailService {
     private String controlFilesUrl;
     @Value("${vocabularies.download.forum.url}")
     private String forumUrl;
+    @Value("${vocabularies.download.documentation.url}")
+    private String documentationUrl;
     @Value("${vocabularies.download.umls.url}")
     private String umlsUrl;
 
@@ -186,6 +188,7 @@ public class EmailServiceImpl implements EmailService {
 
         final Map<String, Object> parameters = new HashMap<>();
         parameters.put("forumUrl", forumUrl);
+        parameters.put("documentationUrl", documentationUrl);
         parameters.put("controlFilesUrl", controlFilesUrl);
         parameters.put("url", url);
         parameters.put("umlsUrl", umlsUrl);

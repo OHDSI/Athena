@@ -4,11 +4,40 @@
 <body>
 <p>
 
-<h3>Link for downloading the Standardized Vocabularies Delta</h3>
-<p>
-    Delta between vocabulary release versions: <strong><span th:text="${vocabularyReleaseVersion}"></span></strong> and <strong><span th:text="${deltaReleaseVersion}"></span></strong>
+<p>Dear <span  th:text="${name}"></span>,</p>
+
+<p><span th:text="${owner_name}"></span> has shared vocabularies with you.</p>
+
+<h3>Installation of the Delta Package of the OHDSI Standardized Vocabularies</h3>
+<p>Your Delta Package is ready for installation. Please execute the following process:</p>
+<ol>
+    <li>Click on this <a th:href="${url}">link</a> to download the zip file. The typical file size should be between 30 and 400 MB, depending on the number of vocabularies you selected.</li>
+    <li>Unpack the downloaded zip file.</li>
+    <li>If you want to upgrade your existing Vocabulary tables using the SQL script:
+        <ol type="a">
+        <li>Make sure you selected the correct release version prior to initiating the download.</li>
+        <li>Execute the <strong><span>delta.sql</i></strong> script.</li>
+        </ol>
+    </li>
+    <li>Otherwise use your own process to use the change information in the CSV files.</li>
+</ol>
+
+<p>If you encounter problems please find more information in the
+    <a th:href="${documentationUrl}">
+        Documentation
+    </a>
+    or submit a post at the
+    <a th:href="${forumUrl}" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=th:text=${forumUrl}&amp;source=gmail&amp;ust=1488877772753000&amp;usg=AFQjCNHTlB0rs1HpEwZjvho6sUaciuSA5w">
+        OHDSI Forum pages
+    </a>
+    to ask the community for support. You will need to register.
 </p>
 
+<h4>Content of your Delta Package</h4>
+<p>Your Package contains all changes between release versions  <strong><span th:text="${vocabularyReleaseVersion}"></span></strong> and <strong><span th:text="${deltaReleaseVersion}"></span></strong>
+</p>
+
+<p> You selected the following tables:</p>
 <div>
     <table>
         <thead>
@@ -24,28 +53,8 @@
     </table>
 </div>
 
-<p>Please download and load the Standardized Vocabularies as following:</p>
-<ol>
-    <li>Click on this <a th:href="${url}">link</a> to download the zip file.
-        Typical file sizes, depending on the number of vocabularies selected, are between 30 and 400 MB.
-    </li>
-    <li>Unpack the downloaded zip file.</li>
-    <li>
-        Apply changes:
-        <ol type="a">
-            <li>For relative databases, execute the <strong><span>delta.sql</span></strong> script.</li>
-            <li>For other databases, gather information about changes from the CSV files (refer to the readme for more details).</li>
-        </ol>
-    </li>
-</ol>
-
-<p>If you hit problems please use the <a th:href="${forumUrl}"
-                                         target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en
-&amp;q=th:text=${forumUrl}&amp;source=gmail&amp;ust=1488877772753000
-&amp;usg=AFQjCNHTlB0rs1HpEwZjvho6sUaciuSA5w">OHDSI Forum pages</a>,
-    and somebody will help you. You will need to register.</p>
-
-Regards,<br/>
-Odysseus Data Services, Inc.
+<p>Regards,<br/>
+    The OHDSI Vocabulary Team
 </p></body>
 </html>
+
