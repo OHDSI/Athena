@@ -75,7 +75,9 @@ public class HmacVerifyingFilter extends OncePerRequestFilter {
             log.info("Verifying signature for method: {}, URI: {}, query string: {}, nonce: {}", method, uri, queryString, nonce);
             Stream<byte[]> meta = Stream.of(method, uri, queryString, nonce).filter(Objects::nonNull).map(s -> s.getBytes(StandardCharsets.UTF_8));
             List<byte[]> factors = payload.map(body -> Stream.concat(meta, Stream.of(body))).orElse(meta).collect(Collectors.toList());
-            return clients.getSignatureVerifier(clientId).apply(factors, signature);
+            Boolean verificationResult = clients.getSignatureVerifier(clientId).apply(factors, signature);
+            log.info("Signature verification result: {}", verificationResult);
+            return verificationResult;
         } catch (BadCredentialsException e) {
             log.info("Signature verification failed for [" + uri + "]: " + e.getMessage());
             return false;
