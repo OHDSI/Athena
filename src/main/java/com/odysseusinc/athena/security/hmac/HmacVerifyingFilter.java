@@ -72,7 +72,7 @@ public class HmacVerifyingFilter extends OncePerRequestFilter {
         String signature = request.getHeader(HEADER_HMAC);
         try {
             String nonce = verifyNonce(request);
-
+            log.info("Verifying signature for method: {}, URI: {}, query string: {}, nonce: {}", method, uri, queryString, nonce);
             Stream<byte[]> meta = Stream.of(method, uri, queryString, nonce).filter(Objects::nonNull).map(s -> s.getBytes(StandardCharsets.UTF_8));
             List<byte[]> factors = payload.map(body -> Stream.concat(meta, Stream.of(body))).orElse(meta).collect(Collectors.toList());
             return clients.getSignatureVerifier(clientId).apply(factors, signature);
