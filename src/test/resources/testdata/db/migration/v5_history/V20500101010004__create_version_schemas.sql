@@ -1,11 +1,29 @@
+-- 20200509 version before the original and it is copy of the 20200511, created only to check cache functionality
+-- 20200517 version after the original  and it is copy of the 20200515, created only to check cache functionality
 
-SELECT copy_vocabulary_schema('vocabulary_testdata', 'vocabulary_20200519');
-SELECT copy_vocabulary_schema('vocabulary_testdata', 'vocabulary_20200517');
-SELECT copy_vocabulary_schema('vocabulary_testdata', 'vocabulary_20200515');
+-- 20200511 version before the original version
 SELECT copy_vocabulary_schema('vocabulary_testdata', 'vocabulary_20200511');
+-- 20200513 version as a copy of the original version
+SELECT copy_vocabulary_schema('vocabulary_testdata', 'vocabulary_20200513');
+-- 20200515 version after the original version
+SELECT copy_vocabulary_schema('vocabulary_testdata', 'vocabulary_20200515');
 
--- vocabulary_20200517
-update vocabulary_20200517.vocabulary set vocabulary_version = 'v5.0 17-MAY-20' where vocabulary_id = 'None';
+
+
+-- vocabulary_20200511
+update vocabulary_20200511.vocabulary set vocabulary_version = 'v5.0 11-MAY-20' where vocabulary_id = 'None';
+DELETE FROM vocabulary_20200511.concept_synonym WHERE concept_id = 4161028;
+DELETE FROM vocabulary_20200511.concept_relationship WHERE concept_id_1 = 4161028 OR concept_id_2 = 4161028;
+DELETE FROM vocabulary_20200511.concept_ancestor WHERE ancestor_concept_id = 4161028 OR descendant_concept_id = 4161028;
+DELETE FROM vocabulary_20200511.drug_strength WHERE drug_concept_id = 45547509;
+DELETE FROM vocabulary_20200511.concept WHERE concept_id = 4161028;
+DELETE FROM vocabulary_20200511.concept_class WHERE concept_class_id = 'Blood Pressure Pos';
+DELETE FROM vocabulary_20200511.domain WHERE domain_id = 'Device';
+DELETE FROM vocabulary_20200511.relationship where relationship_id in ( 'Using subst', 'Subst used by');
+DELETE from vocabulary_20200511.vocabulary where vocabulary_id = 'ABMS';
+
+-- vocabulary_20200513
+update vocabulary_20200513.vocabulary set vocabulary_version = 'v5.0 13-MAY-20' where vocabulary_id = 'None';
 
 -- vocabulary_20200515
 update vocabulary_20200515.vocabulary set vocabulary_version = 'v5.0 15-MAY-20' where vocabulary_id = 'None';
@@ -32,14 +50,10 @@ UPDATE vocabulary_20200515.relationship SET is_hierarchical = '7', defines_ances
 UPDATE vocabulary_20200515.relationship SET is_hierarchical = '9', defines_ancestry = '9' WHERE relationship_id = 'Contains';
 UPDATE vocabulary_20200515.vocabulary SET vocabulary_name = 'Updated WHO Anatomic Therapeutic Chemical Classification', vocabulary_reference = 'Updated FDB UK distribution package', vocabulary_version = 'Updated RXNORM 2018-08-12' WHERE vocabulary_id = 'ATC';
 
--- vocabulary_20200511
-update vocabulary_20200511.vocabulary set vocabulary_version = 'v5.0 11-MAY-20' where vocabulary_id = 'None';
-DELETE FROM vocabulary_20200511.concept_synonym WHERE concept_id = 4161028;
-DELETE FROM vocabulary_20200511.concept_relationship WHERE concept_id_1 = 4161028 OR concept_id_2 = 4161028;
-DELETE FROM vocabulary_20200511.concept_ancestor WHERE ancestor_concept_id = 4161028 OR descendant_concept_id = 4161028;
-DELETE FROM vocabulary_20200511.drug_strength WHERE drug_concept_id = 45547509;
-DELETE FROM vocabulary_20200511.concept WHERE concept_id = 4161028;
-DELETE FROM vocabulary_20200511.concept_class WHERE concept_class_id = 'Blood Pressure Pos';
-DELETE FROM vocabulary_20200511.domain WHERE domain_id = 'Device';
-DELETE FROM vocabulary_20200511.relationship where relationship_id in ( 'Using subst', 'Subst used by');
-DELETE from vocabulary_20200511.vocabulary where vocabulary_id = 'ABMS';
+
+-- vocabulary_20200509
+SELECT copy_vocabulary_schema('vocabulary_20200511', 'vocabulary_20200509');
+update vocabulary_20200509.vocabulary set vocabulary_version = 'v5.0 09-MAY-20' where vocabulary_id = 'None';
+-- vocabulary_20200517
+SELECT copy_vocabulary_schema('vocabulary_20200515', 'vocabulary_20200517');
+update vocabulary_20200517.vocabulary set vocabulary_version = 'v5.0 17-MAY-20' where vocabulary_id = 'None';

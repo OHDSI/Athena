@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
@@ -92,6 +93,19 @@ public class GenericSteps {
         } catch (NoSuchMethodException | NestedNullException e) {
             return null;
         }
+    }
+
+    @When("Date {string} = {string}")
+    public void assertPropertiesEquals(String ref1, String ref2) {
+        Instant instant1 = Instant.parse(world.ref(ref1));
+        Instant instant2 = Instant.parse(world.ref(ref2));
+        Assertions.assertEquals(instant1, instant2);
+    }
+    @When("Date {string} > {string}")
+    public void assertDateIsAfter(String ref1, String ref2) {
+        Instant instant1 = Instant.parse(world.ref(ref1));
+        Instant instant2 = Instant.parse(world.ref(ref2));
+        Assertions.assertTrue(instant1.isAfter(instant2));
     }
 
 
