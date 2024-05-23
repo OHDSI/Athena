@@ -7,6 +7,9 @@ import java.util.List;
 public interface VocabularyReleaseVersionService {
     boolean isCurrent(Integer versionId);
 
+    Integer getCurrent();
+
+    String getCurrentFormatted();
     boolean isPresentInHistory(Integer versionId);
 
     List<VocabularyReleaseVersionDTO> getReleaseVersions();

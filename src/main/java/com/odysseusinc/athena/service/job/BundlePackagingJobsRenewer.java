@@ -53,7 +53,7 @@ public class BundlePackagingJobsRenewer {
         for (DownloadBundle uncompletedBundle : downloadBundleRepository.findByStatus(PENDING)) {
 
             AthenaUser bundleOwner = userService.get(uncompletedBundle.getUserId());
-            vocabularyService.saveContent(uncompletedBundle, bundleOwner);
+            vocabularyService.generateBundle(uncompletedBundle, bundleOwner);
         }
     }
 }

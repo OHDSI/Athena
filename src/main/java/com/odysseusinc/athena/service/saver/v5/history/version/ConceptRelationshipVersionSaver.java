@@ -45,8 +45,8 @@ public class ConceptRelationshipVersionSaver extends HistorySaver implements Sav
                 "  valid_end_date, " +
                 "  invalid_reason " +
                 "FROM concept_relationship_history " +
-                "WHERE (vocabulary_history_id_1 = ANY (get_vocabulary_history_ids(:vocabularyArr, :version)) OR " +
-                "       vocabulary_history_id_2 = ANY (get_vocabulary_history_ids(:vocabularyArr, :version))) " +
+                "WHERE (vocabulary_history_id_1 = ANY (get_vocabulary_history_ids(:vocabularyArr, :version))  " +
+                "  AND  vocabulary_history_id_2 = ANY (get_vocabulary_history_ids(:vocabularyArr, :version))) " +
                 "  AND version = :version " +
                 "UNION ALL " +
                 "SELECT " +
@@ -58,7 +58,7 @@ public class ConceptRelationshipVersionSaver extends HistorySaver implements Sav
                 "  invalid_reason " +
                 "FROM concept_relationship_history " +
                 "WHERE (vocabulary_history_id_1 = ANY (get_vocabulary_history_ids(:vocabularyArr, :version)) " +
-                "    OR vocabulary_history_id_2 = ANY (get_vocabulary_history_ids(:vocabularyArr, :version))) " +
+                "  AND vocabulary_history_id_2 = ANY (get_vocabulary_history_ids(:vocabularyArr, :version))) " +
                 "  AND version = :version";
 
     }

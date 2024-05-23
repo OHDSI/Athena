@@ -146,6 +146,22 @@ public class VocabularyServiceImpl implements VocabularyService {
         return bundle;
     }
 
+
+
+    @Override
+    public DownloadBundle copyBundle(Long id, String bundleName, AthenaUser currentUser) {
+
+        return this.downloadBundleRepository.findById(id).map(bundle -> {
+                    List<Integer> vocabularies = bundle.getVocabularyV4Ids();
+                    checkBundleVocabularies(vocabularies, currentUser.getId());
+                    return saveDownloadItems(
+                            downloadBundleService.copyBundle(bundle, bundleName),
+                            vocabularies
+                    );
+                })
+                .orElseThrow(() -> new NotExistException("Cannot find bundle with id =" + id, DownloadBundle.class));
+    }
+
     @Override
     public void checkBundleVocabularies(long bundleId, Long userId) {
 
@@ -157,12 +173,13 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public void saveContent(DownloadBundle bundle, AthenaUser user) {
+    public void generateBundle(DownloadBundle bundle, AthenaUser user) {
         if (bundle.isDelta() && !cacheDeltaService.isDeltaVersionCached(bundle.getVocabularyVersion(), bundle.getDeltaVersion())) {
-            asyncVocabularyService.saveSlowExecutableContent(bundle, user);
+            asyncVocabularyService.generateSlowExecutableBundle(bundle, user);
         } else {
-            asyncVocabularyService.saveContent(bundle, user);
+            asyncVocabularyService.generateBundle(bundle, user);
         }
+        log.info("Vocabulary generation is started, bundle name: {}, user id: {}", bundle, user.getId());
     }
 
     @Override
@@ -232,7 +249,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         downloadBundleService.validate(downloadBundle);
         checkBundleVocabularies(downloadBundle.getId(), currentUser.getId());
         asyncVocabularyService.updateStatus(downloadBundle, DownloadBundleStatus.PENDING);
-        saveContent(downloadBundle, currentUser);
+        generateBundle(downloadBundle, currentUser);
         log.info("Vocabulary restoring is started, bundle id: {}, user id: {}", downloadBundle.getId(),
                 currentUser.getId());
     }

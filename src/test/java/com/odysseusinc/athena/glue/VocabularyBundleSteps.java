@@ -3,6 +3,7 @@ package com.odysseusinc.athena.glue;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.v5history.VocabularyReleaseVersionRepository;
+import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.VocabularyServiceV5;
 import com.odysseusinc.athena.service.writer.FileHelper;
@@ -37,6 +38,7 @@ import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class VocabularyBundleSteps {
@@ -53,19 +55,17 @@ public class VocabularyBundleSteps {
     @Autowired
     private VocabularyService vocabularyService;
 
+
     @Autowired
     private VocabularyReleaseVersionRepository vocabularyReleaseVersionRepository;
+
+
+    @Autowired
+    private VocabularyReleaseVersionService vocabularyReleaseVersionService;
 
     @Autowired
     private FileHelper fileHelper;
 
-    @Autowired
-    @Qualifier("dataSourceAthenaDB")
-    private DataSource athenaDataSource;
-
-    @Autowired
-    @Qualifier("dataSourceAthenaV5")
-    private DataSource v5DataSource;
 
     @Autowired
     @Qualifier("dataSourceAthenaV5History")
@@ -82,32 +82,56 @@ public class VocabularyBundleSteps {
     }
 
     @When("user generates a bundle for current version")
-    public void bundleForCurrent() throws IOException {
-        String bundleName = String.format("%s-%s-%s", "Bundle", "current", UUID.randomUUID());
+    public void bundleForCurrent() {
+        String bundleName = String.format("%s-%s", "Bundle", "current");
         Integer currentVersion = vocabularyServiceV5.getReleaseVocabularyVersionId();
         DownloadBundle bundle = vocabularyService.saveBundle(
                 bundleName, TEST_VOCABULARIES,
                 MOCK_USER, CDMVersion.V5, currentVersion, false, null);
-        download(bundle, MOCK_USER);
+        world.setCursor(() -> generateAndDownload(bundle, MOCK_USER));
+    }
+
+    @When("user copy {string} bundle with {string} and generate it")
+    public void copyAndGenerate(String idRef, String name) {
+        Long id = Long.valueOf(world.ref(idRef));
+        DownloadBundle bundle = vocabularyService.copyBundle(id, name, MOCK_USER);
+        world.setCursor(() -> generateAndDownload(bundle, MOCK_USER));
     }
 
     @When("user generates a {int} version bundle")
-    public void bundleForVersion(Integer version) throws IOException {
-        String bundleName = String.format("%s-%s-%s", "Bundle", version, UUID.randomUUID());
+    public void bundleForVersion(Integer version) {
+        String bundleName = String.format("%s-%s", "Bundle", version);
         DownloadBundle bundle = vocabularyService.saveBundle(
                 bundleName, TEST_VOCABULARIES,
                 MOCK_USER, CDMVersion.V5, version, false, null);
-        download(bundle, MOCK_USER);
+        world.setCursor(() -> generateAndDownload(bundle, MOCK_USER));
+    }
+
+    @When("user compare with a {int} version bundle")
+    public void compareWith(Integer version) throws IOException {
+        String bundleName = String.format("%s-%s", "Bundle", version);
+        DownloadBundle bundle = vocabularyService.saveBundle(
+                bundleName, TEST_VOCABULARIES,
+                MOCK_USER, CDMVersion.V5, version, false, null);
+        List<FileInfo> fileInfos1 = (List<FileInfo>)world.getCursor();
+        List<FileInfo> fileInfos2 = generateAndDownload(bundle, MOCK_USER);
+        world.setCursor(() -> compareFiles(fileInfos1, fileInfos2));
+
+    }
+
+    @When("user get vocabulary release version")
+    public void vocabularyReleaseVersion() {
+        world.setCursor(() -> vocabularyReleaseVersionService.getCurrentFormatted());
     }
 
     @When("user generates delta bundle for versions: {int} and {int}")
-    public void bundleForDelta(Integer version, Integer deltaVersion) throws IOException {
+    public void bundleForDelta(Integer version, Integer deltaVersion) {
 
-        String bundleName = String.format("%s-%s-%s", "Bundle", version, UUID.randomUUID());
+        String bundleName = String.format("%s-%s", "Bundle", version);
         DownloadBundle bundle = vocabularyService.saveBundle(
                 bundleName, TEST_VOCABULARIES,
                 MOCK_USER, CDMVersion.V5, version, true, deltaVersion);
-        download(bundle, MOCK_USER);
+        world.setCursor(() -> generateAndDownload(bundle, MOCK_USER));
     }
 
     @When("run {string} script on {string} schema")
@@ -118,11 +142,19 @@ public class VocabularyBundleSteps {
 
 
     @When("user inspects list of vocabulary release version")
-    public void inspectReleaseVersion() {
+    public void inspectReleaseVersions() {
         world.setCursor(() ->
                 new ArrayList<>(vocabularyReleaseVersionRepository.findAll())
         );
     }
+
+    @When("user inspects list of bundles")
+    public void inspectBundles() {
+        world.setCursor(() ->
+                new ArrayList<>(vocabularyService.getDownloadHistory(MOCK_USER))
+        );
+    }
+
 
     @When("user compare and inspect schemas {string} and {string}")
     public void compareAndInspectSchemas(String schema1, String schema2) {
@@ -131,13 +163,13 @@ public class VocabularyBundleSteps {
         );
     }
 
-    private void download(DownloadBundle bundle, AthenaUser user) throws IOException {
-        vocabularyService.saveContent(bundle, user);
+    private List<FileInfo> generateAndDownload(DownloadBundle bundle, AthenaUser user) throws IOException {
+        vocabularyService.generateBundle(bundle, user);
         String zipPath = fileHelper.getZipPath(bundle.getUuid());
 
         Path tempDir = Files.createTempDirectory(UUID.randomUUID().toString());
         List<FileInfo> unzip = unzip(zipPath, tempDir.toString(), FileInfo::fromPath);
-        world.setCursor(() -> unzip);
+        return unzip;
     }
 
     public <T> List<T> unzip(String zipFilePath, String destDir, Function<String, T> fun) throws IOException {
@@ -198,6 +230,18 @@ public class VocabularyBundleSteps {
         }
     }
 
+    private List<FileCompare> compareFiles(List<FileInfo> info1, List<FileInfo> info2) {
+        Map<String, FileInfo> fileInfoMap1 = info1.stream().collect(Collectors.toMap(
+                FileInfo::getName,
+                fileInfo -> fileInfo
+        ));
+
+        return info2.stream().map(i2 -> {
+            FileInfo fileInfo1 = fileInfoMap1.get(i2.getName());
+            return new FileCompare(i2.getName(), fileInfo1.getRows() - i2.getRows());
+        }).collect(Collectors.toList());
+    }
+
 
     @NoArgsConstructor
     @AllArgsConstructor
@@ -239,5 +283,13 @@ public class VocabularyBundleSteps {
             }
         }
     }
+
+    @AllArgsConstructor
+    @Getter
+    public static class FileCompare {
+        private final String name;
+        private final long diff;
+    }
+
 }
 

@@ -22,7 +22,7 @@
 
 package com.odysseusinc.athena.service.impl;
 
-import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyVersionConverter;
+import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.ReleaseVocabularyVersionConverter;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.exceptions.ValidationException;
@@ -37,6 +37,7 @@ import com.odysseusinc.athena.service.VocabularyServiceV5;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
+import com.odysseusinc.athena.util.Fn;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -74,17 +75,33 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
 
     @Override
     public DownloadBundle initBundle(String bundleName, AthenaUser currentUser, CDMVersion version, Integer vocabularyVersion, boolean delta, Integer deltaVersion) {
-        return new DownloadBundle(
-                UUID.randomUUID().toString(), version, new Date(),
-                currentUser.getId(), bundleName, VocabularyVersionConverter.toOldFormat(vocabularyServiceV5.getReleaseVocabularyVersionId()),
-                DownloadBundleStatus.PENDING, vocabularyVersion, deltaVersion, delta
-        );
+        return initBundle(bundleName, currentUser.getId(), version, vocabularyVersion, delta, deltaVersion, ReleaseVocabularyVersionConverter.toOldFormat(vocabularyServiceV5.getReleaseVocabularyVersionId()));
+    }
+
+    @Override
+    public DownloadBundle copyBundle(DownloadBundle bundle, String name) {
+        return initBundle(name, bundle.getUserId(), bundle.getCdmVersion(), bundle.getVocabularyVersion(), bundle.isDelta(), bundle.getDeltaVersion(), bundle.getReleaseVersion());
     }
 
     @Override
     public DownloadBundle get(Long bundleId) {
 
         return bundleRepository.getOne(bundleId);
+    }
+
+    private  DownloadBundle initBundle(String bundleName, Long userId, CDMVersion cdmVersion, Integer vocabularyVersion, boolean delta, Integer deltaVersion, String releaseVersion) {
+        return Fn.create(DownloadBundle::new, bundle -> {
+            bundle.setUuid(UUID.randomUUID().toString());
+            bundle.setCdmVersion(cdmVersion);
+            bundle.setCreated(new Date());
+            bundle.setUserId(userId);
+            bundle.setName(bundleName);
+            bundle.setReleaseVersion(releaseVersion);
+            bundle.setStatus(DownloadBundleStatus.PENDING);
+            bundle.setVocabularyVersion(vocabularyVersion);
+            bundle.setDeltaVersion(deltaVersion);
+            bundle.setDelta(delta);
+        });
     }
 
     @Override

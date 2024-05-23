@@ -923,7 +923,6 @@ Workflow	Workflow	45905723
 
 COPY vocabulary_testdata.concept_relationship (concept_id_1, concept_id_2, relationship_id, valid_start_date, valid_end_date, invalid_reason) FROM stdin;
 200962	44500494	Subsumes	2015-09-18	2099-12-31	\N
-44500494	200962	Is a	2015-09-18	2099-12-31	\N
 200962	44501544	Subsumes	2015-09-18	2099-12-31	\N
 200962	44499734	Subsumes	2015-09-18	2099-12-31	\N
 200962	44500459	Subsumes	2015-09-18	2099-12-31	\N
@@ -1557,6 +1556,7 @@ COPY vocabulary_testdata.concept_relationship (concept_id_1, concept_id_2, relat
 44501528	44501528	Mapped from	2015-09-18	2099-12-31	\N
 44501528	44501528	Maps to	2015-09-18	2099-12-31	\N
 44501528	200962	Is a	2015-09-18	2099-12-31	\N
+44500494	200962	Is a	2015-09-18	2099-12-31	\N
 44501544	44501544	Mapped from	2015-09-18	2099-12-31	\N
 44501544	44501544	Maps to	2015-09-18	2099-12-31	\N
 44501544	200962	Is a	2015-09-18	2099-12-31	\N

@@ -1,7 +1,7 @@
 # The cache saves the differences:
 # - Between the last version and the second-to-last version.
 # - Between the last version and the third-to-last version.
-Feature: Delta Cache (It contains delta for the latest Vocabulary Release Versions)
+Feature: Test delta cache(It contains delta for the latest Vocabulary Release Versions)
 
   Background:
 #    Given "" user is logged in

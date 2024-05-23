@@ -1,4 +1,4 @@
-Feature: Delta bundle between two version
+Feature: Generate delta vocabulary download bundle between two version
 
   Background:
 #   TODO DEV  The loging should be implment propely in tests

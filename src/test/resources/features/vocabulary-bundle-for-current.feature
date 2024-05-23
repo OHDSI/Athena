@@ -1,8 +1,11 @@
-Feature: Bundle for the concrete version
+Feature: Generate vocabulary download bundle for current version
 
   Background:
+    Given user import vocabulary from the "vocabulary_20200513" schema
 
-  Scenario: copy and generate vocabulary bundle
+  Scenario: Download bundles by Current Release Version and compare it with the same historical version
+    When user get vocabulary release version
+    Then it is "v20200519"
 
     When user generates a bundle for current version
     Then it is a list containing:
@@ -16,7 +19,15 @@ Feature: Bundle for the concrete version
       | CONCEPT_CLASS        | csv | 391  |
       | CONCEPT              | csv | 184  |
       | DOMAIN               | csv | 48   |
-    When user inspects list of bundles
+    When user compare with a 20200513 version bundle
     Then it is a list containing:
-      | id    | name           |
-      | ~(.+) | Bundle-current |
+      | name                 | diff |
+      | CONCEPT_ANCESTOR     | 0    |
+      | CONCEPT_RELATIONSHIP | 0    |
+      | CONCEPT_SYNONYM      | 0    |
+      | DRUG_STRENGTH        | 0    |
+      | RELATIONSHIP         | 0    |
+      | VOCABULARY           | 0    |
+      | CONCEPT_CLASS        | 0    |
+      | CONCEPT              | 0    |
+      | DOMAIN               | 0    |

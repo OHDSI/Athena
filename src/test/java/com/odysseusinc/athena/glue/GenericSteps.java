@@ -25,9 +25,27 @@ public class GenericSteps {
     private World world;
 
 
+    @When("it is {string}")
+    public void assertCursor(String expected) {
+        Assertions.assertEquals(expected, String.valueOf(world.getCursor()));
+    }
+
     @When("^(?:which|it) is a list containing:$")
     public void assertListContains(DataTable dt) {
         assertList(dt.asMaps(), toList(world.getCursor()));
+    }
+
+    @When("Date {string} = {string}")
+    public void assertPropertiesEquals(String ref1, String ref2) {
+        Instant instant1 = Instant.parse(world.ref(ref1));
+        Instant instant2 = Instant.parse(world.ref(ref2));
+        Assertions.assertEquals(instant1, instant2);
+    }
+    @When("Date {string} > {string}")
+    public void assertDateIsAfter(String ref1, String ref2) {
+        Instant instant1 = Instant.parse(world.ref(ref1));
+        Instant instant2 = Instant.parse(world.ref(ref2));
+        Assertions.assertTrue(instant1.isAfter(instant2));
     }
 
     public static List<?> toList(Object cursor) {
@@ -94,20 +112,6 @@ public class GenericSteps {
             return null;
         }
     }
-
-    @When("Date {string} = {string}")
-    public void assertPropertiesEquals(String ref1, String ref2) {
-        Instant instant1 = Instant.parse(world.ref(ref1));
-        Instant instant2 = Instant.parse(world.ref(ref2));
-        Assertions.assertEquals(instant1, instant2);
-    }
-    @When("Date {string} > {string}")
-    public void assertDateIsAfter(String ref1, String ref2) {
-        Instant instant1 = Instant.parse(world.ref(ref1));
-        Instant instant2 = Instant.parse(world.ref(ref2));
-        Assertions.assertTrue(instant1.isAfter(instant2));
-    }
-
 
     private void assertWithCapture(String expected, String actual) {
         Assertions.assertTrue(matchWithCaptureOrAlias(expected, actual), () ->

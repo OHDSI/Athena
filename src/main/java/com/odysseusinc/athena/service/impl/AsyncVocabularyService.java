@@ -87,19 +87,19 @@ public class AsyncVocabularyService {
     }
 
     @Async("bundleExecutor")
-    public void saveContent(DownloadBundle bundle, AthenaUser user) {
+    public void generateBundle(DownloadBundle bundle, AthenaUser user) {
 
         save(bundle, user);
     }
 
     @Async("deltaExecutor")
-    public void saveSlowExecutableContent(DownloadBundle bundle, AthenaUser user) {
+    public void generateSlowExecutableBundle(DownloadBundle bundle, AthenaUser user) {
 
         save(bundle, user);
     }
 
     private void save(DownloadBundle bundle, AthenaUser user) {
-        List<Long> idV4s = bundle.getVocabularyV4Ids();
+        List<Integer> idV4s = bundle.getVocabularyV4Ids();
         try (FileOutputStream fout = new FileOutputStream(fileHelper.getZipPath(bundle.getUuid()));
              ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fout))) {
 
@@ -170,7 +170,7 @@ public class AsyncVocabularyService {
 
 
     // TODO: Generics needs proper handling. We plan to eliminate the v4 version.
-    private List getIds(DownloadBundle bundle, List<Long> idV4s) {
+    private List getIds(DownloadBundle bundle, List<Integer> idV4s) {
         switch (bundle.getCdmVersion()) {
             case V4_5:
                 return idV4s;

@@ -1,4 +1,4 @@
-Feature: Bundle for the concrete version
+Feature: Generate vocabulary download bundle by version
 
   Background:
 #    Given "" user is logged in

@@ -45,6 +45,7 @@ public class DownloadBundleDTO {
     private String releaseVersion;
     private String vocabularyReleaseVersion;
     private String deltaReleaseVersion;
+    private Integer vocabularyReleaseVersionCode;
     private Boolean delta;
     private List<DownloadShareDTO> downloadShareDTOs;
     private String shareEmails;

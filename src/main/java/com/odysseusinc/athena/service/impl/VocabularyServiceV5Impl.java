@@ -1,6 +1,6 @@
 package com.odysseusinc.athena.service.impl;
 
-import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyVersionConverter;
+import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.ReleaseVocabularyVersionConverter;
 import com.odysseusinc.athena.model.athenav5.VocabularyV5;
 import com.odysseusinc.athena.repositories.v5.VocabularyRepository;
 import com.odysseusinc.athena.service.VocabularyServiceV5;
@@ -30,7 +30,7 @@ public class VocabularyServiceV5Impl implements VocabularyServiceV5 {
         final VocabularyV5 omopVocabulary = vocabularyRepository.getOne(OMOP_RELEASE_VOCABULARY_ID);
         if (omopVocabulary != null) {
 
-            Integer vocabularyVersionId = VocabularyVersionConverter.fromOldToId(omopVocabulary.getVersion());
+            Integer vocabularyVersionId = ReleaseVocabularyVersionConverter.fromOldToId(omopVocabulary.getVersion());
             log.debug("Current OMOP Vocabulary: {} {}: {}", omopVocabulary.getId(), omopVocabulary.getName(), vocabularyVersionId);
             return vocabularyVersionId;
         }
