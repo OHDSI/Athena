@@ -3,16 +3,14 @@ CREATE OR REPLACE FUNCTION populate_import_temp_tables(p_schema VARCHAR)
 BEGIN
     RAISE NOTICE '[%] Populating import_vocabulary_temp table from % schema', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS'), p_schema;
     -- Splitting into separate CREATE and INSERT-SELECT statements to populate vocabulary_history_id using a serial type.
-    EXECUTE format('
-        CREATE TEMPORARY TABLE import_vocabulary_temp (
-            vocabulary_history_id serial,
-            vocabulary_id         varchar(20),
-            vocabulary_name       varchar(255),
-            vocabulary_reference  varchar(255),
-            vocabulary_version    varchar(255),
-            vocabulary_concept_id bigint
-        )
-    ');
+    CREATE TEMPORARY TABLE IF NOT EXISTS import_vocabulary_temp (
+                                                                    vocabulary_history_id serial,
+                                                                    vocabulary_id         varchar(20),
+                                                                    vocabulary_name       varchar(255),
+                                                                    vocabulary_reference  varchar(255),
+                                                                    vocabulary_version    varchar(255),
+                                                                    vocabulary_concept_id bigint
+    ) ON COMMIT DELETE ROWS;
 
     EXECUTE format('
         INSERT INTO import_vocabulary_temp(
@@ -24,28 +22,38 @@ BEGIN
             );
 
     RAISE NOTICE '[%] Populating import_concept_temp table from % schema', TO_CHAR(clock_timestamp(), 'YYYY-MM-DD HH24:MI:SS'), p_schema;
-    EXECUTE format('
-        CREATE TEMPORARY TABLE import_concept_temp AS
-        SELECT
-            c.concept_id,
-            c.concept_name,
-            c.domain_id,
-            c.vocabulary_id,
-            c.concept_class_id,
-            c.standard_concept,
-            c.concept_code,
-            c.valid_start_date,
-            c.valid_end_date,
-            c.invalid_reason,
-            v.vocabulary_history_id
-        FROM import_vocabulary_temp v
-        JOIN %I.concept c
-        ON v.vocabulary_id = c.vocabulary_id',
-                   p_schema
-            );
+    CREATE TEMPORARY TABLE IF NOT EXISTS import_concept_temp (
+                                                                 concept_id         INTEGER,
+                                                                 concept_name       VARCHAR(255),
+                                                                 domain_id          VARCHAR(20),
+                                                                 vocabulary_id      VARCHAR(20),
+                                                                 concept_class_id   VARCHAR(20),
+                                                                 standard_concept   VARCHAR(1),
+                                                                 concept_code       VARCHAR(50),
+                                                                 valid_start_date   DATE,
+                                                                 valid_end_date     DATE,
+                                                                 invalid_reason     VARCHAR(1),
+                                                                 vocabulary_history_id SERIAL
+    ) ON COMMIT DELETE ROWS;
 
+    EXECUTE format('
+    INSERT INTO import_concept_temp
+    SELECT
+        c.concept_id,
+        c.concept_name,
+        c.domain_id,
+        c.vocabulary_id,
+        c.concept_class_id,
+        c.standard_concept,
+        c.concept_code,
+        c.valid_start_date,
+        c.valid_end_date,
+        c.invalid_reason,
+        v.vocabulary_history_id
+    FROM import_vocabulary_temp v
+    JOIN %I.concept c ON v.vocabulary_id = c.vocabulary_id', p_schema);
     -- Add the index creation statement
-    EXECUTE 'CREATE INDEX idx_concept_id ON import_concept_temp (concept_id)';
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_concept_id ON import_concept_temp (concept_id)';
 
 END;
 $$ LANGUAGE plpgsql;

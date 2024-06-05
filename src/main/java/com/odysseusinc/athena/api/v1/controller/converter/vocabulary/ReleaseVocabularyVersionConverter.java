@@ -22,18 +22,16 @@ package com.odysseusinc.athena.api.v1.controller.converter.vocabulary;
  *
  */
 
-import org.apache.logging.log4j.util.Strings;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * The VocabularyVersionConverter is designed to convert version formats between the old and new representations.
+ * The ReleaseVocabularyVersionConverter is designed to convert version formats between the old and new representations.
  * The old format is utilized in the database (e.g., in SQL queries such as 'SELECT vocabulary_version FROM vocabulary WHERE vocabulary_id = ''None''),
  * while the new format is intended for display and presentation purposes.
  */
-public class VocabularyVersionConverter {
+public class ReleaseVocabularyVersionConverter {
 
     private static final ThreadLocal<SimpleDateFormat> NEW_DATE_FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyyMMdd"));
     private static final ThreadLocal<SimpleDateFormat> OLD_DATE_FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd-MMM-yy"));

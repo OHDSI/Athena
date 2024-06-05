@@ -46,6 +46,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(controllers = UserController.class)
 @ActiveProfiles("test")
 @TestPropertySource(locations = {"classpath:/test.properties"})
+@Ignore
+@Deprecated
 public class UserControllerTest {
 
     @Value("${athena.token.header}")

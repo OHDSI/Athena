@@ -82,6 +82,7 @@ public class DownloadBundleToDTO implements Converter<DownloadBundle, DownloadBu
         dto.setType(type);
         dto.setReleaseVersion(bundle.formattedReleaseVersion());
         dto.setVocabularyReleaseVersion(bundle.formattedVocabularyVersion());
+        dto.setVocabularyReleaseVersionCode(bundle.getVocabularyVersion());
         dto.setDeltaReleaseVersion(bundle.formattedDeltaVersion());
         dto.setDelta(bundle.isDelta());
         List<VocabularyDTO> dtos = converterUtils.convertList(bundle.getVocabulariesWithoutOmopReq(),

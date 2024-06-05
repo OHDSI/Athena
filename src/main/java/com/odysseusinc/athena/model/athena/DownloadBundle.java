@@ -23,7 +23,7 @@
 package com.odysseusinc.athena.model.athena;
 
 import com.google.common.base.MoreObjects;
-import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyVersionConverter;
+import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.ReleaseVocabularyVersionConverter;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import lombok.Getter;
@@ -87,6 +87,7 @@ public class DownloadBundle {
     @Column
     private String name;
 
+    @Deprecated /// it old version that used only to set current release version
     @Column(name = "release_version")
     private String releaseVersion;
 
@@ -128,10 +129,10 @@ public class DownloadBundle {
         return DownloadBundleStatus.ARCHIVED == status;
     }
 
-    public List<Long> getVocabularyV4Ids() {
+    public List<Integer> getVocabularyV4Ids() {
 
         return vocabularies.stream().map(each -> each.getVocabularyConversion().getIdV4())
-                .map(Integer::longValue).collect(Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     public List<DownloadItem> getVocabulariesWithoutOmopReq() {
@@ -142,15 +143,15 @@ public class DownloadBundle {
     }
 
     public String formattedReleaseVersion() {
-        return VocabularyVersionConverter.fromOldToNew(releaseVersion);
+        return ReleaseVocabularyVersionConverter.fromOldToNew(releaseVersion);
     }
 
     public String formattedVocabularyVersion() {
-        return VocabularyVersionConverter.toNewFormat(vocabularyVersion);
+        return ReleaseVocabularyVersionConverter.toNewFormat(vocabularyVersion);
     }
 
     public String formattedDeltaVersion() {
-        return VocabularyVersionConverter.toNewFormat(deltaVersion);
+        return ReleaseVocabularyVersionConverter.toNewFormat(deltaVersion);
     }
 
     @Override

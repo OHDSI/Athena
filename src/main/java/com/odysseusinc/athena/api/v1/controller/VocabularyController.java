@@ -22,24 +22,20 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
-import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyVersionConverter;
 import com.odysseusinc.athena.api.v1.controller.dto.CustomPageImpl;
 import com.odysseusinc.athena.api.v1.controller.dto.LicenseExceptionDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.PageDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.*;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.AcceptDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.AddingUserLicensesDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareChangeDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.LicenseRequestDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserLicensesDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyVersionDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyReleaseVersionDTO;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
-import com.odysseusinc.athena.exceptions.ValidationException;
-import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.security.AthenaUser;
-import com.odysseusinc.athena.service.*;
+import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,16 +43,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
-
-import static com.odysseusinc.athena.util.CDMVersion.getByValue;
-import static com.odysseusinc.athena.util.CDMVersion.notExist;
 
 @Tag(name = "VocabularyController")
 @RestController
@@ -66,38 +68,7 @@ public class VocabularyController extends AbstractVocabularyController {
     @Autowired
     private VocabularyReleaseVersionService versionService;
 
-    @Operation(summary = "Save vocabularies.")
-    @GetMapping("/save")
-    public void save(@RequestParam(value = "cmdVersion", defaultValue = "5") float cmdVersion,
-                     @RequestParam(value = "ids") List<Integer> idV4s,
-                     @RequestParam(value = "name") String bundleName,
-                     @RequestParam(value = "vocabularyVersion", required = false) Integer vocabularyVersion,
-                     @RequestParam(value = "delta", defaultValue = "false") boolean delta,
-                     @RequestParam(value = "deltaVersion", required = false) Integer deltaVersion) throws IOException {
 
-        vocabularyVersion = vocabularyVersion != null ? vocabularyVersion :
-                vocabularyServiceV5.getReleaseVocabularyVersionId();
-        if (notExist(cmdVersion)) {
-            throw new ValidationException("No supported CDM version " + cmdVersion);
-        }
-        if (delta && versionService.isCurrentMissingInHistory(vocabularyVersion)){
-            throw new ValidationException("The current version has not been uploaded to historical data. The delta cannot be created. Please contact the administrator.");
-        }
-        if (delta && deltaVersion== null) {
-            throw new ValidationException("The Delta version should be set.");
-        }
-        if (delta && !(deltaVersion < vocabularyVersion)) {
-            throw new ValidationException("The Delta version should be lower than the Vocabulary version");
-        }
-
-        AthenaUser currentUser = userService.getCurrentUser();
-        DownloadBundle bundle = vocabularyService.saveBundle(
-                bundleName, idV4s, currentUser, getByValue(cmdVersion),
-                vocabularyVersion, delta, deltaVersion
-        );
-        vocabularyService.saveContent(bundle, currentUser);
-        LOGGER.info("Vocabulary saving is started, bundle name: {}, user id: {}", bundleName, currentUser.getId());
-    }
 
     @Operation(summary = "Share bundle")
     @PostMapping(value = "/downloads/{id}/share")
@@ -205,16 +176,6 @@ public class VocabularyController extends AbstractVocabularyController {
         licenseService.checkLicense(id, token);
         vocabularyService.acceptLicense(id, accepted);
         response.sendRedirect("/admin/licenses");
-    }
-
-
-    //TODO DEV rename it to vocabulary-release-version
-    @GetMapping("/release-version")
-    public VocabularyVersionDTO releaseVersion() {
-
-        Integer vocabularyVersionId = vocabularyServiceV5.getReleaseVocabularyVersionId();
-        String vocabularyVersion = VocabularyVersionConverter.toNewFormat(vocabularyVersionId);
-        return converterUtils.convert(vocabularyVersion, VocabularyVersionDTO.class);
     }
 
     @GetMapping("/vocabulary-release-versions")

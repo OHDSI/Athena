@@ -1,6 +1,6 @@
 package com.odysseusinc.athena.service.impl;
 
-import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyVersionConverter;
+import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.ReleaseVocabularyVersionConverter;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyReleaseVersionDTO;
 import com.odysseusinc.athena.model.athenav5history.VocabularyReleaseVersion;
 import com.odysseusinc.athena.repositories.v5history.VocabularyReleaseVersionRepository;
@@ -23,7 +23,7 @@ class VocabularyReleaseVersionServerImplTest {
 
     public static final int VOCABULARY_VERSION_ID = 19960123;
     public static final int CURRENT_VERSION_ID = 20300101;
-    public static final VocabularyReleaseVersionDTO CURREN_VERSION_DTO = new VocabularyReleaseVersionDTO(CURRENT_VERSION_ID, VocabularyVersionConverter.toNewFormat(CURRENT_VERSION_ID), true);
+    public static final VocabularyReleaseVersionDTO CURREN_VERSION_DTO = new VocabularyReleaseVersionDTO(CURRENT_VERSION_ID, ReleaseVocabularyVersionConverter.toNewFormat(CURRENT_VERSION_ID), true);
 
     @Mock
     private VocabularyReleaseVersionRepository vocabularyReleaseVersionRepository;
@@ -116,7 +116,7 @@ class VocabularyReleaseVersionServerImplTest {
     private VocabularyReleaseVersionDTO toDto(VocabularyReleaseVersion dummyVersion, boolean current) {
         return new VocabularyReleaseVersionDTO(
                 dummyVersion.getId(),
-                VocabularyVersionConverter.toNewFormat(dummyVersion.getId()),
+                ReleaseVocabularyVersionConverter.toNewFormat(dummyVersion.getId()),
                 current
         );
     }

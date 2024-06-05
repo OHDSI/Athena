@@ -22,7 +22,6 @@
 
 package com.odysseusinc.athena.model.athenav5history;
 
-import com.odysseusinc.athena.model.common.EntityV5;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,6 +31,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.time.Instant;
 
 @Entity
 @Table(name = "vocabulary_release_version")
@@ -39,10 +39,22 @@ import javax.persistence.Table;
 @Setter
 @AllArgsConstructor(staticName = "of")
 @NoArgsConstructor
-public class VocabularyReleaseVersion extends EntityV5 {
+public class VocabularyReleaseVersion {
 
     @Id
     @Column(name = "id")
     private Integer id;
+
+    @Column(name = "vocabulary_name", nullable = false)
+    private String vocabularyName;
+
+    @Column(name = "athena_name", nullable = false)
+    private String athenaName;
+
+    @Column(name = "import_datetime")
+    private Instant importDate;
+
+    @Column(name = "cached_datetime")
+    private Instant cachedDate;
 
 }
