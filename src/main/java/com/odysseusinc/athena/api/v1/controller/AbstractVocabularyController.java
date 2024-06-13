@@ -20,15 +20,14 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
-import java.util.Objects;
 
 import static com.odysseusinc.athena.util.CDMVersion.V5;
 
@@ -70,7 +69,6 @@ public class AbstractVocabularyController {
     public ResponseEntity<Void> restore(@PathVariable("id") Long bundleId)
             throws PermissionDeniedException {
 
-        Objects.nonNull(bundleId);
         vocabularyService.restoreDownloadBundle(bundleId);
         return ResponseEntity.ok().build();
     }
@@ -101,6 +99,7 @@ public class AbstractVocabularyController {
     public DownloadBundleDTO copyAndGenerate(@RequestParam("id") Long bundleId, @RequestParam("name") String bundleName) throws PermissionDeniedException {
         AthenaUser user = userService.getCurrentUser();
         DownloadBundle bundle = vocabularyService.copyBundle(bundleId, bundleName, user);
+        vocabularyService.generateBundle(bundle, user);
         return conversionService.convert(bundle, DownloadBundleDTO.class);
     }
 
