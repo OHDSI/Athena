@@ -95,8 +95,10 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     private final DownloadBundleService downloadBundleService;
 
+    private final VocabularyReleaseVersionService vocabularyReleaseVersionService;
+
     @Autowired
-    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, CacheDeltaService cacheDeltaService, DownloadBundleService downloadBundleService) {
+    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, CacheDeltaService cacheDeltaService, DownloadBundleService downloadBundleService, VocabularyReleaseVersionService vocabularyReleaseVersionService) {
 
         this.asyncVocabularyService = asyncVocabularyService;
         this.conceptService = conceptService;
@@ -112,6 +114,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         this.vocabularyConversionService = vocabularyConversionService;
         this.cacheDeltaService = cacheDeltaService;
         this.downloadBundleService = downloadBundleService;
+        this.vocabularyReleaseVersionService = vocabularyReleaseVersionService;
     }
 
     @Override
@@ -150,12 +153,12 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     @Override
     public DownloadBundle copyBundle(Long id, String bundleName, AthenaUser currentUser) {
-
-        return this.downloadBundleRepository.findById(id).map(bundle -> {
-                    List<Integer> vocabularies = bundle.getVocabularyV4Ids();
+        Integer vocabularyVersion = vocabularyReleaseVersionService.getCurrent();
+        return this.downloadBundleRepository.findById(id).map(originalBundle -> {
+                    List<Integer> vocabularies = originalBundle.getVocabularyV4Ids();
                     checkBundleVocabularies(vocabularies, currentUser.getId());
                     return saveDownloadItems(
-                            downloadBundleService.copyBundle(bundle, bundleName),
+                            downloadBundleService.initBundle(bundleName, currentUser, originalBundle.getCdmVersion(),  vocabularyVersion, originalBundle.isDelta(), originalBundle.getDeltaVersion()),
                             vocabularies
                     );
                 })

@@ -79,11 +79,6 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
     }
 
     @Override
-    public DownloadBundle copyBundle(DownloadBundle bundle, String name) {
-        return initBundle(name, bundle.getUserId(), bundle.getCdmVersion(), bundle.getVocabularyVersion(), bundle.isDelta(), bundle.getDeltaVersion(), bundle.getReleaseVersion());
-    }
-
-    @Override
     public DownloadBundle get(Long bundleId) {
 
         return bundleRepository.getOne(bundleId);

@@ -33,8 +33,6 @@ public interface DownloadBundleService {
 
     DownloadBundle initBundle(String bundleName, AthenaUser currentUser, CDMVersion version, Integer vocabularyVersion, boolean delta, Integer deltaVersion);
 
-    DownloadBundle copyBundle(DownloadBundle bundle, String name);
-
     DownloadBundle get(Long bundleId);
 
     Long getUserId(Long bundleId);

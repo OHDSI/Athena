@@ -4,7 +4,6 @@ import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyVersionDTO;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,8 +37,8 @@ public class ApiVocabularyController extends AbstractVocabularyController {
     }
 
     @Override
-    public DownloadBundleDTO copyAndGenerate(@RequestParam("id") Long bundleId, @RequestParam("name") String bundleName) throws PermissionDeniedException {
-        DownloadBundleDTO dto = super.copyAndGenerate(bundleId, bundleName);
+    public DownloadBundleDTO copyAndUpdate(@RequestParam("id") Long bundleId, @RequestParam("name") String bundleName) throws PermissionDeniedException {
+        DownloadBundleDTO dto = super.copyAndUpdate(bundleId, bundleName);
         setLink(dto);
         return dto;
     }

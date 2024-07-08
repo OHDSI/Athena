@@ -8,6 +8,7 @@ import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.VocabularyServiceV5;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.CDMVersion;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
 
 import javax.sql.DataSource;
@@ -36,9 +38,16 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class VocabularyBundleSteps {
@@ -49,16 +58,18 @@ public class VocabularyBundleSteps {
     //TODO that is hard coded id of the vocabularies to download
     private static final List<Integer> TEST_VOCABULARIES = Arrays.asList(18, 125, 21, 78, 71, 72, 66, 2, 127, 1, 0, 90, 70, 34);
 
+    @Value("${csv.separator:;}")
+    @Getter
+    protected String separator;
+
     @Autowired
     private World world;
 
     @Autowired
     private VocabularyService vocabularyService;
 
-
     @Autowired
     private VocabularyReleaseVersionRepository vocabularyReleaseVersionRepository;
-
 
     @Autowired
     private VocabularyReleaseVersionService vocabularyReleaseVersionService;
@@ -70,6 +81,10 @@ public class VocabularyBundleSteps {
     @Autowired
     @Qualifier("dataSourceAthenaV5History")
     private DataSource v5HistoryDataSource;
+
+    @Autowired
+    @Qualifier("dataSourceAthenaV5")
+    private DataSource v5DataSource;
 
     @Autowired
     protected VocabularyServiceV5 vocabularyServiceV5;
@@ -113,15 +128,10 @@ public class VocabularyBundleSteps {
         DownloadBundle bundle = vocabularyService.saveBundle(
                 bundleName, TEST_VOCABULARIES,
                 MOCK_USER, CDMVersion.V5, version, false, null);
-        List<FileInfo> fileInfos1 = (List<FileInfo>)world.getCursor();
+        List<FileInfo> fileInfos1 = (List<FileInfo>) world.getCursor();
         List<FileInfo> fileInfos2 = generateAndDownload(bundle, MOCK_USER);
         world.setCursor(() -> compareFiles(fileInfos1, fileInfos2));
 
-    }
-
-    @When("user get vocabulary release version")
-    public void vocabularyReleaseVersion() {
-        world.setCursor(() -> vocabularyReleaseVersionService.getCurrentFormatted());
     }
 
     @When("user generates delta bundle for versions: {int} and {int}")
@@ -132,6 +142,11 @@ public class VocabularyBundleSteps {
                 bundleName, TEST_VOCABULARIES,
                 MOCK_USER, CDMVersion.V5, version, true, deltaVersion);
         world.setCursor(() -> generateAndDownload(bundle, MOCK_USER));
+    }
+
+    @When("user get vocabulary release version")
+    public void vocabularyReleaseVersion() {
+        world.setCursor(() -> vocabularyReleaseVersionService.getCurrentFormatted());
     }
 
     @When("run {string} script on {string} schema")
@@ -163,8 +178,59 @@ public class VocabularyBundleSteps {
         );
     }
 
+    @When("user set new release version: {string}")
+    public void setReleaseVersion(String version) {
+        try (Connection conn = v5DataSource.getConnection()) {
+            queryRunner.update(conn, "UPDATE vocabulary SET vocabulary_version = ? WHERE vocabulary_id = 'None'", version);
+        } catch (SQLException e) {
+            throw new AssertionFailedError(MessageFormat.format("Error setting vocabulary version to {}", version), e);
+        }
+    }
+
+    @And("user inspect {string} file with {string} == {string}")
+    public void userInspectFile(String file, String column, String value) {
+        List<FileInfo> files = (List<FileInfo>) world.getCursor();
+        Path path = files.stream().filter(fi -> Objects.equals(fi.getName(), file)).map(FileInfo::getPath).findFirst().orElseThrow(() -> new IllegalArgumentException("File is not present in the bundle."));
+        world.setCursor(() -> filterFile(path, column, value));
+    }
+
+    public List<Map<String, String>> filterFile(Path path, String column, String value) throws IOException {
+        List<String> headers = getHeaders(path);
+        int columnIndex = headers.indexOf(column);
+
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException("Column name not found in the file");
+        }
+        return filterFile(path, headers, columnIndex, value);
+    }
+
+    private List<String> getHeaders(Path path) throws IOException {
+        try (Stream<String> lines = Files.lines(path)) {
+            String headerLine = lines.findFirst().orElseThrow(() -> new IllegalArgumentException("File is empty"));
+            return Arrays.asList(headerLine.split(separator));
+        }
+    }
+
+    private List<Map<String, String>> filterFile(Path path, List<String> headers, int columnIndex, String value) throws IOException {
+        try (Stream<String> lines = Files.lines(path).skip(1)) {
+            return lines
+                    .map(line -> Arrays.asList(line.split(separator)))
+                    .filter(columns -> columns.size() > columnIndex && columns.get(columnIndex).equals(value))
+                    .map(columns -> headers.stream()
+                            .collect(Collectors.toMap(
+                                    header -> header,
+                                    header -> columns.get(headers.indexOf(header))
+                            )))
+                    .collect(Collectors.toList());
+        }
+    }
+
     private List<FileInfo> generateAndDownload(DownloadBundle bundle, AthenaUser user) throws IOException {
         vocabularyService.generateBundle(bundle, user);
+        return downloadBundle(bundle);
+    }
+
+    public List<FileInfo> downloadBundle(DownloadBundle bundle) throws IOException {
         String zipPath = fileHelper.getZipPath(bundle.getUuid());
 
         Path tempDir = Files.createTempDirectory(UUID.randomUUID().toString());
@@ -206,6 +272,7 @@ public class VocabularyBundleSteps {
             throw new AssertionFailedError(MessageFormat.format("Error running SQL script file: {}", filePath), e);
         }
     }
+
 
     /**
      * This import_new_version is not directly used in Java code; instead, it is part of the update vocabulary release process.
@@ -275,7 +342,7 @@ public class VocabularyBundleSteps {
                 String extension = fileName.substring(fileName.lastIndexOf('.') + 1);
                 long size = Files.size(path);
                 long lineCount = extension.equals("csv") ?
-                        Files.lines(path).count() -1 :
+                        Files.lines(path).count() - 1 :
                         Files.lines(path).count();
                 return new FileInfo(name, extension, path, size, lineCount);
             } catch (IOException e) {

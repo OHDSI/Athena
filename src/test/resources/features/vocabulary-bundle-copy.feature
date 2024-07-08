@@ -15,11 +15,18 @@ Feature: Copy of vocabulary download bundle
       | CONCEPT_CLASS        | csv | 391  |
       | CONCEPT              | csv | 184  |
       | DOMAIN               | csv | 48   |
+    And user inspect "VOCABULARY" file with "vocabulary_id" == "None"
+    Then it is a list containing:
+      | vocabulary_id | vocabulary_version |
+      | None          | v5.0 19-MAY-20     |
     When user inspects list of bundles
     Then it is a list containing:
-      | id               | name           |
-      | ~(?<bundleId>.+) | Bundle-current |
-    When user copy "bundleId" bundle with "Bundle-copy" and generate it
+      | id               | name           | vocabularyReleaseVersion |
+      | ~(?<bundleId>.+) | Bundle-current | v20200519                |
+
+
+    When user set new release version: "v5.0 25-MAY-20"
+    And user copy "bundleId" bundle with "Bundle-copy" and generate it
     Then it is a list containing:
       | name                 | ext | rows |
       | CONCEPT_ANCESTOR     | csv | 323  |
@@ -31,9 +38,12 @@ Feature: Copy of vocabulary download bundle
       | CONCEPT_CLASS        | csv | 391  |
       | CONCEPT              | csv | 184  |
       | DOMAIN               | csv | 48   |
+    And user inspect "VOCABULARY" file with "vocabulary_id" == "None"
+    Then it is a list containing:
+      | vocabulary_id | vocabulary_version |
+      | None          | v5.0 25-MAY-20     |
     When user inspects list of bundles
     Then it is a list containing:
-      | id    | name           |
-      | ~(.+) | Bundle-current |
-      | ~(.+) | Bundle-copy    |
-
+      | id    | name           | vocabularyReleaseVersion |
+      | ~(.+) | Bundle-current | v20200519                |
+      | ~(.+) | Bundle-copy    | v20200525                |

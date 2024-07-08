@@ -96,7 +96,7 @@ public class AbstractVocabularyController {
 
     @Operation(summary = "Restore download history item.")
     @PostMapping("/copy-and-generate")
-    public DownloadBundleDTO copyAndGenerate(@RequestParam("id") Long bundleId, @RequestParam("name") String bundleName) throws PermissionDeniedException {
+    public DownloadBundleDTO copyAndUpdate(@RequestParam("id") Long bundleId, @RequestParam("name") String bundleName) throws PermissionDeniedException {
         AthenaUser user = userService.getCurrentUser();
         DownloadBundle bundle = vocabularyService.copyBundle(bundleId, bundleName, user);
         vocabularyService.generateBundle(bundle, user);
