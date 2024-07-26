@@ -44,7 +44,7 @@ public class ConceptAncestorVersionSaver extends HistorySaver implements SaverV5
                 "  min_levels_of_separation, " +
                 "  max_levels_of_separation " +
                 "FROM concept_ancestor_history " +
-                "WHERE (ancestor_vocabulary_history_id = ANY (get_vocabulary_history_ids(:vocabularyArr, :version)) OR " +
+                "WHERE (ancestor_vocabulary_history_id = ANY (get_vocabulary_history_ids(:vocabularyArr, :version)) AND " +
                 "     descendant_vocabulary_history_id = ANY (get_vocabulary_history_ids(:vocabularyArr, :version)))" +
                 "  AND version = :version ";
     }
