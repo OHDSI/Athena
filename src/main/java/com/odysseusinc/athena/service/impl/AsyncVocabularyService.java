@@ -155,14 +155,17 @@ public class AsyncVocabularyService {
                 emailService.sendDeltaDownloadLink(user, bundle.getName(), urlBuilder.downloadVocabulariesLink(bundle.getUuid()), bundle.getCdmVersion(),
                         includedVocabularies, bundle.formattedVocabularyVersion(), bundle.formattedDeltaVersion()
                 );
+                break;
             case V5_HISTORIES:
                 emailService.sendVocabularyDownloadLink(user, bundle.getName(), urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
                         bundle.getCdmVersion(), includedVocabularies, bundle.formattedVocabularyVersion()
                 );
+                break;
             default:
                 emailService.sendVocabularyDownloadLink(user, bundle.getName(), urlBuilder.downloadVocabulariesLink(bundle.getUuid()),
                         bundle.getCdmVersion(), includedVocabularies, bundle.formattedReleaseVersion()
                 );
+                break;
         }
     }
 
