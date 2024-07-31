@@ -31,7 +31,6 @@ import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadShareRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.service.DownloadShareService;
-import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import com.odysseusinc.athena.service.mail.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -109,12 +108,15 @@ public class DownloadShareServiceImpl implements DownloadShareService {
                     case V5_DELTAS:
                         emailService.sendDeltaWereSharedNotification(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(),
                                 bundle.formattedVocabularyVersion(), bundle.formattedDeltaVersion());
+                        break;
                     case V5_HISTORIES:
                         emailService.sendVocabulariesWereSharedNotification(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(),
                                 bundle.formattedVocabularyVersion());
+                        break;
                     default:
                         emailService.sendVocabulariesWereSharedNotification(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(),
                                 bundle.formattedReleaseVersion());
+                        break;
                 }
             }
         });
