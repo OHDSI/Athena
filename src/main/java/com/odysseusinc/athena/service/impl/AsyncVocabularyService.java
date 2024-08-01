@@ -92,7 +92,7 @@ public class AsyncVocabularyService {
         save(bundle, user);
     }
 
-    @Async("deltaExecutor")
+    @Async("bundleDeltaExecutor")
     public void generateSlowExecutableBundle(DownloadBundle bundle, AthenaUser user) {
 
         save(bundle, user);
