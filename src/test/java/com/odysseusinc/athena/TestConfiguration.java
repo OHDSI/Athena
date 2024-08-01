@@ -27,7 +27,7 @@ public class TestConfiguration {
     }
 
     @Primary
-    @Bean(name = "deltaExecutor")
+    @Bean(name = "bundleDeltaExecutor")
     public Executor deltaExecutor() {
         return sameThreadExecutor();
     }
