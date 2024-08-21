@@ -184,7 +184,7 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
                     throw new ValidationException("The Delta version should be set.");
                 }
                 if (bundle.getDeltaVersion() >= bundle.getVocabularyVersion()) {
-                    throw new ValidationException("The Delta version should be lower than the Vocabulary version");
+                    throw new ValidationException("The Delta version should be older than the Vocabulary version");
                 }
                 if (versionService.isCurrentMissingInHistory(bundle.getVocabularyVersion())){
                     throw new ValidationException("The current version has not been uploaded to historical data. The delta cannot be created. Please contact the administrator.");

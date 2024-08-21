@@ -117,7 +117,7 @@ class DownloadBundleServiceImplTest {
 
         ValidationException exception = assertThrows(ValidationException.class, () ->
                 bundleService.validate( downloadBundle));
-        assertEquals("The Delta version should be lower than the Vocabulary version", exception.getMessage());
+        assertEquals("The Delta version should be older than the Vocabulary version", exception.getMessage());
     }
 
     @Test
@@ -127,12 +127,11 @@ class DownloadBundleServiceImplTest {
             bundle.setName("TestBundle");
             bundle.setVocabularyVersion(2024_01_01);
             bundle.setDeltaVersion(2024_01_01);
+            bundle.setDelta(true);
         });
-        when(versionService.isPresentInHistory(downloadBundle.getVocabularyVersion())).thenReturn(true);
-        when(versionService.isPresentInHistory(downloadBundle.getDeltaVersion())).thenReturn(true);
         ValidationException exception = assertThrows(ValidationException.class, () ->
                 bundleService.validate(downloadBundle));
-        assertEquals("The Delta version should be lower than the Vocabulary version", exception.getMessage());
+        assertEquals("The Delta version should be older than the Vocabulary version", exception.getMessage());
     }
 
     @Test
@@ -156,8 +155,8 @@ class DownloadBundleServiceImplTest {
             bundle.setName("TestBundle");
             bundle.setVocabularyVersion(2024_01_01);
             bundle.setDeltaVersion(2022_01_01);
+            bundle.setDelta(true);
         });
-        when(versionService.isPresentInHistory(downloadBundle.getVocabularyVersion())).thenReturn(true);
         when(versionService.isCurrentMissingInHistory(downloadBundle.getVocabularyVersion())).thenReturn(true);
         ValidationException exception = assertThrows(ValidationException.class, () ->
                 bundleService.validate(downloadBundle));
