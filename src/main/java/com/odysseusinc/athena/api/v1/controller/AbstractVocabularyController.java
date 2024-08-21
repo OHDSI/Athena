@@ -77,7 +77,7 @@ public class AbstractVocabularyController {
     @Operation(summary = "Save and generate vocabularies.")
     @GetMapping("/save")
     public DownloadBundleDTO createAndGenerate(@RequestParam(value = "ids") List<Integer> idV4s, //TODO the vocabularies ide is absole id fr cdm4 it should not used any more, instead we should use codes (that is new string id in the cdm5)
-                                  @RequestParam(value = "name") String bundleName,
+                                  @RequestParam(value = "name", required = false) String bundleName,
                                   @RequestParam(value = "vocabularyVersion", required = false) Integer vocabularyVersion,
                                   @RequestParam(value = "delta", defaultValue = "false") boolean delta,
                                   @RequestParam(value = "deltaVersion", required = false) Integer deltaVersion) throws IOException {

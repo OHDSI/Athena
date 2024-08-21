@@ -39,6 +39,7 @@ import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import com.odysseusinc.athena.util.Fn;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -165,6 +166,9 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
 
     @Override
     public void validate(DownloadBundle bundle, BundleType type) {
+        if (StringUtils.isBlank(bundle.getName())) {
+            throw new ValidationException("Please provide the bundle name");
+        }
         switch (type) {
             case V4_5:
                 throw new ValidationException("CDM Version 4 is not supported anymore");

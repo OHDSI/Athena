@@ -163,5 +163,18 @@ class DownloadBundleServiceImplTest {
         assertEquals("The current version has not been uploaded to historical data. The delta cannot be created. Please contact the administrator.", exception.getMessage());
     }
 
+    @Test
+    void nameIsMissingValidationException() {
+        DownloadBundle downloadBundle = Fn.create(DownloadBundle::new, bundle -> {
+            bundle.setCdmVersion(CDMVersion.V5);
+            bundle.setVocabularyVersion(2024_01_01);
+            bundle.setDeltaVersion(2022_01_01);
+            bundle.setDelta(true);
+        });
+        ValidationException exception = assertThrows(ValidationException.class, () ->
+                bundleService.validate(downloadBundle));
+        assertEquals("Please provide the bundle name", exception.getMessage());
+    }
+
 
 }
