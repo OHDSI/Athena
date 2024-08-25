@@ -14,7 +14,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @CucumberContextConfiguration
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = TestConfiguration.class,
-        properties = "spring.main.allow-bean-definition-overriding=true" //TODO DEV don't like it, maybe it is better override configuration complitly
+        //TODO don't like it, maybe it is better override configuration complitly
+        properties = "spring.main.allow-bean-definition-overriding=true"
 )
 @ActiveProfiles("test")
 public class CucumberStepDefinitions {

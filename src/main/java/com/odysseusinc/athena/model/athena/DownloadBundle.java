@@ -96,7 +96,6 @@ public class DownloadBundle {
     @Enumerated(EnumType.STRING)
     private DownloadBundleStatus status;
 
-    //TODO DEV rename it to historical version id?
     @Column(name = "vocabulary_version")
     private Integer vocabularyVersion;
 

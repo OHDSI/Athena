@@ -1,7 +1,7 @@
 Feature: Generate delta vocabulary download bundle between two version
 
   Background:
-#   TODO DEV  The loging should be implment propely in tests
+  # TODO DEV The logging should be implemented properly in tests
     #This 3 vocabulary is cached
     When user import vocabulary from the "vocabulary_20200511" schema
     And user import vocabulary from the "vocabulary_20200513" schema

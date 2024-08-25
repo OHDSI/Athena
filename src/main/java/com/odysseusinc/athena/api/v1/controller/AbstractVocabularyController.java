@@ -76,11 +76,13 @@ public class AbstractVocabularyController {
 
     @Operation(summary = "Save and generate vocabularies.")
     @GetMapping("/save")
-    public DownloadBundleDTO createAndGenerate(@RequestParam(value = "ids") List<Integer> idV4s, //TODO the vocabularies ide is absole id fr cdm4 it should not used any more, instead we should use codes (that is new string id in the cdm5)
-                                  @RequestParam(value = "name", required = false) String bundleName,
-                                  @RequestParam(value = "vocabularyVersion", required = false) Integer vocabularyVersion,
-                                  @RequestParam(value = "delta", defaultValue = "false") boolean delta,
-                                  @RequestParam(value = "deltaVersion", required = false) Integer deltaVersion) throws IOException {
+    public DownloadBundleDTO createAndGenerate(
+            // TODO The vocabulary ID is obsolete for CDM4; it should not be used anymore. Instead, we should use codes (the new string ID in CDM5).
+            @RequestParam(value = "ids") List<Integer> idV4s,
+            @RequestParam(value = "name", required = false) String bundleName,
+            @RequestParam(value = "vocabularyVersion", required = false) Integer vocabularyVersion,
+            @RequestParam(value = "delta", defaultValue = "false") boolean delta,
+            @RequestParam(value = "deltaVersion", required = false) Integer deltaVersion) throws IOException {
 
         vocabularyVersion = vocabularyVersion != null ? vocabularyVersion :
                 vocabularyReleaseVersionService.getCurrent();
@@ -103,11 +105,11 @@ public class AbstractVocabularyController {
         return conversionService.convert(bundle, DownloadBundleDTO.class);
     }
 
-    @GetMapping("/release-version") //TODO DEV rename it to vocabulary-release-version
+    @GetMapping("/release-version")
     public VocabularyVersionDTO vocabularyReleaseVersion() {
         return converterUtils.convert(vocabularyReleaseVersionService.getCurrentFormatted(), VocabularyVersionDTO.class);
     }
-
+    //The endpoint path should be unified release_version/vocabulary_release_version_code
     @GetMapping("/vocabulary-release-version-code")
     public Integer vocabularyReleaseVersionCode() {
         return vocabularyReleaseVersionService.getCurrent();
