@@ -24,7 +24,7 @@ package com.odysseusinc.athena.service.job;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
-import com.odysseusinc.athena.service.impl.AsyncVocabularyService;
+import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.impl.UserService;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -36,13 +36,12 @@ import static com.odysseusinc.athena.util.DownloadBundleStatus.PENDING;
 @Component
 public class BundlePackagingJobsRenewer {
 
-    private final AsyncVocabularyService asyncVocabularyService;
+    private final VocabularyService vocabularyService;
     private final DownloadBundleRepository downloadBundleRepository;
     private final UserService userService;
 
-    public BundlePackagingJobsRenewer(AsyncVocabularyService asyncVocabularyService, DownloadBundleRepository downloadBundleRepository, UserService userService) {
-
-        this.asyncVocabularyService = asyncVocabularyService;
+    public BundlePackagingJobsRenewer(VocabularyService vocabularyService, DownloadBundleRepository downloadBundleRepository, UserService userService) {
+        this.vocabularyService = vocabularyService;
         this.downloadBundleRepository = downloadBundleRepository;
         this.userService = userService;
     }
@@ -54,7 +53,7 @@ public class BundlePackagingJobsRenewer {
         for (DownloadBundle uncompletedBundle : downloadBundleRepository.findByStatus(PENDING)) {
 
             AthenaUser bundleOwner = userService.get(uncompletedBundle.getUserId());
-            asyncVocabularyService.saveContent(uncompletedBundle, bundleOwner);
+            vocabularyService.generateBundle(uncompletedBundle, bundleOwner);
         }
     }
 }

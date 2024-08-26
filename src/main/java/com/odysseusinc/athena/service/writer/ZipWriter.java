@@ -27,17 +27,19 @@ import static com.odysseusinc.athena.util.CDMVersion.V4_5;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.*;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.odysseusinc.athena.service.impl.AthenaCSVWriter;
-import com.odysseusinc.athena.service.saver.Saver;
+import com.odysseusinc.athena.service.saver.CSVSaver;
 import com.odysseusinc.athena.service.saver.v4.InvalidConceptCPT4V4Saver;
 import com.odysseusinc.athena.service.saver.v5.InvalidConceptCPT4V5Saver;
 import com.opencsv.CSVWriter;
@@ -46,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 @Component
 public class ZipWriter {
@@ -57,6 +60,9 @@ public class ZipWriter {
     @Value("${cpt4.dir.v5}")
     private String cpt4V5Files;
 
+    @Value("${delta.dir}")
+    private String deltaFiles;
+
     @Autowired
     FileHelper fileHelper;
 
@@ -66,31 +72,43 @@ public class ZipWriter {
     @Autowired
     InvalidConceptCPT4V5Saver cpt4V5DeprecatedSaver;
 
-    public synchronized void addCPT4Utility(ZipOutputStream zos, DownloadBundle bundle) throws Exception {
-
-        if (bundle.isCpt4()) {
+    public synchronized void addExtraFiles(ZipOutputStream zos, DownloadBundle bundle) throws Exception {
+        if (bundle.isDelta()) {
+            File deltaDir = new File(deltaFiles);
+            if (deltaDir.exists()) {
+                addToZip(deltaDir, zos, deltaDir.getAbsolutePath());
+            }
+        } else if (bundle.isCpt4()) {
             File filesStoreDir = V4_5 == bundle.getCdmVersion() ? new File(cpt4V4Files) : new File(cpt4V5Files);
             updateCPT4Utility(bundle, filesStoreDir.getAbsolutePath());
-            addFolderToZip(filesStoreDir, zos, filesStoreDir.getAbsolutePath());
+            addToZip(filesStoreDir, zos, filesStoreDir.getAbsolutePath());
         }
     }
 
-    private void addFolderToZip(File folder, ZipOutputStream zip, String baseName) throws IOException {
-
+    private void addToZip(File folder, ZipOutputStream zip, String baseName) throws IOException {
         File[] files = folder.listFiles();
         if (files == null) {
             return;
         }
-        for (File file : files) {
+        List<String> filePaths = Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.toList());
+        addToZipByPath(filePaths, zip, baseName);
+    }
+
+    private void addToZipByPath(List<String> filePaths, ZipOutputStream zip, String baseName) throws IOException {
+        if (CollectionUtils.isEmpty(filePaths)) {
+            return;
+        }
+        for (String filePath : filePaths) {
+            File file = new File(filePath);
             if (file.isDirectory()) {
-                addFolderToZip(file, zip, baseName);
+                addToZip(file, zip, baseName);
             } else {
-                String name = file.getAbsolutePath().substring(baseName.length() + 1);
+                String name = filePath.substring(baseName.length() + 1);
                 LOGGER.info("Adding zip entry : absolute path file {}, baseName {}, baseName length {}, entry name {}",
-                        file.getAbsolutePath(), baseName, baseName.length(), name);
+                        filePath, baseName, baseName.length(), name);
                 ZipEntry zipEntry = new ZipEntry(name);
                 zip.putNextEntry(zipEntry);
-                IOUtils.copy(new FileInputStream(file), zip);
+                IOUtils.copy(Files.newInputStream(Paths.get(filePath)), zip);
                 zip.closeEntry();
             }
         }
@@ -104,7 +122,7 @@ public class ZipWriter {
     }
 
     private void updateCPT4Utility(DownloadBundle bundle, String filePath) throws Exception {
-        Saver saver = V4_5 == bundle.getCdmVersion() ? cpt4V4DeprecatedSaver : cpt4V5DeprecatedSaver;
+        CSVSaver saver = V4_5 == bundle.getCdmVersion() ? cpt4V4DeprecatedSaver : cpt4V5DeprecatedSaver;
         Path path = fileHelper.getPath(bundle.getUuid(), saver.fileName());
         try (CSVWriter csvWriter = new AthenaCSVWriter(path.toString(), saver.getSeparator())) {
             saver.writeContent(bundle, csvWriter, saver.getIds());

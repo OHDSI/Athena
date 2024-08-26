@@ -24,14 +24,14 @@ package com.odysseusinc.athena.service.saver.v4;
 
 import static com.odysseusinc.athena.service.saver.v4.ConceptV4Saver.CPT4;
 
-import com.odysseusinc.athena.service.saver.Saver;
+import com.odysseusinc.athena.service.saver.CSVSaver;
 import com.odysseusinc.athena.service.saver.SaverV4;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ConceptCPT4V4Saver extends Saver implements SaverV4 {
+public class ConceptCPT4V4Saver extends CSVSaver implements SaverV4 {
 
     @Override
     public boolean containCpt4(List ids) {

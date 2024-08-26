@@ -1,5 +1,6 @@
 package com.odysseusinc.athena.service.impl;
 
+import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.ReleaseVocabularyVersionConverter;
 import com.odysseusinc.athena.model.athenav5.VocabularyV5;
 import com.odysseusinc.athena.repositories.v5.VocabularyRepository;
 import com.odysseusinc.athena.service.VocabularyServiceV5;
@@ -8,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.odysseusinc.athena.model.common.AthenaConstants.OMOP_VOCABULARY_ID;
+import static com.odysseusinc.athena.model.common.AthenaConstants.OMOP_RELEASE_VOCABULARY_ID;
 
 @Service
 @Transactional(transactionManager = "athenaV5TransactionManager")
@@ -24,13 +25,14 @@ public class VocabularyServiceV5Impl implements VocabularyServiceV5 {
     }
 
     @Override
-    public String getOMOPVocabularyVersion() {
+    public Integer getReleaseVocabularyVersionId() {
 
-        final VocabularyV5 omopVocabulary = vocabularyRepository.getOne(OMOP_VOCABULARY_ID);
+        final VocabularyV5 omopVocabulary = vocabularyRepository.getOne(OMOP_RELEASE_VOCABULARY_ID);
         if (omopVocabulary != null) {
-            log.debug("Current OMOP Vocabulary: {} {}: {}", omopVocabulary.getId(), omopVocabulary.getName(), omopVocabulary.getVersion());
 
-            return omopVocabulary.getVersion();
+            Integer vocabularyVersionId = ReleaseVocabularyVersionConverter.fromOldToId(omopVocabulary.getVersion());
+            log.debug("Current OMOP Vocabulary: {} {}: {}", omopVocabulary.getId(), omopVocabulary.getName(), vocabularyVersionId);
+            return vocabularyVersionId;
         }
         log.warn("OMOP Vocabulary not found");
         return null;

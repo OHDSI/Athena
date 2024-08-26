@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
 
-public class ConceptSearchPhraseToSolrQueryServiceTest {
+public class ConceptSearchPhraseToSolrQueryServiceTestWithParams {
 
     private ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService =
             new ConceptSearchPhraseToSolrQueryService(new ConceptSearchQueryPartCreator());

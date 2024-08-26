@@ -22,13 +22,17 @@
 
 package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Getter
+@Setter
 public class DownloadBundleDTO {
 
     private Long id;
@@ -37,98 +41,18 @@ public class DownloadBundleDTO {
     private String name;
     private Float cdmVersion;
     private DownloadBundleStatus status;
+    private DownloadBundleService.BundleType type;
     private String releaseVersion;
+    private String vocabularyReleaseVersion;
+    private String deltaReleaseVersion;
+    private Integer vocabularyReleaseVersionCode;
+    private Boolean delta;
     private List<DownloadShareDTO> downloadShareDTOs;
     private String shareEmails;
 
+
     private List<VocabularyDTO> vocabularies;
 
-    public Long getId() {
-
-        return id;
-    }
-
-    public void setId(Long id) {
-
-        this.id = id;
-    }
-
-    public Date getDate() {
-
-        return date;
-    }
-
-    public void setDate(Date date) {
-
-        this.date = date;
-    }
-
-    public String getLink() {
-
-        return link;
-    }
-
-    public void setLink(String link) {
-
-        this.link = link;
-    }
-
-    public List<VocabularyDTO> getVocabularies() {
-
-        return vocabularies;
-    }
-
-    public void setVocabularies(List<VocabularyDTO> vocabularies) {
-
-        this.vocabularies = vocabularies;
-    }
-
-    public Float getCdmVersion() {
-
-        return cdmVersion;
-    }
-
-    public void setCdmVersion(Float cdmVersion) {
-
-        this.cdmVersion = cdmVersion;
-    }
-
-    public String getName() {
-
-        return name;
-    }
-
-    public void setName(String name) {
-
-        this.name = name;
-    }
-
-    public DownloadBundleStatus getStatus() {
-
-        return status;
-    }
-
-    public void setStatus(DownloadBundleStatus status) {
-
-        this.status = status;
-    }
-
-    public String getReleaseVersion() {
-        return releaseVersion;
-    }
-
-    public void setReleaseVersion(String releaseVersion) {
-        this.releaseVersion = releaseVersion;
-    }
-
-    @JsonIgnore
-    public List<DownloadShareDTO> getDownloadShareDTOs() {
-        return downloadShareDTOs;
-    }
-
-    public void setDownloadShareDTOs(List<DownloadShareDTO> downloadShareDTOs) {
-        this.downloadShareDTOs = downloadShareDTOs;
-    }
 
     // user will never have access to all shares because it will be filtered first
     public DownloadShareDTO getDownloadShareDTO() {

@@ -28,6 +28,7 @@ import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
+import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,15 +45,17 @@ public class DownloadBundleToDTO implements Converter<DownloadBundle, DownloadBu
     private GenericConversionService conversionService;
     private UrlBuilder urlBuilder;
     private ConverterUtils converterUtils;
+    private DownloadBundleService downloadBundleService;
 
     @Autowired
     public DownloadBundleToDTO(GenericConversionService conversionService,
                                UrlBuilder urlBuilder,
-                               ConverterUtils converterUtils) {
+                               ConverterUtils converterUtils, DownloadBundleService downloadBundleService) {
 
         this.conversionService = conversionService;
         this.urlBuilder = urlBuilder;
         this.converterUtils = converterUtils;
+        this.downloadBundleService = downloadBundleService;
     }
 
     @Override
@@ -74,7 +77,14 @@ public class DownloadBundleToDTO implements Converter<DownloadBundle, DownloadBu
         dto.setName(bundle.getName());
         dto.setId(bundle.getId());
         dto.setStatus(bundle.getStatus());
-        dto.setReleaseVersion(bundle.getReleaseVersion());
+
+        DownloadBundleService.BundleType type = downloadBundleService.getType(bundle);
+        dto.setType(type);
+        dto.setReleaseVersion(bundle.formattedReleaseVersion());
+        dto.setVocabularyReleaseVersion(bundle.formattedVocabularyVersion());
+        dto.setVocabularyReleaseVersionCode(bundle.getVocabularyVersion());
+        dto.setDeltaReleaseVersion(bundle.formattedDeltaVersion());
+        dto.setDelta(bundle.isDelta());
         List<VocabularyDTO> dtos = converterUtils.convertList(bundle.getVocabulariesWithoutOmopReq(),
                 VocabularyDTO.class);
         dto.setVocabularies(dtos);

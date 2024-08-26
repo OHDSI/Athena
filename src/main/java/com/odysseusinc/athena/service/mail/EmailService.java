@@ -22,7 +22,6 @@
 
 package com.odysseusinc.athena.service.mail;
 
-import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.model.athena.Notification;
 import com.odysseusinc.athena.model.security.AthenaUser;
@@ -35,7 +34,11 @@ public interface EmailService {
 
     void sendVocabularyUpdateNotification(AthenaUser user, List<Notification> updatedVocabularies);
 
-    void sendVocabularyDownloadLink(AthenaUser user, String url, CDMVersion version, String vocabularyReleaseVersion, String bundleName, Map<String, String> requestedVocabularies);
+    void sendVocabularyDownloadLink(AthenaUser recipient, String bundleName, String url, CDMVersion version,
+                                    Map<String, String> requestedVocabularies, String vocabularyReleaseVersion);
+
+    void sendDeltaDownloadLink(AthenaUser recipient, String bundleName, String url, CDMVersion version, Map<String, String> requestedVocabularies,
+                               String vocabularyReleaseVersion, String deltaReleaseVersion);
 
     void sendLicenseRequestToAdmins(License license);
 
@@ -43,5 +46,9 @@ public interface EmailService {
 
     void sendLicenseAcceptance(AthenaUser user, boolean accepted, String vocabularyName);
 
-    void sendVocabulariesWereSharedNotification(AthenaUser recipient, AthenaUser bundleOwner, DownloadBundle bundle);
+    void sendVocabulariesWereSharedNotification(AthenaUser recipient, AthenaUser bundleOwner, String url, CDMVersion cdmVersion,
+                                                String vocabularyReleaseVersion);
+
+    void sendDeltaWereSharedNotification(AthenaUser recipient, AthenaUser bundleOwner, String url, CDMVersion cdmVersion,
+                                         String vocabularyReleaseVersion, String deltaReleaseVersion);
 }

@@ -23,8 +23,11 @@
 package com.odysseusinc.athena.model.athena;
 
 import com.google.common.base.MoreObjects;
+import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.ReleaseVocabularyVersionConverter;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
@@ -45,6 +48,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "download_bundle")
 public class DownloadBundle {
@@ -82,6 +87,7 @@ public class DownloadBundle {
     @Column
     private String name;
 
+    @Deprecated /// it old version that used only to set current release version
     @Column(name = "release_version")
     private String releaseVersion;
 
@@ -90,106 +96,31 @@ public class DownloadBundle {
     @Enumerated(EnumType.STRING)
     private DownloadBundleStatus status;
 
+    @Column(name = "vocabulary_version")
+    private Integer vocabularyVersion;
+
+    @Column(name = "delta_version")
+    private Integer deltaVersion;
+
+    @Column(name = "delta")
+    private boolean delta;
+
     private boolean cpt4;
 
-    public Long getId() {
-
-        return id;
+    public DownloadBundle() {
     }
 
-    public void setId(Long id) {
-
-        this.id = id;
-    }
-
-    public String getUuid() {
-
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-
+    public DownloadBundle(String uuid, CDMVersion cdmVersion, Date created, Long userId, String name, String releaseVersion, DownloadBundleStatus status, Integer vocabularyVersion, Integer deltaVersion, boolean delta) {
         this.uuid = uuid;
-    }
-
-    public Date getCreated() {
-
-        return created;
-    }
-
-    public void setCreated(Date created) {
-
-        this.created = created;
-    }
-
-    public CDMVersion getCdmVersion() {
-
-        return cdmVersion;
-    }
-
-    public void setCdmVersion(CDMVersion cdmVersion) {
-
         this.cdmVersion = cdmVersion;
-    }
-
-    public List<SavedFile> getFiles() {
-
-        return files;
-    }
-
-    public void setFiles(List<SavedFile> files) {
-
-        this.files = files;
-    }
-
-    public boolean isCpt4() {
-
-        return cpt4;
-    }
-
-    public void setCpt4(boolean cpt4) {
-
-        this.cpt4 = cpt4;
-    }
-
-    public String getName() {
-
-        return name;
-    }
-
-    public void setName(String name) {
-
-        this.name = name;
-    }
-
-    public Long getUserId() {
-
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-
+        this.created = created;
         this.userId = userId;
-    }
-
-    public List<DownloadItem> getVocabularies() {
-
-        return vocabularies;
-    }
-
-    public void setVocabularies(List<DownloadItem> vocabularies) {
-
-        this.vocabularies = vocabularies;
-    }
-
-    public DownloadBundleStatus getStatus() {
-
-        return status;
-    }
-
-    public void setStatus(DownloadBundleStatus status) {
-
+        this.name = name;
+        this.releaseVersion = releaseVersion;
         this.status = status;
+        this.vocabularyVersion = vocabularyVersion;
+        this.deltaVersion = deltaVersion;
+        this.delta = delta;
     }
 
     public boolean isArchived() {
@@ -197,10 +128,10 @@ public class DownloadBundle {
         return DownloadBundleStatus.ARCHIVED == status;
     }
 
-    public List<Long> getVocabularyV4Ids() {
+    public List<Integer> getVocabularyV4Ids() {
 
         return vocabularies.stream().map(each -> each.getVocabularyConversion().getIdV4())
-                .map(Integer::longValue).collect(Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     public List<DownloadItem> getVocabulariesWithoutOmopReq() {
@@ -210,20 +141,16 @@ public class DownloadBundle {
                 .collect(Collectors.toList());
     }
 
-    public String getReleaseVersion() {
-        return releaseVersion;
+    public String formattedReleaseVersion() {
+        return ReleaseVocabularyVersionConverter.fromOldToNew(releaseVersion);
     }
 
-    public void setReleaseVersion(String releaseVersion) {
-        this.releaseVersion = releaseVersion;
+    public String formattedVocabularyVersion() {
+        return ReleaseVocabularyVersionConverter.toNewFormat(vocabularyVersion);
     }
 
-    public List<DownloadShare> getDownloadShares() {
-        return downloadShares;
-    }
-
-    public void setDownloadShares(List<DownloadShare> downloadShares) {
-        this.downloadShares = downloadShares;
+    public String formattedDeltaVersion() {
+        return ReleaseVocabularyVersionConverter.toNewFormat(deltaVersion);
     }
 
     @Override

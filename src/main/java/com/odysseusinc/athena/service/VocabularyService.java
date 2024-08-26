@@ -36,9 +36,11 @@ public interface VocabularyService {
 
     List<UserVocabularyDTO> getAllForCurrentUser();
 
-    void saveContent(DownloadBundle bundle, AthenaUser user);
+    void generateBundle(DownloadBundle bundle, AthenaUser user);
 
-    DownloadBundle saveBundle(String bundleName, List<Integer> idV4s, AthenaUser currentUser, CDMVersion version);
+    DownloadBundle saveBundle(String bundleName, List<Integer> idV4s, AthenaUser currentUser, CDMVersion version, Integer vocabularyVersion, boolean delta, Integer deltaVersion);
+
+    DownloadBundle copyBundle(Long bundleId, String name, AthenaUser currentUser);
 
     List<DownloadBundleDTO> getDownloadHistory(AthenaUser user);
 

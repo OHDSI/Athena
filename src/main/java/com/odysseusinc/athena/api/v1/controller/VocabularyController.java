@@ -31,13 +31,14 @@ import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareChan
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.LicenseRequestDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserLicensesDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyVersionDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyReleaseVersionDTO;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
-import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.security.AthenaUser;
+import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -58,38 +59,16 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
-import java.util.Objects;
-
-import static com.odysseusinc.athena.util.CDMVersion.getByValue;
-import static com.odysseusinc.athena.util.CDMVersion.notExist;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static org.apache.commons.lang.StringUtils.isEmpty;
 
 @Tag(name = "VocabularyController")
 @RestController
 @RequestMapping("/api/v1/vocabularies")
 public class VocabularyController extends AbstractVocabularyController {
 
-    @Operation(summary = "Save vocabularies.")
-    @GetMapping("/save")
-    public void save(@RequestParam(value = "cdmVersion", defaultValue = "5") float version,
-                     @RequestParam(value = "ids") List<Integer> idV4s,
-                     @RequestParam(value = "name") String bundleName,
-                     HttpServletResponse response) throws IOException {
+    @Autowired
+    private VocabularyReleaseVersionService versionService;
 
-        if (notExist(version)) {
-            response.sendError(SC_BAD_REQUEST, "No supported version " + version);
-            return;
-        }
-        if (isEmpty(bundleName)) {
-            response.sendError(SC_BAD_REQUEST, "Name cannot be empty");
-            return;
-        }
-        AthenaUser currentUser = userService.getCurrentUser();
-        DownloadBundle bundle = vocabularyService.saveBundle(bundleName, idV4s, currentUser, getByValue(version));
-        vocabularyService.saveContent(bundle, currentUser);
-        LOGGER.info("Vocabulary saving is started, bundle name: {}, user id: {}", bundleName, currentUser.getId());
-    }
+
 
     @Operation(summary = "Share bundle")
     @PostMapping(value = "/downloads/{id}/share")
@@ -115,16 +94,6 @@ public class VocabularyController extends AbstractVocabularyController {
         }
         downloadBundleService.archive(bundleId);
         return ResponseEntity.ok(Boolean.TRUE);
-    }
-
-    @Operation(summary = "Restore download history item.")
-    @PutMapping("/restore/{id}")
-    public ResponseEntity<Void> restore(@PathVariable("id") Long bundleId)
-            throws PermissionDeniedException {
-
-        Objects.nonNull(bundleId);
-        vocabularyService.restoreDownloadBundle(bundleId);
-        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Check bundle.")
@@ -209,13 +178,9 @@ public class VocabularyController extends AbstractVocabularyController {
         response.sendRedirect("/admin/licenses");
     }
 
-
-
-    @GetMapping("/release-version")
-    public VocabularyVersionDTO releaseVersion() {
-
-        String vocabularyVersion = vocabularyServiceV5.getOMOPVocabularyVersion();
-
-        return converterUtils.convert(vocabularyVersion, VocabularyVersionDTO.class);
+    @GetMapping("/vocabulary-release-versions")
+    public List<VocabularyReleaseVersionDTO> releaseVersions() {
+        return versionService.getReleaseVersions();
     }
+
 }

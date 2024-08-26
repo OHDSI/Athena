@@ -28,9 +28,11 @@ public enum EmailType {
     FAILED_SENDING_TO_ADMIN("Failed email sending", "mail/failed_email_sending"),
     LICENSE_ACCEPTANCE("Licensing acceptance", "mail/license_acceptance"),
     LICENSE_REQUEST("License request", "mail/license_request"),
-    VOCABULARIES_LINK("OMOP Vocabularies. Your download link", "mail/vocabularies_download"),
+    VOCABULARIES_LINK("OHDSI Standardized Vocabularies. Your download link", "mail/vocabularies_download"),
+    VOCABULARIES_DELTA_LINK("OHDSI Standardized Vocabularies Delta. Your download link", "mail/vocabularies_delta_download"),
     VOCABULARIES_UPDATE_NOTIFICATION("Vocabulary version update", "mail/vocabularies_update"),
-    VOCABULARIES_SHARED_DOWNLOAD("OMOP Vocabularies. Your download link", "mail/vocabularies_share_download");
+    VOCABULARIES_SHARED_DOWNLOAD("OHDSI Standardized Vocabularies. Your download link", "mail/vocabularies_share_download"),
+    VOCABULARIES_DELTA_SHARED_DOWNLOAD("OHDSI Standardized Vocabularies. Your download link", "mail/vocabularies_delta_share_download");
 
     private final String subject;
     private final String template;
