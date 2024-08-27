@@ -144,7 +144,7 @@ public class EmailServiceImpl implements EmailService {
                                                 String vocabularyReleaseVersion, String deltaReleaseVersion) {
         final Map<String, Object> emailParameters = deltaParameters(getParameters(recipient, bundleOwner, url, cdmVersion, vocabularyReleaseVersion), deltaReleaseVersion);
         final EmailRecipients recipients = EmailRecipients.builder().to(asList(recipient.getEmail())).build();
-        send(EmailType.VOCABULARIES_DELTA_LINK, emailParameters, recipients, getAdminEmails());
+        send(EmailType.VOCABULARIES_DELTA_SHARED_DOWNLOAD, emailParameters, recipients, getAdminEmails());
         log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", recipient.getId(), url);
     }
 

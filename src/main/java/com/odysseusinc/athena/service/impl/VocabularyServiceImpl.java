@@ -59,6 +59,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -132,7 +133,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     public DownloadBundle saveBundle(String bundleName, List<Integer> idV4s, AthenaUser currentUser, CDMVersion version, Integer vocabularyVersion, boolean delta, Integer deltaVersion) {
 
         DownloadBundle bundle = downloadBundleService.initBundle(bundleName, currentUser, version, vocabularyVersion, delta, deltaVersion);
-        downloadBundleService.validate(bundle);
+        downloadBundleService.validate(bundle, idV4s);
         log.info("Ready for save download items for bundle with name: [{}] and uuid: [{}], user id: [{}]",
                 bundleName, bundle.getUuid(), bundle.getUserId());
 
@@ -249,7 +250,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         if (!downloadBundle.isArchived()) {
             return;
         }
-        downloadBundleService.validate(downloadBundle);
+        downloadBundleService.validate(downloadBundle, Collections.emptyList());
         checkBundleVocabularies(downloadBundle.getId(), currentUser.getId());
         asyncVocabularyService.updateStatus(downloadBundle, DownloadBundleStatus.PENDING);
         generateBundle(downloadBundle, currentUser);

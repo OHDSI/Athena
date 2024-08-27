@@ -28,6 +28,7 @@ import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.CDMVersion;
 
 import java.util.Date;
+import java.util.List;
 
 public interface DownloadBundleService {
 
@@ -49,9 +50,9 @@ public interface DownloadBundleService {
 
     BundleType getType(DownloadBundle bundle);
 
-    void validate(DownloadBundle bundle);
+    void validate(DownloadBundle bundle, List<Integer> idV4s);
 
-    void validate(DownloadBundle bundle, BundleType type);
+    void validate(DownloadBundle bundle, BundleType type, List<Integer> idV4s);
 
     enum BundleType {
         V4_5,
