@@ -189,7 +189,7 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
                 if (bundle.getDeltaVersion() == null) {
                     throw new ValidationException("The Delta version should be set.");
                 }
-                if (ListUtils.contains(idV4s, VocabularyServiceImpl.CPT4_ID_V4)) {
+                if (idV4s != null && ListUtils.contains(idV4s, VocabularyServiceImpl.CPT4_ID_V4)) {
                     throw new ValidationException("The Delta bundle could not be generated for the CPT4 vocabulary.");
                 }
                 if (bundle.getDeltaVersion() >= bundle.getVocabularyVersion()) {

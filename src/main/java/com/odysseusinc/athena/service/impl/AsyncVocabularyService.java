@@ -106,7 +106,7 @@ public class AsyncVocabularyService {
             List<?> ids = getIds(bundle, idV4s);
 
             BundleType type = downloadBundleService.getType(bundle);
-            downloadBundleService.validate(bundle);
+            downloadBundleService.validate(bundle, idV4s);
             List<? extends ISaver> savers = getSavers(type);
 
             SaverService saver = new SaverService(downloadBundleService, ids, fileHelper);
