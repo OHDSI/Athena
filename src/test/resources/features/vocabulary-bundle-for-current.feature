@@ -15,7 +15,7 @@ Feature: Generate vocabulary download bundle for current version
       | CONCEPT_SYNONYM      | csv | 26   |
       | DRUG_STRENGTH        | csv | 6    |
       | RELATIONSHIP         | csv | 12   |
-      | VOCABULARY           | csv | 45   |
+      | VOCABULARY           | csv | 46   |
       | CONCEPT_CLASS        | csv | 391  |
       | CONCEPT              | csv | 184  |
       | DOMAIN               | csv | 48   |

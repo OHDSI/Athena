@@ -17,6 +17,7 @@ DELETE FROM vocabulary_20200511.concept_relationship WHERE concept_id_1 = 416102
 DELETE FROM vocabulary_20200511.concept_ancestor WHERE ancestor_concept_id = 4161028 OR descendant_concept_id = 4161028;
 DELETE FROM vocabulary_20200511.drug_strength WHERE drug_concept_id = 45547509;
 DELETE FROM vocabulary_20200511.concept WHERE concept_id = 4161028;
+DELETE FROM vocabulary_20200511.concept WHERE concept_id = 42628634;
 DELETE FROM vocabulary_20200511.concept_class WHERE concept_class_id = 'Blood Pressure Pos';
 DELETE FROM vocabulary_20200511.domain WHERE domain_id = 'Device';
 DELETE FROM vocabulary_20200511.relationship where relationship_id in ( 'Using subst', 'Subst used by');
@@ -32,12 +33,14 @@ DELETE FROM vocabulary_20200515.concept_relationship WHERE concept_id_1 = 404889
 DELETE FROM vocabulary_20200515.concept_ancestor WHERE ancestor_concept_id = 40488901 OR descendant_concept_id = 40488901;
 DELETE FROM vocabulary_20200515.drug_strength WHERE drug_concept_id = 45910570;
 DELETE FROM vocabulary_20200515.concept WHERE concept_id = 40488901;
+DELETE FROM vocabulary_20200515.concept WHERE concept_id = 2212194;
 DELETE FROM vocabulary_20200515.concept_class WHERE concept_class_id = 'Body Structure';
 DELETE FROM vocabulary_20200515.domain WHERE domain_id = 'Device/Drug';
 DELETE FROM vocabulary_20200515.relationship where relationship_id in ('Has proc context', 'Proc context of');
 DELETE from vocabulary_20200515.vocabulary where vocabulary_id = 'AMT';
 
 UPDATE vocabulary_20200515.concept SET concept_name = 'Updated Concept Name', valid_start_date = '2011-08-30' WHERE concept_id = 40488897;
+UPDATE vocabulary_20200515.concept SET concept_name = 'Updated Aldolase', valid_start_date = '2009-08-30' WHERE concept_id = 2212193;
 UPDATE vocabulary_20200515.concept_ancestor SET min_levels_of_separation = 3, max_levels_of_separation = 5 WHERE ancestor_concept_id = 200962 OR descendant_concept_id = 40488897;
 UPDATE vocabulary_20200515.concept_class SET concept_class_name = 'Updated Answers' WHERE concept_class_id = 'Answer';
 UPDATE vocabulary_20200515.concept_class SET concept_class_name = 'Updated Ambulatory Patient Classification' WHERE concept_class_id = 'APC';

@@ -55,8 +55,9 @@ public class VocabularyBundleSteps {
 
     //TODO this is not correct, the authorization should be done
     public static final AthenaUser MOCK_USER = new AthenaUser(1L);
-    //TODO that is hard coded id of the vocabularies to download
-    private static final List<Integer> TEST_VOCABULARIES = Arrays.asList(18, 125, 21, 78, 71, 72, 66, 2, 127, 1, 0, 90, 70, 34);
+    //TODO: Hardcoded vocabulary_id_v4. Check vocabulary_conversion table for any additional IDs.
+    private static final List<Integer> TEST_VOCABULARIES =
+            Arrays.asList(0, 1, 2, 4, 18, 21, 34, 66, 70, 71, 72, 78, 90, 125, 127);
 
     @Value("${csv.separator:;}")
     @Getter
@@ -299,13 +300,13 @@ public class VocabularyBundleSteps {
 
     private List<FileCompare> compareFiles(List<FileInfo> info1, List<FileInfo> info2) {
         Map<String, FileInfo> fileInfoMap1 = info1.stream().collect(Collectors.toMap(
-                FileInfo::getName,
+                FileInfo::getFullName,
                 fileInfo -> fileInfo
         ));
 
         return info2.stream().map(i2 -> {
-            FileInfo fileInfo1 = fileInfoMap1.get(i2.getName());
-            return new FileCompare(i2.getName(), fileInfo1.getRows() - i2.getRows());
+            FileInfo fileInfo1 = fileInfoMap1.get(i2.getFullName());
+            return new FileCompare(i2.getName(), i2.getExt(), fileInfo1.getRows() - i2.getRows());
         }).collect(Collectors.toList());
     }
 
@@ -331,6 +332,10 @@ public class VocabularyBundleSteps {
         private final long size;
         private final long rows;
 
+        public String getFullName() {
+            return name + '.' + ext;
+        }
+
         public static FileInfo fromPath(String pathString) {
             return fromPath(Paths.get(pathString));
         }
@@ -342,8 +347,8 @@ public class VocabularyBundleSteps {
                 String extension = fileName.substring(fileName.lastIndexOf('.') + 1);
                 long size = Files.size(path);
                 long lineCount = extension.equals("csv") ?
-                        Files.lines(path).count() - 1 :
-                        Files.lines(path).count();
+                        Files.lines(path, StandardCharsets.ISO_8859_1).count() - 1 :
+                        Files.lines(path, StandardCharsets.ISO_8859_1).count();
                 return new FileInfo(name, extension, path, size, lineCount);
             } catch (IOException e) {
                 throw new AssertionFailedError(MessageFormat.format("Error processing file: {}", path), e);
@@ -355,6 +360,7 @@ public class VocabularyBundleSteps {
     @Getter
     public static class FileCompare {
         private final String name;
+        private final String ext;
         private final long diff;
     }
 

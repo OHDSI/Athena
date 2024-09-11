@@ -30,6 +30,12 @@ public class GenericSteps {
         Assertions.assertEquals(expected, String.valueOf(world.getCursor()));
     }
 
+    @When("^(which|it) is a list of:$")
+    public void assertList(String __, DataTable dt) {
+        List<?> cursor = toList(world.getCursor());
+        assertList(dt, cursor);
+    }
+
     @When("^(?:which|it) is a list containing:$")
     public void assertListContains(DataTable dt) {
         assertList(dt.asMaps(), toList(world.getCursor()));
@@ -62,6 +68,13 @@ public class GenericSteps {
         }
     }
 
+    public void assertList(DataTable dt, List<?> items) {
+        List<Map<String, String>> expectations = dt.asMaps();
+        List<?> remaining = assertList(expectations, items);
+        Assertions.assertTrue(remaining.isEmpty(), () ->
+                "Extra items: " + dumpProperties(remaining, expectations.stream().findFirst().orElseThrow(RuntimeException::new).keySet())
+        );
+    }
 
     private <T> List<T> assertList(List<Map<String, String>> expectations, List<T> cursor) {
 

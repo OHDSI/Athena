@@ -184,6 +184,9 @@ COPY concept (concept_id, concept_name, domain_id, vocabulary_id, concept_class_
 45955133	Primary Malignant Neoplasm of Prostate	Condition	CIEL	Diagnosis	\N	128792	2007-11-03	2099-12-31	\N
 4180186	English language	Language	SNOMED	Qualifier Value	S	297487008	2002-01-31	2099-12-31	\N
 44818796	Using substance (SNOMED)	Metadata	Relationship	Relationship	\N	OMOP generated	1970-01-01	2099-12-31	\N
+42628634	Temporary Lodging	Visit	CPT4	Visit	\N	1021877	2017-05-08	2099-12-31	\N
+2212193	Aldolase	Measurement	CPT4	CPT4	\N	82085	1970-01-01	2099-12-31	\N
+2212194	Aldosterone	Measurement	CPT4	CPT4	\N	82088	1970-01-01	2099-12-31	\N
 \.
 
 

@@ -22,9 +22,10 @@ Feature: Generate vocabulary download bundle by version
       | CONCEPT_SYNONYM      | csv | 25   |
       | DRUG_STRENGTH        | csv | 5    |
       | RELATIONSHIP         | csv | 10   |
-      | VOCABULARY           | csv | 44   |
+      | VOCABULARY           | csv | 45   |
       | CONCEPT_CLASS        | csv | 390  |
       | CONCEPT              | csv | 183  |
+      | CONCEPT_CPT4         | csv | 2    |
       | DOMAIN               | csv | 47   |
 
     When user generates a 20200513 version bundle
@@ -35,9 +36,10 @@ Feature: Generate vocabulary download bundle by version
       | CONCEPT_SYNONYM      | csv | 26   |
       | DRUG_STRENGTH        | csv | 6    |
       | RELATIONSHIP         | csv | 12   |
-      | VOCABULARY           | csv | 45   |
+      | VOCABULARY           | csv | 46   |
       | CONCEPT_CLASS        | csv | 391  |
       | CONCEPT              | csv | 184  |
+      | CONCEPT_CPT4         | csv | 3    |
       | DOMAIN               | csv | 48   |
 
     When user generates a 20200515 version bundle
@@ -48,7 +50,7 @@ Feature: Generate vocabulary download bundle by version
       | CONCEPT_SYNONYM      | csv | 24   |
       | DRUG_STRENGTH        | csv | 5    |
       | RELATIONSHIP         | csv | 10   |
-      | VOCABULARY           | csv | 44   |
+      | VOCABULARY           | csv | 45   |
       | CONCEPT_CLASS        | csv | 390  |
       | CONCEPT              | csv | 183  |
       | DOMAIN               | csv | 47   |
