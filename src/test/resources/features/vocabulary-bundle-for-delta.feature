@@ -72,22 +72,27 @@ Feature: Generate delta vocabulary download bundle between two version
       | 20200515 | ~([0-9-]{10}T[0-9:.]+Z) |
 
     When user generates delta bundle for versions: 20200515 and 20200511
-    Then it is a list containing:
+    Then it is a list of:
       | name                 | ext | rows | path            |
       | CONCEPT_ANCESTOR     | csv | 161  | ~(.+)           |
       | CONCEPT_CLASS        | csv | 4    | ~(.+)           |
-      | CONCEPT              | csv | 3    | ~(.+)           |
+      | CONCEPT              | csv | 4    | ~(.+)           |
+      | CONCEPT_CPT4         | csv | 2    | ~(.+)           |
       | CONCEPT_RELATIONSHIP | csv | 24   | ~(.+)           |
       | CONCEPT_SYNONYM      | csv | 7    | ~(.+)           |
       | DOMAIN               | csv | 3    | ~(.+)           |
       | DRUG_STRENGTH        | csv | 3    | ~(.+)           |
       | RELATIONSHIP         | csv | 6    | ~(.+)           |
-      | delta                | sql | 221  | ~(?<sqlPath>.+) |
+      | delta                | sql | 226  | ~(?<sqlPath>.+) |
       | VOCABULARY           | csv | 4    | ~(.+)           |
+      | cpt4                 | jar | ~(.+) | ~(.+)           |
+      | readme               | txt | ~(.+) | ~(.+)           |
+      | cpt                  | bat | ~(.+) | ~(.+)           |
+      | cpt                  | sh  | ~(.+) | ~(.+)           |
     When user compare and inspect schemas "vocabulary_20200511" and "vocabulary_20200515"
     Then it is a list containing:
       | name                 | amount1 | amount2 | missing1 | missing2 |
-      | concept              | 186     | 186     | 2        | 2        |
+      | concept              | 186     | 186     | 4        | 4        |
       | concept_ancestor     | 319     | 319     | 157      | 157      |
       | concept_class        | 390     | 390     | 3        | 3        |
       | domain               | 47      | 47      | 2        | 2        |
@@ -100,7 +105,7 @@ Feature: Generate delta vocabulary download bundle between two version
     And user compare and inspect schemas "vocabulary_20200511" and "vocabulary_20200515"
     Then it is a list containing:
       | name                 | amount1 | amount2 | missing1 | missing2 |
-      | concept              | 186     | 186     | 0        | 0        |
+      | concept              | 186     | 186     | 2        | 2        |
       | concept_ancestor     | 319     | 319     | 0        | 0        |
       | concept_class        | 390     | 390     | 0        | 0        |
       | domain               | 47      | 47      | 0        | 0        |

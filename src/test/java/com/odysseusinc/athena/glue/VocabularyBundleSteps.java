@@ -6,6 +6,7 @@ import com.odysseusinc.athena.repositories.v5history.VocabularyReleaseVersionRep
 import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.VocabularyServiceV5;
+import com.odysseusinc.athena.service.saver.v5.history.delta.CacheDeltaService;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.CDMVersion;
 import io.cucumber.java.en.And;
@@ -86,6 +87,8 @@ public class VocabularyBundleSteps {
     @Autowired
     @Qualifier("dataSourceAthenaV5")
     private DataSource v5DataSource;
+    @Autowired
+    private CacheDeltaService cacheDeltaService;
 
     @Autowired
     protected VocabularyServiceV5 vocabularyServiceV5;
@@ -95,6 +98,23 @@ public class VocabularyBundleSteps {
     @Then("user import vocabulary from the {string} schema")
     public void userImportVocabulary(String schema) {
         importNewVersion("public", schema);
+    }
+
+
+    @When("user checks that {int} and {int} versions are in the cache")
+    public void verifyVersionsInCache(Integer version1, Integer version2) {
+        if (!cacheDeltaService.isDeltaVersionCached(version1, version2)) {
+            String errorMessage = MessageFormat.format("Versions are not present in the cache: {0, number, #}, {1, number, #}", version1, version2);
+            throw new AssertionFailedError(errorMessage);
+        }
+    }
+
+    @When("user checks that {int} and {int} versions are NOT in the cache")
+    public void verifyVersionsNotInCache(Integer version1, Integer version2) {
+        if (cacheDeltaService.isDeltaVersionCached(version1, version2)) {
+            String errorMessage = MessageFormat.format("Versions are present in the cache: {0, number, #}, {1, number, #}", version1, version2);
+            throw new AssertionFailedError(errorMessage);
+        }
     }
 
     @When("user generates a bundle for current version")
@@ -283,7 +303,7 @@ public class VocabularyBundleSteps {
             queryRunner.execute(conn, "SELECT import_new_version(?,?)", target, source);
             log.info("Import version executed successfully: from {} to {}", source, target);
         } catch (SQLException e) {
-            throw new AssertionFailedError(MessageFormat.format("Error importing version: from {} to {}", source, target), e);
+            throw new AssertionFailedError(String.format("Error importing version: from %s, %s", source, target), e);
         }
     }
 

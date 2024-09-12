@@ -10,6 +10,11 @@ Feature: Test delta cache(It contains delta for the latest Vocabulary Release Ve
     And user import vocabulary from the "vocabulary_20200515" schema
 
 
+  Scenario: Check that versions in the cache
+    Then user checks that 20200515 and 20200511 versions are in the cache
+    And user checks that 20200515 and 20200513 versions are in the cache
+    And user checks that 20200513 and 20200511 versions are in the cache
+
   Scenario: Each new version refreshes the cache
     When user inspects list of vocabulary release version
     Then it is a list containing:
@@ -17,8 +22,8 @@ Feature: Test delta cache(It contains delta for the latest Vocabulary Release Ve
       | 20200511 | ~(?<date20200511>.+) |
       | 20200513 | ~(?<date20200513>.+) |
       | 20200515 | ~(?<date20200515>.+) |
-    And Date "date20200515" > "date20200513"
-    And  Date "date20200513" > "date20200511"
+    And Date "date20200515" = "date20200513"
+    And  Date "date20200513" = "date20200511"
 
   Scenario: Adding an older version does not affect the cache
     When user inspects list of vocabulary release version
@@ -40,6 +45,12 @@ Feature: Test delta cache(It contains delta for the latest Vocabulary Release Ve
     And  Date "date20200513x2" = "date20200513"
     And  Date "date20200511x2" = "date20200511"
 
+    Then user checks that 20200515 and 20200511 versions are in the cache
+    And user checks that 20200515 and 20200513 versions are in the cache
+    And user checks that 20200513 and 20200511 versions are in the cache
+    And user checks that 20200513 and 20200509 versions are NOT in the cache
+
+
   Scenario: Adding a newer version refreshes the cache
     When user inspects list of vocabulary release version
     And it is a list containing:
@@ -56,10 +67,16 @@ Feature: Test delta cache(It contains delta for the latest Vocabulary Release Ve
       | 20200513 | ~(?<date20200513x2>.+) |
       | 20200515 | ~(?<date20200515x2>.+) |
       | 20200517 | ~(?<date20200517x2>.+) |
-    And Date "date20200515x2" = "date20200515"
-    And Date "date20200513x2" = "date20200513"
     And Date "date20200511x2" = "date20200511"
+    And Date "date20200513x2" > "date20200513"
+    And Date "date20200515x2" > "date20200515"
     And Date "date20200517x2" > "date20200515"
+    Then user checks that 20200517 and 20200515 versions are in the cache
+    And user checks that 20200517 and 20200513 versions are in the cache
+    And user checks that 20200515 and 20200513 versions are in the cache
+    And user checks that 20200517 and 20200511 versions are NOT in the cache
+    And user checks that 20200515 and 20200511 versions are NOT in the cache
+
 
   Scenario: Reimporting the same version refreshes the cache
     When user inspects list of vocabulary release version
@@ -77,5 +94,5 @@ Feature: Test delta cache(It contains delta for the latest Vocabulary Release Ve
       | 20200513 | ~(?<date20200513x2>.+) |
       | 20200515 | ~(?<date20200515x2>.+) |
     And Date "date20200515x2" > "date20200515"
-    And Date "date20200513x2" = "date20200513"
-    And Date "date20200511x2" = "date20200511"
+    And Date "date20200513x2" > "date20200513"
+    And Date "date20200511x2" > "date20200511"
