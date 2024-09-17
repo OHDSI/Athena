@@ -18,18 +18,13 @@
     <li>Otherwise use your own process to use the change information in the CSV files.</li>
 </ol>
 
-<p>If you encounter problems please find more information in the
-    <a th:href="${documentationUrl}">
-        Documentation
-    </a>
-    or submit a post at the
-    <a th:href="${forumUrl}" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=th:text=${forumUrl}&amp;source=gmail&amp;ust=1488877772753000&amp;usg=AFQjCNHTlB0rs1HpEwZjvho6sUaciuSA5w">
-        OHDSI Forum pages
-    </a>
-    to ask the community for support. You will need to register.
+<p>If you encounter problems, please find more information in the <a href="https://github.com/OHDSI/Vocabulary-v5.0/wiki/General-Structure,-Download-and-Use#availability-license-download">Documentation</a> or
+    submit a post at the <a href="https://forums.ohdsi.org">OHDSI Forums</a> to ask the community for support.
+    The <a href="https://forums.ohdsi.org/c/vocabulary-users/14">Vocabulary Users</a> chapter is for discussion around vocabulary content, and
+    <a href="https://forums.ohdsi.org/c/implementers/6">Implementers</a> is about implementation in your local environment. You will need to register.
 </p>
 
-<h4>Content of your Delta Package</h4>
+<h3>Content of your Delta Package</h3>
 <p>Your Package contains all changes between release versions  <strong><span th:text="${vocabularyReleaseVersion}"></span></strong> and <strong><span th:text="${deltaReleaseVersion}"></span></strong>
 </p>
 
