@@ -68,6 +68,9 @@ public class ReleaseVocabularyVersionConverter {
     }
 
     public static Integer fromOldToId(String newFormatted) {
+        if (newFormatted == null) {
+            return null;
+        }
         String[] parts = newFormatted.split(" ");
         if (parts.length == 2) {
             try {
