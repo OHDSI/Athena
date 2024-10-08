@@ -42,12 +42,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.util.ListUtils;
 
 import javax.transaction.Transactional;
 import java.io.File;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -87,7 +85,7 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
         return bundleRepository.getOne(bundleId);
     }
 
-    private DownloadBundle initBundle(String bundleName, Long userId, CDMVersion cdmVersion, Integer vocabularyVersion, boolean delta, Integer deltaVersion, String releaseVersion) {
+    private  DownloadBundle initBundle(String bundleName, Long userId, CDMVersion cdmVersion, Integer vocabularyVersion, boolean delta, Integer deltaVersion, String releaseVersion) {
         return Fn.create(DownloadBundle::new, bundle -> {
             bundle.setUuid(UUID.randomUUID().toString());
             bundle.setCdmVersion(cdmVersion);
@@ -162,12 +160,12 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
     }
 
     @Override
-    public void validate(DownloadBundle bundle, List<Integer> idV4s) {
-        validate(bundle, this.getType(bundle), idV4s);
+    public void validate(DownloadBundle bundle) {
+        validate(bundle, this.getType(bundle));
     }
 
     @Override
-    public void validate(DownloadBundle bundle, BundleType type, List<Integer> idV4s) {
+    public void validate(DownloadBundle bundle, BundleType type) {
         if (StringUtils.isBlank(bundle.getName())) {
             throw new ValidationException("Please provide the bundle name");
         }
@@ -188,9 +186,6 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
                 }
                 if (bundle.getDeltaVersion() == null) {
                     throw new ValidationException("The Delta version should be set.");
-                }
-                if (idV4s != null && ListUtils.contains(idV4s, VocabularyServiceImpl.CPT4_ID_V4)) {
-                    throw new ValidationException("The Delta bundle could not be generated for the CPT4 vocabulary.");
                 }
                 if (bundle.getDeltaVersion() >= bundle.getVocabularyVersion()) {
                     throw new ValidationException("The Delta version should be older than the Vocabulary version");

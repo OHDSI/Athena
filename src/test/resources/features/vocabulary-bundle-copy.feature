@@ -11,9 +11,10 @@ Feature: Copy of vocabulary download bundle
       | CONCEPT_SYNONYM      | csv | 26   |
       | DRUG_STRENGTH        | csv | 6    |
       | RELATIONSHIP         | csv | 12   |
-      | VOCABULARY           | csv | 45   |
+      | VOCABULARY           | csv | 46   |
       | CONCEPT_CLASS        | csv | 391  |
       | CONCEPT              | csv | 184  |
+      | CONCEPT_CPT4         | csv | 3    |
       | DOMAIN               | csv | 48   |
     And user inspect "VOCABULARY" file with "vocabulary_id" == "None"
     Then it is a list containing:
@@ -34,7 +35,7 @@ Feature: Copy of vocabulary download bundle
       | CONCEPT_SYNONYM      | csv | 26   |
       | DRUG_STRENGTH        | csv | 6    |
       | RELATIONSHIP         | csv | 12   |
-      | VOCABULARY           | csv | 45   |
+      | VOCABULARY           | csv | 46   |
       | CONCEPT_CLASS        | csv | 391  |
       | CONCEPT              | csv | 184  |
       | DOMAIN               | csv | 48   |

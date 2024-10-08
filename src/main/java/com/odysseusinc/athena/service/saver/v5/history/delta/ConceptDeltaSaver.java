@@ -26,18 +26,32 @@ import com.odysseusinc.athena.service.saver.SaverV5Delta;
 import com.odysseusinc.athena.service.saver.v5.history.HistorySaver;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class ConceptDeltaSaver extends HistorySaver implements SaverV5Delta {
 
     @Override
     public String fileName() {
-
         return "CONCEPT.csv";
+    }
+
+
+    @Override
+    public List filter(List ids) {
+        List<String> filtered = new ArrayList<>(ids);
+        filtered.remove("CPT4");
+        return filtered;
     }
 
     @Override
     protected String query() {
 
-        return  "SELECT * FROM get_concept_delta_cached(:version, :versionDelta, :vocabularyArr, TRUE)";
+        return  "SELECT * FROM get_concept_delta_cached(:version, :versionDelta, :vocabularyArr, TRUE)" +
+                "UNION " +
+                // Only CPT4 concepts that NOT needing name updates with the cpt4.jar
+                "SELECT *  FROM get_concept_delta_cached(:version, :versionDelta, ARRAY['CPT4'], TRUE) " +
+                " WHERE row_change_type = 'D'";
     }
 }

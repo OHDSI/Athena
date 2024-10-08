@@ -78,7 +78,8 @@ public class ZipWriter {
             if (deltaDir.exists()) {
                 addToZip(deltaDir, zos, deltaDir.getAbsolutePath());
             }
-        } else if (bundle.isCpt4()) {
+        }
+        if (bundle.isCpt4()) {
             File filesStoreDir = V4_5 == bundle.getCdmVersion() ? new File(cpt4V4Files) : new File(cpt4V5Files);
             updateCPT4Utility(bundle, filesStoreDir.getAbsolutePath());
             addToZip(filesStoreDir, zos, filesStoreDir.getAbsolutePath());
