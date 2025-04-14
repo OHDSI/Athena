@@ -23,7 +23,7 @@
         <opensaml.version>2.6.6-patched</opensaml.version>
         <solr.version>8.11.2</solr.version>
         <spring-security-pac4j.version>4.1.0</spring-security-pac4j.version>
-        <pac4j.version>3.3.0</pac4j.version>
+        <pac4j.version>4.5.5</pac4j.version>
         <opencsv.version>3.9</opencsv.version>
         <jakarta.mail.version>1.6.7</jakarta.mail.version>
         <dockerImagePrefix>hub.odysseusinc.com</dockerImagePrefix>
