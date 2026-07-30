@@ -1,0 +1,139 @@
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/CountryDTO.java
+  h_2cf7f46272c8c9 3
+  s_d42aed7c0c6ad9::t_6521fdaab6f4a8 1-2,4-35
+src/main/java/com/odysseusinc/athena/security/apitoken/ApiTokenAuthenticationFilter.java
+  h_2cf7f46272c8c9 3
+  s_d42aed7c0c6ad9::t_b3afec18e606ee 111-117,119
+  s_d42aed7c0c6ad9::t_6fd77cd3326cf0 1-2,4-22,25-110,118,120-121
+  s_d42aed7c0c6ad9::t_ea82335fb2417a 23
+  s_d42aed7c0c6ad9::t_c0acd1cae03c13 24
+.gitignore
+  h_2cf7f46272c8c9 11-13
+src/test/java/com/odysseusinc/athena/security/apitoken/ApiTokenAuthenticationFilterTest.java
+  s_d42aed7c0c6ad9::t_f8e0e7077cbf5e 23,41-43
+  s_d42aed7c0c6ad9::t_07bf400ce4f1b8 1-2,4-22,24-40,44-68,74-164
+  h_2cf7f46272c8c9 3
+  s_d42aed7c0c6ad9::t_0ad4f581c6d78d 69-73
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/BuildNumberDTO.java
+  s_d42aed7c0c6ad9::t_27cfc0da6db2e7 1-2,4-39
+  h_2cf7f46272c8c9 3
+src/main/java/com/odysseusinc/athena/security/jwt/JwtAuthenticationFilter.java
+  s_d42aed7c0c6ad9::t_60826268e8575b 1-2,4-92
+  h_2cf7f46272c8c9 3
+src/main/java/com/odysseusinc/athena/security/saml/SamlAuthenticationSuccessHandler.java
+  h_2cf7f46272c8c9 3
+  s_d42aed7c0c6ad9::t_db447eb1842952 1-2,4-140
+src/main/java/com/odysseusinc/athena/security/saml/SamlRelyingPartyConfig.java
+  h_2cf7f46272c8c9 3
+  s_d42aed7c0c6ad9::t_e8c58b0fa86a6d 1-2,4-227
+src/main/java/com/odysseusinc/athena/service/impl/UserService.java
+  s_d42aed7c0c6ad9::t_85aa81296465af 81-82,84-94,100,105,116,128-134,136-141
+  s_d42aed7c0c6ad9::t_7659e3d5816655 107-115,120-121,123-124
+  s_d42aed7c0c6ad9::t_bde4a18d78bab4 174-179
+  s_d42aed7c0c6ad9::t_4eac06fd6fff4d 191-193
+  s_d42aed7c0c6ad9::t_2bcc4d22b32ac7 31,42,49,51,56,83,181,194
+pom.xml
+  s_d42aed7c0c6ad9::t_aa486ce76c3ec4 34-36
+  s_d42aed7c0c6ad9::t_ec437f50bad290 302
+  s_d42aed7c0c6ad9::t_43c82af79bf53c 220-232
+  s_d42aed7c0c6ad9::t_8244baa6636fb6 22-23,26,31,33
+  s_d42aed7c0c6ad9::t_cae791015496af 260-270
+  s_d42aed7c0c6ad9::t_fec88f1ecd369c 117,123-132
+  s_d42aed7c0c6ad9::t_7694cd4cd54118 29,32
+  s_d42aed7c0c6ad9::t_90ccc7042db12e 37-40
+  s_d42aed7c0c6ad9::t_556d5172ef3d17 236,243-244,250
+  s_d42aed7c0c6ad9::t_8e92f75a9ae8a2 99
+  s_d42aed7c0c6ad9::t_056592fd9e9a24 397-403,405-416
+  s_d42aed7c0c6ad9::t_740129439a9391 210
+  s_d42aed7c0c6ad9::t_78a22ebe5cdadf 118-122
+  s_d42aed7c0c6ad9::t_13fb9f8e2ba82f 281
+  s_d42aed7c0c6ad9::t_af3dda46ef2a6e 41-42
+  s_d42aed7c0c6ad9::t_2f5ad12fbbcf37 16
+src/main/java/com/odysseusinc/athena/api/v1/controller/ConceptController.java
+  s_d42aed7c0c6ad9::t_e5b596e7c89414 88-90
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/UserRegistrationDTO.java
+  s_d42aed7c0c6ad9::t_95ecbc750468c4 1-2,4-58
+  h_2cf7f46272c8c9 3
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/StateProvinceDTO.java
+  s_d42aed7c0c6ad9::t_c8d6ec5d507745 1-2,4-35
+  h_2cf7f46272c8c9 3
+src/main/java/com/odysseusinc/athena/security/AthenaAuthentication.java
+  s_d42aed7c0c6ad9::t_8939add3ecbe1c 59-63,68
+  s_d42aed7c0c6ad9::t_32707482f09428 1-2,4-58,64-67,69-131
+  h_2cf7f46272c8c9 3
+  s_d42aed7c0c6ad9::t_ee10677e121a62 132-133
+src/main/java/com/odysseusinc/athena/security/jwt/JwtTokenService.java
+  s_d42aed7c0c6ad9::t_c9640fd51decdb 1-2,4-196
+  h_2cf7f46272c8c9 3
+src/main/java/com/odysseusinc/athena/security/hmac/HmacVerifyingFilter.java
+  s_d42aed7c0c6ad9::t_b31fadf11dd72a 93-99,101,105
+src/test/java/com/odysseusinc/athena/security/hmac/HmacNonceWindowTest.java
+  s_d42aed7c0c6ad9::t_0781ba291ef9a2 1-2,4-141
+  h_2cf7f46272c8c9 3
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/AddressDTO.java
+  s_d42aed7c0c6ad9::t_f9dbdf501862e8 1-2,4-47
+  h_2cf7f46272c8c9 3
+src/main/java/com/odysseusinc/athena/api/v1/controller/BuildNumberController.java
+  s_d42aed7c0c6ad9::t_ff0e17ce02776a 25
+  s_d42aed7c0c6ad9::t_69d1463a3663db 45,47
+src/test/java/com/odysseusinc/athena/service/mail/EmailServiceTest.java
+  s_d42aed7c0c6ad9::t_8e07dfcb5cae30 73-80
+src/main/java/com/odysseusinc/athena/config/WebSecurityConfig.java
+  s_d42aed7c0c6ad9::t_ffc92681846e82 258-277,279
+  s_d42aed7c0c6ad9::t_50672441b52025 121-140,142-144,146-150,152
+  s_d42aed7c0c6ad9::t_cfb59ef3cb4187 233-234,242-247
+  s_d42aed7c0c6ad9::t_d2a00d374ff4a6 25-26,28-32,42-46,49-85,89-120,153-170,173-177,179-182,187-192,195-199,201-219,222-230,232,235-241,248-254,257,280-295
+  s_d42aed7c0c6ad9::t_a7e0ecb926cfc3 183-186
+src/test/java/com/odysseusinc/athena/service/impl/UserServiceProvisionTest.java
+  s_d42aed7c0c6ad9::t_372c5d98e8cf8f 1-177
+src/test/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/ArachnePortalContractTest.java
+  s_d42aed7c0c6ad9::t_663d059199dd47 1-2,4-150
+  h_2cf7f46272c8c9 3
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/ArachnePortalResponse.java
+  s_d42aed7c0c6ad9::t_d85ad4aed58953 1-2,4-91
+  h_2cf7f46272c8c9 3
+src/test/java/com/odysseusinc/athena/security/jwt/JwtTokenServiceTest.java
+  s_d42aed7c0c6ad9::t_e02f64095f8dfd 1-2,4-218
+  h_2cf7f46272c8c9 3
+src/main/java/com/odysseusinc/athena/api/v1/controller/UserController.java
+  s_d42aed7c0c6ad9::t_f2535347a4a2c8 25-26,109,116,120,127,139,143,149,163,167,172,177,179,186,193,197,209,211,223,225
+src/main/java/com/odysseusinc/athena/service/security/UserTokenService.java
+  s_d42aed7c0c6ad9::t_02e3cfa5763b71 16
+src/test/java/com/odysseusinc/athena/api/v1/controller/converter/ConceptV5ToConceptDetailDTOConverterTest.java
+  s_d42aed7c0c6ad9::t_307475943992d4 12
+src/test/java/com/odysseusinc/athena/service/impl/ConceptSearchPhraseToSolrQueryServiceWithParamsTest.java
+  s_d42aed7c0c6ad9::t_75a5f385932cd9 30
+src/test/java/com/odysseusinc/athena/service/mail/EmailSenderServiceTest.java
+  s_d42aed7c0c6ad9::t_c621578beee655 7,15
+src/test/resources/testdata/solr/concepts/conf/data-config.xml
+  s_d42aed7c0c6ad9::t_4f09e89f4a17e1 1-40
+src/test/resources/testdata/solr/concepts/conf/managed-schema
+  s_d42aed7c0c6ad9::t_7c02bcac97374e 1-1039
+src/test/resources/testdata/solr/concepts/conf/mapping-solr.txt
+  s_d42aed7c0c6ad9::t_9f03253b09d74f 1-6
+src/test/resources/testdata/solr/concepts/conf/security.json
+  s_d42aed7c0c6ad9::t_f53dacffaca443 1-12
+src/test/resources/testdata/solr/concepts/conf/solrconfig.xml
+  s_d42aed7c0c6ad9::t_b29284e49d97df 1-1334
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.17",
+  "base_commit_sha": "b890de5ecc6aaf74fb6b4591ff7c57343dcaeca3",
+  "prompts": {},
+  "humans": {
+    "h_2cf7f46272c8c9": {
+      "author": "User <user@example.com>"
+    }
+  },
+  "sessions": {
+    "s_d42aed7c0c6ad9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2c0734c6-1952-48b7-b21f-c575433f1155",
+        "model": "claude-opus-5"
+      },
+      "human_author": "User <user@example.com>"
+    }
+  }
+}
