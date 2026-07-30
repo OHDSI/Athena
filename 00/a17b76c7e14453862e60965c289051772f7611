@@ -1,0 +1,229 @@
+src/main/java/com/odysseusinc/athena/config/HikariProps.java
+  s_d42aed7c0c6ad9::t_8ebb8e3ae6ef68 12-14
+src/main/java/com/odysseusinc/athena/config/WebSecurityConfig.java
+  s_d42aed7c0c6ad9::t_41e24c4cce64bb 110
+  s_d42aed7c0c6ad9::t_4f679684f1473e 107-109
+  s_d42aed7c0c6ad9::t_63bb0bc7de9224 111-113
+  s_d42aed7c0c6ad9::t_9135840df1a710 38,46-49,53-55,95-100,114-116,138-167,212-215,218,231-237,252-255,257-258,261,284-286,296-298
+src/main/java/com/odysseusinc/athena/service/impl/AthenaCSVWriter.java
+  s_d42aed7c0c6ad9::t_f5e222f49b879d 25-26,28,31-32,34,36-62,66-67,72-73,76-82,84-95,98-102,105,107-113,115-116,119-139,142-145,147-151
+src/main/java/com/odysseusinc/athena/config/IntegrationConfig.java
+  s_d42aed7c0c6ad9::t_8b3fe08c697373 31-48,55
+Dockerfile
+  s_d42aed7c0c6ad9::t_0617357154c103 1-32
+src/test/java/com/odysseusinc/athena/service/impl/AthenaCsvWriterGoldenTest.java
+  s_d42aed7c0c6ad9::t_c9d6eaef14a0c2 1-277
+src/main/java/com/odysseusinc/athena/service/impl/ResultSetCsvValues.java
+  s_d42aed7c0c6ad9::t_cc53494c92a089 1-289
+  s_d42aed7c0c6ad9::t_386e7633da57bf 290-301,303
+pom.xml
+  s_d42aed7c0c6ad9::t_21fdc0f90e9f6f 16,21,29,33-34,41-44,87-116,130-131,186-193,237-245,247-248,278,325-327,331,437-462
+src/main/java/com/odysseusinc/athena/api/v1/controller/ConceptController.java
+  s_d42aed7c0c6ad9::t_bd86e501c5f605 97,108,119,145
+src/main/java/com/odysseusinc/athena/api/v1/controller/ConceptSearchController.java
+  s_d42aed7c0c6ad9::t_514c853bbf3b17 47,52
+src/main/java/com/odysseusinc/athena/api/v1/controller/DownloadsController.java
+  s_d42aed7c0c6ad9::t_504c615e4f948b 39
+src/main/java/com/odysseusinc/athena/api/v1/controller/ExceptionHandlingController.java
+  s_d42aed7c0c6ad9::t_528f3a2a3a3ccf 44-45
+src/main/java/com/odysseusinc/athena/api/v1/controller/NotificationController.java
+  s_d42aed7c0c6ad9::t_b40f136cf7ebff 44
+src/main/java/com/odysseusinc/athena/api/v1/controller/StatisticsController.java
+  s_d42aed7c0c6ad9::t_f39b548f708137 36
+src/main/java/com/odysseusinc/athena/api/v1/controller/UserController.java
+  s_d42aed7c0c6ad9::t_00599f163eda02 53
+src/main/java/com/odysseusinc/athena/api/v1/controller/VocabularyController.java
+  s_d42aed7c0c6ad9::t_5e3e33b988c638 57-58
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/NotificationToVocabularyDTO.java
+  s_d42aed7c0c6ad9::t_12a52666fbc80b 27
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/vocabulary/DownloadBundleToDTO.java
+  s_d42aed7c0c6ad9::t_dd2e5f9526b170 39
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/vocabulary/DownloadItemToVocabularyDTO.java
+  s_d42aed7c0c6ad9::t_315146acd9dd3c 27
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/vocabulary/DownloadShareToDTO.java
+  s_d42aed7c0c6ad9::t_ef72d4aa763e3e 35
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/vocabulary/LicenceToUserVocabularyDTO.java
+  s_d42aed7c0c6ad9::t_6c631d4b67eed9 29
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/vocabulary/VocabularyConversionToVocabularyDTO.java
+  s_d42aed7c0c6ad9::t_70d9498986e4f9 29
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/vocabulary/VocabularyToUserVocabularyDTO.java
+  s_d42aed7c0c6ad9::t_e92e7465540867 36
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/ConceptDTO.java
+  s_d42aed7c0c6ad9::t_db1ab99003be28 25
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/RemindPasswordDTO.java
+  s_d42aed7c0c6ad9::t_5027bc6d3e1f8c 25-26
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/ResetPasswordDTO.java
+  s_d42aed7c0c6ad9::t_39102fb3aa33f7 25-26
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/ShortConceptDTO.java
+  s_d42aed7c0c6ad9::t_63a1c284c357aa 25
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/vocabulary/AcceptDTO.java
+  s_d42aed7c0c6ad9::t_75e9ea2dd2736e 25
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/vocabulary/AddingUserLicensesDTO.java
+  s_d42aed7c0c6ad9::t_5c47f622cce0e2 26-27
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/vocabulary/LicenseRequestDTO.java
+  s_d42aed7c0c6ad9::t_857597e2ea23e3 25
+src/main/java/com/odysseusinc/athena/config/AthenaDatabaseConfig.java
+  s_d42aed7c0c6ad9::t_83c3d299dcbc67 38
+src/main/java/com/odysseusinc/athena/config/AthenaV4DatabaseConfig.java
+  s_d42aed7c0c6ad9::t_eb2f37ad68bd70 37
+src/main/java/com/odysseusinc/athena/config/AthenaV5DatabaseConfig.java
+  s_d42aed7c0c6ad9::t_80040ba3a77135 38
+src/main/java/com/odysseusinc/athena/config/AthenaV5HistoryDatabaseConfig.java
+  s_d42aed7c0c6ad9::t_1787d0ecde1bdc 38
+src/main/java/com/odysseusinc/athena/config/FlywayConfig.java
+  s_d42aed7c0c6ad9::t_4fba4d90144344 31
+src/main/java/com/odysseusinc/athena/config/ThymeleafConfig.java
+  s_d42aed7c0c6ad9::t_8f3aece1850d6f 28-30
+src/main/java/com/odysseusinc/athena/config/WebApplicationStarter.java
+  s_d42aed7c0c6ad9::t_cc8e624ded93ef 27-28,37-39,41
+src/main/java/com/odysseusinc/athena/controllers/SSOController.java
+  s_d42aed7c0c6ad9::t_fbca615f1c693f 35
+src/main/java/com/odysseusinc/athena/controllers/UserTokenController.java
+  s_d42aed7c0c6ad9::t_52a6e9e283d336 13
+src/main/java/com/odysseusinc/athena/model/athena/DownloadBundle.java
+  s_d42aed7c0c6ad9::t_973c3e57834166 31-44,77-79,82
+src/main/java/com/odysseusinc/athena/model/athena/DownloadHistory.java
+  s_d42aed7c0c6ad9::t_eb91d606b38377 25-33
+src/main/java/com/odysseusinc/athena/model/athena/DownloadItem.java
+  s_d42aed7c0c6ad9::t_5a7c5c96253367 25-32
+src/main/java/com/odysseusinc/athena/model/athena/DownloadShare.java
+  s_d42aed7c0c6ad9::t_cfe027fdcbd8f1 5-16
+src/main/java/com/odysseusinc/athena/model/athena/License.java
+  s_d42aed7c0c6ad9::t_6c137074af4ecb 30-41
+src/main/java/com/odysseusinc/athena/model/athena/Notification.java
+  s_d42aed7c0c6ad9::t_5d7de59db49da3 25-34
+src/main/java/com/odysseusinc/athena/model/athena/RevokedToken.java
+  s_d42aed7c0c6ad9::t_1cb18f2ecba225 25-31
+src/main/java/com/odysseusinc/athena/model/athena/SavedFile.java
+  s_d42aed7c0c6ad9::t_c40aa6933d2384 25-35
+src/main/java/com/odysseusinc/athena/model/athena/VocabularyConversion.java
+  s_d42aed7c0c6ad9::t_2e8b10284f69d0 26-29
+src/main/java/com/odysseusinc/athena/model/athenav4/ConceptRelationshipV4.java
+  s_d42aed7c0c6ad9::t_d97c2a74e06785 27-37
+src/main/java/com/odysseusinc/athena/model/athenav4/ConceptRelationshipV4Id.java
+  s_d42aed7c0c6ad9::t_5bfbd5f1897398 28
+src/main/java/com/odysseusinc/athena/model/athenav4/ConceptSynonymV4.java
+  s_d42aed7c0c6ad9::t_d309b9672ce245 26-30
+src/main/java/com/odysseusinc/athena/model/athenav4/ConceptV4.java
+  s_d42aed7c0c6ad9::t_e9658c8b1ae155 28-33
+src/main/java/com/odysseusinc/athena/model/athenav4/DrugStrengthV4.java
+  s_d42aed7c0c6ad9::t_be3a9228bb8cf3 29-34
+src/main/java/com/odysseusinc/athena/model/athenav4/RelationshipV4.java
+  s_d42aed7c0c6ad9::t_ff58e76cc409c4 27-31
+src/main/java/com/odysseusinc/athena/model/athenav4/SourceToConceptMapV4.java
+  s_d42aed7c0c6ad9::t_e3185b9e1c7809 27-32
+src/main/java/com/odysseusinc/athena/model/athenav4/VocabularyV4.java
+  s_d42aed7c0c6ad9::t_6abe74e4597bc3 26-30
+src/main/java/com/odysseusinc/athena/model/athenav5/ConceptAncestor.java
+  s_d42aed7c0c6ad9::t_903d78cfc30a7e 26-32
+src/main/java/com/odysseusinc/athena/model/athenav5/ConceptAncestorRelationV5.java
+  s_d42aed7c0c6ad9::t_053e1c9981a8ad 27-31
+src/main/java/com/odysseusinc/athena/model/athenav5/ConceptAncestor_.java
+  s_d42aed7c0c6ad9::t_971087fd5cd568 25-26
+src/main/java/com/odysseusinc/athena/model/athenav5/ConceptClassV5.java
+  s_d42aed7c0c6ad9::t_9632fafaefe9df 27-31
+src/main/java/com/odysseusinc/athena/model/athenav5/ConceptRelationship.java
+  s_d42aed7c0c6ad9::t_b75d4ab0e12c05 26-30
+src/main/java/com/odysseusinc/athena/model/athenav5/ConceptRelationship_.java
+  s_d42aed7c0c6ad9::t_d80032c352af7f 25-26
+src/main/java/com/odysseusinc/athena/model/athenav5/ConceptSynonymV5.java
+  s_d42aed7c0c6ad9::t_8cb23b221e7bc4 27-32
+src/main/java/com/odysseusinc/athena/model/athenav5/ConceptV5.java
+  s_d42aed7c0c6ad9::t_f4aaa399a55c16 29-37
+src/main/java/com/odysseusinc/athena/model/athenav5/DomainV5.java
+  s_d42aed7c0c6ad9::t_44ee1c21a058a3 27-31
+src/main/java/com/odysseusinc/athena/model/athenav5/DrugStrengthV5.java
+  s_d42aed7c0c6ad9::t_02cbca79401d58 29-34
+src/main/java/com/odysseusinc/athena/model/athenav5/RelationshipV5.java
+  s_d42aed7c0c6ad9::t_b3fc0c5f44cf6c 28-32
+src/main/java/com/odysseusinc/athena/model/athenav5/SolrConcept.java
+  s_d42aed7c0c6ad9::t_3612db4f9d780b 28-36,38,84-86
+src/main/java/com/odysseusinc/athena/model/athenav5/SolrConcept_.java
+  s_d42aed7c0c6ad9::t_a196a90ff04a9b 26-27
+src/main/java/com/odysseusinc/athena/model/athenav5/VocabularyV5.java
+  s_d42aed7c0c6ad9::t_93210ae15d42f0 26-31
+src/main/java/com/odysseusinc/athena/model/athenav5/VocabularyV5_.java
+  s_d42aed7c0c6ad9::t_5d9667a82faa24 25-26
+src/main/java/com/odysseusinc/athena/model/athenav5history/VocabularyReleaseVersion.java
+  s_d42aed7c0c6ad9::t_d706cb723d6a21 30-33
+src/main/java/com/odysseusinc/athena/model/common/DrugStrengthPK.java
+  s_d42aed7c0c6ad9::t_14e3525c4eadfd 27
+src/main/java/com/odysseusinc/athena/model/security/AthenaRole.java
+  s_d42aed7c0c6ad9::t_c6cd853b184b6a 25-28
+src/main/java/com/odysseusinc/athena/model/security/AthenaToken.java
+  s_d42aed7c0c6ad9::t_f0b68d9cc50c22 6-14
+src/main/java/com/odysseusinc/athena/model/security/AthenaUser.java
+  s_d42aed7c0c6ad9::t_69c69c65d47962 29-41,85-87
+src/main/java/com/odysseusinc/athena/repositories/athena/AthenaUserRepository.java
+  s_d42aed7c0c6ad9::t_7512523ac971bc 29,35-41
+src/main/java/com/odysseusinc/athena/repositories/athena/DownloadBundleRepository.java
+  s_d42aed7c0c6ad9::t_d6ac0331a93a77 29
+src/main/java/com/odysseusinc/athena/repositories/athena/DownloadShareRepository.java
+  s_d42aed7c0c6ad9::t_c78319e0da1958 32
+src/main/java/com/odysseusinc/athena/repositories/athena/LicenseRepository.java
+  s_d42aed7c0c6ad9::t_7e9b36187c3b2d 31
+src/main/java/com/odysseusinc/athena/repositories/athena/SavedFileRepository.java
+  s_d42aed7c0c6ad9::t_ae8da265ee9a29 27
+src/main/java/com/odysseusinc/athena/repositories/v4/ConceptSynonymV4Repository.java
+  s_d42aed7c0c6ad9::t_7022a9f7922ec5 27
+src/main/java/com/odysseusinc/athena/security/apitoken/ApiTokenAuthenticationFilter.java
+  s_d42aed7c0c6ad9::t_918f52e7dff6a1 33-36
+src/main/java/com/odysseusinc/athena/security/hmac/CachedPayloadRequestWrapper.java
+  s_d42aed7c0c6ad9::t_5f2a380b546c1b 3-6
+src/main/java/com/odysseusinc/athena/security/hmac/HmacVerifyingFilter.java
+  s_d42aed7c0c6ad9::t_b83fb39741c8c7 12-15
+src/main/java/com/odysseusinc/athena/security/jwt/JwtAuthenticationFilter.java
+  s_d42aed7c0c6ad9::t_457707bd585daf 32-35
+src/main/java/com/odysseusinc/athena/security/saml/SamlAuthenticationSuccessHandler.java
+  s_d42aed7c0c6ad9::t_136989ef207d2f 34-35
+src/main/java/com/odysseusinc/athena/service/impl/ConceptServiceImpl.java
+  s_d42aed7c0c6ad9::t_18c00b8ef26b14 53-59
+src/main/java/com/odysseusinc/athena/service/impl/DownloadBundleServiceImpl.java
+  s_d42aed7c0c6ad9::t_f7774d7e02de44 46
+src/main/java/com/odysseusinc/athena/service/impl/DownloadsHistoryServiceImpl.java
+  s_d42aed7c0c6ad9::t_6b4c9fcf88cf29 113,140
+src/main/java/com/odysseusinc/athena/service/impl/SearchServiceImpl.java
+  s_d42aed7c0c6ad9::t_4d7f2765d659ba 116,142
+src/main/java/com/odysseusinc/athena/service/impl/VocabularyReleaseVersionServerImpl.java
+  s_d42aed7c0c6ad9::t_190addaddf58fb 11
+src/main/java/com/odysseusinc/athena/service/impl/VocabularyServiceImpl.java
+  s_d42aed7c0c6ad9::t_122d8f5bcb8656 71
+src/main/java/com/odysseusinc/athena/service/job/DownloadBundleCleaner.java
+  s_d42aed7c0c6ad9::t_766402e8bc80af 26-28,45-48
+src/main/java/com/odysseusinc/athena/service/mail/EmailSenderService.java
+  s_d42aed7c0c6ad9::t_c1712fec46020d 39
+src/main/java/com/odysseusinc/athena/service/mail/EmailServiceImpl.java
+  s_d42aed7c0c6ad9::t_db24e325b2f821 40
+src/main/java/com/odysseusinc/athena/service/saver/CSVSaver.java
+  s_d42aed7c0c6ad9::t_3ed4b798361bbe 72,89
+src/main/java/com/odysseusinc/athena/service/writer/FileHelper.java
+  s_d42aed7c0c6ad9::t_97c3025a3e9b62 30
+src/main/java/com/odysseusinc/athena/service/writer/ZipWriter.java
+  s_d42aed7c0c6ad9::t_e06e1ab12e5c9f 127
+src/test/java/com/odysseusinc/athena/TestApplicationStarter.java
+  s_d42aed7c0c6ad9::t_1501a4a36e4b34 27-28,36
+src/test/java/com/odysseusinc/athena/service/concept/SolrInitializer.java
+  s_d42aed7c0c6ad9::t_5c00dd281d443a 24,144-151
+src/test/java/com/odysseusinc/athena/service/mail/EmailSenderServiceTest.java
+  s_d42aed7c0c6ad9::t_52a057b54a5ce4 10
+src/test/java/com/odysseusinc/athena/service/saver/SaverTest.java
+  s_d42aed7c0c6ad9::t_93bae97092c199 5,36
+src/test/resources/testdata/solr/solr.xml
+  s_d42aed7c0c6ad9::t_c939b12aa7b73e 31-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.17",
+  "base_commit_sha": "00a17b76c7e14453862e60965c289051772f7611",
+  "prompts": {},
+  "sessions": {
+    "s_d42aed7c0c6ad9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2c0734c6-1952-48b7-b21f-c575433f1155",
+        "model": "claude-opus-5"
+      },
+      "human_author": "User <user@example.com>"
+    }
+  }
+}
