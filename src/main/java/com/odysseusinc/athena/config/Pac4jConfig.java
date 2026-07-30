@@ -24,6 +24,10 @@ package com.odysseusinc.athena.config;
 
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JWEAlgorithm;
+import com.odysseusinc.athena.model.security.AthenaProfile;
+import com.odysseusinc.athena.security.pac4j.ApiTokenAuthClient;
+import com.odysseusinc.athena.security.pac4j.ApiTokenAuthenticator;
+import com.odysseusinc.athena.security.pac4j.ApiTokenCredentials;
 import com.odysseusinc.athena.service.impl.UserService;
 import com.odysseusinc.athena.service.security.RevokableJwtAthenticator;
 import com.odysseusinc.athena.service.security.RevokedTokenStore;
@@ -32,6 +36,7 @@ import org.pac4j.core.authorization.authorizer.RequireAnyRoleAuthorizer;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.client.direct.AnonymousClient;
 import org.pac4j.core.config.Config;
+import org.pac4j.core.profile.creator.ProfileCreator;
 import org.pac4j.http.client.direct.HeaderClient;
 import org.pac4j.jwt.config.encryption.SecretEncryptionConfiguration;
 import org.pac4j.jwt.config.signature.SecretSignatureConfiguration;
@@ -85,7 +90,11 @@ public class Pac4jConfig {
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Bean
-    public Config config(UserService userService, RevokedTokenStore tokenStore) {
+    public Config config(
+            UserService userService,
+            RevokedTokenStore tokenStore,
+            ApiTokenAuthenticator apiTokenAuthenticator
+    ) {
         Resource keystorePath = resourceLoader.getResource(keyStoreFile);
         Resource metadataLocationPath = resourceLoader.getResource(metadataLocation);
         final SAML2ClientConfiguration cfg = new SAML2ClientConfiguration(
@@ -108,14 +117,17 @@ public class Pac4jConfig {
         headerClient.setProfileCreator(userService);
         headerClient.setAuthorizationGenerator(userService);
 
+        ApiTokenAuthClient apiTokenClient = new ApiTokenAuthClient(apiTokenAuthenticator, castAsAthenaProfile());
+
         final Clients clients = new Clients(callback,
+                apiTokenClient,
                 headerClient,
                 saml2Client,
                 new AnonymousClient()
         );
         final Config config = new Config(clients);
 
-        config.addAuthorizer("admin", new RequireAnyRoleAuthorizer("ROLE_ADMIN"));
+        config.addAuthorizer("admin", new RequireAnyRoleAuthorizer<>("ROLE_ADMIN"));
 
         return config;
     }
@@ -142,5 +154,9 @@ public class Pac4jConfig {
         configuration.setMethod(EncryptionMethod.A128CBC_HS256);
         configuration.setAlgorithm(JWEAlgorithm.A256KW);
         return configuration;
+    }
+
+    private static ProfileCreator<ApiTokenCredentials, AthenaProfile> castAsAthenaProfile() {
+        return (credentials, context) -> (AthenaProfile) credentials.getUserProfile();
     }
 }

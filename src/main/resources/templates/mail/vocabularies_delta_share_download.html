@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<p>
+
+<p>Dear <span  th:text="${name}"></span>,</p>
+
+<p><span th:text="${owner_name}"></span> has shared vocabularies with you.</p>
+
+<h3>Installation of the Delta Package of the OHDSI Standardized Vocabularies</h3>
+<p>Your Delta Package is ready for installation. Please execute the following process:</p>
+<ol>
+    <li>Click on this <a th:href="${url}">link</a> to download the zip file. The typical file size should be between 30 and 400 MB, depending on the number of vocabularies you selected.</li>
+    <li>Unpack the downloaded zip file.</li>
+    <li>If you want to upgrade your existing Vocabulary tables using the SQL script:
+        <ol type="a">
+        <li>Make sure you selected the correct release version prior to initiating the download.</li>
+        <li>Execute the <strong><span>delta.sql</i></strong> script.</li>
+        </ol>
+    </li>
+    <li>Otherwise use your own process to use the change information in the CSV files.</li>
+</ol>
+
+<p>If you encounter problems please find more information in the
+    <a th:href="${documentationUrl}">
+        Documentation
+    </a>
+    or submit a post at the
+    <a th:href="${forumUrl}" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=th:text=${forumUrl}&amp;source=gmail&amp;ust=1488877772753000&amp;usg=AFQjCNHTlB0rs1HpEwZjvho6sUaciuSA5w">
+        OHDSI Forum pages
+    </a>
+    to ask the community for support. You will need to register.
+</p>
+
+<h4>Content of your Delta Package</h4>
+<p>Your Package contains all changes between release versions  <strong><span th:text="${vocabularyReleaseVersion}"></span></strong> and <strong><span th:text="${deltaReleaseVersion}"></span></strong>
+</p>
+
+<p> You selected the following vocabularies:</p>
+<div>
+    <table>
+        <thead>
+        <tr>
+            <th colspan="3" align="left"><span th:text="${bundleName}"></span> Vocabularies:</th>
+        </tr>
+        </thead>
+        <tr th:each="vocabulary : ${vocabularies}">
+            <td th:text="${vocabulary.key}"></td>
+            <td>-</td>
+            <td th:text="${vocabulary.value}">Normal User</td>
+        </tr>
+    </table>
+</div>
+
+<p>Regards,<br/>
+    The OHDSI Vocabulary Team
+</p></body>
+</html>
+

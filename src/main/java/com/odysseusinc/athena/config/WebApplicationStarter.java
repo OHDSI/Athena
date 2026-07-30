@@ -28,16 +28,12 @@ import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class,
         HibernateJpaAutoConfiguration.class,
@@ -57,11 +53,5 @@ public class WebApplicationStarter extends SpringBootServletInitializer {
     public static void main(String[] args) {
 
         new SpringApplication(WebApplicationStarter.class).run(args);
-    }
-
-    @Bean(name = "emailSenderExecutor")
-    public Executor emailsExecutor() {
-
-        return Executors.newSingleThreadExecutor();
     }
 }

@@ -23,11 +23,13 @@
 package com.odysseusinc.athena.service.impl;
 
 import com.google.common.base.Splitter;
+import com.odysseusinc.athena.api.v1.controller.converter.UrlBuilder;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.DownloadShare;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadShareRepository;
+import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.service.DownloadShareService;
 import com.odysseusinc.athena.service.mail.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,17 +45,20 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class DownloadShareServiceImpl implements DownloadShareService {
 
+    private final DownloadBundleService downloadBundleService;
     private final DownloadBundleRepository downloadBundleRepository;
     private final DownloadShareRepository downloadShareRepository;
     private final EmailService emailService;
     private final UserService userService;
-
+    private final UrlBuilder urlBuilder;
     @Autowired
-    public DownloadShareServiceImpl(DownloadBundleRepository downloadBundleRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, UserService userService) {
+    public DownloadShareServiceImpl(DownloadBundleService downloadBundleService, DownloadBundleRepository downloadBundleRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, UserService userService, UrlBuilder urlBuilder) {
+        this.downloadBundleService = downloadBundleService;
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadShareRepository = downloadShareRepository;
         this.emailService = emailService;
         this.userService = userService;
+        this.urlBuilder = urlBuilder;
     }
 
     @Override
@@ -96,9 +101,23 @@ public class DownloadShareServiceImpl implements DownloadShareService {
 
     private void sendNotification(List<DownloadShare> newSharedBundles, DownloadBundle bundle, AthenaUser bundleOwner) {
         newSharedBundles.forEach(downloadShare -> {
-            AthenaUser recepient = userService.getUser(downloadShare.getUserEmail());
-            if (recepient != null) {
-                emailService.sendVocabulariesWereSharedNotification(recepient, bundleOwner, bundle);
+            AthenaUser recipient = userService.getUser(downloadShare.getUserEmail());
+            if (recipient != null) {
+                final String bundleUrl = urlBuilder.downloadVocabulariesLink(bundle.getUuid());
+                switch (this.downloadBundleService.getType(bundle)) {
+                    case V5_DELTAS:
+                        emailService.sendDeltaWereSharedNotification(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(),
+                                bundle.formattedVocabularyVersion(), bundle.formattedDeltaVersion());
+                        break;
+                    case V5_HISTORIES:
+                        emailService.sendVocabulariesWereSharedNotification(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(),
+                                bundle.formattedVocabularyVersion());
+                        break;
+                    default:
+                        emailService.sendVocabulariesWereSharedNotification(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(),
+                                bundle.formattedReleaseVersion());
+                        break;
+                }
             }
         });
     }

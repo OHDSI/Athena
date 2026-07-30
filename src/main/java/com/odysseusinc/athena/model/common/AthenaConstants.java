@@ -9,7 +9,7 @@ public class AthenaConstants {
 
     public static final String  COMMON_DATE_FORMAT = "dd-MMM-yyyy";
     public static final String DEFAULT_TEMPLATE_NAME = "index";
-    public static final String OMOP_VOCABULARY_ID = "None";
+    public static final String OMOP_RELEASE_VOCABULARY_ID = "None";
 
     public static final long SEC_MS = 1000L;
     public static final long FIVE_SEC_MS = 5 * SEC_MS;

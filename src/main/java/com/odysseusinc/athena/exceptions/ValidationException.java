@@ -22,7 +22,7 @@
 
 package com.odysseusinc.athena.exceptions;
 
-public class ValidationException extends RuntimeException {
+public class ValidationException extends AthenaException {
 
     public ValidationException() {
 
@@ -31,6 +31,6 @@ public class ValidationException extends RuntimeException {
 
     public ValidationException(String message) {
 
-        super(message);
+        super(message, null);
     }
 }

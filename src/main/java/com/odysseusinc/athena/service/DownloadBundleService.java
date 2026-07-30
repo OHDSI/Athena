@@ -25,10 +25,13 @@ package com.odysseusinc.athena.service;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.SavedFile;
 import com.odysseusinc.athena.model.security.AthenaUser;
+import com.odysseusinc.athena.util.CDMVersion;
 
 import java.util.Date;
 
 public interface DownloadBundleService {
+
+    DownloadBundle initBundle(String bundleName, AthenaUser currentUser, CDMVersion version, Integer vocabularyVersion, boolean delta, Integer deltaVersion);
 
     DownloadBundle get(Long bundleId);
 
@@ -43,4 +46,17 @@ public interface DownloadBundleService {
     void archive(Long id);
 
     void checkBundleOwner(AthenaUser user, long bundleId);
+
+    BundleType getType(DownloadBundle bundle);
+
+    void validate(DownloadBundle bundle);
+
+    void validate(DownloadBundle bundle, BundleType type);
+
+    enum BundleType {
+        V4_5,
+        V5,
+        V5_DELTAS,
+        V5_HISTORIES
+    }
 }

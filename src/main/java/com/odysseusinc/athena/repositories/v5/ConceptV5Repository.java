@@ -46,4 +46,17 @@ public interface ConceptV5Repository extends JpaRepository<ConceptV5, Long> {
                     + "AND con2.VOCABULARY_ID IN :vocabularyIds")
     ConceptV5 findReplacedBy(@Param("conceptId") Long conceptId,
                                    @Param("vocabularyIds") List<String> vocabularyIds);
+
+    @Query(nativeQuery = true,
+            value = "SELECT  concept_synonym_name synonymName,REPLACE(concept_name,'language','') as langName \n" +
+                    "FROM    concept_synonym cs\n" +
+                    "        join concept c ON cs.language_concept_id = c.concept_id\n" +
+                    "WHERE   cs.concept_id = :conceptId \n" +
+                    "GROUP BY cs.concept_synonym_name,concept_name")
+    List<ConceptSynonymDto> findSynonyms(@Param("conceptId") Long conceptId);
+
+    public interface ConceptSynonymDto {
+        public String getSynonymName();
+        public String getLangName();
+    }
 }

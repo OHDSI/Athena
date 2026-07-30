@@ -22,14 +22,14 @@
 
 package com.odysseusinc.athena.service.saver.v5;
 
-import com.odysseusinc.athena.service.saver.Saver;
+import com.odysseusinc.athena.service.saver.CSVSaver;
 import com.odysseusinc.athena.service.saver.SaverV5;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ConceptV5Saver  extends Saver implements SaverV5 {
+public class ConceptV5Saver  extends CSVSaver implements SaverV5 {
 
     @Override
     public String fileName() {

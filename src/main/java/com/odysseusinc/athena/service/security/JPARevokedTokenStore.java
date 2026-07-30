@@ -48,9 +48,10 @@ public class JPARevokedTokenStore implements RevokedTokenStore {
 
     @Override
     public void invalidate(String token) {
-
-        RevokedToken expiredToken = new RevokedToken();
-        expiredToken.setToken(token);
-        repository.save(expiredToken);
+        if (token != null) {
+            RevokedToken expiredToken = new RevokedToken();
+            expiredToken.setToken(token);
+            repository.save(expiredToken);
+        }
     }
 }

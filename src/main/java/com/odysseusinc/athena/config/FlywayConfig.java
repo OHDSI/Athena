@@ -38,19 +38,26 @@ public class FlywayConfig {
     private final DataSource athenaDataSource;
     private final DataSource v5DataSource;
     private final DataSource v4DataSource;
+    private final DataSource v5DataSourceHistory;
     @Value("#{'${athena-db.flyway.locations}'.split(',')}")
     private String[] locations;
     @Value("#{'${athena-v5.flyway.locations}'.split(',')}")
     private String[] locationsV5;
     @Value("#{'${athena-v4.flyway.locations}'.split(',')}")
     private String[] locationsV4;
+    @Value("#{'${athena-v5-history.flyway.locations}'.split(',')}")
+    private String[] locationsV5History;
+    @Value("#{'${spring.datasource-v5-history.vocabulary.schema}'}")
+    private String vocabularySchema;
 
     @Autowired
-    public FlywayConfig(@Qualifier("dataSourceAthenaDB") DataSource athenaDataSource, @Qualifier("dataSourceAthenaV5") DataSource v5DataSource, @Qualifier("dataSourceAthenaV4") DataSource v4DataSource) {
+    public FlywayConfig(@Qualifier("dataSourceAthenaDB") DataSource athenaDataSource, @Qualifier("dataSourceAthenaV5") DataSource v5DataSource, @Qualifier("dataSourceAthenaV5History") DataSource v5DataSourceHistory,
+                        @Qualifier("dataSourceAthenaV4") DataSource v4DataSource) {
 
         this.athenaDataSource = athenaDataSource;
         this.v5DataSource = v5DataSource;
         this.v4DataSource = v4DataSource;
+        this.v5DataSourceHistory = v5DataSourceHistory;
     }
 
 
@@ -77,5 +84,21 @@ public class FlywayConfig {
                 .table(FLYWAY_MIGRATIONS_HISTORY_TABLE)
                 .load()
                 .migrate();
+
+        Flyway.configure()
+                .dataSource(v5DataSourceHistory)
+                .locations(locationsV5History)
+                .table(FLYWAY_MIGRATIONS_HISTORY_TABLE)
+                .load()
+                .migrate();
+
+        Flyway.configure()
+                .dataSource(v5DataSourceHistory)
+                .schemas(vocabularySchema)
+                .locations(locationsV5)
+                .table(FLYWAY_MIGRATIONS_HISTORY_TABLE)
+                .load()
+                .migrate();
+
     }
 }

@@ -22,15 +22,24 @@
 
 package com.odysseusinc.athena.service.impl;
 
+import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.ReleaseVocabularyVersionConverter;
+import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
+import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.SavedFile;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.SavedFileRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
+import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
+import com.odysseusinc.athena.service.VocabularyServiceV5;
 import com.odysseusinc.athena.service.writer.FileHelper;
+import com.odysseusinc.athena.util.CDMVersion;
+import com.odysseusinc.athena.util.DownloadBundleStatus;
+import com.odysseusinc.athena.util.Fn;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +47,9 @@ import javax.transaction.Transactional;
 import java.io.File;
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 
+import static com.odysseusinc.athena.service.DownloadBundleService.BundleType.*;
 import static java.util.stream.Collectors.toList;
 
 @Transactional
@@ -49,18 +60,44 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
     private final SavedFileRepository fileRepository;
     private final FileHelper fileHelper;
 
+    private final VocabularyServiceV5 vocabularyServiceV5;
+
+    private final VocabularyReleaseVersionService versionService;
+
     @Autowired
-    public DownloadBundleServiceImpl(DownloadBundleRepository bundleRepository, SavedFileRepository fileRepository, FileHelper fileHelper) {
+    public DownloadBundleServiceImpl(DownloadBundleRepository bundleRepository, SavedFileRepository fileRepository, FileHelper fileHelper, VocabularyServiceV5 vocabularyServiceV5, VocabularyReleaseVersionService versionService) {
 
         this.bundleRepository = bundleRepository;
         this.fileRepository = fileRepository;
         this.fileHelper = fileHelper;
+        this.vocabularyServiceV5 = vocabularyServiceV5;
+        this.versionService = versionService;
+    }
+
+    @Override
+    public DownloadBundle initBundle(String bundleName, AthenaUser currentUser, CDMVersion version, Integer vocabularyVersion, boolean delta, Integer deltaVersion) {
+        return initBundle(bundleName, currentUser.getId(), version, vocabularyVersion, delta, deltaVersion, ReleaseVocabularyVersionConverter.toOldFormat(vocabularyServiceV5.getReleaseVocabularyVersionId()));
     }
 
     @Override
     public DownloadBundle get(Long bundleId) {
 
         return bundleRepository.getOne(bundleId);
+    }
+
+    private  DownloadBundle initBundle(String bundleName, Long userId, CDMVersion cdmVersion, Integer vocabularyVersion, boolean delta, Integer deltaVersion, String releaseVersion) {
+        return Fn.create(DownloadBundle::new, bundle -> {
+            bundle.setUuid(UUID.randomUUID().toString());
+            bundle.setCdmVersion(cdmVersion);
+            bundle.setCreated(new Date());
+            bundle.setUserId(userId);
+            bundle.setName(bundleName);
+            bundle.setReleaseVersion(releaseVersion);
+            bundle.setStatus(DownloadBundleStatus.PENDING);
+            bundle.setVocabularyVersion(vocabularyVersion);
+            bundle.setDeltaVersion(deltaVersion);
+            bundle.setDelta(delta);
+        });
     }
 
     @Override
@@ -105,6 +142,64 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
         DownloadBundle bundle = get(bundleId);
         if (!user.getId().equals(bundle.getUserId())) {
             throw new PermissionDeniedException();
+        }
+    }
+
+    @Override
+    public BundleType getType(DownloadBundle bundle) {
+        if (bundle.getCdmVersion() == CDMVersion.V4_5) {
+            return V4_5;
+        } else if (bundle.getCdmVersion() == CDMVersion.V5 && bundle.isDelta()) {
+            return V5_DELTAS;
+        } else if (bundle.getCdmVersion() == CDMVersion.V5 && versionService.isCurrent(bundle.getVocabularyVersion()) && !bundle.isDelta()) {
+            return V5;
+        } else if (bundle.getCdmVersion() == CDMVersion.V5 && !versionService.isCurrent(bundle.getVocabularyVersion()) && !bundle.isDelta()) {
+            return V5_HISTORIES;
+        }
+        throw new NotExistException("No savers for version " + bundle.getCdmVersion(), CDMVersion.class);
+    }
+
+    @Override
+    public void validate(DownloadBundle bundle) {
+        validate(bundle, this.getType(bundle));
+    }
+
+    @Override
+    public void validate(DownloadBundle bundle, BundleType type) {
+        if (StringUtils.isBlank(bundle.getName())) {
+            throw new ValidationException("Please provide the bundle name");
+        }
+        switch (type) {
+            case V4_5:
+                throw new ValidationException("CDM Version 4 is not supported anymore");
+            case V5_HISTORIES:
+                if (bundle.getVocabularyVersion() == null) {
+                    throw new ValidationException("The Vocabulary version should be set.");
+                }
+                if (!versionService.isPresentInHistory(bundle.getVocabularyVersion())) {
+                    throw new ValidationException("Vocabulary version is not found in the history.");
+                }
+                break;
+            case V5_DELTAS:
+                if (bundle.getVocabularyVersion() == null) {
+                    throw new ValidationException("The Vocabulary version should be set.");
+                }
+                if (bundle.getDeltaVersion() == null) {
+                    throw new ValidationException("The Delta version should be set.");
+                }
+                if (bundle.getDeltaVersion() >= bundle.getVocabularyVersion()) {
+                    throw new ValidationException("The Delta version should be older than the Vocabulary version");
+                }
+                if (versionService.isCurrentMissingInHistory(bundle.getVocabularyVersion())){
+                    throw new ValidationException("The current version has not been uploaded to historical data. The delta cannot be created. Please contact the administrator.");
+                }
+                if (!versionService.isPresentInHistory(bundle.getVocabularyVersion())) {
+                    throw new ValidationException("Vocabulary version is not found in the history.");
+                }
+                if (!versionService.isPresentInHistory(bundle.getDeltaVersion())) {
+                    throw new ValidationException("Delta version is not found in the history.");
+                }
+                break;
         }
     }
 

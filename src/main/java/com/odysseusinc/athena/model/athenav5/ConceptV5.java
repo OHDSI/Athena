@@ -58,10 +58,6 @@ public class ConceptV5 extends EntityV5 {
     @JoinColumn(name = "vocabulary_id", referencedColumnName = "vocabulary_id")
     private VocabularyV5 vocabulary;
 
-    @OneToMany(mappedBy = "id", targetEntity = ConceptSynonymV5.class)
-    @LazyCollection(LazyCollectionOption.FALSE)
-    private List<ConceptSynonymV5> synonyms;
-
     @NotNull
     @Column(name = "concept_class_id")
     private String conceptClassId;
@@ -188,17 +184,6 @@ public class ConceptV5 extends EntityV5 {
 
         this.vocabulary = vocabulary;
     }
-
-    public List<ConceptSynonymV5> getSynonyms() {
-
-        return synonyms;
-    }
-
-    public void setSynonyms(List<ConceptSynonymV5> synonyms) {
-
-        this.synonyms = synonyms;
-    }
-
     @Override
     public boolean equals(Object obj) {
 

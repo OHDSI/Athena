@@ -30,10 +30,10 @@ import com.odysseusinc.athena.service.writer.FileHelper;
 import java.util.List;
 import java.util.zip.ZipOutputStream;
 
-public class SaverService {
+public class SaverService<T> {
 
     private DownloadBundleService bundleService;
-    private List ids;
+    private List<T> ids;
     private FileHelper fileHelper;
 
     public SaverService(DownloadBundleService bundleService, List ids, FileHelper fileHelper) {

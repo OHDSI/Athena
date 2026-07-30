@@ -56,6 +56,7 @@ public class AthenaDatabaseConfig extends HikariConfig {
         return new HikariDataSource(this);
     }
 
+    @Primary
     @Bean(name = "athenaEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean athenaEntityManagerFactory(final HikariDataSource dataSourceAthenaDB) {
 

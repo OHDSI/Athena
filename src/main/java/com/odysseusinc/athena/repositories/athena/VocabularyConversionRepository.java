@@ -64,6 +64,6 @@ public interface VocabularyConversionRepository extends JpaRepository<Vocabulary
     @Query(nativeQuery = true,
             value = "SELECT VOCABULARY_ID_V5 FROM vocabulary_conversion WHERE "
                     + " VOCABULARY_ID_V4 IN :v4Ids")
-    List<String> findIdsV5ByIdsV4(@Param("v4Ids") List<Long> idV4s);
+    List<String> findIdsV5ByIdsV4(@Param("v4Ids") List<Integer> idV4s);
 
 }

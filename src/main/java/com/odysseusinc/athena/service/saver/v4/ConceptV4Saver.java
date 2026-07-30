@@ -22,14 +22,14 @@
 
 package com.odysseusinc.athena.service.saver.v4;
 
-import com.odysseusinc.athena.service.saver.Saver;
+import com.odysseusinc.athena.service.saver.CSVSaver;
 import com.odysseusinc.athena.service.saver.SaverV4;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ConceptV4Saver extends Saver implements SaverV4 {
+public class ConceptV4Saver extends CSVSaver implements SaverV4 {
 
     public static final Long CPT4 = 4L;
 
