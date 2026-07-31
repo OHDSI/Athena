@@ -1,0 +1,242 @@
+src/main/java/com/odysseusinc/athena/service/impl/UserService.java
+  h_2cf7f46272c8c9 225,233-236
+  s_d42aed7c0c6ad9::t_7e2380074878ae 224,226-232,237,241-244,248-260
+  s_d42aed7c0c6ad9::t_218d60299f9591 129,261-262
+src/main/java/com/odysseusinc/athena/config/IntegrationConfig.java
+  h_2cf7f46272c8c9 43
+src/main/java/com/odysseusinc/athena/config/AsyncConfiguration.java
+  s_d42aed7c0c6ad9::t_d5d8719f5eec67 53,59,65-74,76-78,102
+  s_d42aed7c0c6ad9::t_db405faae7da52 22-33,38-39
+  s_d42aed7c0c6ad9::t_16dd487cd0abeb 44-48,52,79,82-101
+  s_d42aed7c0c6ad9::t_b50d1b8b772b5c 43
+src/test/java/com/odysseusinc/athena/service/impl/LicenseTokenTest.java
+  s_d42aed7c0c6ad9::t_ded2ce4dfd861a 63-72,75,77-78,83,85-86,91-93
+  s_d42aed7c0c6ad9::t_0fa94115396125 1-62,73-74,76,79-82,84,87-90,94-128
+src/test/java/com/odysseusinc/athena/service/impl/AthenaCsvWriterGoldenTest.java
+  h_2cf7f46272c8c9 57-58
+  s_d42aed7c0c6ad9::t_caac28575aecb2 47,60
+.gitignore
+  h_2cf7f46272c8c9 14-16
+src/test/java/com/odysseusinc/athena/api/v1/controller/ExceptionHandlingControllerTest.java
+  s_d42aed7c0c6ad9::t_20aad1f608cd6c 1-23,25-42,44-112,114-136,138-142
+  h_2cf7f46272c8c9 24,43,113,137
+src/test/java/com/odysseusinc/athena/service/concept/SolrInitializer.java
+  s_d42aed7c0c6ad9::t_807e3971f6488d 89-101,104-110,113,120,122-123,125
+  s_d42aed7c0c6ad9::t_c2d47958db7dd4 70
+  s_d42aed7c0c6ad9::t_1e13065bd92fb4 132
+  s_d42aed7c0c6ad9::t_0fbfb31776efa2 157
+src/test/java/com/odysseusinc/athena/api/v1/controller/converter/SolrFacetJsonTest.java
+  s_d42aed7c0c6ad9::t_ecf02a1235ad93 1-79
+properties/dev/application.properties
+  s_d42aed7c0c6ad9::t_459c118bbc90bb 8-22
+  h_7f60897e49550e 34
+  s_d42aed7c0c6ad9::t_922b647dbab5eb 122-124
+  s_d42aed7c0c6ad9::t_8257001eec71c6 126-127
+src/test/java/com/odysseusinc/athena/security/hmac/ApiClientsTest.java
+  s_d42aed7c0c6ad9::t_df78fabf61ddc8 1-45,47-49,51-60,62-74,112-168
+  s_d42aed7c0c6ad9::t_b12ccd7c5489c9 75-111
+  s_d42aed7c0c6ad9::t_695233e3c5f83f 46
+  s_d42aed7c0c6ad9::t_abd05b2efc6d25 50
+  s_d42aed7c0c6ad9::t_33adebbe4450be 61
+src/main/java/com/odysseusinc/athena/service/impl/VocabularyServiceImpl.java
+  s_d42aed7c0c6ad9::t_3e6020e7acb812 158
+  s_d42aed7c0c6ad9::t_fbc3169922508c 270-276
+  s_d42aed7c0c6ad9::t_3a65b698fbbaf7 269
+src/test/java/com/odysseusinc/athena/config/PublicEndpointMatchingTest.java
+  h_2cf7f46272c8c9 89
+  s_d42aed7c0c6ad9::t_41e211c6388c9e 1-88,90-120
+src/test/java/com/odysseusinc/athena/security/jwt/JwtTokenServiceTest.java
+  h_2cf7f46272c8c9 174
+  s_d42aed7c0c6ad9::t_934ddf04702f84 51,54
+src/main/java/com/odysseusinc/athena/service/impl/LicenseServiceImpl.java
+  s_d42aed7c0c6ad9::t_273423f37bfcb6 15
+  s_d42aed7c0c6ad9::t_a9d40833d7d5f3 52-55
+.github/workflows/pr-validation.yml
+  s_d42aed7c0c6ad9::t_59868413ef8ab2 65,69,71,73,75
+  h_7f60897e49550e 5
+  s_d42aed7c0c6ad9::t_51f79a1d442ae1 52,55-56,61-63,66-68,70,72,74,76-79,81-88
+  s_d42aed7c0c6ad9::t_fe109e1307704d 53-54,57
+  s_d42aed7c0c6ad9::t_8efe9b1e19df9d 80
+  s_d42aed7c0c6ad9::t_c587448f78eb52 1-4,6-51,58-60,64,89-150
+src/main/java/com/odysseusinc/athena/service/impl/AthenaCSVWriter.java
+  s_d42aed7c0c6ad9::t_0be983bdc614bb 134,141-171
+  s_d42aed7c0c6ad9::t_cd3a74bc632f10 49-51
+  s_d42aed7c0c6ad9::t_53b0ead0d9f2f9 62,66-70,73,78-88,90-91
+  s_d42aed7c0c6ad9::t_e4b44e6a5bd654 42,172
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/ConceptSearchDTOToSolrQuery.java
+  s_d42aed7c0c6ad9::t_a12f160e9cafde 177-182
+  h_2cf7f46272c8c9 138
+  s_d42aed7c0c6ad9::t_a42bdf2397bf6f 42,46,137,139-145,149-153
+src/main/java/com/odysseusinc/athena/security/saml/SamlRelyingPartyConfig.java
+  s_d42aed7c0c6ad9::t_da8a2d562a2b59 178-180
+  s_d42aed7c0c6ad9::t_fb2edcb940e626 141-142,144-147
+  s_d42aed7c0c6ad9::t_b069c777861b2c 143
+src/test/java/com/odysseusinc/athena/api/v1/controller/converter/SolrFilterEscapingTest.java
+  h_2cf7f46272c8c9 33
+  s_d42aed7c0c6ad9::t_e823a911a5d820 1-32,34-103
+src/main/java/com/odysseusinc/athena/api/v1/controller/VocabularyController.java
+  s_d42aed7c0c6ad9::t_15a34d7f92215a 209-211
+  s_d42aed7c0c6ad9::t_3f9f6514d5ddf8 123-125
+  s_d42aed7c0c6ad9::t_5c8c978d00029f 25
+  s_d42aed7c0c6ad9::t_0a716e88c0bf5d 190,194
+  s_d42aed7c0c6ad9::t_c759149ad97dd1 191-193
+  s_d42aed7c0c6ad9::t_65a7a44e25d40b 75-88
+  s_d42aed7c0c6ad9::t_47c1a0c8902055 39-42,44-45,48
+README.md
+  s_9a19fdc938be11::t_21da9c34b3349e 98-100
+  s_d42aed7c0c6ad9::t_a7e6a06b8be644 116
+  h_7f60897e49550e 3,6,25,51,74,108-109,133-134,139,239,241-243,245
+  s_d42aed7c0c6ad9::t_4880335a062630 1,4,7-8,10-16,18,20,22,24,26-33,35,37-41,43-44,46-50,52,54-55,57,59-62,64-65,67-71,73,76,78,80-81,83-84,86,88-90,92,94-97,102,104-105,107,111,113-115,117-118,120-122,124,126-127,129,131,135-137,140-141,204-208,210,220,225,237,240,244,246,248
+  s_9a19fdc938be11::t_8f8850014ab8ef 132,138
+src/test/java/com/odysseusinc/athena/security/hmac/ApiClientsDebugSignatureTest.java
+  s_d42aed7c0c6ad9::t_37e5633501d755 1-171
+src/test/java/com/odysseusinc/athena/service/impl/UserSearchPatternTest.java
+  s_d42aed7c0c6ad9::t_282c39f831f64a 1-29,31-88
+  h_2cf7f46272c8c9 30
+src/main/resources/logback-spring.xml
+  s_d42aed7c0c6ad9::t_71601b6a80770f 7-14
+src/main/java/com/odysseusinc/athena/security/saml/SamlAuthenticationSuccessHandler.java
+  s_d42aed7c0c6ad9::t_6d53e349969300 107-118,120
+  s_d42aed7c0c6ad9::t_e2dcabd59cbf45 45-46,48-56
+  s_d42aed7c0c6ad9::t_6bfd08cad128ef 71-73
+  s_d42aed7c0c6ad9::t_5de77602e87bf5 67
+src/test/java/com/odysseusinc/athena/security/saml/SamlRedirectTest.java
+  s_d42aed7c0c6ad9::t_ef8f1b7b114398 1-114
+src/main/java/com/odysseusinc/athena/api/v1/controller/ApiVocabularyController.java
+  s_d42aed7c0c6ad9::t_eb83ce207d3977 30-44
+  s_d42aed7c0c6ad9::t_0149844b674bcc 3,7-13,15
+src/main/java/com/odysseusinc/athena/service/VocabularyService.java
+  s_d42aed7c0c6ad9::t_b6a0db3449bedf 57-62
+properties/test/application.properties
+  s_9a19fdc938be11::t_3c7aa2a79302fa 16
+src/test/java/com/odysseusinc/athena/service/impl/BundleOwnershipTest.java
+  s_d42aed7c0c6ad9::t_f5f311aea1d34e 1-27,31-50,52-80,85-113,115-181
+  s_d42aed7c0c6ad9::t_45a69b01001b28 81-84
+  h_2cf7f46272c8c9 30,51,114
+src/main/java/com/odysseusinc/athena/service/impl/SearchServiceImpl.java
+  h_2cf7f46272c8c9 116
+  s_d42aed7c0c6ad9::t_5c54c4b8af19c0 117-118
+  s_d42aed7c0c6ad9::t_ff845134418550 137-142,144-145
+src/main/java/com/odysseusinc/athena/service/impl/DownloadsHistoryServiceImpl.java
+  s_d42aed7c0c6ad9::t_02c318652667d6 95-97
+  s_d42aed7c0c6ad9::t_9d7741bd6e0f43 55
+  s_d42aed7c0c6ad9::t_505801829bf11d 118-120
+  s_d42aed7c0c6ad9::t_841b0f2abe5395 159,164,232-240,245,247,249,251,253,256-260
+  s_d42aed7c0c6ad9::t_002c6e8c1e5baa 100-104,127-130,132-133,160-163,165-178,214-221,261
+pom.xml
+  s_d42aed7c0c6ad9::t_c246f7cdf5bb62 20-27
+  s_d42aed7c0c6ad9::t_519176dc7ab89b 53-55
+  s_d42aed7c0c6ad9::t_b3d7fdab720013 62-69
+  s_d42aed7c0c6ad9::t_cb6fd0a06db0bd 47-52,56-58
+  s_d42aed7c0c6ad9::t_cd299f3274cfe3 531
+  s_d42aed7c0c6ad9::t_e89ef15a0d5c47 417-437,442-443,447-456
+  s_d42aed7c0c6ad9::t_6a5c37a5890ab2 438-441
+  s_d42aed7c0c6ad9::t_26e3002dd9d286 291-299
+  s_d42aed7c0c6ad9::t_cae8987f399011 457-475,477-481,483-514,518,521,524,527-530,532-537
+  s_d42aed7c0c6ad9::t_5fac9ea3bda397 9,172,176,444-446,585
+src/main/resources/db/migration/athena/V20260730120000__license_token_backfill.sql
+  s_9a19fdc938be11::t_a9ad09e4f3dd42 18-20
+  s_d42aed7c0c6ad9::t_48a05d31f3f649 1-8,10,13-14,16,25
+  s_9a19fdc938be11::t_f26628fd342223 17,21-24,26-27
+  s_9a19fdc938be11::t_f1494956185986 11
+  s_d42aed7c0c6ad9::t_5ef9ca9264e18c 9,12,15
+src/main/java/com/odysseusinc/athena/api/v1/controller/ExceptionHandlingController.java
+  s_d42aed7c0c6ad9::t_f34829616cba39 54-57
+  s_d42aed7c0c6ad9::t_f4a036cc8f6ebe 53,58
+  s_d42aed7c0c6ad9::t_7233c972052aeb 49,64-69,75-91,100,109,118,127,136,139-145,159,169,179,189,198
+src/test/java/com/odysseusinc/athena/security/hmac/HmacNonceWindowTest.java
+  h_2cf7f46272c8c9 37
+  s_d42aed7c0c6ad9::t_bb76df952a7a99 43
+src/test/java/com/odysseusinc/athena/service/impl/CsvFormulaInjectionTest.java
+  s_d42aed7c0c6ad9::t_eb6f5706678e53 1-121
+src/test/java/com/odysseusinc/athena/security/apitoken/ApiTokenAuthenticationFilterTest.java
+  h_2cf7f46272c8c9 48
+  s_d42aed7c0c6ad9::t_eb0c35a149d85b 47,50
+src/main/java/com/odysseusinc/athena/model/athena/DownloadBundle.java
+  s_d42aed7c0c6ad9::t_3e1371e16c7c8a 72-79,88,92
+  s_d42aed7c0c6ad9::t_42cedff93d9172 31
+src/main/java/com/odysseusinc/athena/security/hmac/ApiClients.java
+  s_d42aed7c0c6ad9::t_6ad2744de7e230 63-74
+  s_d42aed7c0c6ad9::t_787d058ee78d3b 84,180,186,197,200-232,240
+  s_d42aed7c0c6ad9::t_4005c44bbca4a9 233-238
+  s_d42aed7c0c6ad9::t_bad87b940fdd38 36-39
+  s_d42aed7c0c6ad9::t_22ecfb4da3c52a 50-53
+  s_d42aed7c0c6ad9::t_f2a480348ef76e 85-89,91-113
+  s_d42aed7c0c6ad9::t_564950bed95559 153-155,163-165
+  s_d42aed7c0c6ad9::t_912fcd31d1b90e 81-83
+  s_d42aed7c0c6ad9::t_8d15fe17c2bce9 181-185
+  s_d42aed7c0c6ad9::t_caa64eca2ebf86 187-188
+  s_d42aed7c0c6ad9::t_e593ac4c00b612 196
+  s_d42aed7c0c6ad9::t_31f39ae1abfee8 198-199
+  s_d42aed7c0c6ad9::t_f5963f10dbbcd4 26,57,77-80,122,192
+src/main/java/com/odysseusinc/athena/config/WebApplicationStarter.java
+  s_d42aed7c0c6ad9::t_c04d230f8263f1 50-56
+src/main/java/com/odysseusinc/athena/api/v1/controller/AbstractVocabularyController.java
+  s_d42aed7c0c6ad9::t_e3ef82aa5cf7d8 25-26
+  s_d42aed7c0c6ad9::t_4122057dab4043 35-42,44-74
+  s_d42aed7c0c6ad9::t_b20f0abd1a653c 99-109,111
+src/main/java/com/odysseusinc/athena/repositories/athena/DownloadHistoryRepository.java
+  s_d42aed7c0c6ad9::t_e6a669348ed7c7 27-28,39-62
+  s_d42aed7c0c6ad9::t_3c6b9290f4df5e 63
+src/test/java/com/odysseusinc/athena/service/impl/DownloadHistorySortTest.java
+  s_9a19fdc938be11::t_a2b4288acbce14 124
+  s_9a19fdc938be11::t_14b273dc92b962 62-72,74,83-84,86-88,91,95-98,104-107,113-116
+  s_d42aed7c0c6ad9::t_a37cb712a5cc78 1-30,33-61,73,75-82,85,89-90,92-94,99-103,108-112,117-123,125-126
+  s_9a19fdc938be11::t_21eada204432c0 31-32
+.gitmodules
+  s_d42aed7c0c6ad9::t_e117c91b290e14 1-3
+properties/prod/application.properties
+  s_d42aed7c0c6ad9::t_b0a9e8af09edf3 2,64
+properties/qa/application.properties
+  s_d42aed7c0c6ad9::t_fd437cffcebec9 2,64
+src/main/java/com/odysseusinc/athena/config/WebConfig.java
+  s_d42aed7c0c6ad9::t_eae35c924e8ba9 41-55,91-92,94-101
+src/main/java/com/odysseusinc/athena/service/impl/ResultSetCsvValues.java
+  s_d42aed7c0c6ad9::t_d1e759d9b38ebb 44
+src/main/java/com/odysseusinc/athena/service/job/DownloadBundleCleaner.java
+  s_d42aed7c0c6ad9::t_50d5b79a922243 45
+src/test/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/ArachnePortalContractTest.java
+  s_d42aed7c0c6ad9::t_bce0bf2af6b5ea 47
+src/test/java/com/odysseusinc/athena/service/impl/UserServiceProvisionTest.java
+  s_d42aed7c0c6ad9::t_ee2c07ab1093ff 45,172
+src/test/resources/application-test.properties
+  s_d42aed7c0c6ad9::t_3978e9620f49f1 6-20
+src/test/resources/testdata/addons/cpt4/cpt.bat
+  s_d42aed7c0c6ad9::t_71447704823784 1-3
+src/test/resources/testdata/addons/cpt4/cpt.sh
+  s_d42aed7c0c6ad9::t_64401bbb956bc1 1-3
+src/test/resources/testdata/addons/cpt4/readme.txt
+  s_d42aed7c0c6ad9::t_29671ce9815179 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "27474561f3fa2f886f75d57c1e7784ebe5db2589",
+  "prompts": {},
+  "humans": {
+    "h_2cf7f46272c8c9": {
+      "author": "User <user@example.com>"
+    },
+    "h_7f60897e49550e": {
+      "author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  },
+  "sessions": {
+    "s_9a19fdc938be11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97a88393-c53f-47f0-93e9-4932a20ec985",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    },
+    "s_d42aed7c0c6ad9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2c0734c6-1952-48b7-b21f-c575433f1155",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
