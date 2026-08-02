@@ -1,0 +1,40 @@
+src/main/java/com/odysseusinc/athena/controllers/SSOController.java
+  s_9a19fdc938be11::t_e272af5933b2ad 25-26,32-34,38-39,41,43,46-47,52-61,65-67,73-80
+  s_9a19fdc938be11::t_35eb67f9ad039b 139-150,152-204,209-214,216
+  s_9a19fdc938be11::t_44416d6d550112 205-208
+  s_9a19fdc938be11::t_a10910bcf384f9 82-108
+  s_9a19fdc938be11::t_a063a7ec52dd9c 109-115,120-123,125-128
+  s_9a19fdc938be11::t_01329d979cddda 81
+src/main/java/com/odysseusinc/athena/security/saml/SamlRelyingPartyConfig.java
+  s_9a19fdc938be11::t_7efdcb6d4e3f18 224-228
+  s_9a19fdc938be11::t_27373d2a9c389e 146-149
+  s_9a19fdc938be11::t_48147fc5ba4389 76-86,90-100
+  s_9a19fdc938be11::t_8e72f0440c3a58 101
+src/test/java/com/odysseusinc/athena/security/saml/SamlRedirectTest.java
+  s_9a19fdc938be11::t_ab7aba34834ad2 54-71
+src/test/java/com/odysseusinc/athena/controllers/SsoLogoutRedirectTest.java
+  s_9a19fdc938be11::t_a1dc91c52e45eb 1-98
+src/main/java/com/odysseusinc/athena/config/WebSecurityConfig.java
+  s_9a19fdc938be11::t_1fea1188790d46 114
+  s_9a19fdc938be11::t_7532b89efdf4f0 101-104
+  s_9a19fdc938be11::t_56e9352e40dcf5 250-260
+  s_9a19fdc938be11::t_2388e9f7f9733e 275
+src/test/java/com/odysseusinc/athena/config/PublicEndpointMatchingTest.java
+  s_9a19fdc938be11::t_bb9b55c08a7d3b 89-118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "a89b065d00df8cb12fc80b6a585d69f952283b12",
+  "prompts": {},
+  "sessions": {
+    "s_9a19fdc938be11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97a88393-c53f-47f0-93e9-4932a20ec985",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
