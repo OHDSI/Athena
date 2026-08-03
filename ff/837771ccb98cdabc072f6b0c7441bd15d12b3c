@@ -1,0 +1,33 @@
+README.md
+  s_9a19fdc938be11::t_2f49534deab1e9 64-93,162
+properties/dev/application.properties
+  s_9a19fdc938be11::t_2ef6adb2ff196e 118
+properties/prod/application.properties
+  s_9a19fdc938be11::t_5c27de997c070c 2-6,10-14,17-18,20,25,62,90-93,110-111,113-115,117-122,127
+properties/qa/application.properties
+  s_9a19fdc938be11::t_429a46eec2adf2 2-6,10-14,17-18,20,25,62,90-93,110-111,113-115,117-122,127
+properties/test/application.properties
+  s_9a19fdc938be11::t_324f8a878d8e60 8-9,81,99-100,113,120
+src/main/resources/saml/dev/sp-metadata.xml
+  s_9a19fdc938be11::t_a419dcc86873a6 2
+src/main/resources/saml/test/idp-metadata.xml
+  s_9a19fdc938be11::t_764dc0e1d995b9 2,11,68-69,71-74,79-82,90,146-147
+src/main/resources/saml/test/sp-metadata.xml
+  s_9a19fdc938be11::t_e927e3da07c4da 2,83,85,92,95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "ff837771ccb98cdabc072f6b0c7441bd15d12b3c",
+  "prompts": {},
+  "sessions": {
+    "s_9a19fdc938be11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97a88393-c53f-47f0-93e9-4932a20ec985",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
