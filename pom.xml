@@ -26,7 +26,7 @@
           Declaring it here means env always has a value; the env profiles still override it.
         -->
         <env>dev</env>
-        <java.version>1.8</java.version>
+        <java.version>25</java.version>
         <jjwt.version>0.9.1</jjwt.version>
         <opensaml.version>2.6.6-patched</opensaml.version>
         <solr.version>8.11.2</solr.version>
@@ -491,6 +491,32 @@ If the submodule is empty: git submodule update --init
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!--
+                      maven-compiler-plugin 3.14+ runs javac in-process, which breaks
+                      Lombok's javac patching and aborts the build with 'Cannot load from
+                      object array because "this.hashes" is null'. Forking gives Lombok a
+                      clean javac.
+                    -->
+                    <fork>true</fork>
+                    <compilerArgs>
+                        <!--
+                          JDK 23 removed implicit annotation processing: javac no longer
+                          runs processors merely found on the classpath, so Lombok stops
+                          generating and every @Getter/@Setter becomes "cannot find
+                          symbol". -proc:full restores classpath discovery.
+                          Note the alternative, listing lombok under
+                          annotationProcessorPaths, makes Lombok 1.18.46 abort the whole
+                          compile with 'Cannot load from object array because
+                          "this.hashes" is null'.
+                        -->
+                        <arg>-proc:full</arg>
+                    </compilerArgs>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
