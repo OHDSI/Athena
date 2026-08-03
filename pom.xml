@@ -9,7 +9,6 @@
     <version>1.16.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -27,15 +26,24 @@
         -->
         <env>dev</env>
         <java.version>25</java.version>
-        <solr.version>8.11.2</solr.version>
+        <solr.version>8.11.4</solr.version>
         <disruptor.version>3.4.2</disruptor.version>
-        <commons-lang3.version>3.11</commons-lang3.version>
+        <commons-lang3.version>3.18.0</commons-lang3.version>
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
-        <guava.verson>30.1-jre</guava.verson>
-        <lombok.version>1.18.18</lombok.version>
+        <guava.version>33.4.8-jre</guava.version>
+        <lombok.version>1.18.46</lombok.version>
+        <postgresql.version>42.7.7</postgresql.version>
+        <json.version>20260719</json.version>
+        <commons-beanutils.version>1.11.0</commons-beanutils.version>
         <nimbus-jose-jwt.version>10.9.1</nimbus-jose-jwt.version>
-        <postgresql.version>42.2.26</postgresql.version>
+        <!-- 1.17.5 (docker-java 3.2.x) cannot talk to Docker Engine 25+; the API
+             negotiation fails with HTTP 400 and every Testcontainers-backed test
+             errors out. Keep this on a version that supports current engines. -->
+        <testcontainers.version>1.20.6</testcontainers.version>
+        <docker.api.version>1.41</docker.api.version>
+        <metrics-core.version>4.2.39</metrics-core.version>
+        <spring-retry.version>2.0.13</spring-retry.version>
         <!-- Front end. The UI is compiled from source rather than pulled from a registry
              Point athena.ui.dir at a different checkout to build against it instead of 
              the submodule:
@@ -194,12 +202,6 @@
             <version>${postgresql.version}</version>
         </dependency>
         <dependency>
-            <groupId>net.sourceforge.jtds</groupId>
-            <artifactId>jtds</artifactId>
-            <version>${jtds.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
@@ -210,19 +212,6 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
-        </dependency>
-        <!--
-          Boot 4 splits auto-configuration per module, so MailSenderAutoConfiguration (and
-          therefore the JavaMailSender bean) only exists if the mail starter is present.
-          Previously this project got the mail auto-configuration from the monolithic
-          spring-boot-autoconfigure and supplied the implementation itself via
-          com.sun.mail:jakarta.mail (the old javax.mail namespace). The starter now brings
-          both the auto-configuration and the jakarta.mail 2.x implementation
-          (angus-mail).
-        -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -267,24 +256,28 @@
             <artifactId>spring-context-support</artifactId>
         </dependency>
 
+        <!--
+          Boot 4 splits auto-configuration per module, so MailSenderAutoConfiguration (and
+          therefore the JavaMailSender bean) only exists if the mail starter is present.
+          Previously this project got the mail auto-configuration from the monolithic
+          spring-boot-autoconfigure and supplied the implementation itself via
+          com.sun.mail:jakarta.mail (the old javax.mail namespace). The starter now brings
+          both the auto-configuration and the jakarta.mail 2.x implementation
+          (angus-mail).
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>3.2.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20190722</version>
+            <version>${json.version}</version>
         </dependency>
 
         <dependency>
@@ -294,31 +287,43 @@
             <scope>test</scope>
         </dependency>
 
+        <!--
+          Required at runtime, not just in tests. Athena's own code never touches it, and it
+          was briefly declared test-only to keep a solr-core transitive out of the
+          production jar - but opensaml-core-api, opensaml-profile-api and opensaml-core-impl
+          all depend on it at compile scope, and a direct declaration overrides a transitive
+          one, so that scope silently removed it from the artifact. Nothing failed until the
+          application was actually started: OpenSaml5AuthenticationProvider's constructor
+          touches com.codahale.metrics.MetricRegistry, so the SAML filter chain died with
+          ClassNotFoundException on the first real boot. The version pin stays (OpenSAML
+          asks for 4.2.26); only the scope was wrong.
+        -->
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>${metrics-core.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>1.17.5</version>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
-            <version>1.17.5</version>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>1.17.5</version>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
-
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -326,14 +331,29 @@
             <scope>test</scope>
         </dependency>
 
+        <!--
+          Spring Boot dropped junit-vintage-engine from starter-test in 2.4. Most of
+          this suite is still JUnit 4, and without the vintage engine those tests are
+          silently skipped rather than failing. Required until they are migrated.
+        -->
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.verson}</version>
+            <version>${guava.version}</version>
         </dependency>
+        <!-- Still used for @Retryable on email sending. Spring Framework 7 has native
+             retry (org.springframework.core.retry); migrating to it is a behaviour
+             change, so keep this library for now. -->
         <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
+            <version>${spring-retry.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -350,7 +370,7 @@
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
-            <version>1.9.4</version>
+            <version>${commons-beanutils.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -391,6 +411,10 @@
             </resource>
         </resources>
         <plugins>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.0.0</version>
+            </plugin>
             <!--
               Backstop for the same hazard: whatever combination of profiles was used, a
               packaged jar must actually contain a UI. Bound after the copy, so it passes on
@@ -516,6 +540,17 @@ If the submodule is empty: git submodule update --init
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
@@ -542,38 +577,28 @@ If the submodule is empty: git submodule update --init
                 </configuration>
             </plugin>
             <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>${project.basedir}/src/main/resources/public/</directory>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <includeSystemScope>true</includeSystemScope>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
+                <!--
+                  Version deliberately NOT pinned: it was held at 2.19.1, which predates
+                  the JUnit 5 provider, so every org.junit.jupiter test was silently
+                  skipped. Inheriting the Spring Boot parent's version fixes
+                  that. junit-vintage-engine is declared as a test dependency so the
+                  existing JUnit 4 tests keep running alongside them.
+                -->
                 <configuration>
-                    <classpathDependencyExcludes>
-                        <!--<classpathDependencyExclude>net.minidev:json-smart</classpathDependencyExclude>-->
-                    </classpathDependencyExcludes>
+                    <systemPropertyVariables>
+                        <!--
+                          docker-java asks for Docker API 1.32, below the 1.40 floor of
+                          Docker Engine 25+, and answers HTTP 400 — which Testcontainers
+                          reports as "Could not find a valid Docker environment", making
+                          the whole suite unrunnable. docker-java reads this only as a
+                          system property, never from DOCKER_API_VERSION in the
+                          environment. 1.41 is supported by Engine 20.10 through current.
+                          Override with -Ddocker.api.version=... if needed.
+                        -->
+                        <api.version>${docker.api.version}</api.version>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
         </plugins>
@@ -595,16 +620,10 @@ If the submodule is empty: git submodule update --init
 
     <repositories>
         <repository>
-            <id>atlassian-3rd-party</id>
-            <name>atlassian-3rd-party</name>
-            <url>https://maven.atlassian.com/3rdparty/</url>
-        </repository>
-        <repository>
             <id>sibboleth</id>
             <name>shibboleth</name>
             <url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
         </repository>
     </repositories>
-
 
 </project>
