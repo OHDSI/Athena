@@ -1,0 +1,18 @@
+src/test/java/com/odysseusinc/athena/service/impl/LicenseTokenTest.java
+  h_7f60897e49550e 1-128
+src/main/java/com/odysseusinc/athena/service/impl/LicenseServiceImpl.java
+  h_7f60897e49550e 15,52-55
+src/main/resources/db/migration/athena/V20260730120000__license_token_backfill.sql
+  h_7f60897e49550e 1-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "b3b4ba173e5e3ce0815c4296a1832cccc676017a",
+  "prompts": {},
+  "humans": {
+    "h_7f60897e49550e": {
+      "author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
