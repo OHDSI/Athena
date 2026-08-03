@@ -181,6 +181,23 @@ public class WebSecurityConfig {
     }
 
     /**
+     * Same treatment for the HMAC filter, which is a {@code Filter} bean for the same reason
+     * and was auto-registered for want of this. It ran servlet-wide, ahead of all four chains,
+     * on every request. {@code OncePerRequestFilter} then made the in-chain instance a no-op,
+     * so nothing misbehaved visibly — but the filter was running far outside the scope it is
+     * written for, which is exactly the hazard described above.
+     */
+    @Bean
+    public FilterRegistrationBean<HmacVerifyingFilter> hmacFilterRegistration(
+            HmacVerifyingFilter filter) {
+
+        FilterRegistrationBean<HmacVerifyingFilter> registration =
+                new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    /**
      * Server-to-server. {@link HmacVerifyingFilter} must run before
      * {@link ApiTokenAuthenticationFilter}, because the latter refuses to authenticate
      * unless the former has marked the signature valid.

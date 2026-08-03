@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -78,6 +79,13 @@ public class HmacVerifyingFilter extends OncePerRequestFilter {
             return clients.getSignatureVerifier(clientId).apply(factors, signature);
         } catch (BadCredentialsException e) {
             log.info("Signature verification failed for [" + uri + "]: " + e.getMessage());
+            return false;
+        } catch (AuthenticationException e) {
+            // An unrecognised client id reaches here as AuthenticationCredentialsNotFoundException
+            // from ApiClients. Uncaught, it surfaces as a 500 rather than a refusal — and this
+            // filter inspects every request that carries the header, so the fault is not
+            // confined to the server-to-server paths.
+            log.info("No usable client credentials for [" + uri + "]: " + e.getMessage());
             return false;
         }
     }
