@@ -1,0 +1,41 @@
+.gitignore
+  s_9a19fdc938be11::t_b3194cd7eb2f1e 11-16
+.gitmodules
+  s_9a19fdc938be11::t_c02111e6f40b10 1-3
+pom.xml
+  s_9a19fdc938be11::t_5401733624b5ca 9,21-28,44-55,59-66,379-383,385-436,438-442,444-475,479,482,485,488-498,503-513
+src/main/java/com/odysseusinc/athena/api/v1/controller/BuildNumberController.java
+  s_9a19fdc938be11::t_e218f988c0697c 25,45,47
+src/main/java/com/odysseusinc/athena/api/v1/controller/UserController.java
+  s_9a19fdc938be11::t_feb561e7924857 25-26,109,116,120,127,139,143,149,163,167,172,177,179,186,193,197,209,211,223,225
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/BuildNumberDTO.java
+  s_9a19fdc938be11::t_74b2e171cc0c98 1-39
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/AddressDTO.java
+  s_9a19fdc938be11::t_e6d5521e9d06de 1-47
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/ArachnePortalResponse.java
+  s_9a19fdc938be11::t_83c6d7a1eb7235 1-91
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/CountryDTO.java
+  s_9a19fdc938be11::t_a42b51d8582a3c 1-35
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/StateProvinceDTO.java
+  s_9a19fdc938be11::t_40b6e6cda6c5c1 1-35
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/UserRegistrationDTO.java
+  s_9a19fdc938be11::t_90de3567caff29 1-58
+src/test/java/com/odysseusinc/athena/api/v1/controller/dto/arachne/ArachnePortalContractTest.java
+  s_9a19fdc938be11::t_d05b5afddeddfd 1-150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "5deecd6ca5b6fb56bd6a577a3b9035a0d61f592d",
+  "prompts": {},
+  "sessions": {
+    "s_9a19fdc938be11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97a88393-c53f-47f0-93e9-4932a20ec985",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
