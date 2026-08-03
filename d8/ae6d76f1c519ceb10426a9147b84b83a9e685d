@@ -1,0 +1,20 @@
+src/main/java/com/odysseusinc/athena/security/saml/SamlRelyingPartyConfig.java
+  s_9a19fdc938be11::t_09c2e2e9d7d388 203
+  s_9a19fdc938be11::t_584c609685be81 141-142,152-161,165-168,170-172,174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "d8ae6d76f1c519ceb10426a9147b84b83a9e685d",
+  "prompts": {},
+  "sessions": {
+    "s_9a19fdc938be11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97a88393-c53f-47f0-93e9-4932a20ec985",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
