@@ -138,6 +138,8 @@ public class SamlRelyingPartyConfig {
         log.info("Initialising SAML relying party [{}] from IdP metadata [{}]",
                 REGISTRATION_ID, idpMetadataLocation);
 
+        KeyMaterial keyMaterial = loadKeyMaterial();
+
         return RelyingPartyRegistrations
                 .fromMetadataLocation(idpMetadataLocation)
                 .registrationId(REGISTRATION_ID)
@@ -147,16 +149,29 @@ public class SamlRelyingPartyConfig {
                 // otherwise signs only when the identity provider's metadata asks for it,
                 // which leaves the two sides disagreeing whenever it does not.
                 .authnRequestsSigned(true)
-                .signingX509Credentials(credentials -> credentials.add(loadSigningCredential()))
+                .signingX509Credentials(credentials ->
+                        credentials.add(Saml2X509Credential.signing(
+                                keyMaterial.privateKey(), keyMaterial.certificate())))
+                // The same keypair also decrypts, which is what pac4j's SAML2Client did with
+                // this keystore. Registering only the signing half works right up until the
+                // identity provider encrypts an assertion or NameID, and then fails at login
+                // rather than at startup, because the registration is built lazily.
+                .decryptionX509Credentials(credentials ->
+                        credentials.add(Saml2X509Credential.decryption(
+                                keyMaterial.privateKey(), keyMaterial.certificate())))
                 .build();
     }
 
+    /** The SP private key and its certificate, read once and used for both credentials. */
+    private record KeyMaterial(PrivateKey privateKey, X509Certificate certificate) {
+    }
+
     /**
-     * Loads the SP signing keypair. The deployed SP metadata declares
-     * {@code AuthnRequestsSigned="true"}, so this credential is required for the IdP to
-     * accept an authentication request.
+     * Loads the SP keypair. The deployed SP metadata declares
+     * {@code AuthnRequestsSigned="true"}, so this is required for the IdP to accept an
+     * authentication request, and it is the key an IdP encrypts to.
      */
-    private Saml2X509Credential loadSigningCredential() {
+    private KeyMaterial loadKeyMaterial() {
 
         Resource keystore = resourceLoader.getResource(keyStoreFile);
         if (!keystore.exists()) {
@@ -185,7 +200,7 @@ public class SamlRelyingPartyConfig {
             }
             warnIfExpired(certificate);
 
-            return Saml2X509Credential.signing(privateKey, certificate);
+            return new KeyMaterial(privateKey, certificate);
 
         } catch (RuntimeException e) {
             throw e;
