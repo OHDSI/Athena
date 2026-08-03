@@ -1,0 +1,14 @@
+ui
+  h_7f60897e49550e 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "ba34e0c64b36d57943197c8c6c4dfc4c93c3b1fc",
+  "prompts": {},
+  "humans": {
+    "h_7f60897e49550e": {
+      "author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
