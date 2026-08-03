@@ -98,7 +98,10 @@ public class WebSecurityConfig {
             "/api/v1/users/countries",
             "/api/v1/users/provinces",
             "/api/v1/vocabularies/licenses/accept/mail",  // token-bound link from email
-            "/api/v1/vocabularies/releaseVersion",
+            // Vocabulary release version, read by the front end's About dialog before a user
+            // signs in. Spelled the way the controller maps it — the camelCase form that was
+            // listed here matches no handler.
+            "/api/v1/vocabularies/release-version",
             "/api/v1/vocabularies/zip/**",
             "/api/v1/build-number",
             "/api/v1/concepts",
@@ -108,7 +111,7 @@ public class WebSecurityConfig {
     private static final String[] PUBLIC_RESOURCES = {
             "/", "/error", "/index.html", "/**.js", "/fonts/**", "/icons/**", "/img/**",
             "/app.*.js", "/webjars/**", "/swagger-ui.html", "/swagger-resources/**",
-            "/v3/api-docs/**", "/auth/saml-metadata", "/auth/slo"
+            "/v3/api-docs/**", "/auth/saml-metadata", "/auth/slo", "/auth/logged-out"
     };
 
 
@@ -244,10 +247,17 @@ public class WebSecurityConfig {
     /**
      * SAML SSO and the remaining UI routes.
      * <p>
-     * The assertion consumer service stays on the path the IdP already has registered
-     * ({@code /auth/callback}) — see {@link SamlRelyingPartyConfig}. {@code /auth/sso}
-     * remains the login entry point and simply forwards to Spring Security's
-     * authentication-request endpoint, so the externally visible URL is unchanged.
+     * The assertion consumer service stays on the path the identity provider already has
+     * registered ({@code /auth/callback}) — see {@link SamlRelyingPartyConfig}.
+     * {@code /auth/sso} remains the login entry point; requiring authentication there is what
+     * triggers the SAML entry point, so the externally visible URL is unchanged.
+     * <p>
+     * {@code loginPage} has to be set explicitly. Spring Security only auto-redirects to a
+     * single identity provider when the registration repository is {@link Iterable}, and this
+     * one deliberately is not — see
+     * {@link SamlRelyingPartyConfig#AUTHENTICATION_REQUEST_PATH}. Without it the default
+     * {@code /login} chooser renders with an empty provider list and the popup never leaves
+     * the application.
      */
     @Bean
     @Order(4)
@@ -262,6 +272,7 @@ public class WebSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .saml2Login(saml2 -> saml2
                         .loginProcessingUrl(SamlRelyingPartyConfig.ASSERTION_CONSUMER_SERVICE_PATH)
+                        .loginPage(SamlRelyingPartyConfig.AUTHENTICATION_REQUEST_PATH)
                         // Spring Security insists on {registrationId} in the assertion
                         // consumer service path unless a converter supplies the
                         // registration itself. The IdP already has /auth/callback

@@ -86,6 +86,36 @@ public class PublicEndpointMatchingTest {
         assertTrue(isPublic("/api/v1/vocabularies/zip/some-uuid"));
     }
 
+    /**
+     * The About dialog reads this before anyone signs in, so the entry has to match the path
+     * the controller actually maps — {@code @GetMapping("/release-version")} on
+     * {@code AbstractVocabularyController}, under the {@code /api/v1/vocabularies} base.
+     */
+    @Test
+    public void vocabularyReleaseVersionIsPublicUnderItsRealPath() {
+
+        assertTrue(isPublic("/api/v1/vocabularies/release-version"));
+        assertFalse(isPublic("/api/v1/vocabularies/releaseVersion"));
+    }
+
+    /**
+     * The same handler is inherited by the server-to-server controller, which sits behind
+     * signature verification and must not be opened up by the entry above.
+     */
+    @Test
+    public void theServerToServerReleaseVersionStaysProtected() {
+
+        assertFalse(isPublic("/api/s2s/vocabularies/release-version"));
+    }
+
+    /** Both ends of the logout popup are reached without a session by definition. */
+    @Test
+    public void theLogoutPopupPathsArePublic() {
+
+        assertTrue(isPublic("/auth/slo"));
+        assertTrue(isPublic("/auth/logged-out"));
+    }
+
     /** user enumeration must stay behind authentication. */
     @Test
     public void userSuggestIsNotPublic() {

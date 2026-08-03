@@ -73,14 +73,31 @@ public class SamlRelyingPartyConfig {
     public static final String REGISTRATION_ID = "athena";
 
     /**
-     * The endpoint the IdP already has registered for this SP. Taken verbatim from the
-     * deployed {@code sp-metadata.xml}, which declares
-     * {@code {base}/auth/callback?client_name=SAML2Client}. The query parameter is a
-     * pac4j artefact; Spring Security matches the assertion consumer service on path
-     * only, so keeping this path means <strong>no IdP reconfiguration and no metadata
-     * regeneration</strong> is needed.
+     * Assertion consumer service path. The deployed {@code sp-metadata.xml} must declare a
+     * {@code Location} that resolves to exactly this URL, <strong>including any query
+     * string</strong>: OpenSAML validates the assertion's {@code Destination} and
+     * {@code Recipient} against the full URL, not the path alone. A mismatch bounces the
+     * browser back to {@link #AUTHENTICATION_REQUEST_PATH}{@code ?error}, which presents as a
+     * login loop rather than as an error.
+     * <p>
+     * Metadata generated for the previous pac4j-based implementation carries a
+     * {@code ?client_name=SAML2Client} suffix on this location. That suffix is not reproduced
+     * here, so such metadata has to be regenerated and re-registered with the identity
+     * provider before this implementation will accept an assertion.
      */
     public static final String ASSERTION_CONSUMER_SERVICE_PATH = "/auth/callback";
+
+    /**
+     * Spring Security's authentication-request endpoint for this registration. Requesting it
+     * builds a signed {@code AuthnRequest} and redirects the browser to the identity provider.
+     * <p>
+     * Wired as {@code saml2Login.loginPage} because {@link LazyRelyingPartyRegistrationRepository}
+     * is not {@link Iterable}: both the single-provider auto-redirect and the default
+     * {@code /login} chooser iterate the repository while the filter chain is being built,
+     * which would force the credential and metadata load this class defers on purpose.
+     */
+    public static final String AUTHENTICATION_REQUEST_PATH =
+            "/saml2/authenticate/" + REGISTRATION_ID;
 
     private final ResourceLoader resourceLoader;
 
@@ -126,6 +143,10 @@ public class SamlRelyingPartyConfig {
                 .registrationId(REGISTRATION_ID)
                 .entityId(serviceProviderEntityId)
                 .assertionConsumerServiceLocation("{baseUrl}" + ASSERTION_CONSUMER_SERVICE_PATH)
+                // The SP metadata declares AuthnRequestsSigned="true". Spring Security
+                // otherwise signs only when the identity provider's metadata asks for it,
+                // which leaves the two sides disagreeing whenever it does not.
+                .authnRequestsSigned(true)
                 .signingX509Credentials(credentials -> credentials.add(loadSigningCredential()))
                 .build();
     }
@@ -200,6 +221,11 @@ public class SamlRelyingPartyConfig {
     /**
      * Defers building the registration until the first SAML request. See the class
      * javadoc for why this matters.
+     * <p>
+     * Deliberately <em>not</em> {@link Iterable}: Spring Security walks the repository while
+     * building the filter chain, and that walk would force {@link #buildRegistration()} at
+     * startup. The login entry point is pinned via {@link #AUTHENTICATION_REQUEST_PATH}
+     * instead.
      */
     static final class LazyRelyingPartyRegistrationRepository
             implements RelyingPartyRegistrationRepository {
