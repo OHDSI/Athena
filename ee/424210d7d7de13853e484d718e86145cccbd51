@@ -1,0 +1,27 @@
+src/main/java/com/odysseusinc/athena/service/impl/AthenaCSVWriter.java
+  s_9a19fdc938be11::t_a029e0eb626b21 25-26,28,31-32,34,36-62,66,69,71-73,76,78,81-91,94-99,102-103,105-131,133-134,136-161,163-169,173-192,194-201
+src/main/java/com/odysseusinc/athena/service/impl/ResultSetCsvValues.java
+  s_9a19fdc938be11::t_47653b655c2785 3,17,26-32,35,37-63,65-68,70-81,83,85-89,91,93-102,106-117,121,123-124,129,131,134,136-141,143-152,155-161,164-190,192-200,202,204,206,209-220,222-223,227-301,303
+src/main/java/com/odysseusinc/athena/service/saver/CSVSaver.java
+  s_9a19fdc938be11::t_a8263856db7936 72,89
+src/test/java/com/odysseusinc/athena/service/impl/AthenaCsvWriterGoldenTest.java
+  s_9a19fdc938be11::t_51fe2ab706e8be 1-277
+src/test/java/com/odysseusinc/athena/service/impl/CsvFormulaInjectionTest.java
+  s_9a19fdc938be11::t_e487a82b88e1ca 1-121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "ee424210d7d7de13853e484d718e86145cccbd51",
+  "prompts": {},
+  "sessions": {
+    "s_9a19fdc938be11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97a88393-c53f-47f0-93e9-4932a20ec985",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
