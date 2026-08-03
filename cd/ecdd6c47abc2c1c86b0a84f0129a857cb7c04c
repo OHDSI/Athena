@@ -1,0 +1,37 @@
+src/main/java/com/odysseusinc/athena/api/v1/controller/ConceptSearchController.java
+  s_9a19fdc938be11::t_efc3b76ae76ada 34
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/ConceptSearchResultToDTO.java
+  s_9a19fdc938be11::t_99d84a9b8957a1 38
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/ConceptV5ToConceptDetailDTOConverter.java
+  s_9a19fdc938be11::t_0a1acb791c57d2 36
+src/main/java/com/odysseusinc/athena/service/impl/ConceptSearchPhraseToSolrQueryService.java
+  s_9a19fdc938be11::t_381dae49b842bb 20
+src/main/java/com/odysseusinc/athena/service/impl/DownloadBundleServiceImpl.java
+  s_9a19fdc938be11::t_1bb6a43d352ced 42
+src/main/java/com/odysseusinc/athena/service/impl/DownloadsHistoryServiceImpl.java
+  s_9a19fdc938be11::t_55fd054c1ed852 39
+src/main/java/com/odysseusinc/athena/service/impl/NotificationServiceImpl.java
+  s_9a19fdc938be11::t_5a70a3a86e96ad 28
+src/main/java/com/odysseusinc/athena/service/impl/QueryDebugUtils.java
+  s_9a19fdc938be11::t_effc009352ce34 12
+src/main/java/com/odysseusinc/athena/service/mail/EmailSenderService.java
+  s_9a19fdc938be11::t_74b7e3041d0fba 27
+src/main/java/com/odysseusinc/athena/service/saver/statment/PreparedStatementCreator.java
+  s_9a19fdc938be11::t_8c393754529f4c 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "cdecdd6c47abc2c1c86b0a84f0129a857cb7c04c",
+  "prompts": {},
+  "sessions": {
+    "s_9a19fdc938be11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97a88393-c53f-47f0-93e9-4932a20ec985",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
