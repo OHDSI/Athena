@@ -1,0 +1,55 @@
+pom.xml
+  s_9a19fdc938be11::t_6778f15b32ac45 37,163-178
+src/main/java/com/odysseusinc/athena/config/WebSecurityConfig.java
+  s_9a19fdc938be11::t_32de2277586570 25-26,28-32,38,42-50,53-68,71-123,125,127-128,130-131,133-136,138-139,141,144-164,166-168,170-174,176-196,198-215,217-241,244-252,254-277,280-300,302-318
+src/main/java/com/odysseusinc/athena/model/security/AthenaUser.java
+  s_9a19fdc938be11::t_9e09605ac3f6f1 85-87
+src/main/java/com/odysseusinc/athena/security/AthenaAuthentication.java
+  s_9a19fdc938be11::t_8b7828ae877d36 3,17,21,23-30,32-34,36-55,57-58,60-66,68-71,74-77,79-80,82-88,91-92,94-102,106,108-131
+src/main/java/com/odysseusinc/athena/security/apitoken/ApiTokenAuthenticationFilter.java
+  s_9a19fdc938be11::t_e8d817caaad2c6 3,17,21,23-37,40-74,76-77,79,82-87,89-101,104,106-116,118-119
+src/main/java/com/odysseusinc/athena/security/hmac/ApiClients.java
+  s_9a19fdc938be11::t_44c943beb719eb 26,36-39,50-53,57,63-74,77-89,91-113,122,153-155,163-165,180-188,192,196-238,240
+src/main/java/com/odysseusinc/athena/security/hmac/HmacVerifyingFilter.java
+  s_9a19fdc938be11::t_4d15b330e53041 93-99,101,105
+src/main/java/com/odysseusinc/athena/security/jwt/JwtAuthenticationFilter.java
+  s_9a19fdc938be11::t_85a30b85d94fd8 3,17,21,23-25,28-30,32-36,38-50,52-54,56-58,60-62,66-67,69-73,75,77-78,80-90
+src/main/java/com/odysseusinc/athena/security/jwt/JwtTokenService.java
+  s_9a19fdc938be11::t_44633c0c7bfc5c 3,17,21-31,33-79,82-99,101-113,115-117,119-120,122-151,153-158,160-161,163-165,167,169-183,186-188,191-193
+src/main/java/com/odysseusinc/athena/security/saml/SamlAuthenticationSuccessHandler.java
+  s_9a19fdc938be11::t_a72bf414096ddd 1-151
+src/main/java/com/odysseusinc/athena/security/saml/SamlRelyingPartyConfig.java
+  s_9a19fdc938be11::t_1444ecee2d598f 3,17,21-23,29-65,67-85,87-88,90,92,97-98,100-102,104-106,108,110-111,114-116,119-122,124-130,133-175,177-192,195,197,200-232
+src/main/java/com/odysseusinc/athena/service/security/UserTokenService.java
+  s_9a19fdc938be11::t_dc37b7f7d5833c 16
+src/test/java/com/odysseusinc/athena/config/PublicEndpointMatchingTest.java
+  s_9a19fdc938be11::t_2aac206e04e3e4 3,17,21,24-77,81,83-86,89,91-111,114-120
+src/test/java/com/odysseusinc/athena/security/apitoken/ApiTokenAuthenticationFilterTest.java
+  s_9a19fdc938be11::t_ffd6c6dc8f0840 1-164
+src/test/java/com/odysseusinc/athena/security/hmac/ApiClientsDebugSignatureTest.java
+  s_9a19fdc938be11::t_b5e7f2a5d22a47 1-171
+src/test/java/com/odysseusinc/athena/security/hmac/ApiClientsTest.java
+  s_9a19fdc938be11::t_dfa878daba669e 1-168
+src/test/java/com/odysseusinc/athena/security/hmac/HmacNonceWindowTest.java
+  s_9a19fdc938be11::t_93ce20fceaaef8 1-141
+src/test/java/com/odysseusinc/athena/security/jwt/JwtTokenServiceTest.java
+  s_9a19fdc938be11::t_8907f16bc8be6a 1-216
+src/test/java/com/odysseusinc/athena/security/saml/SamlRedirectTest.java
+  s_9a19fdc938be11::t_a7dc9779c53999 3,17,21,23,25-27,29-57,59,62-64,66-73,76-85,87-88,91-107,109-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "d0ac1730af65176a96a122f1629786ca9350d5e2",
+  "prompts": {},
+  "sessions": {
+    "s_9a19fdc938be11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97a88393-c53f-47f0-93e9-4932a20ec985",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
