@@ -30,6 +30,7 @@ import com.odysseusinc.athena.security.jwt.JwtTokenService;
 import com.odysseusinc.athena.security.saml.SamlAuthenticationSuccessHandler;
 import com.odysseusinc.athena.security.saml.SamlRelyingPartyConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,10 +49,13 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Application security. Replaces the pac4j-based configuration.
@@ -225,20 +229,25 @@ public class WebSecurityConfig {
     @Order(3)
     public SecurityFilterChain apiFilterChain(HttpSecurity http,
                                               JwtAuthenticationFilter jwtFilter,
-                                              JwtTokenService tokenService) throws Exception {
+                                              JwtTokenService tokenService,
+                                              @Value("${athena.token.header}") String authTokenHeader)
+            throws Exception {
 
         return http
                 .securityMatcher("/api/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class)
+                // Before LogoutFilter, not BasicAuthenticationFilter. LogoutFilter sits far
+                // earlier in Spring Security's ordering, so authenticating after it left the
+                // security context empty for the duration of a logout request.
+                .addFilterBefore(jwtFilter, LogoutFilter.class)
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
                 .logout(logout -> logout
                         .logoutRequestMatcher(matcher("/api/v1/users/logout"))
-                        .addLogoutHandler(revokeTokenHandler(tokenService))
+                        .addLogoutHandler(revokeTokenHandler(tokenService, authTokenHeader))
                         .logoutSuccessHandler((request, response, authentication) ->
                                 response.setStatus(200)))
                 .build();
@@ -314,17 +323,35 @@ public class WebSecurityConfig {
      * Adds the presented JWT to the revoked-token store so it cannot be replayed after
      * logout. Replaces {@code CustomLogoutLogic}, which reached into pac4j's session
      * profile map to find the token.
+     * <p>
+     * The token is taken from the security context when there is one, and read off the
+     * request otherwise. The fallback is deliberate rather than defensive clutter: this
+     * handler runs inside {@code LogoutFilter}, and whether the context is populated by then
+     * depends entirely on where the authentication filter was inserted. That coupling is
+     * invisible at the call site and already broke revocation once, so correctness here does
+     * not depend on it.
+     * <p>
+     * A token presented this way is verified before being stored. Otherwise anything at all
+     * in the header would be written to the revocation table, which is unauthenticated
+     * input controlling unbounded storage.
      */
-    private org.springframework.security.web.authentication.logout.LogoutHandler revokeTokenHandler(
-            JwtTokenService tokenService) {
+    static LogoutHandler revokeTokenHandler(JwtTokenService tokenService, String authTokenHeader) {
 
         return (request, response, authentication) -> {
-            if (authentication instanceof AthenaAuthentication) {
-                ((AthenaAuthentication) authentication).getToken().ifPresent(token -> {
-                    tokenService.revoke(token);
-                    log.debug("Revoked the session token of user [{}]", authentication.getName());
-                });
-            }
+            Optional<String> fromContext = authentication instanceof AthenaAuthentication
+                    ? ((AthenaAuthentication) authentication).getToken()
+                    : Optional.empty();
+
+            Optional<String> token = fromContext
+                    .or(() -> Optional.ofNullable(request.getHeader(authTokenHeader))
+                            .map(String::trim)
+                            .filter(header -> !header.isEmpty())
+                            .filter(header -> tokenService.validate(header).isPresent()));
+
+            token.ifPresent(value -> {
+                tokenService.revoke(value);
+                log.debug("Revoked the session token presented at logout");
+            });
         };
     }
 }
