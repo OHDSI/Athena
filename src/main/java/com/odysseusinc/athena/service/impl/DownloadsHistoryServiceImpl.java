@@ -36,7 +36,7 @@ import com.odysseusinc.athena.service.DownloadsHistoryService;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.extractor.DownloadHistoryExtractor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
