@@ -39,8 +39,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -84,8 +82,9 @@ public class AthenaUser implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private List<AthenaRole> roles;
 
-    @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToMany(mappedBy = "user", targetEntity = License.class)
+    // Hibernate 6 removed @LazyCollection; LazyCollectionOption.FALSE meant eager,
+    // so the equivalent is fetch = EAGER on the association itself.
+    @OneToMany(mappedBy = "user", targetEntity = License.class, fetch = FetchType.EAGER)
     private List<License> licenses;
 
     public AthenaUser() {
