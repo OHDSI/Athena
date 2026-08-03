@@ -12,6 +12,7 @@ import com.odysseusinc.athena.service.LicenseService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.mail.EmailService;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +49,10 @@ public class LicenseServiceImpl implements LicenseService {
 
     @Override
     public void checkLicense(Long id, String token) {
-
+        if (StringUtils.isBlank(token)) {
+            throw new NotExistException("License does not exist or has already been declined",
+                    License.class);
+        }
         final License license = vocabularyService.get(id, token);
         check(Optional.ofNullable(license));
     }
