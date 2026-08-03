@@ -35,8 +35,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
@@ -83,8 +81,9 @@ public class SolrConcept extends EntityV5 {
     @Column(name = "invalid_reason")
     private String invalidReason;
 
-    @OneToMany(mappedBy = "id", targetEntity = ConceptSynonymV5.class)
-    @LazyCollection(LazyCollectionOption.FALSE)
+    // Hibernate 6 removed @LazyCollection; LazyCollectionOption.FALSE meant eager,
+    // so the equivalent is fetch = EAGER on the association itself.
+    @OneToMany(mappedBy = "id", targetEntity = ConceptSynonymV5.class, fetch = FetchType.EAGER)
     private List<ConceptSynonymV5> synonyms;
 
     public Long getId() {

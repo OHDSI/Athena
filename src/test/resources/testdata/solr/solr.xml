@@ -28,6 +28,18 @@
 
 <solr>
 
+    <!--
+      Embedded Solr's Log4j2Watcher casts the LogManager context to log4j2-core's
+      LoggerContext. Spring Boot routes the log4j2 API through SLF4J/Logback via
+      log4j-to-slf4j, so the context is an SLF4JLoggerContext and CoreContainer.load()
+      dies with a ClassCastException before any core is opened. The watcher only powers
+      Solr's admin log UI, which embedded tests never use, so turning it off is the
+      narrowest fix and keeps the logging stack alone.
+    -->
+    <logging>
+        <bool name="enabled">false</bool>
+    </logging>
+
     <solrcloud>
 
         <str name="host">${host:}</str>

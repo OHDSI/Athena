@@ -2,7 +2,7 @@ package com.odysseusinc.athena.service.saver;
 
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.util.CDMVersion;
-import com.opencsv.CSVWriter;
+import com.odysseusinc.athena.service.impl.AthenaCSVWriter;
 import lombok.Getter;
 import lombok.Setter;
 import org.junit.Before;
@@ -33,7 +33,7 @@ public class SaverTest {
     private DownloadBundle bundle;
 
     @Mock
-    private CSVWriter csvWriter;
+    private AthenaCSVWriter csvWriter;
 
     @Mock
     private DataSource v5DataSource;

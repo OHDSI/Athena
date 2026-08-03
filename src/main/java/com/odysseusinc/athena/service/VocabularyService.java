@@ -54,6 +54,12 @@ public interface VocabularyService {
 
     void checkBundleAndSharedUser(AthenaUser user, DownloadBundle bundle);
 
+    /**
+     * Same check, for callers that only have the id. Loads the bundle so that an endpoint
+     * taking a bundle id from the request cannot act on a bundle the caller has no claim to.
+     */
+    void checkBundleAndSharedUser(AthenaUser user, long bundleId);
+
     Iterable<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids);
 
     Long requestLicense(AthenaUser user, Integer vocabularyV4Id);
