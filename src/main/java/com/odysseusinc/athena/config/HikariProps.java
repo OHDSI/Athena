@@ -9,7 +9,9 @@ import java.util.Properties;
 public class HikariProps {
 
     public static final Properties JPA_PROPERTIES = new Properties() {{
-        put("hibernate.dialect", "org.hibernate.dialect.PostgreSQL95Dialect");
+        // Hibernate 6 removed the version-specific dialects (PostgreSQL95Dialect and
+        // friends); PostgreSQLDialect now derives the server version at runtime.
+        put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         put("hibernate.hbm2ddl.auto", "none");
         put("hibernate.ddl-auto", "none");
         put("show-sql", "true");

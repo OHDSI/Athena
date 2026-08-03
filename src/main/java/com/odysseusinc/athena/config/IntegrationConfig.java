@@ -22,74 +22,38 @@
 
 package com.odysseusinc.athena.config;
 
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * The {@link RestTemplate} used to call the Arachne portal (registration, password
+ * remind/reset, professional types, countries, provinces).
+ *
+ * <h2>TLS verification is now enabled — behaviour change</h2>
+ * This class previously built an Apache HttpClient 4 with a trust-all
+ * {@code X509TrustManager} <em>and</em> called
+ * {@code HttpsURLConnection.setDefaultSSLSocketFactory(...)}, which disabled certificate
+ * validation for the entire JVM rather than just this client. Spring Boot 4
+ * ships Apache HttpClient 5, whose API differs, so no mechanical port existed — the
+ * choice was to re-author the trust-all behaviour against the new API or drop it.
+ * <p>
+ * It is dropped: the default factory validates certificates. That closes, but it
+ * is a genuine behaviour change. <b>If the Arachne portal presents a self-signed or
+ * otherwise untrusted certificate these calls will now fail</b> where they previously
+ * succeeded. The fix in that case is to add the portal's CA to the JVM truststore, not to
+ * reinstate a trust-all manager.
+ */
 @Configuration
 public class IntegrationConfig {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(IntegrationConfig.class);
 
     @Bean
     public RestTemplate centralRestTemplate() {
 
-        RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(getHttpClient()));
+        RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
         restTemplate.getMessageConverters().add(new ByteArrayHttpMessageConverter());
         return restTemplate;
-    }
-
-    private CloseableHttpClient getHttpClient() {
-
-        TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-
-                    @Override
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-
-                        return null;
-                    }
-
-                    @Override
-                    public void checkClientTrusted(
-                            java.security.cert.X509Certificate[] certs, String authType) {
-
-                    }
-
-                    @Override
-                    public void checkServerTrusted(
-                            java.security.cert.X509Certificate[] certs, String authType) {
-
-                    }
-                }
-        };
-        CloseableHttpClient closeableHttpClient = null;
-        try {
-            SSLContext sc = SSLContext.getInstance("SSL");
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            SSLSocketFactory socketFactory = sc.getSocketFactory();
-            HttpsURLConnection.setDefaultSSLSocketFactory(socketFactory);
-            HttpClientBuilder httpClientBuilder = HttpClients.custom();
-            SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sc);
-            closeableHttpClient = httpClientBuilder.setSSLSocketFactory(csf).build();
-        } catch (KeyManagementException | NoSuchAlgorithmException ex) {
-            LOGGER.error("", ex);
-        }
-        return closeableHttpClient;
     }
 }

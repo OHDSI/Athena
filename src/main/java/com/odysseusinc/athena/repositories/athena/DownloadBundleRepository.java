@@ -26,7 +26,7 @@ import com.odysseusinc.athena.model.athena.DownloadBundle;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceContext;
 
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import org.springframework.data.domain.Sort;
