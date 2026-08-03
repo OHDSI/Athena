@@ -32,7 +32,6 @@
         <solr.version>8.11.2</solr.version>
         <spring-security-pac4j.version>4.1.0</spring-security-pac4j.version>
         <pac4j.version>3.3.0</pac4j.version>
-        <opencsv.version>3.9</opencsv.version>
         <jakarta.mail.version>1.6.7</jakarta.mail.version>
         <disruptor.version>3.4.2</disruptor.version>
         <commons-lang3.version>3.11</commons-lang3.version>
@@ -304,13 +303,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>hyee.opencsv</groupId>
-            <artifactId>hyee-opencsv</artifactId>
-            <version>1.1</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/opencsv.jar</systemPath>
-        </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
