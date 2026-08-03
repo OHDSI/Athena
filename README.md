@@ -61,8 +61,36 @@ build time. `dev` is the default. The settings worth knowing are the four dataso
 (`spring.datasource-db`, `-v4`, `-v5`, `-v5-history`), `athena.solrServerUrl`, and the SAML
 block under `cas.*`.
 
-> No SAML keystore ships with the application. To exercise SSO locally, supply your own and
-> point `cas.key-manager.key-store-file` at it.
+`dev` and `test` are self-contained and need nothing extra. The `qa` and `prod` profiles carry
+no addresses, credentials or key material of their own — every such value is written as
+`${VAR:}` and has to come from the environment:
+
+| Variable | Purpose |
+|---|---|
+| `SALT` | Signing secret for issued tokens. At least 32 bytes; startup fails otherwise. |
+| `ATHENA_TOKEN_SECRET` | Shared secret for the API token header. |
+| `ATHENA_ASYNC_AUTH_REDIRECT` | Absolute URL the identity provider returns the browser to after login. |
+| `ATHENA_SLO_URL` | Identity provider logout URL. |
+| `ATHENA_URL` | Public base URL. The SSO flow derives it from the request when unset, but links in outgoing e-mail cannot — set it. |
+| `ATHENA_V5_HISTORY_DB_PASSWORD` | Password for the `-v5-history` datasource. |
+| `ATHENA_SOLR_URL` | Solr base URL. Defaults to `http://localhost:8984/solr`. |
+| `CAS_DEFAULT_IDP` | Identity provider entity id. |
+| `CAS_ENTITY_ID` | This service provider's entity id, as registered with the identity provider. |
+| `CAS_IDP_METADATA_LOCATION` | Identity provider metadata, e.g. `file:/path/to/idp-metadata.xml`. |
+| `ATHENA_SAML_SP_METADATA_LOCATION` | This service provider's metadata. |
+| `CAS_KEYSTORE_FILE` | Keystore holding the SAML signing key, e.g. `file:/path/to/keystore.jks`. |
+| `CAS_KEYSTORE_PASSWORD` | Keystore password. |
+| `CAS_KEYSTORE_KEY_ALIAS` | Alias of the signing key inside the keystore. |
+| `CAS_KEYSTORE_KEY_PASSWORD` | Password of that key. |
+
+> No SAML keystore or deployed metadata ships with the application. To exercise SSO locally,
+> supply your own and point `cas.key-manager.key-store-file` at it.
+
+> The service provider metadata registered with the identity provider must declare an
+> assertion consumer service whose `Location` resolves to exactly `<base>/auth/callback`.
+> Metadata generated for the previous pac4j implementation carries a
+> `?client_name=SAML2Client` suffix; that has to be regenerated and re-registered, or
+> assertions are rejected and the browser appears to loop on login.
 
 ### Tests
 
@@ -131,7 +159,7 @@ finds the same concepts as the correctly spelled phrase, ranked by similarity.
 ## Tuning the search query
 
 Append `debug=true` to a search URL - for example
-`https://qaathena.odysseusinc.com/search-terms/terms?debug=true` - to get an input field for the
+`https://<host>/search-terms/terms?debug=true` - to get an input field for the
 boost object, a score column in the results, and the generated Solr request plus score
 breakdown in the browser console (F12). Nothing is printed while the request and score are
 unchanged.
