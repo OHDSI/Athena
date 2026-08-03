@@ -1,0 +1,19 @@
+pom.xml
+  s_9a19fdc938be11::t_6dba0630d22d10 29,31,34-38,40-46,259-267,270,272,274-275,280,290-306,310,317-318,324,329-331,334-338,340-341,348,350-352,356,373,414-417,542-552,582-588,590-601
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "495910a664b3cab02a26a440b0e9f9d91ef8939c",
+  "prompts": {},
+  "sessions": {
+    "s_9a19fdc938be11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97a88393-c53f-47f0-93e9-4932a20ec985",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
