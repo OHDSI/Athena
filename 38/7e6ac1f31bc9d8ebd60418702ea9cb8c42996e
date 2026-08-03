@@ -1,0 +1,27 @@
+properties/dev/application.properties
+  s_9a19fdc938be11::t_802d9881c514a7 8-22,34,122-124,126-127
+properties/prod/application.properties
+  s_9a19fdc938be11::t_865a457339cb20 64
+properties/qa/application.properties
+  s_9a19fdc938be11::t_9e190b1ecc8eef 64
+properties/test/application.properties
+  s_9a19fdc938be11::t_e46c6f92b9bc58 16,64
+src/test/resources/application-test.properties
+  s_9a19fdc938be11::t_c75547d9bd5fc0 6-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "387e6ac1f31bc9d8ebd60418702ea9cb8c42996e",
+  "prompts": {},
+  "sessions": {
+    "s_9a19fdc938be11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97a88393-c53f-47f0-93e9-4932a20ec985",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
