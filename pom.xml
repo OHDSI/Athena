@@ -169,11 +169,9 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <!--
-          Native Spring Security replacement for pac4j-saml.
-          Note this still resolves OpenSAML 3.4.6, not 4.x: Spring Security 5.7
-          supports both but defaults to the 3.x line, which is EOL. Moving off it
-          means either opting into OpenSaml4AuthenticationProvider or waiting for the
-          Boot 4 / Security 7 step, which uses OpenSAML 5.
+          Native Spring Security replacement for pac4j-saml. On Security 7 this resolves
+          OpenSAML 5 and OpenSaml5AuthenticationProvider, so the EOL 3.x line pac4j-saml
+          depended on is gone rather than merely pinned.
         -->
         <dependency>
             <groupId>org.springframework.security</groupId>
