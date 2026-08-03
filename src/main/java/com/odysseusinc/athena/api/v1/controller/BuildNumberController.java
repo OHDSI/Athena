@@ -22,7 +22,7 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonBuildNumberDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.BuildNumberDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,9 +42,9 @@ public class BuildNumberController {
 
     @Operation(summary = "Get build number.")
     @GetMapping(value = "/api/v1/build-number")
-    public CommonBuildNumberDTO buildNumber() {
+    public BuildNumberDTO buildNumber() {
 
-        CommonBuildNumberDTO buildNumberDTO = new CommonBuildNumberDTO();
+        BuildNumberDTO buildNumberDTO = new BuildNumberDTO();
         buildNumberDTO.setBuildNumber(buildNumber);
         buildNumberDTO.setBuildId(buildId);
         buildNumberDTO.setProjectVersion(projectVersion);

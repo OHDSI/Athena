@@ -22,8 +22,8 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
-import com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO;
-import com.odysseusinc.arachne.commons.api.v1.dto.util.JsonResult;
+import com.odysseusinc.athena.api.v1.controller.dto.arachne.ArachnePortalResponse;
+import com.odysseusinc.athena.api.v1.controller.dto.arachne.UserRegistrationDTO;
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.AthenaUserDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.BaseAthenaUserDTO;
@@ -106,25 +106,25 @@ public class UserController {
     }
 
     @GetMapping(value = "/professional-types")
-    public JsonResult listProfessionalTypes() throws URISyntaxException {
+    public ArachnePortalResponse listProfessionalTypes() throws URISyntaxException {
 
         String uri = UriComponentsBuilder
                 .fromUriString(arachneUrl)
                 .replacePath(professionalTypesPath)
                 .toUriString();
 
-        ResponseEntity<JsonResult> responseEntity = restTemplate.exchange(
+        ResponseEntity<ArachnePortalResponse> responseEntity = restTemplate.exchange(
                 uri,
                 HttpMethod.GET,
                 null,
-                JsonResult.class
+                ArachnePortalResponse.class
         );
 
         return responseEntity.getBody();
     }
 
     @GetMapping(value = "/countries")
-    public JsonResult searchCountries(
+    public ArachnePortalResponse searchCountries(
             @RequestParam("query") String query,
             @RequestParam("limit") Integer limit,
             @RequestParam(value = "includeId", required = false) Long includeId
@@ -136,17 +136,17 @@ public class UserController {
                 .queryParam("limit", limit)
                 .queryParam("includeId", includeId)
                 .toUriString();
-        ResponseEntity<JsonResult> responseEntity = restTemplate.exchange(
+        ResponseEntity<ArachnePortalResponse> responseEntity = restTemplate.exchange(
                 uri,
                 HttpMethod.GET,
                 null,
-                JsonResult.class
+                ArachnePortalResponse.class
         );
         return responseEntity.getBody();
     }
 
     @GetMapping(value = "/provinces")
-    public JsonResult searchProvinces(
+    public ArachnePortalResponse searchProvinces(
             @RequestParam("countryId") String countryIdParam,
             @RequestParam("query") String query,
             @RequestParam("limit") Integer limit,
@@ -160,41 +160,41 @@ public class UserController {
                 .queryParam("limit", limit)
                 .queryParam("includeId", includeIdParam)
                 .toUriString();
-        ResponseEntity<JsonResult> responseEntity = restTemplate.exchange(
+        ResponseEntity<ArachnePortalResponse> responseEntity = restTemplate.exchange(
                 uri,
                 HttpMethod.GET,
                 null,
-                JsonResult.class);
+                ArachnePortalResponse.class);
         return responseEntity.getBody();
     }
 
     @PostMapping
-    public ResponseEntity register(@RequestBody CommonUserRegistrationDTO dto) throws PermissionDeniedException {
+    public ResponseEntity register(@RequestBody UserRegistrationDTO dto) throws PermissionDeniedException {
 
         dto.setRegistrantToken(registerToken);
         dto.setCallbackUrl(athenaUrl + registerCallbackUrl);
 
-        JsonResult res = executeRequest(registerPath, dto);
+        ArachnePortalResponse res = executeRequest(registerPath, dto);
 
-        if (!res.getErrorCode().equals(JsonResult.ErrorCode.NO_ERROR.getCode())) {
+        if (!res.getErrorCode().equals(ArachnePortalResponse.ErrorCode.NO_ERROR.getCode())) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
 
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-    private JsonResult executeRequest(String path, Object request) {
+    private ArachnePortalResponse executeRequest(String path, Object request) {
 
         String uri = UriComponentsBuilder
                 .fromUriString(arachneUrl)
                 .replacePath(path)
                 .toUriString();
 
-        ResponseEntity<JsonResult> responseEntity = restTemplate.exchange(
+        ResponseEntity<ArachnePortalResponse> responseEntity = restTemplate.exchange(
                 uri,
                 HttpMethod.POST,
                 new HttpEntity<>(request),
-                JsonResult.class
+                ArachnePortalResponse.class
         );
         return responseEntity.getBody();
     }
@@ -206,9 +206,9 @@ public class UserController {
         dto.setRegistrantToken(remindToken);
         dto.setCallbackUrl(athenaUrl);
 
-        JsonResult res = executeRequest(remindPasswordPath, dto);
+        ArachnePortalResponse res = executeRequest(remindPasswordPath, dto);
 
-        if (!res.getErrorCode().equals(JsonResult.ErrorCode.NO_ERROR.getCode())) {
+        if (!res.getErrorCode().equals(ArachnePortalResponse.ErrorCode.NO_ERROR.getCode())) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
 
@@ -220,9 +220,9 @@ public class UserController {
     public ResponseEntity resetPassword(@RequestBody @Valid ResetPasswordDTO dto)
             throws URISyntaxException, IOException {
 
-        JsonResult res = executeRequest(resetPasswordPath, dto);
+        ArachnePortalResponse res = executeRequest(resetPasswordPath, dto);
 
-        if (!res.getErrorCode().equals(JsonResult.ErrorCode.NO_ERROR.getCode())) {
+        if (!res.getErrorCode().equals(ArachnePortalResponse.ErrorCode.NO_ERROR.getCode())) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
 

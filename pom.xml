@@ -6,7 +6,7 @@
 
     <groupId>com.odysseusinc.athena</groupId>
     <artifactId>athena</artifactId>
-    <version>1.15.5</version>
+    <version>1.16.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
 
@@ -18,6 +18,14 @@
     </parent>
 
     <properties>
+        <!--
+          Baseline for the properties/${env} resource directory. The dev profile is
+          activeByDefault, but Maven deactivates activeByDefault profiles as soon as any
+          -P is given, so `mvn -PskipUi package` left ${env} unresolved: the resource
+          directory silently did not exist and the jar shipped with no application.properties.
+          Declaring it here means env always has a value; the env profiles still override it.
+        -->
+        <env>dev</env>
         <java.version>1.8</java.version>
         <jjwt.version>0.9.1</jjwt.version>
         <opensaml.version>2.6.6-patched</opensaml.version>
@@ -26,8 +34,6 @@
         <pac4j.version>3.3.0</pac4j.version>
         <opencsv.version>3.9</opencsv.version>
         <jakarta.mail.version>1.6.7</jakarta.mail.version>
-        <dockerImagePrefix>hub.odysseusinc.com</dockerImagePrefix>
-        <arachne.version>1.19.0</arachne.version>
         <disruptor.version>3.4.2</disruptor.version>
         <commons-lang3.version>3.11</commons-lang3.version>
         <build.number>${BUILD_NUMBER}</build.number>
@@ -35,9 +41,29 @@
         <guava.verson>30.1-jre</guava.verson>
         <lombok.version>1.18.18</lombok.version>
         <postgresql.version>42.2.26</postgresql.version>
+        <!-- Front end. The UI is compiled from source rather than pulled from a registry
+             Point athena.ui.dir at a different checkout to build against it instead of 
+             the submodule:
+                 mvn package -Dathena.ui.dir=/path/to/AthenaUI -->
+        <athena.ui.dir>${project.basedir}/ui</athena.ui.dir>
+        <frontend-maven-plugin.version>1.15.1</frontend-maven-plugin.version>
+        <!-- Flipped by the skipUi profile. Named separately from maven.resources.skip so
+             that skipping the UI copy does not also skip the application's own resources. -->
+        <maven.resources.skip.ui>false</maven.resources.skip.ui>
+        <!-- Pinned for reproducibility. Any current LTS works now that node-sass (which
+             needed a matching prebuilt binary) is gone from AthenaUI. -->
+        <node.version>v24.11.1</node.version>
     </properties>
 
     <profiles>
+        <profile>
+            <id>skipUi</id>
+            <properties>
+                <skip.npm>true</skip.npm>
+                <skip.installnodenpm>true</skip.installnodenpm>
+                <maven.resources.skip.ui>true</maven.resources.skip.ui>
+            </properties>
+        </profile>
         <profile>
             <id>dev</id>
             <properties>
@@ -92,17 +118,6 @@
             <groupId>javax.jms</groupId>
             <artifactId>javax.jms-api</artifactId>
             <version>2.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.odysseusinc.arachne</groupId>
-            <artifactId>arachne-commons</artifactId>
-            <version>${arachne.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -361,6 +376,130 @@
             </resource>
         </resources>
         <plugins>
+            <!--
+              Backstop for the same hazard: whatever combination of profiles was used, a
+              packaged jar must actually contain a UI. Bound after the copy, so it passes on
+              a full build and fails loudly on -PskipUi with nothing built yet.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>ui-present</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireFilesExist>
+                                    <files>
+                                        <file>${project.basedir}/src/main/resources/public/index.html</file>
+                                        <!-- Comes from properties/${env}; absent if env failed
+                                             to resolve, which produces a jar that starts with
+                                             no datasource, no Solr URL and no token secret. -->
+                                        <file>${project.build.outputDirectory}/application.properties</file>
+                                    </files>
+                                    <message>
+Missing a required file (see below). If it is public/index.html, build the UI or
+drop -PskipUi; if it is application.properties, ${env} did not resolve to a
+directory under properties/.
+  mvn package                                   (builds the ui/ submodule)
+  mvn package -Dathena.ui.dir=/path/to/AthenaUI (builds another checkout)
+If the submodule is empty: git submodule update --init
+                                    </message>
+                                </requireFilesExist>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--
+              The UI used to arrive as com.odysseusinc.athena:athena-resources, a
+              zip of AthenaUI's dist/ published to a private Nexus - the only artifact that
+              still required it, and one that made a clean checkout unbuildable without
+              credentials. It is now compiled from source: `ui` is a git submodule pinned to
+              an exact AthenaUI commit, so the front end that ships in the jar is identified
+              by revision rather than by a mutable SNAPSHOT.
+
+              frontend-maven-plugin downloads its own Node, so no Node is required on the
+              build host and every build uses the same version. `npm ci` installs strictly
+              from AthenaUI's package-lock.json.
+
+              Skip it with -PskipUi when working on the backend alone; whatever was last
+              built into src/main/resources/public/ is then reused as-is.
+            -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>${frontend-maven-plugin.version}</version>
+                <configuration>
+                    <workingDirectory>${athena.ui.dir}</workingDirectory>
+                    <!-- Deliberately not under target/: this survives `mvn clean`, so the
+                         Node download is not repeated on every clean build. It is also
+                         outside the submodule, which stays pristine. -->
+                    <installDirectory>${project.basedir}/.frontend</installDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install-node-and-npm</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>${node.version}</nodeVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-ci</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>ci</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-build</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-ui</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Same destination the unpack used, so WebConfig's
+                                 classpath:/public/ resource handler is unchanged. -->
+                            <outputDirectory>${project.basedir}/src/main/resources/public</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <skip>${maven.resources.skip.ui}</skip>
+                            <resources>
+                                <resource>
+                                    <directory>${athena.ui.dir}/dist</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.0.0</version>
@@ -371,32 +510,6 @@
                         </fileset>
                     </filesets>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <id>unpack</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.odysseusinc.athena</groupId>
-                                    <artifactId>athena-resources</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${project.basedir}/src/main/resources/public/</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -441,32 +554,6 @@
 
     <repositories>
         <repository>
-            <id>odysseus.community.snapshots</id>
-            <name>Odysseus community snapshots</name>
-            <releases>
-                <enabled>false</enabled>
-                <updatePolicy>always</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-            <url>https://nexus.odysseusinc.com/repository/community-libs-snapshot-local</url>
-        </repository>
-        <repository>
-            <id>odysseus.community.releases</id>
-            <name>Odysseus community releases</name>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-            <url>https://nexus.odysseusinc.com/repository/community-libs-release-local</url>
-        </repository>
-        <repository>
             <id>atlassian-3rd-party</id>
             <name>atlassian-3rd-party</name>
             <url>https://maven.atlassian.com/3rdparty/</url>
@@ -478,17 +565,5 @@
         </repository>
     </repositories>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>nexus</id>
-            <name>Odysseus community snapshots</name>
-            <url>https://nexus.odysseusinc.com/repository/community-libs-snapshot-local</url>
-        </snapshotRepository>
-        <repository>
-            <id>nexus</id>
-            <name>Odysseus community releases</name>
-            <url>https://nexus.odysseusinc.com/repository/community-libs-release-local</url>
-        </repository>
-    </distributionManagement>
 
 </project>
