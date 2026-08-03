@@ -1,0 +1,30 @@
+src/main/java/com/odysseusinc/athena/security/hmac/HmacVerifyingFilter.java
+  s_9a19fdc938be11::t_8f328dbe271c58 83-89
+  s_9a19fdc938be11::t_a92847542a164f 7
+src/main/java/com/odysseusinc/athena/config/WebSecurityConfig.java
+  s_9a19fdc938be11::t_ff93ce1631f694 184-197
+  s_9a19fdc938be11::t_e7c63a37fe76c0 181-183
+src/test/java/com/odysseusinc/athena/security/hmac/ApiClientsTest.java
+  s_9a19fdc938be11::t_5d5a5f182eb2e3 63-82
+  s_9a19fdc938be11::t_fe3efc3f68f563 24,37
+src/test/java/com/odysseusinc/athena/security/apitoken/ApiTokenAuthenticationFilterTest.java
+  s_9a19fdc938be11::t_4261e2cf6fa94a 122-132
+src/main/java/com/odysseusinc/athena/security/apitoken/ApiTokenAuthenticationFilter.java
+  s_9a19fdc938be11::t_5c68dd9e5c816f 63-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "78cc571598c3da9a78b782e5f9b4fe72b63c3675",
+  "prompts": {},
+  "sessions": {
+    "s_9a19fdc938be11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97a88393-c53f-47f0-93e9-4932a20ec985",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
