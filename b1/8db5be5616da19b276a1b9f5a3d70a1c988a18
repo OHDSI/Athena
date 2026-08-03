@@ -1,0 +1,23 @@
+src/main/java/com/odysseusinc/athena/config/WebSecurityConfig.java
+  s_9a19fdc938be11::t_9e6815b7a60ad2 232-234,241-244,250
+  s_9a19fdc938be11::t_49a0dbbcfb3c52 326-336,338,341-354
+  s_9a19fdc938be11::t_9803a735aa657f 33,52-53,58
+src/test/java/com/odysseusinc/athena/config/LogoutRevocationTest.java
+  s_9a19fdc938be11::t_420e1ba907ae67 1-166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "b18db5be5616da19b276a1b9f5a3d70a1c988a18",
+  "prompts": {},
+  "sessions": {
+    "s_9a19fdc938be11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97a88393-c53f-47f0-93e9-4932a20ec985",
+        "model": "claude-opus-5"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
