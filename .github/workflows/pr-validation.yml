@@ -112,15 +112,6 @@ jobs:
     name: Package with UI
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Non-blocking on purpose. The `ui` submodule is pinned to an AthenaUI commit that
-    # predates that project's build-tooling upgrade, and its node-sass dependency cannot be
-    # installed on the Node version this pom pins — so a full package cannot currently
-    # succeed for reasons unrelated to any pull request.
-    #
-    # Once the submodule is re-pinned to the upgraded AthenaUI, delete continue-on-error so
-    # this becomes a real gate.
-    continue-on-error: true
-
     steps:
       - name: Check out with the UI submodule
         uses: actions/checkout@v4
