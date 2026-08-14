@@ -220,12 +220,20 @@ public class WebSecurityConfig {
     }
 
     /**
-     * Public endpoints and static assets. No authentication filters, mirroring the
-     * previous {@code WebSecurity.ignoring()} behaviour.
+     * Public endpoints and static assets: everything here answers an anonymous caller.
+     * <p>
+     * Public is not the same as anonymous, though, so the JWT filter still runs. Concept
+     * search lives on this chain and reads the current user to decide which restricted
+     * vocabularies to hide; without the filter that lookup always finds nobody, and a user
+     * holding an approved licence loses the concepts it grants. This is what the pac4j
+     * {@code "HeaderClient,AnonymousClient"} configuration did — authentication optional,
+     * not authentication absent. Authorization stays {@code permitAll}: a request with no
+     * token, or with an expired one, is served as before.
      */
     @Bean
     @Order(2)
-    public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain publicFilterChain(HttpSecurity http,
+                                                 JwtAuthenticationFilter jwtFilter) throws Exception {
 
         return http
                 // Registration is public only as a POST. The path carries no GET handler,
@@ -234,6 +242,7 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtFilter, LogoutFilter.class)
                 .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
                 .build();
     }

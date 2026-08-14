@@ -117,17 +117,17 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
 
         // an administrator opens this in a spreadsheet, and the user/email/organization
         // columns carry values supplied at registration.
-        try (AthenaCSVWriter csvWriter = new AthenaCSVWriter(name, separator, true)) {
-
-            csvWriter.writeNext(new String[]{"vocabulary", "date", "user", "email", "organization"}, false);
-
-            writeAll(csvWriter, records);
-
-            csvWriter.flush(true);
-        }
-        // See SearchServiceImpl: copying inside a finally streamed partial output
-        // and masked the original failure with NoSuchFileException.
         try {
+            try (AthenaCSVWriter csvWriter = new AthenaCSVWriter(name, separator, true)) {
+
+                csvWriter.writeNext(new String[]{"vocabulary", "date", "user", "email", "organization"}, false);
+
+                writeAll(csvWriter, records);
+
+                csvWriter.flush(true);
+            }
+            // See SearchServiceImpl: copying inside a finally streamed partial output
+            // and masked the original failure with NoSuchFileException.
             Files.copy(temp.toPath(), osw);
         } finally {
             Files.deleteIfExists(temp.toPath());

@@ -48,7 +48,8 @@ public class ApiClients {
     private static final Base64.Encoder BASE64ENCODER = Base64.getEncoder();
     private static final String DSA = "DSA";
     /** Signature algorithms whose name is also the key algorithm — they contain no "with". */
-    private static final String[] SELF_NAMED_KEY_ALGORITHMS = {"Ed25519", "Ed448", "EdDSA", "RSASSA-PSS"};
+    private static final String[] SELF_NAMED_KEY_ALGORITHMS = {"Ed25519", "Ed448", "EdDSA", "RSASSA-PSS",
+            "DSA", "RSA", "EC"};
     /** Encoding suffix on names such as {@code SHA256withECDSAinP1363Format}. */
     private static final String P1363 = "inP1363Format";
     /**
@@ -119,6 +120,10 @@ public class ApiClients {
     public BiFunction<List<byte[]>, String, Boolean> getSignatureVerifier(String clientId) {
         ApiClient client = Optional.ofNullable(clients.get(clientId)).orElseThrow(() -> new AuthenticationCredentialsNotFoundException(clientId));
         String publicKey = client.getPublicKey();
+        if (publicKey == null || publicKey.isBlank()) {
+            throw new AuthenticationCredentialsNotFoundException(
+                    "No public key configured for client id [" + clientId + "]");
+        }
         PublicKey key = parseKey(publicKey, client.getAlgorithm());
 
         try {
