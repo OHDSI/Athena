@@ -51,6 +51,24 @@ public class SamlRedirectTest {
                 .redirectUrlFor(JWT);
     }
 
+    /**
+     * {@code saml2Login.loginPage} is pinned to this path. Spring Security would otherwise
+     * auto-redirect to the only registered identity provider, but it does that only for a
+     * repository it can iterate — and this one is deliberately not iterable, so the
+     * credential and metadata load stays deferred. If that ever changes, the pin can go.
+     */
+    @Test
+    public void authenticationRequestPathTargetsTheOneRegistration() {
+
+        assertEquals("/saml2/authenticate/athena",
+                SamlRelyingPartyConfig.AUTHENTICATION_REQUEST_PATH);
+        assertTrue(SamlRelyingPartyConfig.AUTHENTICATION_REQUEST_PATH
+                .endsWith("/" + SamlRelyingPartyConfig.REGISTRATION_ID));
+        assertFalse("the repository must stay non-iterable, or the lazy load is defeated",
+                Iterable.class.isAssignableFrom(
+                        SamlRelyingPartyConfig.LazyRelyingPartyRegistrationRepository.class));
+    }
+
     @Test
     public void putsTheTokenInTheFragment() {
 

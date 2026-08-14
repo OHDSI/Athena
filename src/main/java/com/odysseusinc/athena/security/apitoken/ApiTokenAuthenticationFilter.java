@@ -60,7 +60,8 @@ import java.util.Optional;
 public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
 
     static final String AUTH_HEADER = "X-Athena-Auth";
-    static final String AUTH_PREFIX = "Bearer";
+    /** Trailing space included: without it "Bearerabc" parses as the token "abc". */
+    static final String AUTH_PREFIX = "Bearer ";
 
     private final AthenaTokenRepository tokenRepository;
 

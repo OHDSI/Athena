@@ -119,6 +119,17 @@ public class ApiTokenAuthenticationFilterTest {
         assertNull(run(request(true, TOKEN)));
     }
 
+    /**
+     * The scheme and the credential are separated by a space, so "Bearer" run together with
+     * the value is not the scheme at all. While the prefix carried no space the token was
+     * simply taken from offset six and this authenticated.
+     */
+    @Test
+    public void refusesTheSchemeRunTogetherWithTheToken() throws Exception {
+
+        assertNull(run(request(true, "Bearer" + TOKEN)));
+    }
+
     @Test
     public void refusesAnEmptyBearerValue() throws Exception {
 

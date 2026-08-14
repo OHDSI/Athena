@@ -21,6 +21,7 @@
 package com.odysseusinc.athena.security.hmac;
 
 import org.junit.Test;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.security.KeyPair;
@@ -33,6 +34,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * The S2S signature verification behind {@code /api/s2s/**}. This path is live in
@@ -56,6 +58,26 @@ public class ApiClientsTest {
         clients.init();
 
         assertTrue("an unconfigured deployment must still start", clients.getClients().isEmpty());
+    }
+
+    /**
+     * An unknown client id is a refusal, not a fault. It is reported as an
+     * {@link AuthenticationException} so {@code HmacVerifyingFilter} can treat it the same
+     * way as a bad signature; left uncaught it surfaced as a 500 on any request carrying
+     * the header.
+     */
+    @Test
+    public void reportsAnUnknownClientIdAsAnAuthenticationFailure() {
+
+        ApiClients clients = new ApiClients();
+        clients.init();
+
+        try {
+            clients.getSignatureVerifier("no-such-client");
+            fail("an unknown client id must not resolve to a verifier");
+        } catch (AuthenticationException expected) {
+            assertTrue(expected.getMessage().contains("no-such-client"));
+        }
     }
 
     /** A client configured for RSA must have its public key parsed as RSA. */

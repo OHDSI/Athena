@@ -30,6 +30,7 @@ import com.odysseusinc.athena.security.jwt.JwtTokenService;
 import com.odysseusinc.athena.security.saml.SamlAuthenticationSuccessHandler;
 import com.odysseusinc.athena.security.saml.SamlRelyingPartyConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,10 +49,13 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Application security. Replaces the pac4j-based configuration.
@@ -98,7 +102,10 @@ public class WebSecurityConfig {
             "/api/v1/users/countries",
             "/api/v1/users/provinces",
             "/api/v1/vocabularies/licenses/accept/mail",  // token-bound link from email
-            "/api/v1/vocabularies/releaseVersion",
+            // Vocabulary release version, read by the front end's About dialog before a user
+            // signs in. Spelled the way the controller maps it — the camelCase form that was
+            // listed here matches no handler.
+            "/api/v1/vocabularies/release-version",
             "/api/v1/vocabularies/zip/**",
             "/api/v1/build-number",
             "/api/v1/concepts",
@@ -108,7 +115,7 @@ public class WebSecurityConfig {
     private static final String[] PUBLIC_RESOURCES = {
             "/", "/error", "/index.html", "/**.js", "/fonts/**", "/icons/**", "/img/**",
             "/app.*.js", "/webjars/**", "/swagger-ui.html", "/swagger-resources/**",
-            "/v3/api-docs/**", "/auth/saml-metadata", "/auth/slo"
+            "/v3/api-docs/**", "/auth/saml-metadata", "/auth/slo", "/auth/logged-out"
     };
 
 
@@ -174,6 +181,23 @@ public class WebSecurityConfig {
     }
 
     /**
+     * Same treatment for the HMAC filter, which is a {@code Filter} bean for the same reason
+     * and was auto-registered for want of this. It ran servlet-wide, ahead of all four chains,
+     * on every request. {@code OncePerRequestFilter} then made the in-chain instance a no-op,
+     * so nothing misbehaved visibly — but the filter was running far outside the scope it is
+     * written for, which is exactly the hazard described above.
+     */
+    @Bean
+    public FilterRegistrationBean<HmacVerifyingFilter> hmacFilterRegistration(
+            HmacVerifyingFilter filter) {
+
+        FilterRegistrationBean<HmacVerifyingFilter> registration =
+                new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    /**
      * Server-to-server. {@link HmacVerifyingFilter} must run before
      * {@link ApiTokenAuthenticationFilter}, because the latter refuses to authenticate
      * unless the former has marked the signature valid.
@@ -222,20 +246,25 @@ public class WebSecurityConfig {
     @Order(3)
     public SecurityFilterChain apiFilterChain(HttpSecurity http,
                                               JwtAuthenticationFilter jwtFilter,
-                                              JwtTokenService tokenService) throws Exception {
+                                              JwtTokenService tokenService,
+                                              @Value("${athena.token.header}") String authTokenHeader)
+            throws Exception {
 
         return http
                 .securityMatcher("/api/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class)
+                // Before LogoutFilter, not BasicAuthenticationFilter. LogoutFilter sits far
+                // earlier in Spring Security's ordering, so authenticating after it left the
+                // security context empty for the duration of a logout request.
+                .addFilterBefore(jwtFilter, LogoutFilter.class)
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
                 .logout(logout -> logout
                         .logoutRequestMatcher(matcher("/api/v1/users/logout"))
-                        .addLogoutHandler(revokeTokenHandler(tokenService))
+                        .addLogoutHandler(revokeTokenHandler(tokenService, authTokenHeader))
                         .logoutSuccessHandler((request, response, authentication) ->
                                 response.setStatus(200)))
                 .build();
@@ -244,10 +273,17 @@ public class WebSecurityConfig {
     /**
      * SAML SSO and the remaining UI routes.
      * <p>
-     * The assertion consumer service stays on the path the IdP already has registered
-     * ({@code /auth/callback}) — see {@link SamlRelyingPartyConfig}. {@code /auth/sso}
-     * remains the login entry point and simply forwards to Spring Security's
-     * authentication-request endpoint, so the externally visible URL is unchanged.
+     * The assertion consumer service stays on the path the identity provider already has
+     * registered ({@code /auth/callback}) — see {@link SamlRelyingPartyConfig}.
+     * {@code /auth/sso} remains the login entry point; requiring authentication there is what
+     * triggers the SAML entry point, so the externally visible URL is unchanged.
+     * <p>
+     * {@code loginPage} has to be set explicitly. Spring Security only auto-redirects to a
+     * single identity provider when the registration repository is {@link Iterable}, and this
+     * one deliberately is not — see
+     * {@link SamlRelyingPartyConfig#AUTHENTICATION_REQUEST_PATH}. Without it the default
+     * {@code /login} chooser renders with an empty provider list and the popup never leaves
+     * the application.
      */
     @Bean
     @Order(4)
@@ -262,6 +298,7 @@ public class WebSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .saml2Login(saml2 -> saml2
                         .loginProcessingUrl(SamlRelyingPartyConfig.ASSERTION_CONSUMER_SERVICE_PATH)
+                        .loginPage(SamlRelyingPartyConfig.AUTHENTICATION_REQUEST_PATH)
                         // Spring Security insists on {registrationId} in the assertion
                         // consumer service path unless a converter supplies the
                         // registration itself. The IdP already has /auth/callback
@@ -303,17 +340,35 @@ public class WebSecurityConfig {
      * Adds the presented JWT to the revoked-token store so it cannot be replayed after
      * logout. Replaces {@code CustomLogoutLogic}, which reached into pac4j's session
      * profile map to find the token.
+     * <p>
+     * The token is taken from the security context when there is one, and read off the
+     * request otherwise. The fallback is deliberate rather than defensive clutter: this
+     * handler runs inside {@code LogoutFilter}, and whether the context is populated by then
+     * depends entirely on where the authentication filter was inserted. That coupling is
+     * invisible at the call site and already broke revocation once, so correctness here does
+     * not depend on it.
+     * <p>
+     * A token presented this way is verified before being stored. Otherwise anything at all
+     * in the header would be written to the revocation table, which is unauthenticated
+     * input controlling unbounded storage.
      */
-    private org.springframework.security.web.authentication.logout.LogoutHandler revokeTokenHandler(
-            JwtTokenService tokenService) {
+    static LogoutHandler revokeTokenHandler(JwtTokenService tokenService, String authTokenHeader) {
 
         return (request, response, authentication) -> {
-            if (authentication instanceof AthenaAuthentication) {
-                ((AthenaAuthentication) authentication).getToken().ifPresent(token -> {
-                    tokenService.revoke(token);
-                    log.debug("Revoked the session token of user [{}]", authentication.getName());
-                });
-            }
+            Optional<String> fromContext = authentication instanceof AthenaAuthentication
+                    ? ((AthenaAuthentication) authentication).getToken()
+                    : Optional.empty();
+
+            Optional<String> token = fromContext
+                    .or(() -> Optional.ofNullable(request.getHeader(authTokenHeader))
+                            .map(String::trim)
+                            .filter(header -> !header.isEmpty())
+                            .filter(header -> tokenService.validate(header).isPresent()));
+
+            token.ifPresent(value -> {
+                tokenService.revoke(value);
+                log.debug("Revoked the session token presented at logout");
+            });
         };
     }
 }
