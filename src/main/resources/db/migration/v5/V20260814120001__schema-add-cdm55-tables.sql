@@ -1,0 +1,44 @@
+-- CDM 5.5 adds three vocabulary tables. They are delivered to users in the download
+-- bundle only; nothing in Athena reads them.
+--
+-- The foreign keys and check constraints of the upstream DDL are deliberately not
+-- reproduced here. No table in this schema carries a foreign key: import_tables() drops
+-- every index, truncates and COPYs, which constraints would make order-dependent and
+-- slow. Validity is enforced by the vocabulary release process.
+--
+-- Concept identifiers are BIGINT rather than the INT of the upstream DDL, to match
+-- CONCEPT.CONCEPT_ID and every other reference to it in this schema.
+
+CREATE TABLE CONCEPT_METADATA
+(
+   CONCEPT_ID BIGINT NOT NULL,
+   CONCEPT_CATEGORY VARCHAR(20),
+   REUSE_STATUS VARCHAR(20)
+);
+CREATE INDEX CONCEPT_METADATA_CONCEPTID ON CONCEPT_METADATA (CONCEPT_ID);
+
+CREATE TABLE CONCEPT_RELATIONSHIP_METADATA
+(
+   CONCEPT_ID_1 BIGINT NOT NULL,
+   CONCEPT_ID_2 BIGINT NOT NULL,
+   RELATIONSHIP_ID VARCHAR(20) NOT NULL,
+   RELATIONSHIP_PREDICATE_ID VARCHAR(20),
+   RELATIONSHIP_GROUP INTEGER,
+   MAPPING_SOURCE VARCHAR(50),
+   CONFIDENCE DOUBLE PRECISION,
+   MAPPING_TOOL VARCHAR(50),
+   MAPPER VARCHAR(50),
+   REVIEWER VARCHAR(50)
+);
+CREATE INDEX CONCEPT_RELATIONSHIP_METADATA_C_1 ON CONCEPT_RELATIONSHIP_METADATA (CONCEPT_ID_1);
+CREATE INDEX CONCEPT_RELATIONSHIP_METADATA_C_2 ON CONCEPT_RELATIONSHIP_METADATA (CONCEPT_ID_2);
+
+CREATE TABLE PACK_CONTENT
+(
+   PACK_CONCEPT_ID BIGINT NOT NULL,
+   DRUG_CONCEPT_ID BIGINT NOT NULL,
+   AMOUNT SMALLINT,
+   BOX_SIZE SMALLINT
+);
+CREATE INDEX PACK_CONCEPTID ON PACK_CONTENT (PACK_CONCEPT_ID);
+CREATE INDEX PACK_DRUG_CONCEPTID ON PACK_CONTENT (DRUG_CONCEPT_ID);
