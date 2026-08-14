@@ -31,7 +31,7 @@ import com.odysseusinc.athena.service.checker.LimitChecker;
 import com.odysseusinc.athena.service.search.SearchOverviewStatisticsLoader;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.json.JSONObject;
 import org.slf4j.Logger;

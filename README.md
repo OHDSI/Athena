@@ -1,136 +1,145 @@
-# 1 Phrase search
+# Athena
 
-Search provides the ability to search by phrase. All results are sorted by default according to the following criteria:
+Athena is the OHDSI vocabulary distribution service: it lets users search the standardised vocabularies
+(concepts, synonyms, relationships) and download them as versioned CDM v5 bundles.
 
- -full phrase match 
-- concepts contain all the words from the search phrase
-- result based on two parameters, the number of searched words in the result and importance of each word (importance is calculated for each word, the words that are rearer among all documents are more important)
+This repository is the back end - a Spring Boot application that serves both the REST API and
+the compiled front end. The UI lives in [OHDSI/AthenaUI](https://github.com/OHDSI/AthenaUI)
+and is included here as the `ui` submodule, built from source during packaging.
 
-Example:
+| | |
+|---|---|
+| Runtime | Java 25, Spring Boot 4.1 |
+| Build | Maven |
+| Search | Apache Solr (core `concepts`) |
+| Storage | PostgreSQL |
+| Auth | SAML SSO |
 
-Search phrase: **Stroke Myocardial Infarction Gastrointestinal Bleeding**
+---
 
-Name | sort priority explanation |
----- | ---- |
-Stroke Myocardial Infarction Gastrointestinal Bleeding| full match  |
-Gastrointestinal Bleeding Myocardial Infarction Stroke| all words |
-Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction| 3 words |
-Stroke Myocardial Infarction Bleeding in Back| 2 words |
-Bleeding in Back Gastrointestinal Bleeding| 2 word |
-Stroke Myocardial Infarction| 2 word |
-Stroke Myocardial Infarction Strok| 2 words |
-Stroke Myocardial Infarction Stroke Nothin| 2 words |
-Stroke Myocardial Infarction  Renal Dysfunction| 2 words |
-Stroke Myocardial Infarction Renal Dysfunction and Nothing| 1 words |
-stroke| 1 words |
-Stroke| 1 words |
-Strook| 1 words |
+## Getting started
 
+### Prerequisites
 
-NB: the search goes through all concept fields, but the highest priority is given to CONCEPT_NAME and CONCEPT_CODE
+- JDK 25 or later
+- Docker - the test suite starts PostgreSQL containers, and it is the easiest way to run the
+  services locally
+- PostgreSQL with four databases: `athena_db`, `athena_cdm_v4_5`, `athena_cdm_v5` (port 5432)
+  and `athena_cdm_v5_history` (port 5433). Flyway creates every schema on first start, so they
+  only need to exist and be empty.
+- Solr with a `concepts` core on port 8984. Its configuration is assembled from two trees:
+  `src/main/resources/solr` supplies `managed-schema` and `solrconfig.xml`, but that schema
+  references `lang/*.txt`, `stopwords.txt` and `synonyms.txt`, which live under
+  `src/test/resources`. Neither is a complete configset on its own.
 
-# 2 Exact search
+### Build and run
 
-Using quotation marks forces an exact-match search. 
+```bash
+# Full build: compiles the UI submodule and packages it into the jar
+git submodule update --init
+mvn package
+java -jar target/athena.jar
 
-For an exact search, the following conditions are met
-- the word must be present
-- not case sensitive, the number of spaces between words does not matter
-- stemming is disabled(the word/words must be present exactly as it is in quotation marks)
+# Back end only, skipping the front-end build
+mvn package -PskipUi
 
-Example 1:
+# Run from source
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
 
-Search phrase: **"Stroke Myocardial Infarction Gastrointestinal Bleeding"**
+The application listens on **http://localhost:3010** and serves the UI and the API together.
+When working on the front end, run AthenaUI's dev server instead - it proxies `/api` and
+`/auth/*` here.
 
-Name |
---- | 
-Stroke Myocardial Infarction Gastrointestinal Bleeding |
-Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction |
+Use `-PskipUi` whenever you only want the API: without it the build runs `npm ci && npm run
+build` in `ui/`, which is slow and pointless if the front end is being served elsewhere.
 
-Example 2:
+### Configuration
 
-Search phrase:  **"Stroke Myocardial Infarction "Gastrointestinal Bleeding"**
+Profiles live in `properties/{dev,qa,prod,test}/`; the selected one is copied into the jar at
+build time. `dev` is the default. The settings worth knowing are the four datasources
+(`spring.datasource-db`, `-v4`, `-v5`, `-v5-history`), `athena.solrServerUrl`, and the SAML
+block under `cas.*`.
 
-Name |
---- |
-Stroke Myocardial Infarction Gastrointestinal Bleeding |
-Gastrointestinal Bleeding Myocardial Infarction Stroke |
-Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction |
-Bleeding in Back Gastrointestinal Bleeding |
+> No SAML keystore ships with the application. To exercise SSO locally, supply your own and
+> point `cas.key-manager.key-store-file` at it.
 
-# 3 Special symbols
+### Tests
 
-For special symbols, the following conditions are met
-- These special symbols are always ignored and treated as words separation symbols: / \ | ? ! , ;   .
-  e.g. "Pooh.eats?honey!" equals "Pooh eats honey" 
-- All other special symbols ignored only if it is a separate word: + - ( ) : ^ [ ] { } ~ * ? | & ;
-  e.g. "Pooh ` eats raspberries - honey" equals "Pooh eats honey", but "Pooh'eats raspberries-honey" will remain the same  
-- the first funded result will be with characters and then without
+```bash
+mvn test          # requires a running Docker engine
+```
 
-Search phrase: **[hip]**
+The suite starts four PostgreSQL testcontainers and an embedded Solr; no external services are
+needed. Tests must leave the working tree unmodified - CI enforces this.
 
-Name |
---- |
-[hip] fracture risk |
-[Hip] fracture risk |
-[hip fracture risk |
-hip] fracture risk |
-(hip fracture risk |
-(hip) fracture risk |
-hip fracture risk |
-hip) fracture risk |
-hip} fracture risk |
-hip} fracture risk |
-{hip fracture risk |
+---
 
+## Search behaviour
 
-A special character becomes mandatory if the word is surrounded by quotation marks.
+How a query string is interpreted. The authoritative implementation is
+`ConceptSearchDTOToSolrQuery`.
 
-Search phrase:  **"[hip]"**
+Search runs across all concept fields, but `CONCEPT_NAME` and `CONCEPT_CODE` carry the highest
+priority.
 
-Name |
---- |
-[hip] fracture risk | 
-[Hip] fracture risk | 
+### Phrase search
 
+Results are ordered by: full phrase match first, then concepts containing all the words, then
+by how many of the searched words matched and how important each is (rarer words across the
+corpus count for more).
 
-# 4 Approximate matching (fuzzy searching)
+For **Stroke Myocardial Infarction Gastrointestinal Bleeding**:
 
-In case of a typo, or if there is a similar spelling of the word, the most similar result will be found
+| Name | Why it ranks there |
+|---|---|
+| Stroke Myocardial Infarction Gastrointestinal Bleeding | full match |
+| Gastrointestinal Bleeding Myocardial Infarction Stroke | all words |
+| Stroke Myocardial Infarction Gastrointestinal Bleeding and Renal Dysfunction | 5 words |
+| Stroke Myocardial Infarction Bleeding in Back | 4 words |
+| Stroke Myocardial Infarction Renal Dysfunction and Nothing | 3 words |
 
-Search phrase: **Strok Myocardi8 Infarctiin Gastrointestinal Bleedi**
+### Exact search
 
-Name |
---- | 
-Gastrointestinal Bleeding Myocardial Infarction Stroke|
-Stroke Myocardial Infarction Gastrointestinal Bleeding|
-Stroke Myocardial Infarction  Gastrointestinal Bleeding and Renal Dysfunction|
-Stroke Myocardial Infarction Strok|
-Bleeding in Back Gastrointestinal Bleeding|
-Stroke Myocardial Infarction Bleeding in Back|
-Stroke Myocardial Infarction|
-Stroke Myocardial Infarction Stroke Nothin|
-Stroke Myocardial Infarction  Renal Dysfunction|
-Stroke Myocardial Infarction Renal Dysfunction and Nothing|
-stroke|
-Stroke|
-Stroo |
+Quotation marks force an exact match: the word must be present, and stemming is disabled, so it
+must appear exactly as quoted. Case and the number of spaces between words are still ignored.
 
+`"Stroke Myocardial Infarction Gastrointestinal Bleeding"` matches only names containing that
+exact sequence. Quoting part of a query - `Stroke Myocardial Infarction "Gastrointestinal
+Bleeding"` - makes only the quoted part mandatory.
 
-# 1 Customize query
+### Special symbols
 
+- Always treated as word separators: `/ \ | ? ! , ; .`
+  `"Pooh.eats?honey!"` is equivalent to `"Pooh eats honey"`.
+- Ignored only when they stand alone as a word: `+ - ( ) : ^ [ ] { } ~ * ? | & ;`
+  ``"Pooh ` eats raspberries - honey"`` is equivalent to `"Pooh eats honey"`, but
+  `"Pooh'eats raspberries-honey"` is not.
+- Results that contain the symbol are returned before those that do not.
 
-## Activate customizing search query mode
-You can activate this  mode by adding `debug=true` params in url
-https://qaathena.odysseusinc.com/search-terms/terms?debug=true
+Quoting makes a special character mandatory: `[hip]` matches `[hip] fracture risk`,
+`(hip fracture risk` and `hip fracture risk` alike, whereas `"[hip]"` matches only
+`[hip] fracture risk`.
 
-* the text input field for the boost object will appear below the search input
-* the score column will be appeared
-* the generated solr requests and score calculation information will be printed to the browser console (to see it, open developer tools by F12). if the  solr-request/score has not changed then this info will not be printed
+### Fuzzy matching
 
+Typos and near-spellings still match. **Strok Myocardi8 Infarctiin Gastrointestinal Bleedi**
+finds the same concepts as the correctly spelled phrase, ranked by similarity.
 
-## Boosts object
-We use an object with boosts in order to configure the solr search query:
+---
+
+## Tuning the search query
+
+Append `debug=true` to a search URL - for example
+`https://qaathena.odysseusinc.com/search-terms/terms?debug=true` - to get an input field for the
+boost object, a score column in the results, and the generated Solr request plus score
+breakdown in the browser console (F12). Nothing is printed while the request and score are
+unchanged.
+
+Field weights are supplied as a boost object, grouped by how the term was matched - `phrase`,
+`exactTerm`, `notExactTerm`, `asteriskTermBoosts`, and the `single*` variants that apply when
+the query is a single term:
+
 ```json
 {
     "notExactTerm": {
@@ -190,14 +199,15 @@ We use an object with boosts in order to configure the solr search query:
         "conceptCode": 80000
     }
 }
-
 ```
-## Query examples 
-examples of generated solr queries:
 
-**query string** : aspirin
+### Generated query
+
+Every query produces a phrase clause OR'd with per-term clauses. For the query string
+`aspirin`:
+
 ```sql
-( --phrase
+( -- phrase
     concept_code:aspirin^80000 OR
     concept_name:aspirin^60000 OR
     concept_synonym_name:aspirin^40000 OR
@@ -207,12 +217,12 @@ examples of generated solr queries:
     concept_class_id_ci:aspirin^100 OR
     domain_id_ci:aspirin^100 OR
     vocabulary_id_ci:aspirin^100
-) 
+)
 OR
 ( -- single notExactTerm
     concept_code_text:aspirin^40000 OR
     concept_code_text:aspirin~0.7^30000
-) 
+)
 OR
 ( -- notExactTerm
     concept_code_text:aspirin^50 OR
@@ -222,197 +232,17 @@ OR
     concept_synonym_name_text:aspirin^25 OR
     query_wo_symbols:aspirin^10
 )
-
-
-```
-**query string**: "aspirin"
-```sql
-( --phrase
-    concept_code:aspirin^80000 OR
-    concept_name:aspirin^60000 OR
-    concept_synonym_name:aspirin^40000 OR
-    concept_code_ci:aspirin^10000 OR
-    concept_name_ci:aspirin^1000 OR
-    concept_synonym_name_ci:aspirin^500 OR
-    concept_class_id_ci:aspirin^100 OR
-    domain_id_ci:aspirin^100 OR
-    vocabulary_id_ci:aspirin^100
-)
-OR
-( --single exactTerm  
-    concept_code:aspirin^80000 OR
-    concept_code_ci:aspirin^10000
-)
-OR
-( --exactTerm
-    concept_code:"aspirin"^80000 OR
-    concept_name:"aspirin"^60000 OR
-    concept_synonym_name:"aspirin"^40000 OR
-    concept_code_ci:"aspirin"^10000 OR
-    concept_name_ci:"aspirin"^1000 OR
-    concept_synonym_name_ci:"aspirin"^500 OR
-    query:"aspirin"^1
-)
-
-```
-**query string**: "45957786" (in case we are searching an exact number the field 'concept_id' is added)
-```sql
-( --phrase
-    concept_code:45957786^80000 OR
-    concept_name:45957786^60000 OR
-    concept_synonym_name:45957786^40000 OR
-    concept_code_ci:45957786^10000 OR
-    concept_name_ci:45957786^1000 OR
-    concept_synonym_name_ci:45957786^500 OR
-    concept_class_id_ci:45957786^100 OR
-    domain_id_ci:45957786^100 OR
-    vocabulary_id_ci:45957786^100 OR
-    concept_id:45957786^100000
-) 
-OR
-( -- single exactTerm
-    concept_code:45957786^80000 OR
-    concept_code_ci:45957786^10000
-) 
-OR
-(-- exactTerm
-    concept_code:"45957786"^80000 OR
-    concept_name:"45957786"^60000 OR
-    concept_synonym_name:"45957786"^40000 OR
-    concept_code_ci:"45957786"^10000 OR
-    concept_name_ci:"45957786"^1000 OR
-    concept_synonym_name_ci:"45957786"^500 OR
-    query:"45957786"^1 OR
-    concept_id:45957786^100000
-)
 ```
 
-**query string**: aspirin paracetamol
-```sql
-( --phrase
-    concept_code:aspirin\ paracetamol^80000 OR
-    concept_name:aspirin\ paracetamol^60000 OR
-    concept_synonym_name:aspirin\ paracetamol^40000 OR
-    concept_code_ci:aspirin\ paracetamol^10000 OR
-    concept_name_ci:aspirin\ paracetamol^1000 OR
-    concept_synonym_name_ci:aspirin\ paracetamol^500 OR
-    concept_class_id_ci:aspirin\ paracetamol^100 OR
-    domain_id_ci:aspirin\ paracetamol^100 OR
-    vocabulary_id_ci:aspirin\ paracetamol^100
-) 
-OR
-(
-    ( --notExactTerm
-        concept_code_text:aspirin^50 OR
-        concept_code_text:aspirin~0.7^40 OR
-        concept_name_text:aspirin^50 OR
-        concept_name_text:aspirin~0.7^40 OR
-        concept_synonym_name_text:aspirin^25 OR
-        query_wo_symbols:aspirin^10
-    ) 
-    OR
-    (--notExactTerm
-        concept_code_text:paracetamol^50 OR
-        concept_code_text:paracetamol~0.7^40 OR
-        concept_name_text:paracetamol^50 OR
-        concept_name_text:paracetamol~0.7^40 OR
-        concept_synonym_name_text:paracetamol^25 OR
-        query_wo_symbols:paracetamol^10
-    )
-)
-```
-**query string**: aspirin "paracetamol"
-```sql
-( --phrase
-    concept_code:aspirin\ paracetamol^80000 OR
-    concept_name:aspirin\ paracetamol^60000 OR
-    concept_synonym_name:aspirin\ paracetamol^40000 OR
-    concept_code_ci:aspirin\ paracetamol^10000 OR
-    concept_name_ci:aspirin\ paracetamol^1000 OR
-    concept_synonym_name_ci:aspirin\ paracetamol^500 OR
-    concept_class_id_ci:aspirin\ paracetamol^100 OR
-    domain_id_ci:aspirin\ paracetamol^100 OR
-    vocabulary_id_ci:aspirin\ paracetamol^100
-) 
-OR
-(
-    (  -- exactTerm
-        concept_code:"paracetamol"^80000 OR
-        concept_name:"paracetamol"^60000 OR
-        concept_synonym_name:"paracetamol"^40000 OR
-        concept_code_ci:"paracetamol"^10000 OR
-        concept_name_ci:"paracetamol"^1000 OR
-        concept_synonym_name_ci:"paracetamol"^500 OR
-        query:"paracetamol"^1
-    ) 
-    OR
-    (
-        (  -- exactTerm
-            concept_code:"paracetamol"^80000 OR
-            concept_name:"paracetamol"^60000 OR
-            concept_synonym_name:"paracetamol"^40000 OR
-            concept_code_ci:"paracetamol"^10000 OR
-            concept_name_ci:"paracetamol"^1000 OR
-            concept_synonym_name_ci:"paracetamol"^500 OR
-            query:"paracetamol"^1
-        ) 
-        AND 
-        ( --notExactTerm
-            concept_code_text:aspirin^50 OR
-            concept_code_text:aspirin~0.7^40 OR
-            concept_name_text:aspirin^50 OR
-            concept_name_text:aspirin~0.7^40 OR
-            concept_synonym_name_text:aspirin^25 OR
-            query_wo_symbols:aspirin^10
-        )
-    )
-)
+The variations follow from the rules above rather than from anything new:
 
-```
-Requirement for search with an asterisk:
+- **`"aspirin"`** - the `notExactTerm` clauses are replaced by `exactTerm` ones over the
+  non-`_text` fields, so no stemming or fuzzy variants apply.
+- **`"45957786"`** - an all-digit query adds `concept_id` at `^100000`.
+- **`aspirin paracetamol`** - one `notExactTerm` group per word, OR'd together.
+- **`aspirin "paracetamol"`** - the quoted word becomes an `exactTerm` group that is `AND`ed
+  with the unquoted word's `notExactTerm` group, making the quoted term mandatory.
+- **`aspirin* ibupro*`** - each asterisked term becomes an `asteriskTermBoosts` prefix group,
+  and the groups are `AND`ed.
 
-**query string**: aspirin* ibupro*
-
-**result**:
-```sql   
-( --phrase
-    concept_code:aspirin\*\ ibupro\*^80000 OR
-    concept_name:aspirin\*\ ibupro\*^60000 OR
-    concept_synonym_name:aspirin\*\ ibupro\*^40000 OR
-    concept_code_ci:aspirin\*\ ibupro\*^10000 OR
-    concept_name_ci:aspirin\*\ ibupro\*^1000 OR
-    concept_synonym_name_ci:aspirin\*\ ibupro\*^500 OR
-    concept_class_id_ci:aspirin\*\ ibupro\*^100 OR
-    domain_id_ci:aspirin\*\ ibupro\*^100 OR
-    vocabulary_id_ci:aspirin\*\ ibupro\*^100
-)
-OR
-(
-    ( --asterisk
-        concept_code:aspirin*^80000 OR
-        concept_name:aspirin*^60000 OR
-        concept_synonym_name:aspirin*^40000 OR
-        concept_code_ci:aspirin*^30000 OR
-        concept_name_ci:aspirin*^25000 OR
-        concept_synonym_name_ci:aspirin*^20000 OR
-        concept_code_text:aspirin*^10000 OR
-        concept_name_text:aspirin*^8000 OR
-        concept_synonym_name_text:aspirin*^5000
-    )
-    AND
-    ( --asterisk
-        concept_code:ibupro*^80000 OR
-        concept_name:ibupro*^60000 OR
-        concept_synonym_name:ibupro*^40000 OR
-        concept_code_ci:ibupro*^30000 OR
-        concept_name_ci:ibupro*^25000 OR
-        concept_synonym_name_ci:ibupro*^20000 OR
-        concept_code_text:ibupro*^10000 OR
-        concept_name_text:ibupro*^8000 OR
-        concept_synonym_name_text:ibupro*^5000
-    )
-)
-
-
-```
-
+Turn on `debug=true` to see the exact query for any input.

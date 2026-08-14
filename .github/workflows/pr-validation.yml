@@ -1,0 +1,150 @@
+name: PR validation
+
+on:
+  pull_request:
+    branches: [master, qa, develop]
+  workflow_dispatch:
+
+# A new push to the same pull request supersedes the run already in flight.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out
+        # Deliberately without submodules: this job builds with -PskipUi and never reads ui/.
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: temurin
+          cache: maven
+
+      - name: Show toolchain
+        run: |
+          java -version
+          mvn -v
+          # The suite starts four PostgreSQL testcontainers, so a working Docker engine is a
+          # hard requirement rather than an optimisation. Fail here, with a legible message,
+          # rather than inside Testcontainers' environment discovery.
+          docker version --format 'Docker Engine {{.Server.Version}}, API {{.Server.APIVersion}}'
+
+      - name: Build and run tests
+        env:
+          # Four PostgreSQL containers plus an embedded Solr in one JVM.
+          MAVEN_OPTS: -Xmx3g
+        # -PskipUi builds the backend alone. The front end is a separate concern and is
+        # covered by the `package` job below.
+        #
+        # `test`, not `verify`: packaging runs a prepare-package enforcer that requires
+        # src/main/resources/public/index.html, which only exists once the UI has been built.
+        #
+        # pipefail so that piping through tee does not mask a failing build. The log goes to
+        # the runner temp directory, not the checkout, so it cannot trip the clean-tree check.
+        run: |
+          set -o pipefail
+          mvn -B -ntp -PskipUi test 2>&1 | tee "$RUNNER_TEMP/maven.log"
+
+      - name: Summarise results
+        if: always()
+        # Reads Maven's own "Results:" block rather than parsing the surefire XML. On a pull
+        # request from a fork the contents of target/ are influenced by the contributor, and
+        # an XML parser is a liability there; a fixed-format grep is not.
+        run: |
+          LOG="$RUNNER_TEMP/maven.log"
+          {
+            echo "### Test results"
+            echo
+            if [ ! -f "$LOG" ]; then
+              echo "The build produced no output."
+            elif grep -qE '^\[(INFO|ERROR)\] Tests run:' "$LOG"; then
+              echo '```'
+              grep -E '^\[(INFO|ERROR)\] Tests run:' "$LOG" | tail -1
+              echo '```'
+              if grep -qE '^\[ERROR\] (Failures|Errors):' "$LOG"; then
+                echo
+                echo "<details><summary>Failing tests</summary>"
+                echo
+                echo '```'
+                awk '/^\[ERROR\] (Failures|Errors):/{p=1} p{print} /^\[ERROR\] Tests run:/{if(p)exit}' "$LOG" | head -60
+                echo '```'
+                echo
+                echo "</details>"
+              fi
+            else
+              echo "The build failed before any test ran — see the job log."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload surefire reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
+          retention-days: 7
+
+      - name: Working tree must be clean
+        # A test run that writes into the working tree has historically been a real problem
+        # here: the Solr initialiser used to stage its configuration into src/test/resources
+        # and drop a stray log file in the repository root. This keeps that from coming back.
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::The test run modified the working tree. Tests must not write into the repository."
+            git status --porcelain
+            git diff --stat
+            exit 1
+          fi
+          echo "Working tree is clean."
+
+  package:
+    name: Package with UI
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Non-blocking on purpose. The `ui` submodule is pinned to an AthenaUI commit that
+    # predates that project's build-tooling upgrade, and its node-sass dependency cannot be
+    # installed on the Node version this pom pins — so a full package cannot currently
+    # succeed for reasons unrelated to any pull request.
+    #
+    # Once the submodule is re-pinned to the upgraded AthenaUI, delete continue-on-error so
+    # this becomes a real gate.
+    continue-on-error: true
+
+    steps:
+      - name: Check out with the UI submodule
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: temurin
+          cache: maven
+
+      - name: Package
+        # No profile is selected, so the activeByDefault `dev` profile stays active and
+        # ${env} resolves. frontend-maven-plugin downloads its own pinned Node, runs
+        # `npm ci && npm run build` in ui/, and the output is copied into the jar.
+        # Tests are skipped here; the `test` job above is what validates them.
+        run: mvn -B -ntp package -DskipTests
+
+      - name: Upload the jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: athena-jar
+          path: target/*.jar
+          retention-days: 7
+          if-no-files-found: error
