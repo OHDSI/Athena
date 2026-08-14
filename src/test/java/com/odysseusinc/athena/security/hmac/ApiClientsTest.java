@@ -131,6 +131,67 @@ public class ApiClientsTest {
         ApiClients.keyAlgorithmOf("not-a-signature-algorithm");
     }
 
+    /**
+     * A bare key algorithm name is valid configuration, not a mapping failure.
+     * <p>
+     * {@code keyAlgorithmOf} recognises a name only if it contains {@code with} or appears in
+     * the self-named list, and {@code DSA} does neither — so it lands on the
+     * {@code IllegalArgumentException} branch. That is a regression rather than a tightening:
+     * the key factory used to be hardcoded to {@code DSA}, so
+     * {@code api.clients.<id>.algorithm=DSA} parsed the public key and verified signatures.
+     * The method's own documentation still claims it falls "back to DSA so existing DSA-based
+     * clients are unaffected", which holds for a null value but not for the literal name.
+     * <p>
+     * It fails as a 500 rather than a refusal, because {@code IllegalArgumentException} is not
+     * an {@code AuthenticationException} and so escapes {@code HmacVerifyingFilter.verify}.
+     */
+    @Test
+    public void mapsBareKeyAlgorithmNamesToThemselves() {
+
+        assertEquals("DSA", ApiClients.keyAlgorithmOf("DSA"));
+        assertEquals("RSA", ApiClients.keyAlgorithmOf("RSA"));
+    }
+
+    /**
+     * A client configured with an algorithm but no {@code public-key} must be refused, not
+     * blow up.
+     * <p>
+     * {@code init()} only fabricates a transient pair when {@code debugSignatures} is on, which
+     * it is not by default, so {@code getPublicKey()} stays null and {@code parseKey} reaches
+     * {@code Base64.getDecoder().decode(null)}. The resulting {@code NullPointerException} is
+     * not an {@code AuthenticationException}, so — exactly like an unknown client id before it
+     * was fixed — it escapes the filter as a 500 with a stack trace on every
+     * {@code /api/s2s/**} call from that client. This is the state the startup warning already
+     * describes as "requests cannot be authenticated"; it should refuse them, not fault.
+     */
+    @Test
+    public void reportsAClientWithNoPublicKeyAsAnAuthenticationFailure() {
+
+        ApiClients.ApiClient client = new ApiClients.ApiClient();
+        client.setAlgorithm("SHA256withRSA");
+
+        ApiClients clients = new ApiClients();
+        ReflectionTestUtils.setField(clients, "clients", Collections.singletonMap("pd", client));
+        clients.init();
+
+        try {
+            clients.getSignatureVerifier("pd");
+            fail("a client with no public key must not resolve to a verifier");
+        } catch (AuthenticationException expected) {
+            assertTrue("the refusal should name the client",
+                    expected.getMessage() != null && expected.getMessage().contains("pd"));
+        } catch (RuntimeException fault) {
+            // Caught explicitly so the failure reads as the contract being broken rather than
+            // as an incidental crash: an uncaught NullPointerException here is indistinguishable
+            // from a broken test at a glance, and it is precisely what reaches the client as a
+            // 500 today.
+            fail("a client with no public key must be refused as an AuthenticationException,"
+                    + " which HmacVerifyingFilter turns into a 401; it instead raised "
+                    + fault.getClass().getName() + " (" + fault.getMessage() + "),"
+                    + " which escapes the filter as a 500");
+        }
+    }
+
     @Test
     public void rejectsASignatureOverDifferentContent() throws Exception {
 
