@@ -35,8 +35,6 @@ import com.odysseusinc.athena.repositories.athena.DownloadHistoryRepository;
 import com.odysseusinc.athena.service.DownloadsHistoryService;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.extractor.DownloadHistoryExtractor;
-import com.opencsv.CSVWriter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,7 +52,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
+import java.util.function.Function;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -94,10 +92,16 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
     public Collection<DownloadHistoryDTO> retrieveStatistics(LocalDateTime from, LocalDateTime to, Boolean licensedOnly, String[] keywords) {
 
         log.trace("START: retrieveStatistics: {}", LocalDateTime.now());
-        List<DownloadHistory> bundleHistory = downloadHistoryRepository.findByDownloadTimeBetweenOrderByDownloadTimeAsc(from, to);
+        // fetch-joins bundle -> items -> conversion, the path mapHistory walks.
+        // Previously one query per bundle and per item followed this one.
+        List<DownloadHistory> bundleHistory = downloadHistoryRepository.findForStatistics(from, to);
 
         log.trace("map to History: {}, count: {}", LocalDateTime.now(), bundleHistory.size());
-        Set<DownloadHistoryDTO> itemHistory = bundleHistory.stream().parallel()
+        // deliberately sequential. mapHistory walks lazy Hibernate associations
+        // (bundle -> items -> conversion); a Session is not thread safe, so running this on
+        // the common ForkJoinPool risked LazyInitializationException and corrupted session
+        // state under load. Replacing the in-memory expansion with a query is still outstanding.
+        Set<DownloadHistoryDTO> itemHistory = bundleHistory.stream()
                 .flatMap(history -> mapHistory(history, licensedOnly, keywords))
                 .collect(Collectors.toSet());
 
@@ -111,16 +115,22 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
         String name = fileHelper.getTempPath(UUID.randomUUID().toString());
         File temp = new File(name);
 
-        try (CSVWriter csvWriter = new AthenaCSVWriter(name, separator)) {
+        // an administrator opens this in a spreadsheet, and the user/email/organization
+        // columns carry values supplied at registration.
+        try (AthenaCSVWriter csvWriter = new AthenaCSVWriter(name, separator, true)) {
 
             csvWriter.writeNext(new String[]{"vocabulary", "date", "user", "email", "organization"}, false);
 
             writeAll(csvWriter, records);
 
             csvWriter.flush(true);
-        } finally {
+        }
+        // See SearchServiceImpl: copying inside a finally streamed partial output
+        // and masked the original failure with NoSuchFileException.
+        try {
             Files.copy(temp.toPath(), osw);
-            Files.delete(temp.toPath());
+        } finally {
+            Files.deleteIfExists(temp.toPath());
         }
     }
 
@@ -138,7 +148,7 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
         return sortedDtos;
     }
 
-    private void writeAll(CSVWriter csvWriter, Collection<DownloadHistoryDTO> records) throws IOException {
+    private void writeAll(AthenaCSVWriter csvWriter, Collection<DownloadHistoryDTO> records) throws IOException {
 
         DownloadHistoryExtractor extractor = new DownloadHistoryExtractor();
         csvWriter.writeAll(new ArrayList<>(extractor.extractForAll(records)));
@@ -146,9 +156,26 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
 
     private Cache<Long,AthenaUser> userCache= CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build();
 
-    @SneakyThrows
-    private AthenaUser getUserFromCache(Long userId){
-        return userCache.get(userId, () -> userService.get(userId));
+    /**
+     * {@code Cache.get(key, loader)} throws {@code InvalidCacheLoadException} when
+     * the loader returns null, and {@code userService.get} returns null for a user that no
+     * longer exists — so a single deleted downloader made the whole admin statistics
+     * endpoint fail. Absent users are now simply not cached and reported as null.
+     */
+    private AthenaUser getUserFromCache(Long userId) {
+
+        if (userId == null) {
+            return null;
+        }
+        AthenaUser cached = userCache.getIfPresent(userId);
+        if (cached != null) {
+            return cached;
+        }
+        AthenaUser user = userService.get(userId);
+        if (user != null) {
+            userCache.put(userId, user);
+        }
+        return user;
     }
 
     private Stream<DownloadHistoryDTO> mapHistory(DownloadHistory history, boolean licensedOnly, String[] keywords) {
@@ -158,7 +185,6 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
         final LocalDateTime downloadDate = history.getDownloadTime().truncatedTo(ChronoUnit.DAYS);
 
         return vocabularies.stream()
-                .parallel()
                 .filter(this::isOmopRequired)
                 .filter(vocab -> licenseOnly(vocab, licensedOnly))
                 .map(vocab -> createDto(vocab.getVocabularyConversion(), athenaUser, downloadDate))
@@ -184,13 +210,17 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
 
     private DownloadHistoryDTO createDto(VocabularyConversion vocabularyConversion, AthenaUser athenaUser, LocalDateTime downloadDate) {
 
-        final String userName = String.format("%s, %s", athenaUser.getFirstName(), athenaUser.getLastName());
         DownloadHistoryDTO dto = new DownloadHistoryDTO();
-        dto.setUserName(userName);
-        dto.setOrganization(athenaUser.getOrganization());
+        // athenaUser is null when the account behind a historical download has since been
+        // removed. The download still happened, so the row is kept with the user columns
+        // blank rather than dropped, which would silently understate the statistics.
+        if (athenaUser != null) {
+            dto.setUserName(String.format("%s, %s", athenaUser.getFirstName(), athenaUser.getLastName()));
+            dto.setOrganization(athenaUser.getOrganization());
+            dto.setEmail(athenaUser.getEmail());
+        }
         dto.setCode(vocabularyConversion.getIdV5());
         dto.setDate(downloadDate);
-        dto.setEmail(athenaUser.getEmail());
         return dto;
     }
 
@@ -199,19 +229,34 @@ public class DownloadsHistoryServiceImpl implements DownloadsHistoryService {
         return !licensedOnly || StringUtils.isNotBlank(vocab.getVocabularyConversion().getAvailable());
     }
 
+    /**
+     * The user columns are null for a download whose account has since been deleted — see
+     * {@link #createDto}, which keeps the row rather than dropping it. {@code Objects.compare}
+     * does not help there: it short-circuits only when both sides are the <em>same</em>
+     * reference, so comparing a null against a non-null still calls
+     * {@code null.compareTo(other)} and throws. Sorting the statistics by user, e-mail or
+     * organization therefore failed as soon as one deleted user appeared in the range.
+     * Null sorts last in ascending order.
+     */
     private static Comparator<DownloadHistoryDTO> pickComparator(String sortBy) {
 
         switch (sortBy) {
             case "email":
-                return (a, b) -> Objects.compare(a.getEmail(), b.getEmail(), String::compareTo);
+                return comparingNullsLast(DownloadHistoryDTO::getEmail);
             case "date":
-                return (a, b) -> Objects.compare(a.getDate(), b.getDate(), LocalDateTime::compareTo);
+                return comparingNullsLast(DownloadHistoryDTO::getDate);
             case "userName":
-                return (a, b) -> Objects.compare(a.getUserName(), b.getUserName(), String::compareTo);
+                return comparingNullsLast(DownloadHistoryDTO::getUserName);
             case "organization":
-                return (a, b) -> Objects.compare(a.getOrganization(), b.getOrganization(), String::compareTo);
+                return comparingNullsLast(DownloadHistoryDTO::getOrganization);
             default:
-                return (a, b) -> Objects.compare(a.getCode(), b.getCode(), String::compareTo);
+                return comparingNullsLast(DownloadHistoryDTO::getCode);
         }
+    }
+
+    private static <T extends Comparable<T>> Comparator<DownloadHistoryDTO> comparingNullsLast(
+            Function<DownloadHistoryDTO, T> field) {
+
+        return Comparator.comparing(field, Comparator.nullsLast(Comparator.naturalOrder()));
     }
 }

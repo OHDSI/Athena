@@ -15,7 +15,6 @@ import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.impl.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +22,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
@@ -31,25 +32,46 @@ import java.util.List;
 
 import static com.odysseusinc.athena.util.CDMVersion.V5;
 
+/**
+ * These dependencies used to be {@code @Autowired protected} fields, inherited by
+ * both subclasses. Field injection on a base class hides the dependency list from every
+ * subclass constructor, cannot be made final, and leaves the object constructible in an
+ * incomplete state — which is exactly how {@code BundleOwnershipTest} first failed, with a
+ * collaborator silently null. They are now constructor-injected and final; a subclass must
+ * declare what it inherits.
+ */
 public class AbstractVocabularyController {
-    @Autowired
-    protected  ConverterUtils converterUtils;
-    @Autowired
-    protected  DownloadBundleService downloadBundleService;
-    @Autowired
-    protected  DownloadShareService downloadShareService;
-    @Autowired
-    protected  UserService userService;
-    @Autowired
-    protected  VocabularyConversionService vocabularyConversionService;
-    @Autowired
-    protected  VocabularyService vocabularyService;
-    @Autowired
-    protected  LicenseService licenseService;
-    @Autowired
-    protected VocabularyReleaseVersionService vocabularyReleaseVersionService;
-    @Autowired
-    protected GenericConversionService conversionService;
+
+    protected final ConverterUtils converterUtils;
+    protected final DownloadBundleService downloadBundleService;
+    protected final DownloadShareService downloadShareService;
+    protected final UserService userService;
+    protected final VocabularyConversionService vocabularyConversionService;
+    protected final VocabularyService vocabularyService;
+    protected final LicenseService licenseService;
+    protected final VocabularyReleaseVersionService vocabularyReleaseVersionService;
+    protected final GenericConversionService conversionService;
+
+    protected AbstractVocabularyController(ConverterUtils converterUtils,
+                                           DownloadBundleService downloadBundleService,
+                                           DownloadShareService downloadShareService,
+                                           UserService userService,
+                                           VocabularyConversionService vocabularyConversionService,
+                                           VocabularyService vocabularyService,
+                                           LicenseService licenseService,
+                                           VocabularyReleaseVersionService vocabularyReleaseVersionService,
+                                           GenericConversionService conversionService) {
+
+        this.converterUtils = converterUtils;
+        this.downloadBundleService = downloadBundleService;
+        this.downloadShareService = downloadShareService;
+        this.userService = userService;
+        this.vocabularyConversionService = vocabularyConversionService;
+        this.vocabularyService = vocabularyService;
+        this.licenseService = licenseService;
+        this.vocabularyReleaseVersionService = vocabularyReleaseVersionService;
+        this.conversionService = conversionService;
+    }
 
     @Operation(summary = "Get vocabularies.")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -74,8 +96,19 @@ public class AbstractVocabularyController {
     }
 
 
+    /**
+     * This creates a bundle row and kicks off generation, so it should never have been
+     * a GET: it is repeated by a browser prefetch or a refresh, and a link to it in an e-mail
+     * or a chat client generates a bundle when the preview is fetched.
+     * <p>
+     * POST is now the correct verb and GET is kept only so the current AthenaUI keeps working
+     * — it reaches this through {@code feathers-reduxify-services}, where the
+     * {@code vocabularies/save} service is invoked as {@code find()} and therefore issues a
+     * GET. Dropping GET here needs the paired front-end change; until then this is narrowed,
+     * not closed.
+     */
     @Operation(summary = "Save and generate vocabularies.")
-    @GetMapping("/save")
+    @RequestMapping(value = "/save", method = {RequestMethod.GET, RequestMethod.POST})
     public DownloadBundleDTO createAndGenerate(
             // TODO The vocabulary ID is obsolete for CDM4; it should not be used anymore. Instead, we should use codes (the new string ID in CDM5).
             @RequestParam(value = "ids") List<Integer> idV4s,

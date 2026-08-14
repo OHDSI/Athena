@@ -23,7 +23,9 @@
 package com.odysseusinc.athena.service.job;
 
 import com.odysseusinc.athena.service.DownloadBundleService;
-import org.joda.time.LocalDate;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -40,6 +42,9 @@ public class DownloadBundleCleaner {
     @Scheduled(cron = "${saved.files.cleaner}")
     public void clean() {
 
-        downloadBundleService.archiveBefore(new LocalDate().minusDays(days).toDate());
+        // Joda-Time was an undeclared transitive dependency and Boot 4 no
+        // longer supplies it. Same semantics: midnight, local zone, N days ago.
+        downloadBundleService.archiveBefore(Date.from(
+                LocalDate.now().minusDays(days).atStartOfDay(ZoneId.systemDefault()).toInstant()));
     }
 }

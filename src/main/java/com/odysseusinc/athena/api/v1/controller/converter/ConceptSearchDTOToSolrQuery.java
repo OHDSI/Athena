@@ -39,9 +39,11 @@ import com.odysseusinc.athena.service.impl.QueryBoosts;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.client.solrj.SolrQuery.SortClause;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -132,11 +134,23 @@ public class ConceptSearchDTOToSolrQuery {
         addFilter(source.getVocabulary(), VOCABULARY_ID, result);
     }
 
+    /**
+     * Adds a faceted filter query.
+     * <p>
+     * These values arrive straight off the query string — {@code domain},
+     * {@code vocabulary}, {@code conceptClass}, {@code invalidReason},
+     * {@code standardConcept}. They used to be interpolated raw between quotes, so a value
+     * containing a {@code "} closed the quote and injected arbitrary Solr syntax into the
+     * filter. Escaping each value the way the phrase path already does closes that.
+     */
     private void addFilter(String[] filter, String filterName, SolrQuery result) {
 
         if (filter != null) {
-            result.addFilterQuery(getExcludedTag(filterName) + filterName
-                    + ":" + "(\"" + join(filter, "\" OR \"") + "\")");
+            String values = Arrays.stream(filter)
+                    .filter(Objects::nonNull)
+                    .map(ClientUtils::escapeQueryChars)
+                    .collect(Collectors.joining("\" OR \"", "\"", "\""));
+            result.addFilterQuery(getExcludedTag(filterName) + filterName + ":(" + values + ")");
         }
     }
 
@@ -160,7 +174,12 @@ public class ConceptSearchDTOToSolrQuery {
         putIntoJsonFacet(jsonFacet, STANDARD_CONCEPT);
         putIntoJsonFacet(jsonFacet, INVALID_REASON);
 
-        result.add("json.facet", jsonFacet.toString().replace("\"", ""));
+        // this used to strip every quote from the generated JSON. Solr's json.facet
+        // parser is lenient enough to accept the unquoted result, so it worked - but it meant
+        // building valid JSON and then deliberately breaking it, and any label or field name
+        // that ever contained a quote would have produced a malformed request rather than an
+        // escaped one. Solr accepts strict JSON, so send that.
+        result.add("json.facet", jsonFacet.toString());
     }
 
     private void putIntoJsonFacet(JSONObject jsonFacet, String facetField) {

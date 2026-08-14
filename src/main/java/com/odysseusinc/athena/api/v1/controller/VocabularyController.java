@@ -22,6 +22,7 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
+import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.CustomPageImpl;
 import com.odysseusinc.athena.api.v1.controller.dto.LicenseExceptionDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.PageDTO;
@@ -35,10 +36,16 @@ import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyRelease
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.security.AthenaUser;
+import com.odysseusinc.athena.service.DownloadBundleService;
+import com.odysseusinc.athena.service.DownloadShareService;
+import com.odysseusinc.athena.service.LicenseService;
+import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
+import com.odysseusinc.athena.service.VocabularyService;
+import com.odysseusinc.athena.service.impl.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -65,9 +72,20 @@ import java.util.List;
 @RequestMapping("/api/v1/vocabularies")
 public class VocabularyController extends AbstractVocabularyController {
 
-    @Autowired
-    private VocabularyReleaseVersionService versionService;
+    public VocabularyController(ConverterUtils converterUtils,
+                                DownloadBundleService downloadBundleService,
+                                DownloadShareService downloadShareService,
+                                UserService userService,
+                                VocabularyConversionService vocabularyConversionService,
+                                VocabularyService vocabularyService,
+                                LicenseService licenseService,
+                                VocabularyReleaseVersionService vocabularyReleaseVersionService,
+                                GenericConversionService conversionService) {
 
+        super(converterUtils, downloadBundleService, downloadShareService, userService,
+                vocabularyConversionService, vocabularyService, licenseService,
+                vocabularyReleaseVersionService, conversionService);
+    }
 
 
     @Operation(summary = "Share bundle")
@@ -102,6 +120,9 @@ public class VocabularyController extends AbstractVocabularyController {
             throws PermissionDeniedException {
 
         AthenaUser currentUser = userService.getCurrentUser();
+        // The LicenseException raised below carries the restricted vocabulary ids, so
+        // without an ownership check this endpoint reported the contents of any bundle id.
+        vocabularyService.checkBundleAndSharedUser(currentUser, bundleId);
         vocabularyService.checkBundleVocabularies(bundleId, currentUser.getId());
         return new LicenseExceptionDTO(true);
     }
@@ -166,6 +187,11 @@ public class VocabularyController extends AbstractVocabularyController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * A GET on purpose: this URL is what an administrator is sent in an e-mail and clicks,
+     * and a link cannot issue a POST. {@code token} is what makes the request specific to one
+     * licence.
+     */
     @Operation(summary = "Accept user's license via mail.")
     @GetMapping("licenses/accept/mail")
     public void acceptLicenseViaMail(@RequestParam("id") Long id,
@@ -180,7 +206,9 @@ public class VocabularyController extends AbstractVocabularyController {
 
     @GetMapping("/vocabulary-release-versions")
     public List<VocabularyReleaseVersionDTO> releaseVersions() {
-        return versionService.getReleaseVersions();
+        // was a second, separately injected VocabularyReleaseVersionService named
+        // versionService, duplicating the one already inherited from the base class.
+        return vocabularyReleaseVersionService.getReleaseVersions();
     }
 
 }

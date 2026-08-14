@@ -70,9 +70,14 @@ public class EmailServiceTest {
     @Test
     public void shouldNotifyAdminsOnVocabularyDownloadLinkEmailSendingFailure() {
 
-        CompletableFuture<Void> failureAction = CompletableFuture.runAsync(() -> {
-            throw new AthenaException();
-        });
+        // Must be a future that has ALREADY completed exceptionally, rather than
+        // CompletableFuture.runAsync(...). With runAsync the failure lands on the
+        // ForkJoin pool, so EmailServiceImpl's .exceptionally(...) callback races the
+        // verify() below and the admin notification is frequently sent just *after*
+        // the assertion — the test only passed by timing luck. An already-completed
+        // future runs the callback on the calling thread, making this deterministic.
+        CompletableFuture<Void> failureAction = new CompletableFuture<>();
+        failureAction.completeExceptionally(new AthenaException());
         when(emailSenderService.sendAsync(any(), any(), any())).thenReturn(failureAction);
 
         emailService.sendVocabularyDownloadLink(athenaUser, EMPTY, EMPTY, CDMVersion.V5, new HashMap<>(), EMPTY);
