@@ -29,7 +29,6 @@ import com.odysseusinc.athena.service.impl.AthenaCSVWriter;
 import com.odysseusinc.athena.service.saver.statment.Placeholders;
 import com.odysseusinc.athena.service.saver.statment.PreparedStatementCreator;
 import com.odysseusinc.athena.util.CDMVersion;
-import com.opencsv.CSVWriter;
 import lombok.Getter;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,7 +69,7 @@ public abstract class CSVSaver extends Saver implements ISaver {
         final String fileName = fileName();
         Path path = fileHelper.getPath(bundle.getUuid(), fileName);
 
-        try (CSVWriter csvWriter = new AthenaCSVWriter(path.toString(), separator)) {
+        try (AthenaCSVWriter csvWriter = new AthenaCSVWriter(path.toString(), separator)) {
 
             writeContent(bundle, csvWriter, vocabularyIds);
             csvWriter.flush(true);
@@ -87,7 +86,7 @@ public abstract class CSVSaver extends Saver implements ISaver {
         bundleService.save(savedFile);
     }
 
-    public <T> void writeContent(DownloadBundle bundle, CSVWriter csvWriter, List<T> ids) throws Exception {
+    public <T> void writeContent(DownloadBundle bundle, AthenaCSVWriter csvWriter, List<T> ids) throws Exception {
 
         if (ids.isEmpty()) {
             return;
