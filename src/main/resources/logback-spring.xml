@@ -4,6 +4,14 @@
     <include resource="org/springframework/boot/logging/logback/defaults.xml" />
     <property name="LOGS_DIR" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}"/>
     <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+    <!--
+      Boot's file-appender.xml writes to ${LOG_FILE}, which is only defined when
+      logging.file.name or logging.file.path is set. Unset, logback creates a file
+      literally named LOG_FILE_IS_UNDEFINED in the working directory - which is what
+      happened everywhere once Boot 3 removed the old logging.path key. Defaulting it
+      alongside LOGS_DIR keeps that from recurring if the property is ever dropped.
+    -->
+    <property name="LOG_FILE" value="${LOG_FILE:-${LOGS_DIR}/athena.log}"/>
     <include resource="org/springframework/boot/logging/logback/file-appender.xml" />
 
     <appender name="SEARCH_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">

@@ -24,9 +24,8 @@ package com.odysseusinc.athena.config;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
+import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -35,9 +34,11 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+// Boot 4 splits auto-configuration into per-module artifacts. spring-boot-flyway is not
+// a dependency here (this application runs Flyway itself, across four datasources, from
+// FlywayConfig), so FlywayAutoConfiguration is absent and no longer needs excluding.
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class,
-        HibernateJpaAutoConfiguration.class,
-        FlywayAutoConfiguration.class
+        HibernateJpaAutoConfiguration.class
 })
 @Configuration
 @EnableScheduling
@@ -46,6 +47,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAspectJAutoProxy
 @ComponentScan(basePackages = {"com.odysseusinc.athena.api.v1.controller",
         "com.odysseusinc.athena.config",
+        // This list predates the pac4j removal, when everything security-related was
+        // wired explicitly from Pac4jConfig inside `config`. The replacement puts the JWT,
+        // API-token, HMAC and SAML beans under `security`, and without this entry none of the
+        // eight is registered - the context fails on the first one it needs. The Cucumber
+        // suite does not catch it: it builds its context from TestConfiguration, not from
+        // this class.
+        "com.odysseusinc.athena.security.**",
         "com.odysseusinc.athena.service.**",
         "com.odysseusinc.athena.repositories.*",
         "com.odysseusinc.athena.controllers"})

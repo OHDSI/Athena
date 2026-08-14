@@ -9,10 +9,10 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -90,13 +90,19 @@ public class HmacVerifyingFilter extends OncePerRequestFilter {
         try {
             Instant parse = Instant.parse(nonce);
             TemporalAmount tolerance = clients.getTimeTolerance();
-            if (now.plus(tolerance).isBefore(parse) && now.minus(tolerance).isAfter(parse)) {
+            // Reject a nonce that is too far in EITHER direction. This used to be an
+            // '&&', which cannot be satisfied — a nonce cannot be both in the future
+            // and in the past — so the window was never enforced and any signed
+            // request could be replayed indefinitely.
+            boolean tooFarAhead = parse.isAfter(now.plus(tolerance));
+            boolean tooFarBehind = parse.isBefore(now.minus(tolerance));
+            if (tooFarAhead || tooFarBehind) {
                 log.info("NONCE {} is too far from current time {}, possible replay attack or remote system clock desync", nonce, now);
-                throw new BadCredentialsException("Invalid noonce [" + nonce + "]");
+                throw new BadCredentialsException("Invalid nonce [" + nonce + "]");
             }
             return nonce;
         } catch (DateTimeParseException e) {
-            log.info("Unparseable nonce [{}], valid musth be within tolerance from [{}]", nonce, now);
+            log.info("Unparseable nonce [{}], must be an ISO-8601 instant within tolerance of [{}]", nonce, now);
             throw new BadCredentialsException("Unparseable nonce [" + nonce + "]");
         }
     }

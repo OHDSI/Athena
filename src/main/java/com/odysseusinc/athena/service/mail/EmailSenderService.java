@@ -36,7 +36,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMessage;
 import java.util.concurrent.CompletableFuture;
 
 import static com.google.common.collect.Iterables.toArray;

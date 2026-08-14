@@ -24,7 +24,7 @@ package com.odysseusinc.athena.repositories.athena;
 
 import com.odysseusinc.athena.model.athena.SavedFile;
 import java.util.List;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;

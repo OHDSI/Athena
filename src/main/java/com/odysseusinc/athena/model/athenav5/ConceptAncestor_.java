@@ -22,8 +22,8 @@
 
 package com.odysseusinc.athena.model.athenav5;
 
-import javax.persistence.metamodel.SingularAttribute;
-import javax.persistence.metamodel.StaticMetamodel;
+import jakarta.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.metamodel.StaticMetamodel;
 
 @StaticMetamodel(ConceptAncestor.class)
 public class ConceptAncestor_ {
