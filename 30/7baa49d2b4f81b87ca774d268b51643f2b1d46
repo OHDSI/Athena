@@ -1,0 +1,19 @@
+pom.xml
+  s_77ea3cbefbd88b::t_e49f91f30a6bb8 31,34,36-37,43,45,52,58,153,374
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "307baa49d2b4f81b87ca774d268b51643f2b1d46",
+  "prompts": {},
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
