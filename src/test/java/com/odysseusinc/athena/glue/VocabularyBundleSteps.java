@@ -176,6 +176,17 @@ public class VocabularyBundleSteps {
         runScript(schema, path);
     }
 
+    @When("user drops CDM 5.5 tables from the {string} schema")
+    public void dropCdm55Tables(String schema) {
+        try (Connection conn = v5HistoryDataSource.getConnection()) {
+            conn.setSchema(schema);
+            queryRunner.execute(conn, "DROP TABLE concept_relationship_metadata, concept_metadata, pack_content");
+        } catch (SQLException e) {
+            throw new AssertionFailedError(
+                    MessageFormat.format("Error dropping optional CDM 5.5 tables from schema {0}", schema), e);
+        }
+    }
+
 
     @When("user inspects list of vocabulary release version")
     public void inspectReleaseVersions() {
@@ -385,4 +396,3 @@ public class VocabularyBundleSteps {
     }
 
 }
-

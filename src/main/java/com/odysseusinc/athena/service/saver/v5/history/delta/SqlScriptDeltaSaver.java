@@ -43,6 +43,27 @@ public class SqlScriptDeltaSaver extends HistorySaver implements SaverV5Delta {
     @Override
     protected String query() {
 
-        return "SELECT * FROM get_sql_statements_delta(:version, :versionDelta, :vocabularyArr)";
+        /*
+         * A delta can be applied to a vocabulary schema created before CDM 5.5. Keep
+         * ordinary statements unchanged, but execute statements for the three optional
+         * tables dynamically and only when the target relation is on the search path.
+         * Dynamic EXECUTE matters: it prevents PostgreSQL from resolving a missing table
+         * while compiling the DO block's unselected branch.
+         */
+        return "SELECT CASE "
+                + "WHEN script_text ~ '^(INSERT INTO|UPDATE|DELETE FROM) concept_metadata ' "
+                + "THEN format($guard$DO $athena$ BEGIN "
+                + "IF to_regclass('concept_metadata') IS NOT NULL THEN EXECUTE %L; END IF; "
+                + "END $athena$;$guard$, script_text) "
+                + "WHEN script_text ~ '^(INSERT INTO|UPDATE|DELETE FROM) concept_relationship_metadata ' "
+                + "THEN format($guard$DO $athena$ BEGIN "
+                + "IF to_regclass('concept_relationship_metadata') IS NOT NULL THEN EXECUTE %L; END IF; "
+                + "END $athena$;$guard$, script_text) "
+                + "WHEN script_text ~ '^(INSERT INTO|UPDATE|DELETE FROM) pack_content ' "
+                + "THEN format($guard$DO $athena$ BEGIN "
+                + "IF to_regclass('pack_content') IS NOT NULL THEN EXECUTE %L; END IF; "
+                + "END $athena$;$guard$, script_text) "
+                + "ELSE script_text END "
+                + "FROM get_sql_statements_delta(:version, :versionDelta, :vocabularyArr)";
     }
 }

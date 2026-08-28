@@ -9,25 +9,31 @@ Feature: Generate vocabulary download bundle for current version
 
     When user generates a bundle for current version
     Then it is a list containing:
-      | name                 | ext | rows |
-      | CONCEPT_ANCESTOR     | csv | 323  |
-      | CONCEPT_RELATIONSHIP | csv | 674  |
-      | CONCEPT_SYNONYM      | csv | 26   |
-      | DRUG_STRENGTH        | csv | 6    |
-      | RELATIONSHIP         | csv | 12   |
-      | VOCABULARY           | csv | 46   |
-      | CONCEPT_CLASS        | csv | 391  |
-      | CONCEPT              | csv | 184  |
-      | DOMAIN               | csv | 48   |
+      | name                          | ext | rows |
+      | CONCEPT_ANCESTOR              | csv | 323  |
+      | CONCEPT_RELATIONSHIP          | csv | 674  |
+      | CONCEPT_SYNONYM               | csv | 26   |
+      | DRUG_STRENGTH                 | csv | 6    |
+      | RELATIONSHIP                  | csv | 12   |
+      | VOCABULARY                    | csv | 46   |
+      | CONCEPT_CLASS                 | csv | 391  |
+      | CONCEPT                       | csv | 184  |
+      | DOMAIN                        | csv | 48   |
+      | CONCEPT_METADATA              | csv | 6    |
+      | CONCEPT_RELATIONSHIP_METADATA | csv | 5    |
+      | PACK_CONTENT                  | csv | 4    |
     When user compare with a 20200513 version bundle
     Then it is a list containing:
-      | name                 | diff |
-      | CONCEPT_ANCESTOR     | 0    |
-      | CONCEPT_RELATIONSHIP | 0    |
-      | CONCEPT_SYNONYM      | 0    |
-      | DRUG_STRENGTH        | 0    |
-      | RELATIONSHIP         | 0    |
-      | VOCABULARY           | 0    |
-      | CONCEPT_CLASS        | 0    |
-      | CONCEPT              | 0    |
-      | DOMAIN               | 0    |
+      | name                          | diff |
+      | CONCEPT_ANCESTOR              | 0    |
+      | CONCEPT_RELATIONSHIP          | 0    |
+      | CONCEPT_SYNONYM               | 0    |
+      | DRUG_STRENGTH                 | 0    |
+      | RELATIONSHIP                  | 0    |
+      | VOCABULARY                    | 0    |
+      | CONCEPT_CLASS                 | 0    |
+      | CONCEPT                       | 0    |
+      | DOMAIN                        | 0    |
+      | CONCEPT_METADATA              | 0    |
+      | CONCEPT_RELATIONSHIP_METADATA | 0    |
+      | PACK_CONTENT                  | 0    |

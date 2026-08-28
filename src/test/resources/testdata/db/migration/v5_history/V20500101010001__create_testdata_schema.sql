@@ -156,3 +156,44 @@ CREATE TABLE vocabulary_testdata.vocabulary (
     vocabulary_version character varying(255),
     vocabulary_concept_id integer NOT NULL
 );
+
+
+--
+-- Name: concept_metadata; Type: TABLE; Schema: vocabulary_testdata; Owner: ohdsi
+--
+
+CREATE TABLE vocabulary_testdata.concept_metadata (
+    concept_id integer NOT NULL,
+    concept_category character varying(20),
+    reuse_status character varying(20)
+);
+
+
+--
+-- Name: concept_relationship_metadata; Type: TABLE; Schema: vocabulary_testdata; Owner: ohdsi
+--
+
+CREATE TABLE vocabulary_testdata.concept_relationship_metadata (
+    concept_id_1 integer NOT NULL,
+    concept_id_2 integer NOT NULL,
+    relationship_id character varying(20) NOT NULL,
+    relationship_predicate_id character varying(20),
+    relationship_group integer,
+    mapping_source character varying(50),
+    confidence double precision,
+    mapping_tool character varying(50),
+    mapper character varying(50),
+    reviewer character varying(50)
+);
+
+
+--
+-- Name: pack_content; Type: TABLE; Schema: vocabulary_testdata; Owner: ohdsi
+--
+
+CREATE TABLE vocabulary_testdata.pack_content (
+    pack_concept_id integer NOT NULL,
+    drug_concept_id integer NOT NULL,
+    amount smallint,
+    box_size smallint
+);

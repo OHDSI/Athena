@@ -60,8 +60,37 @@ public abstract class CSVSaver extends Saver implements ISaver {
         if (!includedInBundle(ids)) {
             return;
         }
+        if (requiredTable() != null && !tableExists(bundle)) {
+            LOGGER.info("Skipping {} because optional table [{}] is not present",
+                    fileName(), requiredTable());
+            return;
+        }
         List<T> vocabularyIds = filter(ids);
         writeCSVtoZIP(zos, bundle, vocabularyIds);
+    }
+
+    /**
+     * Relation required only by this saver, or {@code null} for the established CDM
+     * tables whose absence should continue to fail loudly.
+     */
+    protected String requiredTable() {
+
+        return null;
+    }
+
+    private boolean tableExists(DownloadBundle bundle) {
+
+        try (Connection connection = getDataSource(bundle.getCdmVersion()).getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT to_regclass(?)")) {
+
+            statement.setString(1, requiredTable());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() && resultSet.getString(1) != null;
+            }
+        } catch (SQLException e) {
+            throw new IORuntimeException("Unable to check optional table ["
+                    + requiredTable() + "]", e);
+        }
     }
 
     protected <T> void writeCSVtoZIP(ZipOutputStream zos, DownloadBundle bundle, List<T> vocabularyIds) {

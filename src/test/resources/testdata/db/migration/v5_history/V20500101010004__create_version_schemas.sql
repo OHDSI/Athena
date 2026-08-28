@@ -16,6 +16,9 @@ DELETE FROM vocabulary_20200511.concept_synonym WHERE concept_id = 4161028;
 DELETE FROM vocabulary_20200511.concept_relationship WHERE concept_id_1 = 4161028 OR concept_id_2 = 4161028;
 DELETE FROM vocabulary_20200511.concept_ancestor WHERE ancestor_concept_id = 4161028 OR descendant_concept_id = 4161028;
 DELETE FROM vocabulary_20200511.drug_strength WHERE drug_concept_id = 45547509;
+DELETE FROM vocabulary_20200511.concept_relationship_metadata WHERE concept_id_1 = 4161028 OR concept_id_2 = 4161028;
+DELETE FROM vocabulary_20200511.pack_content WHERE pack_concept_id = 4161028 OR drug_concept_id = 4161028;
+DELETE FROM vocabulary_20200511.concept_metadata WHERE concept_id = 4161028;
 DELETE FROM vocabulary_20200511.concept WHERE concept_id = 4161028;
 DELETE FROM vocabulary_20200511.concept WHERE concept_id = 42628634;
 DELETE FROM vocabulary_20200511.concept_class WHERE concept_class_id = 'Blood Pressure Pos';
@@ -32,6 +35,9 @@ DELETE FROM vocabulary_20200515.concept_synonym WHERE concept_id = 40488901;
 DELETE FROM vocabulary_20200515.concept_relationship WHERE concept_id_1 = 40488901 OR concept_id_2 = 40488901;
 DELETE FROM vocabulary_20200515.concept_ancestor WHERE ancestor_concept_id = 40488901 OR descendant_concept_id = 40488901;
 DELETE FROM vocabulary_20200515.drug_strength WHERE drug_concept_id = 45910570;
+DELETE FROM vocabulary_20200515.concept_relationship_metadata WHERE concept_id_1 = 40488901 OR concept_id_2 = 40488901;
+DELETE FROM vocabulary_20200515.pack_content WHERE pack_concept_id = 40488901 OR drug_concept_id = 40488901;
+DELETE FROM vocabulary_20200515.concept_metadata WHERE concept_id = 40488901;
 DELETE FROM vocabulary_20200515.concept WHERE concept_id = 40488901;
 DELETE FROM vocabulary_20200515.concept WHERE concept_id = 2212194;
 DELETE FROM vocabulary_20200515.concept_class WHERE concept_class_id = 'Body Structure';
@@ -52,6 +58,9 @@ UPDATE vocabulary_20200515.drug_strength SET denominator_value = 0.001, box_size
 UPDATE vocabulary_20200515.relationship SET is_hierarchical = '7', defines_ancestry = '7' WHERE relationship_id = 'Contained in';
 UPDATE vocabulary_20200515.relationship SET is_hierarchical = '9', defines_ancestry = '9' WHERE relationship_id = 'Contains';
 UPDATE vocabulary_20200515.vocabulary SET vocabulary_name = 'Updated WHO Anatomic Therapeutic Chemical Classification', vocabulary_reference = 'Updated FDB UK distribution package', vocabulary_version = 'Updated RXNORM 2018-08-12' WHERE vocabulary_id = 'ATC';
+UPDATE vocabulary_20200515.concept_metadata SET reuse_status = 'RP' WHERE concept_id = 200962;
+UPDATE vocabulary_20200515.concept_relationship_metadata SET confidence = 0.5, reviewer = 'Updated Reviewer' WHERE concept_id_1 = 200962 AND concept_id_2 = 44500494 AND relationship_id = 'Subsumes';
+UPDATE vocabulary_20200515.pack_content SET box_size = 12 WHERE pack_concept_id = 45547509 AND drug_concept_id = 45910570;
 
 
 -- vocabulary_20200509
