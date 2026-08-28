@@ -1,0 +1,31 @@
+README.md
+  h_7f60897e49550e 77
+pom.xml
+  s_77ea3cbefbd88b::t_aaf2e290f89e9f 289-301
+  s_77ea3cbefbd88b::t_4f3af84f552821 287-288
+properties/qa/application.properties
+  s_77ea3cbefbd88b::t_a70b0e0857f8a0 111,148
+properties/prod/application.properties
+  s_77ea3cbefbd88b::t_a70b0e0857f8a0 111,150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f14661fa89bac53a93b6f08cfa1408ffbe2f6735",
+  "prompts": {},
+  "humans": {
+    "h_7f60897e49550e": {
+      "author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  },
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
