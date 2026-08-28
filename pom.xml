@@ -28,34 +28,34 @@
         <java.version>25</java.version>
         <solr.version>8.11.4</solr.version>
         <disruptor.version>3.4.2</disruptor.version>
-        <commons-lang3.version>3.18.0</commons-lang3.version>
+        <commons-lang3.version>3.20.0</commons-lang3.version>
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
-        <guava.version>33.4.8-jre</guava.version>
+        <guava.version>33.7.1-jre</guava.version>
         <lombok.version>1.18.46</lombok.version>
-        <postgresql.version>42.7.7</postgresql.version>
-        <json.version>20260719</json.version>
+        <postgresql.version>42.7.13</postgresql.version>
+        <json.version>20260814</json.version>
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
         <nimbus-jose-jwt.version>10.9.1</nimbus-jose-jwt.version>
         <!-- 1.17.5 (docker-java 3.2.x) cannot talk to Docker Engine 25+; the API
              negotiation fails with HTTP 400 and every Testcontainers-backed test
              errors out. Keep this on a version that supports current engines. -->
-        <testcontainers.version>1.20.6</testcontainers.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
         <docker.api.version>1.41</docker.api.version>
-        <metrics-core.version>4.2.39</metrics-core.version>
+        <metrics-core.version>4.2.40</metrics-core.version>
         <spring-retry.version>2.0.13</spring-retry.version>
         <!-- Front end. The UI is compiled from source rather than pulled from a registry
              Point athena.ui.dir at a different checkout to build against it instead of 
              the submodule:
                  mvn package -Dathena.ui.dir=/path/to/AthenaUI -->
         <athena.ui.dir>${project.basedir}/ui</athena.ui.dir>
-        <frontend-maven-plugin.version>1.15.1</frontend-maven-plugin.version>
+        <frontend-maven-plugin.version>1.15.4</frontend-maven-plugin.version>
         <!-- Flipped by the skipUi profile. Named separately from maven.resources.skip so
              that skipping the UI copy does not also skip the application's own resources. -->
         <maven.resources.skip.ui>false</maven.resources.skip.ui>
         <!-- Pinned for reproducibility. Any current LTS works now that node-sass (which
              needed a matching prebuilt binary) is gone from AthenaUI. -->
-        <node.version>v24.11.1</node.version>
+        <node.version>v24.20.0</node.version>
     </properties>
 
     <profiles>
@@ -150,7 +150,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>3.0.3</version>
+            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -371,7 +371,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>4.4</version>
+            <version>4.6.0</version>
         </dependency>
 
         <dependency>
