@@ -1,0 +1,59 @@
+src/main/java/com/odysseusinc/athena/service/saver/v5/ConceptMetadataV5Saver.java
+  s_77ea3cbefbd88b::t_47bb5f57298502 35-39
+  s_77ea3cbefbd88b::t_4ff4a7a898d8eb 40
+src/main/java/com/odysseusinc/athena/service/saver/v5/history/delta/SqlScriptDeltaSaver.java
+  s_77ea3cbefbd88b::t_30d4d0eb00206c 46-67
+src/main/java/com/odysseusinc/athena/service/saver/v5/history/delta/ConceptMetadataDeltaSaver.java
+  s_77ea3cbefbd88b::t_388ac2c1c5f36a 30-34
+  s_77ea3cbefbd88b::t_4546cf0c8fdc39 35
+src/main/java/com/odysseusinc/athena/service/saver/v5/PackContentV5Saver.java
+  s_77ea3cbefbd88b::t_47bb5f57298502 34-38
+  s_77ea3cbefbd88b::t_8fff96045f6dc0 39
+src/test/java/com/odysseusinc/athena/service/saver/OptionalTableCSVSaverTest.java
+  s_77ea3cbefbd88b::t_d3a223f721df56 108
+  s_77ea3cbefbd88b::t_41b8fc09de265f 1-107,109-137
+src/main/java/com/odysseusinc/athena/service/saver/v5/history/version/ConceptRelationshipMetadataVersionSaver.java
+  s_77ea3cbefbd88b::t_388ac2c1c5f36a 35-39
+  s_77ea3cbefbd88b::t_874e2249fbc062 40
+src/main/java/com/odysseusinc/athena/service/saver/v5/history/delta/ConceptRelationshipMetadataDeltaSaver.java
+  s_77ea3cbefbd88b::t_388ac2c1c5f36a 30-34
+  s_77ea3cbefbd88b::t_80c8cd2b2a746d 35
+src/main/java/com/odysseusinc/athena/service/saver/v5/history/version/ConceptMetadataVersionSaver.java
+  s_77ea3cbefbd88b::t_388ac2c1c5f36a 30-34
+  s_77ea3cbefbd88b::t_a218d4692a59a1 35
+src/test/java/com/odysseusinc/athena/glue/VocabularyBundleSteps.java
+  s_77ea3cbefbd88b::t_593a721edbb27d 179-188
+  s_77ea3cbefbd88b::t_f17196a73b1099 189
+src/test/java/com/odysseusinc/athena/service/saver/v5/history/delta/SqlScriptDeltaSaverTest.java
+  s_77ea3cbefbd88b::t_1dae5b63854b34 1-40
+src/main/java/com/odysseusinc/athena/service/saver/v5/history/delta/PackContentDeltaSaver.java
+  s_77ea3cbefbd88b::t_388ac2c1c5f36a 30-34
+  s_77ea3cbefbd88b::t_e8d1835ae37c38 35
+src/main/java/com/odysseusinc/athena/service/saver/CSVSaver.java
+  s_77ea3cbefbd88b::t_d3a223f721df56 63-67,72-94
+  s_77ea3cbefbd88b::t_2280d7e113a05c 95
+src/test/resources/features/vocabulary-bundle-for-delta.feature
+  s_77ea3cbefbd88b::t_593a721edbb27d 57-59,63-72
+src/main/java/com/odysseusinc/athena/service/saver/v5/ConceptRelationshipMetadataV5Saver.java
+  s_77ea3cbefbd88b::t_47bb5f57298502 35-39
+  s_77ea3cbefbd88b::t_c616cbf70c23f9 40
+src/main/java/com/odysseusinc/athena/service/saver/v5/history/version/PackContentVersionSaver.java
+  s_77ea3cbefbd88b::t_388ac2c1c5f36a 30-34
+  s_77ea3cbefbd88b::t_eb3d8a74b878ef 35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "3c0cb1b9a3c8999565d82b3710f0518f9a81490c",
+  "prompts": {},
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
