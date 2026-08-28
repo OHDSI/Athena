@@ -32,6 +32,12 @@ import org.springframework.stereotype.Service;
 public class PackContentV5Saver extends CSVSaver implements SaverV5 {
 
     @Override
+    protected String requiredTable() {
+
+        return "pack_content";
+    }
+
+    @Override
     public String fileName() {
 
         return "PACK_CONTENT.csv";

@@ -54,22 +54,22 @@ Feature: Generate delta vocabulary download bundle between two version
       | concept_metadata              | 5       | 5       | 2        | 2        |
       | concept_relationship_metadata | 2       | 4       | 4        | 2        |
       | pack_content                  | 3       | 3       | 2        | 2        |
+    # A recipient may still use a pre-CDM-5.5 schema. The delta must update all
+    # established vocabulary tables without failing on the three optional ones.
+    When user drops CDM 5.5 tables from the "vocabulary_20200509" schema
     When run "sqlPath" script on "vocabulary_20200509" schema
     And user compare and inspect schemas "vocabulary_20200509" and "vocabulary_20200515"
     Then it is a list containing:
-      | name                          | amount1 | amount2 | missing1 | missing2 |
-      | concept                       | 186     | 186     | 2        | 2        |
-      | concept_ancestor              | 319     | 319     | 0        | 0        |
-      | concept_class                 | 390     | 390     | 0        | 0        |
-      | domain                        | 47      | 47      | 0        | 0        |
-      | concept_relationship          | 668     | 668     | 0        | 0        |
-      | relationship                  | 10      | 10      | 0        | 0        |
-      | concept_synonym               | 24      | 24      | 0        | 0        |
-      | vocabulary                    | 103     | 103     | 0        | 0        |
-      | drug_strength                 | 5       | 5       | 0        | 0        |
-      | concept_metadata              | 5       | 5       | 0        | 0        |
-      | concept_relationship_metadata | 4       | 4       | 0        | 0        |
-      | pack_content                  | 3       | 3       | 0        | 0        |
+      | name                 | amount1 | amount2 | missing1 | missing2 |
+      | concept              | 186     | 186     | 2        | 2        |
+      | concept_ancestor     | 319     | 319     | 0        | 0        |
+      | concept_class        | 390     | 390     | 0        | 0        |
+      | domain               | 47      | 47      | 0        | 0        |
+      | concept_relationship | 668     | 668     | 0        | 0        |
+      | relationship         | 10      | 10      | 0        | 0        |
+      | concept_synonym      | 24      | 24      | 0        | 0        |
+      | vocabulary           | 103     | 103     | 0        | 0        |
+      | drug_strength        | 5       | 5       | 0        | 0        |
 
   Scenario: Download delta bundle from cache
     When user inspects list of vocabulary release version

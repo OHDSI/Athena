@@ -28,6 +28,12 @@ import org.springframework.stereotype.Service;
 public class ConceptRelationshipMetadataDeltaSaver extends HistorySaver implements SaverV5Delta {
 
     @Override
+    protected String requiredTable() {
+
+        return "concept_relationship_metadata_history";
+    }
+
+    @Override
     public String fileName() {
 
         return "CONCEPT_RELATIONSHIP_METADATA.csv";

@@ -28,6 +28,12 @@ import org.springframework.stereotype.Service;
 public class ConceptMetadataVersionSaver extends HistorySaver implements SaverV5History {
 
     @Override
+    protected String requiredTable() {
+
+        return "concept_metadata_history";
+    }
+
+    @Override
     public String fileName() {
 
         return "CONCEPT_METADATA.csv";

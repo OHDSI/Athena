@@ -28,6 +28,12 @@ import org.springframework.stereotype.Service;
 public class PackContentDeltaSaver extends HistorySaver implements SaverV5Delta {
 
     @Override
+    protected String requiredTable() {
+
+        return "pack_content_history";
+    }
+
+    @Override
     public String fileName() {
 
         return "PACK_CONTENT.csv";

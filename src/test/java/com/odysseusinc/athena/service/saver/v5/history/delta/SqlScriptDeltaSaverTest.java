@@ -13,35 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Company: Odysseus Data Services, Inc.
- * Created: August 14, 2026
+ * Company: Odysseus Data Services, Inc. (EPAM Systems company)
+ * Created: August 28, 2026
  *
  */
 
 package com.odysseusinc.athena.service.saver.v5.history.delta;
 
-import com.odysseusinc.athena.service.saver.SaverV5Delta;
-import com.odysseusinc.athena.service.saver.v5.history.HistorySaver;
-import org.springframework.stereotype.Service;
+import org.junit.Test;
 
-@Service
-public class ConceptMetadataDeltaSaver extends HistorySaver implements SaverV5Delta {
+import static org.junit.Assert.assertTrue;
 
-    @Override
-    protected String requiredTable() {
+public class SqlScriptDeltaSaverTest {
 
-        return "concept_metadata_history";
-    }
+    @Test
+    public void guardsCdm55StatementsForSchemasThatDoNotHaveThoseTables() {
 
-    @Override
-    public String fileName() {
+        String query = new SqlScriptDeltaSaver().query();
 
-        return "CONCEPT_METADATA.csv";
-    }
-
-    @Override
-    protected String query() {
-
-        return "SELECT * FROM get_concept_metadata_delta(:version, :versionDelta, :vocabularyArr, TRUE)";
+        assertTrue(query.contains("to_regclass('concept_metadata')"));
+        assertTrue(query.contains("to_regclass('concept_relationship_metadata')"));
+        assertTrue(query.contains("to_regclass('pack_content')"));
+        assertTrue(query.contains("EXECUTE %L"));
+        assertTrue(query.contains("ELSE script_text"));
     }
 }

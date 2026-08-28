@@ -33,6 +33,12 @@ import org.springframework.stereotype.Service;
 public class ConceptMetadataV5Saver extends CSVSaver implements SaverV5 {
 
     @Override
+    protected String requiredTable() {
+
+        return "concept_metadata";
+    }
+
+    @Override
     public String fileName() {
 
         return "CONCEPT_METADATA.csv";

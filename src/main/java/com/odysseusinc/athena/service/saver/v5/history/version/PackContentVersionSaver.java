@@ -28,6 +28,12 @@ import org.springframework.stereotype.Service;
 public class PackContentVersionSaver extends HistorySaver implements SaverV5History {
 
     @Override
+    protected String requiredTable() {
+
+        return "pack_content_history";
+    }
+
+    @Override
     public String fileName() {
 
         return "PACK_CONTENT.csv";
