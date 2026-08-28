@@ -175,6 +175,12 @@ public class UserController {
         dto.setCallbackUrl(athenaUrl + registerCallbackUrl);
 
         ArachnePortalResponse res = executeRequest(registerPath, dto);
+        // Arachne's registration endpoint returns void on success, while validation
+        // failures are serialized as an ArachnePortalResponse by its exception handler.
+        // RestTemplate therefore legitimately returns a null body for the successful path.
+        if (res == null) {
+            res = new ArachnePortalResponse(ArachnePortalResponse.ErrorCode.NO_ERROR);
+        }
 
         if (!res.getErrorCode().equals(ArachnePortalResponse.ErrorCode.NO_ERROR.getCode())) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
