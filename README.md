@@ -74,10 +74,10 @@ no addresses, credentials or key material of their own — every such value is w
 | `ATHENA_URL` | Public base URL. The SSO flow derives it from the request when unset, but links in outgoing e-mail cannot — set it. |
 | `ATHENA_V5_HISTORY_DB_PASSWORD` | Password for the `-v5-history` datasource. |
 | `ATHENA_SOLR_URL` | Solr base URL. Defaults to `http://localhost:8984/solr`. |
+| `ATHENA_SAML_SP_METADATA_LOCATION` | This service provider's metadata. |
 | `CAS_DEFAULT_IDP` | Identity provider entity id. |
 | `CAS_ENTITY_ID` | This service provider's entity id, as registered with the identity provider. |
 | `CAS_IDP_METADATA_LOCATION` | Identity provider metadata, e.g. `file:/path/to/idp-metadata.xml`. |
-| `ATHENA_SAML_SP_METADATA_LOCATION` | This service provider's metadata. |
 | `CAS_KEYSTORE_FILE` | Keystore holding the SAML signing key, e.g. `file:/path/to/keystore.jks`. |
 | `CAS_KEYSTORE_PASSWORD` | Keystore password. |
 | `CAS_KEYSTORE_KEY_ALIAS` | Alias of the signing key inside the keystore. |
