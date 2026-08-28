@@ -27,7 +27,7 @@ import com.odysseusinc.athena.exceptions.IORuntimeException;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

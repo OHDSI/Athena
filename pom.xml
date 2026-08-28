@@ -6,38 +6,67 @@
 
     <groupId>com.odysseusinc.athena</groupId>
     <artifactId>athena</artifactId>
-    <version>1.15.5</version>
+    <version>1.16.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.3.9.RELEASE</version>
+        <version>4.1.0</version>
         <relativePath/>
     </parent>
 
     <properties>
-        <java.version>1.8</java.version>
-        <jjwt.version>0.9.1</jjwt.version>
-        <opensaml.version>2.6.6-patched</opensaml.version>
-        <solr.version>8.11.2</solr.version>
-        <spring-security-pac4j.version>4.1.0</spring-security-pac4j.version>
-        <pac4j.version>3.3.0</pac4j.version>
-        <opencsv.version>3.9</opencsv.version>
-        <jakarta.mail.version>1.6.7</jakarta.mail.version>
-        <dockerImagePrefix>hub.odysseusinc.com</dockerImagePrefix>
-        <arachne.version>1.19.0</arachne.version>
+        <!--
+          Baseline for the properties/${env} resource directory. The dev profile is
+          activeByDefault, but Maven deactivates activeByDefault profiles as soon as any
+          -P is given, so `mvn -PskipUi package` left ${env} unresolved: the resource
+          directory silently did not exist and the jar shipped with no application.properties.
+          Declaring it here means env always has a value; the env profiles still override it.
+        -->
+        <env>dev</env>
+        <java.version>25</java.version>
+        <solr.version>8.11.4</solr.version>
         <disruptor.version>3.4.2</disruptor.version>
-        <commons-lang3.version>3.11</commons-lang3.version>
+        <commons-lang3.version>3.20.0</commons-lang3.version>
         <build.number>${BUILD_NUMBER}</build.number>
         <build.id>${BUILD_TIMESTAMP}</build.id>
-        <guava.verson>30.1-jre</guava.verson>
-        <lombok.version>1.18.18</lombok.version>
-        <postgresql.version>42.2.26</postgresql.version>
+        <guava.version>33.7.1-jre</guava.version>
+        <lombok.version>1.18.46</lombok.version>
+        <postgresql.version>42.7.13</postgresql.version>
+        <json.version>20260814</json.version>
+        <commons-beanutils.version>1.11.0</commons-beanutils.version>
+        <nimbus-jose-jwt.version>10.9.1</nimbus-jose-jwt.version>
+        <!-- 1.17.5 (docker-java 3.2.x) cannot talk to Docker Engine 25+; the API
+             negotiation fails with HTTP 400 and every Testcontainers-backed test
+             errors out. Keep this on a version that supports current engines. -->
+        <testcontainers.version>1.21.4</testcontainers.version>
+        <docker.api.version>1.41</docker.api.version>
+        <metrics-core.version>4.2.40</metrics-core.version>
+        <spring-retry.version>2.0.13</spring-retry.version>
+        <!-- Front end. The UI is compiled from source rather than pulled from a registry
+             Point athena.ui.dir at a different checkout to build against it instead of 
+             the submodule:
+                 mvn package -Dathena.ui.dir=/path/to/AthenaUI -->
+        <athena.ui.dir>${project.basedir}/ui</athena.ui.dir>
+        <frontend-maven-plugin.version>1.15.4</frontend-maven-plugin.version>
+        <!-- Flipped by the skipUi profile. Named separately from maven.resources.skip so
+             that skipping the UI copy does not also skip the application's own resources. -->
+        <maven.resources.skip.ui>false</maven.resources.skip.ui>
+        <!-- Pinned for reproducibility. Any current LTS works now that node-sass (which
+             needed a matching prebuilt binary) is gone from AthenaUI. -->
+        <node.version>v24.20.0</node.version>
     </properties>
 
     <profiles>
+        <profile>
+            <id>skipUi</id>
+            <properties>
+                <skip.npm>true</skip.npm>
+                <skip.installnodenpm>true</skip.installnodenpm>
+                <maven.resources.skip.ui>true</maven.resources.skip.ui>
+            </properties>
+        </profile>
         <profile>
             <id>dev</id>
             <properties>
@@ -77,6 +106,36 @@
 
     <dependencyManagement>
         <dependencies>
+            <!--
+              Boot 4 manages Jetty at 12.x, but solrj 8.11 is compiled against Jetty 9.4
+              and calls org.eclipse.jetty.client.api.Request, which Jetty 12 moved to
+              org.eclipse.jetty.client.Request. Unpinned, the tree mixes http2-client 9.4
+              with jetty-client 12 and every Solr query fails with NoClassDefFoundError.
+              Athena serves on Tomcat, so Jetty only ever appears as a solrj transitive.
+              This BOM is imported ahead of spring-boot-dependencies so it wins for
+              org.eclipse.jetty artifacts only; overriding the ${jetty.version} property
+              instead does not work, because Boot uses it to import a jetty-ee11-bom that
+              has no 9.4 release. Revisit when Solr moves to 9.x — that is a Lucene
+              index-format change and separate work.
+            -->
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-bom</artifactId>
+                <version>9.4.53.v20231009</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!--
+              Hibernate 7 needs antlr4-runtime 4.13.x for its HQL parser, but test-scoped
+              solr-core 8.11 drags in 4.5.1-1 at compile scope and wins on nearest
+              definition, so every repository bean fails with
+              NoClassDefFoundError: org/antlr/v4/runtime/CharStreams.
+            -->
+            <dependency>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-runtime</artifactId>
+                <version>4.13.2</version>
+            </dependency>
             <dependency>
                 <groupId>io.cucumber</groupId>
                 <artifactId>cucumber-bom</artifactId>
@@ -89,25 +148,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>javax.jms</groupId>
-            <artifactId>javax.jms-api</artifactId>
-            <version>2.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.odysseusinc.arachne</groupId>
-            <artifactId>arachne-commons</artifactId>
-            <version>${arachne.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.4.8</version>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -125,6 +168,20 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+        <!--
+          Native Spring Security replacement for pac4j-saml. On Security 7 this resolves
+          OpenSAML 5 and OpenSaml5AuthenticationProvider, so the EOL 3.x line pac4j-saml
+          depended on is gone rather than merely pinned.
+        -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-saml2-service-provider</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${nimbus-jose-jwt.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
@@ -138,24 +195,21 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-            <version>${jjwt.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
         </dependency>
         <dependency>
-            <groupId>net.sourceforge.jtds</groupId>
-            <artifactId>jtds</artifactId>
-            <version>${jtds.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
+        </dependency>
+        <!--
+          Flyway 10 moved per-database support out of flyway-core into separate modules,
+          so without this it refuses to start with "Unsupported Database: PostgreSQL 16.2".
+        -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -200,10 +254,18 @@
             <artifactId>spring-context-support</artifactId>
         </dependency>
 
+        <!--
+          Boot 4 splits auto-configuration per module, so MailSenderAutoConfiguration (and
+          therefore the JavaMailSender bean) only exists if the mail starter is present.
+          Previously this project got the mail auto-configuration from the monolithic
+          spring-boot-autoconfigure and supplied the implementation itself via
+          com.sun.mail:jakarta.mail (the old javax.mail namespace). The starter now brings
+          both the auto-configuration and the jakarta.mail 2.x implementation
+          (angus-mail).
+        -->
         <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>jakarta.mail</artifactId>
-            <version>${jakarta.mail.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
         <dependency>
@@ -211,43 +273,9 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.pac4j</groupId>
-            <artifactId>spring-security-pac4j</artifactId>
-            <version>${spring-security-pac4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.pac4j</groupId>
-            <artifactId>pac4j-saml</artifactId>
-            <version>${pac4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.pac4j</groupId>
-            <artifactId>pac4j-http</artifactId>
-            <version>${pac4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.pac4j</groupId>
-            <artifactId>pac4j-jwt</artifactId>
-            <version>${pac4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.pac4j</groupId>
-            <artifactId>pac4j-core</artifactId>
-            <version>${pac4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>3.2.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20190722</version>
+            <version>${json.version}</version>
         </dependency>
 
         <dependency>
@@ -257,31 +285,58 @@
             <scope>test</scope>
         </dependency>
 
+        <!--
+          HttpClient 5 uses HttpVersionPolicy from httpcore5-h2 while constructing its
+          default TLS configuration. Normally httpclient5 brings this transitively at
+          compile scope, but the nearer, test-scoped solr-core dependency also brings
+          httpcore5-h2; Maven's nearest-definition rule therefore narrows the resolved
+          artifact to test scope and omits it from the executable jar. The tests still
+          pass, but the first RestTemplate request fails in production with
+          NoClassDefFoundError: org/apache/hc/core5/http2/HttpVersionPolicy.
+          Declare the runtime requirement directly so it is packaged in BOOT-INF/lib.
+        -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5-h2</artifactId>
+        </dependency>
+
+        <!--
+          Required at runtime, not just in tests. Athena's own code never touches it, and it
+          was briefly declared test-only to keep a solr-core transitive out of the
+          production jar - but opensaml-core-api, opensaml-profile-api and opensaml-core-impl
+          all depend on it at compile scope, and a direct declaration overrides a transitive
+          one, so that scope silently removed it from the artifact. Nothing failed until the
+          application was actually started: OpenSaml5AuthenticationProvider's constructor
+          touches com.codahale.metrics.MetricRegistry, so the SAML filter chain died with
+          ClassNotFoundException on the first real boot. The version pin stays (OpenSAML
+          asks for 4.2.26); only the scope was wrong.
+        -->
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>${metrics-core.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>1.17.5</version>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
-            <version>1.17.5</version>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>1.17.5</version>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
-
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -289,26 +344,34 @@
             <scope>test</scope>
         </dependency>
 
+        <!--
+          Spring Boot dropped junit-vintage-engine from starter-test in 2.4. Most of
+          this suite is still JUnit 4, and without the vintage engine those tests are
+          silently skipped rather than failing. Required until they are migrated.
+        -->
         <dependency>
-            <groupId>hyee.opencsv</groupId>
-            <artifactId>hyee-opencsv</artifactId>
-            <version>1.1</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/opencsv.jar</systemPath>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.verson}</version>
+            <version>${guava.version}</version>
         </dependency>
+        <!-- Still used for @Retryable on email sending. Spring Framework 7 has native
+             retry (org.springframework.core.retry); migrating to it is a behaviour
+             change, so keep this library for now. -->
         <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
+            <version>${spring-retry.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>4.4</version>
+            <version>4.6.0</version>
         </dependency>
 
         <dependency>
@@ -320,7 +383,7 @@
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
-            <version>1.9.4</version>
+            <version>${commons-beanutils.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -364,36 +427,127 @@
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.0.0</version>
+            </plugin>
+            <!--
+              Backstop for the same hazard: whatever combination of profiles was used, a
+              packaged jar must actually contain a UI. Bound after the copy, so it passes on
+              a full build and fails loudly on -PskipUi with nothing built yet.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>ui-present</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireFilesExist>
+                                    <files>
+                                        <file>${project.basedir}/src/main/resources/public/index.html</file>
+                                        <!-- Comes from properties/${env}; absent if env failed
+                                             to resolve, which produces a jar that starts with
+                                             no datasource, no Solr URL and no token secret. -->
+                                        <file>${project.build.outputDirectory}/application.properties</file>
+                                    </files>
+                                    <message>
+Missing a required file (see below). If it is public/index.html, build the UI or
+drop -PskipUi; if it is application.properties, ${env} did not resolve to a
+directory under properties/.
+  mvn package                                   (builds the ui/ submodule)
+  mvn package -Dathena.ui.dir=/path/to/AthenaUI (builds another checkout)
+If the submodule is empty: git submodule update --init
+                                    </message>
+                                </requireFilesExist>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--
+              The UI used to arrive as com.odysseusinc.athena:athena-resources, a
+              zip of AthenaUI's dist/ published to a private Nexus - the only artifact that
+              still required it, and one that made a clean checkout unbuildable without
+              credentials. It is now compiled from source: `ui` is a git submodule pinned to
+              an exact AthenaUI commit, so the front end that ships in the jar is identified
+              by revision rather than by a mutable SNAPSHOT.
+
+              frontend-maven-plugin downloads its own Node, so no Node is required on the
+              build host and every build uses the same version. `npm ci` installs strictly
+              from AthenaUI's package-lock.json.
+
+              Skip it with -PskipUi when working on the backend alone; whatever was last
+              built into src/main/resources/public/ is then reused as-is.
+            -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>${frontend-maven-plugin.version}</version>
                 <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>${project.basedir}/src/main/resources/public/</directory>
-                        </fileset>
-                    </filesets>
+                    <workingDirectory>${athena.ui.dir}</workingDirectory>
+                    <!-- Deliberately not under target/: this survives `mvn clean`, so the
+                         Node download is not repeated on every clean build. It is also
+                         outside the submodule, which stays pristine. -->
+                    <installDirectory>${project.basedir}/.frontend</installDirectory>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>install-node-and-npm</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>${node.version}</nodeVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-ci</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>ci</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-build</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.0.0</version>
+                <artifactId>maven-resources-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>unpack</id>
+                        <id>copy-ui</id>
                         <phase>generate-resources</phase>
                         <goals>
-                            <goal>unpack</goal>
+                            <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.odysseusinc.athena</groupId>
-                                    <artifactId>athena-resources</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${project.basedir}/src/main/resources/public/</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
+                            <!-- Same destination the unpack used, so WebConfig's
+                                 classpath:/public/ resource handler is unchanged. -->
+                            <outputDirectory>${project.basedir}/src/main/resources/public</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <skip>${maven.resources.skip.ui}</skip>
+                            <resources>
+                                <resource>
+                                    <directory>${athena.ui.dir}/dist</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
                         </configuration>
                     </execution>
                 </executions>
@@ -401,9 +555,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <includeSystemScope>true</includeSystemScope>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -414,12 +565,53 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19.1</version>
+                <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <classpathDependencyExcludes>
-                        <!--<classpathDependencyExclude>net.minidev:json-smart</classpathDependencyExclude>-->
-                    </classpathDependencyExcludes>
+                    <!--
+                      maven-compiler-plugin 3.14+ runs javac in-process, which breaks
+                      Lombok's javac patching and aborts the build with 'Cannot load from
+                      object array because "this.hashes" is null'. Forking gives Lombok a
+                      clean javac.
+                    -->
+                    <fork>true</fork>
+                    <compilerArgs>
+                        <!--
+                          JDK 23 removed implicit annotation processing: javac no longer
+                          runs processors merely found on the classpath, so Lombok stops
+                          generating and every @Getter/@Setter becomes "cannot find
+                          symbol". -proc:full restores classpath discovery.
+                          Note the alternative, listing lombok under
+                          annotationProcessorPaths, makes Lombok 1.18.46 abort the whole
+                          compile with 'Cannot load from object array because
+                          "this.hashes" is null'.
+                        -->
+                        <arg>-proc:full</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <!--
+                  Version deliberately NOT pinned: it was held at 2.19.1, which predates
+                  the JUnit 5 provider, so every org.junit.jupiter test was silently
+                  skipped. Inheriting the Spring Boot parent's version fixes
+                  that. junit-vintage-engine is declared as a test dependency so the
+                  existing JUnit 4 tests keep running alongside them.
+                -->
+                <configuration>
+                    <systemPropertyVariables>
+                        <!--
+                          docker-java asks for Docker API 1.32, below the 1.40 floor of
+                          Docker Engine 25+, and answers HTTP 400 — which Testcontainers
+                          reports as "Could not find a valid Docker environment", making
+                          the whole suite unrunnable. docker-java reads this only as a
+                          system property, never from DOCKER_API_VERSION in the
+                          environment. 1.41 is supported by Engine 20.10 through current.
+                          Override with -Ddocker.api.version=... if needed.
+                        -->
+                        <api.version>${docker.api.version}</api.version>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
         </plugins>
@@ -441,54 +633,10 @@
 
     <repositories>
         <repository>
-            <id>odysseus.community.snapshots</id>
-            <name>Odysseus community snapshots</name>
-            <releases>
-                <enabled>false</enabled>
-                <updatePolicy>always</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-            <url>https://nexus.odysseusinc.com/repository/community-libs-snapshot-local</url>
-        </repository>
-        <repository>
-            <id>odysseus.community.releases</id>
-            <name>Odysseus community releases</name>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-            <url>https://nexus.odysseusinc.com/repository/community-libs-release-local</url>
-        </repository>
-        <repository>
-            <id>atlassian-3rd-party</id>
-            <name>atlassian-3rd-party</name>
-            <url>https://maven.atlassian.com/3rdparty/</url>
-        </repository>
-        <repository>
             <id>sibboleth</id>
             <name>shibboleth</name>
             <url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
         </repository>
     </repositories>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>nexus</id>
-            <name>Odysseus community snapshots</name>
-            <url>https://nexus.odysseusinc.com/repository/community-libs-snapshot-local</url>
-        </snapshotRepository>
-        <repository>
-            <id>nexus</id>
-            <name>Odysseus community releases</name>
-            <url>https://nexus.odysseusinc.com/repository/community-libs-release-local</url>
-        </repository>
-    </distributionManagement>
 
 </project>

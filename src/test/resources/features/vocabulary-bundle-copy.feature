@@ -5,17 +5,20 @@ Feature: Copy of vocabulary download bundle
   Scenario: Copy and generate bundle
     When user generates a bundle for current version
     Then it is a list containing:
-      | name                 | ext | rows |
-      | CONCEPT_ANCESTOR     | csv | 323  |
-      | CONCEPT_RELATIONSHIP | csv | 674  |
-      | CONCEPT_SYNONYM      | csv | 26   |
-      | DRUG_STRENGTH        | csv | 6    |
-      | RELATIONSHIP         | csv | 12   |
-      | VOCABULARY           | csv | 46   |
-      | CONCEPT_CLASS        | csv | 391  |
-      | CONCEPT              | csv | 184  |
-      | CONCEPT_CPT4         | csv | 3    |
-      | DOMAIN               | csv | 48   |
+      | name                          | ext | rows |
+      | CONCEPT_ANCESTOR              | csv | 323  |
+      | CONCEPT_RELATIONSHIP          | csv | 674  |
+      | CONCEPT_SYNONYM               | csv | 26   |
+      | DRUG_STRENGTH                 | csv | 6    |
+      | RELATIONSHIP                  | csv | 12   |
+      | VOCABULARY                    | csv | 46   |
+      | CONCEPT_CLASS                 | csv | 391  |
+      | CONCEPT                       | csv | 184  |
+      | CONCEPT_CPT4                  | csv | 3    |
+      | DOMAIN                        | csv | 48   |
+      | CONCEPT_METADATA              | csv | 6    |
+      | CONCEPT_RELATIONSHIP_METADATA | csv | 5    |
+      | PACK_CONTENT                  | csv | 4    |
     And user inspect "VOCABULARY" file with "vocabulary_id" == "None"
     Then it is a list containing:
       | vocabulary_id | vocabulary_version |
@@ -29,16 +32,19 @@ Feature: Copy of vocabulary download bundle
     When user set new release version: "v5.0 25-MAY-20"
     And user copy "bundleId" bundle with "Bundle-copy" and generate it
     Then it is a list containing:
-      | name                 | ext | rows |
-      | CONCEPT_ANCESTOR     | csv | 323  |
-      | CONCEPT_RELATIONSHIP | csv | 674  |
-      | CONCEPT_SYNONYM      | csv | 26   |
-      | DRUG_STRENGTH        | csv | 6    |
-      | RELATIONSHIP         | csv | 12   |
-      | VOCABULARY           | csv | 46   |
-      | CONCEPT_CLASS        | csv | 391  |
-      | CONCEPT              | csv | 184  |
-      | DOMAIN               | csv | 48   |
+      | name                          | ext | rows |
+      | CONCEPT_ANCESTOR              | csv | 323  |
+      | CONCEPT_RELATIONSHIP          | csv | 674  |
+      | CONCEPT_SYNONYM               | csv | 26   |
+      | DRUG_STRENGTH                 | csv | 6    |
+      | RELATIONSHIP                  | csv | 12   |
+      | VOCABULARY                    | csv | 46   |
+      | CONCEPT_CLASS                 | csv | 391  |
+      | CONCEPT                       | csv | 184  |
+      | DOMAIN                        | csv | 48   |
+      | CONCEPT_METADATA              | csv | 6    |
+      | CONCEPT_RELATIONSHIP_METADATA | csv | 5    |
+      | PACK_CONTENT                  | csv | 4    |
     And user inspect "VOCABULARY" file with "vocabulary_id" == "None"
     Then it is a list containing:
       | vocabulary_id | vocabulary_version |

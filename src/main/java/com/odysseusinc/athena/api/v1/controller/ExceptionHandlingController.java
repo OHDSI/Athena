@@ -37,32 +37,58 @@ import com.odysseusinc.athena.exceptions.LicenseException;
 import com.odysseusinc.athena.exceptions.NotEmptyException;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
-import com.odysseusinc.athena.exceptions.UserNotFoundException;
 import com.odysseusinc.athena.exceptions.WrongFileFormatException;
 import com.odysseusinc.athena.util.JsonResult;
 import java.io.IOException;
-import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.mail.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+/**
+ * There used to be a {@code UserNotFoundException} handler here that issued an HTTP redirect
+ * to a login page, which also forced it to return 200 because the 302 was already committed
+ * by the time the entity was built. That exception was thrown nowhere in the code base, so
+ * both the handler and the exception class were deleted rather than reworked.
+ */
 @ControllerAdvice
 public class ExceptionHandlingController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlingController.class);
 
+    /**
+     * Last-resort handler. Deliberately does <b>not</b> put {@code ex.getMessage()} in the
+     * response: this catches anything unmapped, so the message can carry SQL fragments,
+     * entity names or file paths, and these endpoints are reachable unauthenticated. The
+     * detail stays in the log where operators can correlate it.
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<JsonResult> exceptionHandler(Exception ex) {
 
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(SYSTEM_ERROR);
-        result.setErrorMessage(ex.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        result.setErrorMessage("Internal server error");
+        return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Without this, Spring Security's {@code AccessDeniedException} is caught by the
+     * {@code Exception} handler above — so a {@code @Secured("ROLE_ADMIN")} denial was
+     * reported to the caller as <b>HTTP 200</b>, i.e. as success. Handled explicitly so an
+     * authorization failure is a 403.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(AccessDeniedException ex) {
+
+        LOGGER.warn("Access denied: {}", ex.getMessage());
+        JsonResult result = new JsonResult<>(PERMISSION_DENIED);
+        result.setErrorMessage("Access is denied");
+        return new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(MessagingException.class)
@@ -71,7 +97,7 @@ public class ExceptionHandlingController {
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(EMAIL_ERROR);
         result.setErrorMessage(ex.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(MailException.class)
@@ -80,7 +106,7 @@ public class ExceptionHandlingController {
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(EMAIL_ERROR);
         result.setErrorMessage(ex.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(IOException.class)
@@ -89,7 +115,7 @@ public class ExceptionHandlingController {
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(SYSTEM_ERROR);
         result.setErrorMessage(ex.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(IORuntimeException.class)
@@ -98,7 +124,7 @@ public class ExceptionHandlingController {
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(SYSTEM_ERROR);
         result.setErrorMessage(ex.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(PermissionDeniedException.class)
@@ -107,9 +133,16 @@ public class ExceptionHandlingController {
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(PERMISSION_DENIED);
         result.setErrorMessage(ex.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
     }
 
+    /**
+     * Deliberately still 200. This is not a generic error: it returns a
+     * {@link LicenseExceptionDTO} listing the vocabularies the user lacks a licence for,
+     * and AthenaUI's download modal consumes that as a normal result to drive the licence
+     * request flow. Making it a 4xx would route it into the client's error handling and
+     * break that flow, so it needs a coordinated change rather than a status swap.
+     */
     @ExceptionHandler(LicenseException.class)
     public ResponseEntity<LicenseExceptionDTO> exceptionHandler(LicenseException ex) {
 
@@ -123,7 +156,7 @@ public class ExceptionHandlingController {
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(DEPENDENCY_EXISTS);
         result.setErrorMessage(ex.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(FieldException.class)
@@ -133,7 +166,7 @@ public class ExceptionHandlingController {
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage("Incorrect data");
         result.getValidatorErrors().put(ex.getField(), ex.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(WrongFileFormatException.class)
@@ -143,19 +176,7 @@ public class ExceptionHandlingController {
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage(ex.getMessage());
         result.getValidatorErrors().put(ex.getField(), ex.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.OK);
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<JsonResult> exceptionHandler(UserNotFoundException ex,
-                                                       HttpServletResponse response) throws IOException {
-
-        LOGGER.error(ex.getMessage(), ex);
-        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
-        result.setErrorMessage(ex.getMessage());
-        result.getValidatorErrors().put(ex.getField(), ex.getMessage());
-        response.sendRedirect("/auth/login?message=email-not-confirmed");
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NotExistException.class)
@@ -165,7 +186,7 @@ public class ExceptionHandlingController {
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage(ex.getMessage());
         result.getValidatorErrors().put(ex.getEntity().getSimpleName(), ex.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(AlreadyExistException.class)
@@ -174,6 +195,6 @@ public class ExceptionHandlingController {
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(ALREADY_EXIST);
         result.setErrorMessage(ex.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.CONFLICT);
     }
 }

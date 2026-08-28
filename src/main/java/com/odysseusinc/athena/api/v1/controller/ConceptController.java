@@ -85,14 +85,16 @@ public class ConceptController {
     public ResponseEntity<EntityModel<ConceptDetailsDTO>> getConcept(@PathVariable Long id) {
 
         ConceptV5 concept = conceptService.getByIdWithLicenseCheck(id);
-        EntityModel<ConceptDetailsDTO> conceptResource = new EntityModel<>(
+        // Spring HATEOAS 1.5 (Boot 2.7) makes the EntityModel constructor non-public;
+        // EntityModel.of(...) is the replacement. Same JSON output.
+        EntityModel<ConceptDetailsDTO> conceptResource = EntityModel.of(
                 conversionService.convert(concept, ConceptDetailsDTO.class),
                 linkTo(methodOn(ConceptController.class).getConcept(id)).withSelfRel());
         return new ResponseEntity<>(conceptResource, OK);
     }
 
     @Operation(summary = "Get relations for concept")
-    @GetMapping(value = "/{id}/relations", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/{id}/relations", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ConceptAncestorRelationsDTO> relationsGraph(
             @PathVariable Long id, @RequestParam(name = "depth", defaultValue = "10") Integer depth,
             @RequestParam(name = "zoomLevel", defaultValue = "4") Integer zoomLevel) throws ExecutionException {
@@ -103,7 +105,7 @@ public class ConceptController {
     }
 
     @Operation(summary = "Is any relations for the concept exists")
-    @GetMapping(value = "/{id}/relations/any", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/{id}/relations/any", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<JsonResult> hasAnyRelations(
             @PathVariable Long id) {
 
@@ -114,7 +116,7 @@ public class ConceptController {
     }
 
     @Operation(summary = "Get concept relationships")
-    @GetMapping(value = "/{id}/relationships", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/{id}/relationships", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GroupedConceptRelationshipListDTO> relationships(
             @PathVariable Long id,
             @RequestParam(name = "relationshipId", required = false) String relationshipId,
@@ -140,7 +142,7 @@ public class ConceptController {
         return new ResponseEntity<>(new GroupedConceptRelationshipListDTO(groupedRelationships, resultList.size()), OK);
     }
 
-    @GetMapping(value = "/{id}/relationships/options", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "/{id}/relationships/options", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Set<RelationshipDTO>> relationshipOptions(@PathVariable Long id) {
 
         List<RelationshipV5> options = conceptService.getAllRelationships(id);

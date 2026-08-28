@@ -329,3 +329,45 @@ ALTER TABLE ONLY vocabulary_testdata.relationship
 -- PostgreSQL database dump complete
 --
 
+
+--
+-- Name: concept_metadata xpk_concept_metadata; Type: CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
+--
+
+ALTER TABLE ONLY vocabulary_testdata.concept_metadata
+    ADD CONSTRAINT xpk_concept_metadata PRIMARY KEY (concept_id);
+
+
+--
+-- Name: concept_relationship_metadata xpk_concept_relationship_metadata; Type: CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
+--
+
+ALTER TABLE ONLY vocabulary_testdata.concept_relationship_metadata
+    ADD CONSTRAINT xpk_concept_relationship_metadata PRIMARY KEY (concept_id_1, concept_id_2, relationship_id);
+
+
+--
+-- Name: pack_content xpk_pack_content; Type: CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
+--
+-- The upstream DDL declares no key for pack_content. The delta joins on this pair, so
+-- the fixture asserts the assumption rather than leaving it implicit.
+--
+
+ALTER TABLE ONLY vocabulary_testdata.pack_content
+    ADD CONSTRAINT xpk_pack_content PRIMARY KEY (pack_concept_id, drug_concept_id);
+
+
+--
+-- Name: concept_metadata fpk_concept_metadata_concept; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
+--
+
+ALTER TABLE ONLY vocabulary_testdata.concept_metadata
+    ADD CONSTRAINT fpk_concept_metadata_concept FOREIGN KEY (concept_id) REFERENCES vocabulary_testdata.concept(concept_id);
+
+
+--
+-- Name: concept_relationship_metadata fpk_concept_relationship_metadata; Type: FK CONSTRAINT; Schema: vocabulary_testdata; Owner: ohdsi
+--
+
+ALTER TABLE ONLY vocabulary_testdata.concept_relationship_metadata
+    ADD CONSTRAINT fpk_concept_relationship_metadata FOREIGN KEY (concept_id_1, concept_id_2, relationship_id) REFERENCES vocabulary_testdata.concept_relationship(concept_id_1, concept_id_2, relationship_id);

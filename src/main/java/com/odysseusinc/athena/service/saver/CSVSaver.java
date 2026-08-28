@@ -29,7 +29,6 @@ import com.odysseusinc.athena.service.impl.AthenaCSVWriter;
 import com.odysseusinc.athena.service.saver.statment.Placeholders;
 import com.odysseusinc.athena.service.saver.statment.PreparedStatementCreator;
 import com.odysseusinc.athena.util.CDMVersion;
-import com.opencsv.CSVWriter;
 import lombok.Getter;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,8 +60,37 @@ public abstract class CSVSaver extends Saver implements ISaver {
         if (!includedInBundle(ids)) {
             return;
         }
+        if (requiredTable() != null && !tableExists(bundle)) {
+            LOGGER.info("Skipping {} because optional table [{}] is not present",
+                    fileName(), requiredTable());
+            return;
+        }
         List<T> vocabularyIds = filter(ids);
         writeCSVtoZIP(zos, bundle, vocabularyIds);
+    }
+
+    /**
+     * Relation required only by this saver, or {@code null} for the established CDM
+     * tables whose absence should continue to fail loudly.
+     */
+    protected String requiredTable() {
+
+        return null;
+    }
+
+    private boolean tableExists(DownloadBundle bundle) {
+
+        try (Connection connection = getDataSource(bundle.getCdmVersion()).getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT to_regclass(?)")) {
+
+            statement.setString(1, requiredTable());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() && resultSet.getString(1) != null;
+            }
+        } catch (SQLException e) {
+            throw new IORuntimeException("Unable to check optional table ["
+                    + requiredTable() + "]", e);
+        }
     }
 
     protected <T> void writeCSVtoZIP(ZipOutputStream zos, DownloadBundle bundle, List<T> vocabularyIds) {
@@ -70,7 +98,7 @@ public abstract class CSVSaver extends Saver implements ISaver {
         final String fileName = fileName();
         Path path = fileHelper.getPath(bundle.getUuid(), fileName);
 
-        try (CSVWriter csvWriter = new AthenaCSVWriter(path.toString(), separator)) {
+        try (AthenaCSVWriter csvWriter = new AthenaCSVWriter(path.toString(), separator)) {
 
             writeContent(bundle, csvWriter, vocabularyIds);
             csvWriter.flush(true);
@@ -87,7 +115,7 @@ public abstract class CSVSaver extends Saver implements ISaver {
         bundleService.save(savedFile);
     }
 
-    public <T> void writeContent(DownloadBundle bundle, CSVWriter csvWriter, List<T> ids) throws Exception {
+    public <T> void writeContent(DownloadBundle bundle, AthenaCSVWriter csvWriter, List<T> ids) throws Exception {
 
         if (ids.isEmpty()) {
             return;

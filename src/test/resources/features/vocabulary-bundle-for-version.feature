@@ -16,41 +16,50 @@ Feature: Generate vocabulary download bundle by version
       | 20200515 |
     When user generates a 20200511 version bundle
     Then it is a list containing:
-      | name                 | ext | rows |
-      | CONCEPT_ANCESTOR     | csv | 319  |
-      | CONCEPT_RELATIONSHIP | csv | 662  |
-      | CONCEPT_SYNONYM      | csv | 25   |
-      | DRUG_STRENGTH        | csv | 5    |
-      | RELATIONSHIP         | csv | 10   |
-      | VOCABULARY           | csv | 45   |
-      | CONCEPT_CLASS        | csv | 390  |
-      | CONCEPT              | csv | 183  |
-      | CONCEPT_CPT4         | csv | 2    |
-      | DOMAIN               | csv | 47   |
+      | name                          | ext | rows |
+      | CONCEPT_ANCESTOR              | csv | 319  |
+      | CONCEPT_RELATIONSHIP          | csv | 662  |
+      | CONCEPT_SYNONYM               | csv | 25   |
+      | DRUG_STRENGTH                 | csv | 5    |
+      | RELATIONSHIP                  | csv | 10   |
+      | VOCABULARY                    | csv | 45   |
+      | CONCEPT_CLASS                 | csv | 390  |
+      | CONCEPT                       | csv | 183  |
+      | CONCEPT_CPT4                  | csv | 2    |
+      | DOMAIN                        | csv | 47   |
+      | CONCEPT_METADATA              | csv | 5    |
+      | CONCEPT_RELATIONSHIP_METADATA | csv | 2    |
+      | PACK_CONTENT                  | csv | 3    |
 
     When user generates a 20200513 version bundle
     Then it is a list containing:
-      | name                 | ext | rows |
-      | CONCEPT_ANCESTOR     | csv | 323  |
-      | CONCEPT_RELATIONSHIP | csv | 674  |
-      | CONCEPT_SYNONYM      | csv | 26   |
-      | DRUG_STRENGTH        | csv | 6    |
-      | RELATIONSHIP         | csv | 12   |
-      | VOCABULARY           | csv | 46   |
-      | CONCEPT_CLASS        | csv | 391  |
-      | CONCEPT              | csv | 184  |
-      | CONCEPT_CPT4         | csv | 3    |
-      | DOMAIN               | csv | 48   |
+      | name                          | ext | rows |
+      | CONCEPT_ANCESTOR              | csv | 323  |
+      | CONCEPT_RELATIONSHIP          | csv | 674  |
+      | CONCEPT_SYNONYM               | csv | 26   |
+      | DRUG_STRENGTH                 | csv | 6    |
+      | RELATIONSHIP                  | csv | 12   |
+      | VOCABULARY                    | csv | 46   |
+      | CONCEPT_CLASS                 | csv | 391  |
+      | CONCEPT                       | csv | 184  |
+      | CONCEPT_CPT4                  | csv | 3    |
+      | DOMAIN                        | csv | 48   |
+      | CONCEPT_METADATA              | csv | 6    |
+      | CONCEPT_RELATIONSHIP_METADATA | csv | 5    |
+      | PACK_CONTENT                  | csv | 4    |
 
     When user generates a 20200515 version bundle
     Then it is a list containing:
-      | name                 | ext | rows |
-      | CONCEPT_ANCESTOR     | csv | 319  |
-      | CONCEPT_RELATIONSHIP | csv | 666  |
-      | CONCEPT_SYNONYM      | csv | 24   |
-      | DRUG_STRENGTH        | csv | 5    |
-      | RELATIONSHIP         | csv | 10   |
-      | VOCABULARY           | csv | 45   |
-      | CONCEPT_CLASS        | csv | 390  |
-      | CONCEPT              | csv | 183  |
-      | DOMAIN               | csv | 47   |
+      | name                          | ext | rows |
+      | CONCEPT_ANCESTOR              | csv | 319  |
+      | CONCEPT_RELATIONSHIP          | csv | 666  |
+      | CONCEPT_SYNONYM               | csv | 24   |
+      | DRUG_STRENGTH                 | csv | 5    |
+      | RELATIONSHIP                  | csv | 10   |
+      | VOCABULARY                    | csv | 45   |
+      | CONCEPT_CLASS                 | csv | 390  |
+      | CONCEPT                       | csv | 183  |
+      | DOMAIN                        | csv | 47   |
+      | CONCEPT_METADATA              | csv | 5    |
+      | CONCEPT_RELATIONSHIP_METADATA | csv | 4    |
+      | PACK_CONTENT                  | csv | 3    |

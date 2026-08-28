@@ -28,22 +28,21 @@ import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
+import org.hibernate.annotations.BatchSize;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -70,18 +69,28 @@ public class DownloadBundle {
     @Column
     private Date created;
 
+    // All three collections are eager bags, and Hibernate cannot join-fetch more
+    // than one bag in a single query (MultipleBagFetchException), so it resolves them with a
+    // separate select per collection per bundle: loading a user's download history issued
+    // 3n+1 queries. @BatchSize makes it fetch up to 50 bundles' worth of each collection in
+    // one IN-list instead, which is the fix that works for all three at once. Where a single
+    // path is hot enough to matter, a fetch join is still better — see
+    // DownloadHistoryRepository.findForStatistics.
+    @BatchSize(size = 50)
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "downloadBundle", targetEntity = SavedFile.class)
     private List<SavedFile> files;
 
     @Column(name = "user_id")
     private Long userId;
 
-    @OneToMany(mappedBy = "downloadBundle", targetEntity = DownloadItem.class)
-    @LazyCollection(LazyCollectionOption.FALSE)
+    // Hibernate 6 removed @LazyCollection; LazyCollectionOption.FALSE meant eager,
+    // so the equivalent is fetch = EAGER on the association itself.
+    @BatchSize(size = 50)
+    @OneToMany(mappedBy = "downloadBundle", targetEntity = DownloadItem.class, fetch = FetchType.EAGER)
     private List<DownloadItem> vocabularies;
 
-    @OneToMany(mappedBy = "bundle", targetEntity = DownloadShare.class)
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @BatchSize(size = 50)
+    @OneToMany(mappedBy = "bundle", targetEntity = DownloadShare.class, fetch = FetchType.EAGER)
     private List<DownloadShare> downloadShares;
 
     @Column
