@@ -71,22 +71,19 @@ public class SamlRedirectTest {
                         SamlRelyingPartyConfig.LazyRelyingPartyRegistrationRepository.class));
     }
 
-    /**
-     * Athena's production proxy limits forms to this application's own origin. A POST-bound
-     * authentication request is an auto-submitted cross-origin form and the browser blocks it
-     * before it reaches the IdP. The IdP metadata advertises Redirect as well, so select that
-     * binding explicitly instead of relying on metadata order.
-     */
+    /** The request binding and endpoint must remain a matching pair from IdP metadata. */
     @Test
-    public void authenticationRequestUsesRedirectBinding() {
+    public void authenticationRequestUsesMetadataPostBindingAndLocation() {
 
         RelyingPartyRegistration registration = SamlRelyingPartyConfig
                 .registrationBuilder("classpath:/saml/test/idp-metadata.xml")
                 .registrationId(SamlRelyingPartyConfig.REGISTRATION_ID)
                 .build();
 
-        assertEquals(Saml2MessageBinding.REDIRECT,
+        assertEquals(Saml2MessageBinding.POST,
                 registration.getAssertingPartyMetadata().getSingleSignOnServiceBinding());
+        assertEquals("https://idp.example.org:8443/cas/idp/profile/SAML2/POST/SSO",
+                registration.getAssertingPartyMetadata().getSingleSignOnServiceLocation());
     }
 
     @Test
