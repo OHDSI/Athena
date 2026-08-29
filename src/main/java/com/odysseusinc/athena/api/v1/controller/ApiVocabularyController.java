@@ -1,9 +1,18 @@
 package com.odysseusinc.athena.api.v1.controller;
 
+import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyVersionDTO;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
+import com.odysseusinc.athena.service.DownloadBundleService;
+import com.odysseusinc.athena.service.DownloadShareService;
+import com.odysseusinc.athena.service.LicenseService;
+import com.odysseusinc.athena.service.VocabularyConversionService;
+import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
+import com.odysseusinc.athena.service.VocabularyService;
+import com.odysseusinc.athena.service.impl.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +26,21 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/s2s/vocabularies")
 public class ApiVocabularyController extends AbstractVocabularyController {
+
+    public ApiVocabularyController(ConverterUtils converterUtils,
+                                   DownloadBundleService downloadBundleService,
+                                   DownloadShareService downloadShareService,
+                                   UserService userService,
+                                   VocabularyConversionService vocabularyConversionService,
+                                   VocabularyService vocabularyService,
+                                   LicenseService licenseService,
+                                   VocabularyReleaseVersionService vocabularyReleaseVersionService,
+                                   GenericConversionService conversionService) {
+
+        super(converterUtils, downloadBundleService, downloadShareService, userService,
+                vocabularyConversionService, vocabularyService, licenseService,
+                vocabularyReleaseVersionService, conversionService);
+    }
 
     @Override
     public List<DownloadBundleDTO> getDownloadHistory(Principal principal) throws PermissionDeniedException {

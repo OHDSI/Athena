@@ -24,7 +24,7 @@ package com.odysseusinc.athena.repositories.v4;
 
 import com.odysseusinc.athena.model.athenav4.ConceptSynonymV4;
 import java.util.List;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;

@@ -22,196 +22,362 @@
 
 package com.odysseusinc.athena.config;
 
+import com.odysseusinc.athena.security.AthenaAuthentication;
+import com.odysseusinc.athena.security.apitoken.ApiTokenAuthenticationFilter;
 import com.odysseusinc.athena.security.hmac.HmacVerifyingFilter;
-import com.odysseusinc.athena.security.pac4j.ApiTokenAuthClient;
-import com.odysseusinc.athena.service.security.RevokedTokenStore;
-import org.pac4j.core.config.Config;
-import org.pac4j.core.profile.CommonProfile;
-import org.pac4j.jwt.profile.JwtGenerator;
-import org.pac4j.springframework.security.web.CallbackFilter;
-import org.pac4j.springframework.security.web.LogoutFilter;
-import org.pac4j.springframework.security.web.SecurityFilter;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.odysseusinc.athena.security.jwt.JwtAuthenticationFilter;
+import com.odysseusinc.athena.security.jwt.JwtTokenService;
+import com.odysseusinc.athena.security.saml.SamlAuthenticationSuccessHandler;
+import com.odysseusinc.athena.security.saml.SamlRelyingPartyConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter;
+import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;
+import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
-@ComponentScan(basePackageClasses = {ApiTokenAuthClient.class, HmacVerifyingFilter.class})
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Application security. Replaces the pac4j-based configuration.
+ * <p>
+ * Four chains, in order. Each declares its own request matcher; the first match wins.
+ * <ol>
+ *   <li><b>{@code /api/s2s/**}</b> — server-to-server, HMAC-signed + API token.</li>
+ *   <li><b>Public endpoints</b> — registration, password reset, bundle download by
+ *       UUID, build number, static assets.</li>
+ *   <li><b>{@code /api/**}</b> — JWT session token; authentication required.</li>
+ *   <li><b>SAML + everything else</b> — SSO login, logout, view controllers.</li>
+ * </ol>
+ */
+@Slf4j
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+// prePostEnabled is explicitly false: it defaults to true on @EnableMethodSecurity,
+// whereas the @EnableGlobalMethodSecurity(securedEnabled = true) this replaced defaulted
+// it to false. Leaving the default would silently activate @PreAuthorize/@PostAuthorize
+// processing that was previously inert. Nothing in the codebase uses those annotations
+// today, so this only pins the scope rather than changing behaviour.
+@EnableMethodSecurity(securedEnabled = true, prePostEnabled = false)
+public class WebSecurityConfig {
 
-    @Configuration
+    /**
+     * Endpoints that must work without a session. Previously in
+     * {@code WebSecurity.ignoring()}.
+     * <p>
+     * These are matched with {@link PathPatternRequestMatcher} — Spring Security 7 removed
+     * {@code AntPathRequestMatcher}. Patterns are written as proper subtree matchers,
+     * because the original {@code "/api/v1/users**"} silently failed to cover
+     * {@code /api/v1/users/anything} even under Ant matching.
+     * <p>
+     * One semantic difference is worth knowing: under {@code PathPattern}, {@code **} does
+     * not match across segments mid-pattern, so {@code "/**.js"} matches {@code /app.x.js}
+     * but not {@code /static/js/app.js}. That is harmless here — nested static assets fall
+     * through to the catch-all chain, which permits them anyway — but it means this list
+     * is narrower than the Ant original.
+     */
+    private static final String[] PUBLIC_ENDPOINTS = {
+            "/api/v1/users/remind-password",
+            "/api/v1/users/reset-password",
+            "/api/v1/users/professional-types",
+            "/api/v1/users/countries",
+            "/api/v1/users/provinces",
+            "/api/v1/vocabularies/licenses/accept/mail",  // token-bound link from email
+            // Vocabulary release version, read by the front end's About dialog before a user
+            // signs in. Spelled the way the controller maps it — the camelCase form that was
+            // listed here matches no handler.
+            "/api/v1/vocabularies/release-version",
+            "/api/v1/vocabularies/zip/**",
+            "/api/v1/build-number",
+            "/api/v1/concepts",
+            "/api/v1/concepts/**"
+    };
+
+    private static final String[] PUBLIC_RESOURCES = {
+            "/", "/error", "/index.html", "/**.js", "/fonts/**", "/icons/**", "/img/**",
+            "/app.*.js", "/webjars/**", "/swagger-ui.html", "/swagger-resources/**",
+            "/v3/api-docs/**", "/auth/saml-metadata", "/auth/slo", "/auth/logged-out"
+    };
+
+
+    /**
+     * Spring Security 7 removed {@code AntPathRequestMatcher}; {@link
+     * PathPatternRequestMatcher} is the replacement. Unlike the MVC
+     * {@code PathPatternParser}, this accepts the {@code **} subtree patterns used here.
+     */
+    private static RequestMatcher matcher(String pattern) {
+
+        return PathPatternRequestMatcher.withDefaults().matcher(pattern);
+    }
+
+    private static RequestMatcher matcher(HttpMethod method, String pattern) {
+
+        return PathPatternRequestMatcher.withDefaults().matcher(method, pattern);
+    }
+
+    /** Every request chain 2 should handle: POST-only registration, then the flat lists. */
+    private static List<RequestMatcher> publicMatchers() {
+
+        List<RequestMatcher> matchers = new ArrayList<>();
+        matchers.add(matcher(HttpMethod.POST, "/api/v1/users"));
+        for (String pattern : PUBLIC_ENDPOINTS) {
+            matchers.add(matcher(pattern));
+        }
+        for (String pattern : PUBLIC_RESOURCES) {
+            matchers.add(matcher(pattern));
+        }
+        return matchers;
+    }
+
+    /**
+     * Both authentication filters are {@code @Component}s so they can be injected into
+     * the chains below, and Spring Boot auto-registers <em>any</em> {@code Filter} bean
+     * with the servlet container — which would run them on every request, outside the
+     * chain that is supposed to scope them. An API token would then authenticate on the
+     * {@code /api/**} chain, and the JWT filter would run on public endpoints where
+     * chain 2 deliberately has no authentication.
+     * <p>
+     * Registering them with {@code setEnabled(false)} suppresses only the container
+     * registration; the explicit {@code addFilterBefore}/{@code addFilterAfter} wiring
+     * in the chains is untouched, so each filter runs exactly where it is declared.
+     */
+    @Bean
+    public FilterRegistrationBean<ApiTokenAuthenticationFilter> apiTokenFilterRegistration(
+            ApiTokenAuthenticationFilter filter) {
+
+        FilterRegistrationBean<ApiTokenAuthenticationFilter> registration =
+                new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
+    public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(
+            JwtAuthenticationFilter filter) {
+
+        FilterRegistrationBean<JwtAuthenticationFilter> registration =
+                new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    /**
+     * Same treatment for the HMAC filter, which is a {@code Filter} bean for the same reason
+     * and was auto-registered for want of this. It ran servlet-wide, ahead of all four chains,
+     * on every request. {@code OncePerRequestFilter} then made the in-chain instance a no-op,
+     * so nothing misbehaved visibly — but the filter was running far outside the scope it is
+     * written for, which is exactly the hazard described above.
+     */
+    @Bean
+    public FilterRegistrationBean<HmacVerifyingFilter> hmacFilterRegistration(
+            HmacVerifyingFilter filter) {
+
+        FilterRegistrationBean<HmacVerifyingFilter> registration =
+                new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    /**
+     * Server-to-server. {@link HmacVerifyingFilter} must run before
+     * {@link ApiTokenAuthenticationFilter}, because the latter refuses to authenticate
+     * unless the former has marked the signature valid.
+     */
+    @Bean
     @Order(1)
-    public static class Saml2WebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+    public SecurityFilterChain s2sFilterChain(HttpSecurity http,
+                                              HmacVerifyingFilter hmacVerifyingFilter,
+                                              ApiTokenAuthenticationFilter apiTokenFilter) throws Exception {
 
-        @Autowired
-        private Config config;
-
-        protected void configure(final HttpSecurity http) throws Exception {
-
-            final SecurityFilter filter = new SecurityFilter(config, "Saml2Client");
-
-            http
-                    .antMatcher("/auth/sso")
-                    .addFilterBefore(filter, BasicAuthenticationFilter.class)
-                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
-        }
+        return http
+                .securityMatcher("/api/s2s/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(hmacVerifyingFilter, BasicAuthenticationFilter.class)
+                .addFilterAfter(apiTokenFilter, HmacVerifyingFilter.class)
+                .authorizeHttpRequests(requests -> requests.anyRequest().authenticated())
+                .build();
     }
 
-    @Configuration
+    /**
+     * Public endpoints and static assets: everything here answers an anonymous caller.
+     * <p>
+     * Public is not the same as anonymous, though, so the JWT filter still runs. Concept
+     * search lives on this chain and reads the current user to decide which restricted
+     * vocabularies to hide; without the filter that lookup always finds nobody, and a user
+     * holding an approved licence loses the concepts it grants. This is what the pac4j
+     * {@code "HeaderClient,AnonymousClient"} configuration did — authentication optional,
+     * not authentication absent. Authorization stays {@code permitAll}: a request with no
+     * token, or with an expired one, is served as before.
+     */
+    @Bean
     @Order(2)
-    public static class ApiTokenWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
-        @Autowired
-        private Config config;
+    public SecurityFilterChain publicFilterChain(HttpSecurity http,
+                                                 JwtAuthenticationFilter jwtFilter) throws Exception {
 
-        @Autowired
-        private HmacVerifyingFilter hmacVerifyingFilter;
-
-
-        @Override
-        protected void configure(final HttpSecurity http) throws Exception {
-            SecurityFilter filter = new SecurityFilter(config, "ApiTokenAuthClient");
-
-            http
-                    .antMatcher("/api/s2s/vocabularies")
-                    .antMatcher("/api/s2s/vocabularies/**")
-                    .addFilterBefore(filter, BasicAuthenticationFilter.class)
-                    .addFilterBefore(hmacVerifyingFilter, SecurityFilter.class)
-                    .csrf()
-                    .disable()
-                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
-        }
+        return http
+                // Registration is public only as a POST. The path carries no GET handler,
+                // so opening the whole path would expose surface for no reason.
+                .securityMatcher(new OrRequestMatcher(publicMatchers()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtFilter, LogoutFilter.class)
+                .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
+                .build();
     }
 
-    @Configuration
+    /**
+     * Everything else under {@code /api/**} needs a valid session token. Method-level
+     * {@code @Secured} still applies on top for admin endpoints.
+     */
+    @Bean
     @Order(3)
-    public static class JwtWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+    public SecurityFilterChain apiFilterChain(HttpSecurity http,
+                                              JwtAuthenticationFilter jwtFilter,
+                                              JwtTokenService tokenService,
+                                              @Value("${athena.token.header}") String authTokenHeader)
+            throws Exception {
 
-        @Autowired
-        private Config config;
-        @Autowired
-        private RevokedTokenStore tokenStore;
-
-        @Value("${athena.token.header}")
-        private String authTokenHeader;
-
-        @Override
-        public void configure(WebSecurity webSecurity) throws Exception {
-
-            webSecurity
-                    .ignoring()
-                    .antMatchers("/api/v1/users**")
-                    .antMatchers("/api/v1/users/remind-password**")
-                    .antMatchers("/api/v1/users/reset-password**")
-                    .antMatchers("/api/v1/users/professional-types**")
-                    .antMatchers("/api/v1/vocabularies/licenses/accept/mail**")
-                    .antMatchers("/api/v1/vocabularies/releaseVersion")
-                    .antMatchers("/api/v1/vocabularies/zip/**")
-                    .antMatchers("/api/v1/build-number")
-                    .antMatchers("/app.*.js", "/fonts/**", "/icons/**");
-        }
-
-        @Override
-        protected void configure(final HttpSecurity http) throws Exception {
-
-            final SecurityFilter filter = new SecurityFilter(config, "HeaderClient,AnonymousClient");
-
-            http
-                    .antMatcher("/api/**")
-                    .addFilterBefore(filter, BasicAuthenticationFilter.class)
-                    .csrf()
-                    .disable()
-                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
-        }
-
-        @Bean
-        public FilterRegistrationBean logoutFilterRegistration() {
-
-            FilterRegistrationBean bean = new FilterRegistrationBean();
-            bean.setFilter(logoutFilter());
-            bean.addUrlPatterns("/api/v1/users/logout");
-            bean.setName("logoutFilter");
-            bean.setOrder(1);
-            return bean;
-        }
-
-        @Bean
-        public LogoutFilter logoutFilter() {
-
-            final LogoutFilter logoutFilter = new LogoutFilter(config);
-            logoutFilter.setLogoutLogic(new CustomLogoutLogic<>(tokenStore));
-            logoutFilter.setLocalLogout(true);
-            logoutFilter.setDestroySession(false);
-            logoutFilter.setCentralLogout(true);
-            return logoutFilter;
-        }
+        return http
+                .securityMatcher("/api/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Before LogoutFilter, not BasicAuthenticationFilter. LogoutFilter sits far
+                // earlier in Spring Security's ordering, so authenticating after it left the
+                // security context empty for the duration of a logout request.
+                .addFilterBefore(jwtFilter, LogoutFilter.class)
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .anyRequest().authenticated())
+                .logout(logout -> logout
+                        .logoutRequestMatcher(matcher("/api/v1/users/logout"))
+                        .addLogoutHandler(revokeTokenHandler(tokenService, authTokenHeader))
+                        .logoutSuccessHandler((request, response, authentication) ->
+                                response.setStatus(200)))
+                .build();
     }
 
-    @Configuration
+    /**
+     * SAML SSO and the remaining UI routes.
+     * <p>
+     * The assertion consumer service stays on the path the identity provider already has
+     * registered ({@code /auth/callback}) — see {@link SamlRelyingPartyConfig}.
+     * {@code /auth/sso} remains the login entry point; requiring authentication there is what
+     * triggers the SAML entry point, so the externally visible URL is unchanged.
+     * <p>
+     * {@code loginPage} has to be set explicitly. Spring Security only auto-redirects to a
+     * single identity provider when the registration repository is {@link Iterable}, and this
+     * one deliberately is not — see
+     * {@link SamlRelyingPartyConfig#AUTHENTICATION_REQUEST_PATH}. Without it the default
+     * {@code /login} chooser renders with an empty provider list and the popup never leaves
+     * the application.
+     */
+    @Bean
     @Order(4)
-    public static class DefaultWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+    public SecurityFilterChain samlFilterChain(HttpSecurity http,
+                                               SamlAuthenticationSuccessHandler successHandler,
+                                               RelyingPartyRegistrationRepository registrations)
+            throws Exception {
 
-        @Autowired
-        private Config config;
-
-        @Autowired
-        private JwtGenerator<CommonProfile> jwtGenerator;
-
-        protected void configure(final HttpSecurity http) throws Exception {
-
-            final CallbackFilter asyncSecurityCallbackFilter = new CallbackFilter(config);
-            asyncSecurityCallbackFilter.setMultiProfile(true);
-            asyncSecurityCallbackFilter.setCallbackLogic(customPac4jCallbackLogic(jwtGenerator));
-
-            http
-                    .csrf()
-                    .disable()
-                    .exceptionHandling()
-                    .and()
-                    .sessionManagement()
-                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
-            http
-                    .authorizeRequests()
-                    .antMatchers(HttpMethod.OPTIONS, "*/**").permitAll()
-                    .antMatchers("/").permitAll()
-                    .antMatchers("/**.js").permitAll()
-                    .antMatchers("/error").permitAll()
-                    .antMatchers("/index.html**").permitAll()
-                    .antMatchers("/fonts*/**").permitAll()
-                    .antMatchers("/img*/**").permitAll()
-                    .antMatchers("/swagger-ui.html*/**").permitAll()
-                    .antMatchers("/webjars*/**").permitAll()
-                    .antMatchers("/swagger-resources*/**").permitAll()
-                    .antMatchers("/configuration*/**").permitAll()
-                    .antMatchers("/api/v1/build-number*/**").permitAll()
-                    .antMatchers("/auth/saml-metadata").permitAll()
-                    .antMatchers("/api/v1/concepts**").permitAll()
-
-                    .and()
-                    .addFilterBefore(asyncSecurityCallbackFilter, BasicAuthenticationFilter.class)
-                    .logout()
-                    .logoutSuccessUrl("/");
-        }
-
-        @Bean
-        public CustomPac4jCallbackLogic customPac4jCallbackLogic(JwtGenerator jwtGenerator) {
-
-            return new CustomPac4jCallbackLogic(jwtGenerator);
-        }
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .saml2Login(saml2 -> saml2
+                        .loginProcessingUrl(SamlRelyingPartyConfig.ASSERTION_CONSUMER_SERVICE_PATH)
+                        .loginPage(SamlRelyingPartyConfig.AUTHENTICATION_REQUEST_PATH)
+                        // Spring Security insists on {registrationId} in the assertion
+                        // consumer service path unless a converter supplies the
+                        // registration itself. The IdP already has /auth/callback
+                        // registered with no such variable, so pin the single
+                        // registration here rather than change the endpoint.
+                        .authenticationConverter(fixedRegistrationConverter(registrations))
+                        .successHandler(successHandler))
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/auth/sso").authenticated()
+                        .anyRequest().permitAll())
+                .logout(logout -> logout.logoutSuccessUrl("/"))
+                .build();
     }
 
+    /**
+     * Resolves the one and only relying party regardless of the request path, so the
+     * assertion consumer service can stay on the registered {@code /auth/callback}
+     * instead of Spring Security's {@code /login/saml2/sso/{registrationId}}.
+     * <p>
+     * Delegates to {@link DefaultRelyingPartyRegistrationResolver} rather than reading
+     * the repository directly, because the delegate is what expands the
+     * {@code {baseUrl}} placeholder in the registration's assertion consumer service
+     * location — that expanded value goes into the {@code AssertionConsumerServiceURL}
+     * of the outgoing {@code AuthnRequest}, and IdPs validate it.
+     */
+    private Saml2AuthenticationTokenConverter fixedRegistrationConverter(
+            RelyingPartyRegistrationRepository registrations) {
 
+        RelyingPartyRegistrationResolver delegate =
+                new DefaultRelyingPartyRegistrationResolver(registrations);
+
+        return new Saml2AuthenticationTokenConverter(
+                (RelyingPartyRegistrationResolver) (request, ignoredRegistrationId) ->
+                        delegate.resolve(request, SamlRelyingPartyConfig.REGISTRATION_ID));
+    }
+
+    /**
+     * Adds the presented JWT to the revoked-token store so it cannot be replayed after
+     * logout. Replaces {@code CustomLogoutLogic}, which reached into pac4j's session
+     * profile map to find the token.
+     * <p>
+     * The token is taken from the security context when there is one, and read off the
+     * request otherwise. The fallback is deliberate rather than defensive clutter: this
+     * handler runs inside {@code LogoutFilter}, and whether the context is populated by then
+     * depends entirely on where the authentication filter was inserted. That coupling is
+     * invisible at the call site and already broke revocation once, so correctness here does
+     * not depend on it.
+     * <p>
+     * A token presented this way is verified before being stored. Otherwise anything at all
+     * in the header would be written to the revocation table, which is unauthenticated
+     * input controlling unbounded storage.
+     */
+    static LogoutHandler revokeTokenHandler(JwtTokenService tokenService, String authTokenHeader) {
+
+        return (request, response, authentication) -> {
+            Optional<String> fromContext = authentication instanceof AthenaAuthentication
+                    ? ((AthenaAuthentication) authentication).getToken()
+                    : Optional.empty();
+
+            Optional<String> token = fromContext
+                    .or(() -> Optional.ofNullable(request.getHeader(authTokenHeader))
+                            .map(String::trim)
+                            .filter(header -> !header.isEmpty())
+                            .filter(header -> tokenService.validate(header).isPresent()));
+
+            token.ifPresent(value -> {
+                tokenService.revoke(value);
+                log.debug("Revoked the session token presented at logout");
+            });
+        };
+    }
 }

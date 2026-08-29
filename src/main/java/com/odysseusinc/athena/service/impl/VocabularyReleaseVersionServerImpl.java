@@ -8,7 +8,7 @@ import com.odysseusinc.athena.service.VocabularyServiceV5;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;

@@ -1726,3 +1726,43 @@ Proc context of	Procedure context of (SNOMED)	0	0	Has proc context	44818959
 Contained in	Is contained in (RxNorm)	1	1	Contains	44818959
 Contains	Contains (RxNorm)	1	0	Contained in	44818959
 \.
+
+--
+-- Data for Name: concept_metadata; Type: TABLE DATA; Schema: public; Owner: ohdsi
+--
+-- Same rows as the vocabulary_testdata fixture in the v5_history migrations, so the
+-- current-release bundle and the bundle for the equivalent historical version agree.
+--
+
+INSERT INTO concept_metadata (concept_id, concept_category, reuse_status) VALUES
+    (200962, 'SC', 'R'),
+    (4082919, 'SA', 'RP'),
+    (4116087, 'SC', 'RF'),
+    (4161028, 'A', 'R'),
+    (40488897, 'M', 'RP'),
+    (40488901, 'V', 'RF');
+
+
+--
+-- Data for Name: concept_relationship_metadata; Type: TABLE DATA; Schema: public; Owner: ohdsi
+--
+
+INSERT INTO concept_relationship_metadata
+    (concept_id_1, concept_id_2, relationship_id, relationship_predicate_id, relationship_group,
+     mapping_source, confidence, mapping_tool, mapper, reviewer) VALUES
+    (4116087, 4161028, 'Subsumes', 'broadMatch', 1, 'OMOP', 0.9, 'Usagi', 'mapper1', 'reviewer1'),
+    (4161028, 4116087, 'Is a', 'narrowMatch', 1, 'OMOP', 0.8, 'Usagi', 'mapper1', 'reviewer1'),
+    (4082919, 4161028, 'Is a', 'exactMatch', 2, 'SNOMED', 0.95, 'Usagi', 'mapper2', 'reviewer2'),
+    (40488901, 40486666, 'Is a', 'exactMatch', 1, 'SNOMED', 1, 'Usagi', 'mapper2', 'reviewer2'),
+    (200962, 44500494, 'Subsumes', 'broadMatch', 3, 'OMOP', 0.75, 'Usagi', 'mapper3', 'reviewer3');
+
+
+--
+-- Data for Name: pack_content; Type: TABLE DATA; Schema: public; Owner: ohdsi
+--
+
+INSERT INTO pack_content (pack_concept_id, drug_concept_id, amount, box_size) VALUES
+    (45547509, 45910570, 2, 10),
+    (45930504, 45955133, 1, 5),
+    (4161028, 4116087, 3, NULL),
+    (40488901, 40488897, 4, 20);

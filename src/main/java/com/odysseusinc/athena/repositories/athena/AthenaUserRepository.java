@@ -26,12 +26,19 @@ import com.odysseusinc.athena.model.security.AthenaUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface AthenaUserRepository extends PagingAndSortingRepository<AthenaUser, Long> {
+/**
+ * Spring Data 3 (Boot 3+) removed {@code CrudRepository} from
+ * {@code PagingAndSortingRepository}'s hierarchy, so {@code save} / {@code findById} have
+ * to be inherited explicitly now.
+ */
+public interface AthenaUserRepository
+        extends PagingAndSortingRepository<AthenaUser, Long>, CrudRepository<AthenaUser, Long> {
 
     String GET_USERS_WITH_LICENSES = " FROM users us WHERE "
             + "id IN (SELECT DISTINCT user_id FROM licenses where status IN ('PENDING') OR :pendingOnly IS FALSE) "

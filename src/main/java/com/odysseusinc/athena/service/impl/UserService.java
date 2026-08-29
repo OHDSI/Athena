@@ -24,20 +24,12 @@ package com.odysseusinc.athena.service.impl;
 
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
-import com.odysseusinc.athena.model.security.AthenaProfile;
 import com.odysseusinc.athena.model.security.AthenaRole;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.AthenaRoleRepository;
 import com.odysseusinc.athena.repositories.athena.AthenaUserRepository;
-import com.odysseusinc.athena.util.UserProfileUtil;
+import com.odysseusinc.athena.security.AthenaAuthentication;
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONArray;
-import org.pac4j.core.authorization.generator.AuthorizationGenerator;
-import org.pac4j.core.context.WebContext;
-import org.pac4j.core.credentials.TokenCredentials;
-import org.pac4j.core.exception.HttpAction;
-import org.pac4j.core.profile.CommonProfile;
-import org.pac4j.core.profile.creator.ProfileCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,27 +39,27 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class UserService implements ProfileCreator<TokenCredentials, CommonProfile>, AuthorizationGenerator<CommonProfile> {
+public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private AthenaUserRepository athenaUserRepository;
     @Autowired
     private AthenaRoleRepository athenaRoleRepository;
-
-    private static final String ATTR_AUTHENTICATION_METHOD = "authenticationMethod";
 
     @Value("${athena.security.defaultRoles}")
     private String defaultRolesValue;
@@ -86,86 +78,68 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
     @Value("${athena.security.saml.attributes.organization}")
     private String organizationAttributeName;
 
-    @Override
-    public CommonProfile create(TokenCredentials credentials, WebContext webContext) throws HttpAction {
-
-        final CommonProfile profile = credentials.getUserProfile();
-        AthenaProfile athenaProfile = new AthenaProfile();
-        athenaProfile.setClientName(profile.getClientName());
-        athenaProfile.setId(profile.getId());
-        athenaProfile.setRemembered(profile.isRemembered());
-        athenaProfile.addAttributes(profile.getAttributes());
-        athenaProfile.addPermissions(profile.getPermissions());
-        final String origin = getAuthenticationMethod(profile);
-        AthenaUser athenaUser = createOrUpdateAthenaUser(profile.getId(), origin, athenaProfile, webContext);
-        athenaProfile.setAthenaUser(athenaUser);
-        athenaProfile.setToken(credentials.getToken());
-
-        return athenaProfile;
-    }
-
-    private AthenaUser createOrUpdateAthenaUser(String username, String origin,
-                                                AthenaProfile athenaProfile, WebContext webContext)
-            throws HttpAction {
+    /**
+     * Creates or updates the local user record for someone who has just authenticated
+     * against the identity provider. Driven by already-flattened assertion attributes.
+     *
+     * @param username   the assertion subject; with {@code origin} this is the natural
+     *                   key of {@link AthenaUser}
+     * @param origin     which identity provider asserted this user
+     * @param attributes assertion attributes, keyed by the raw names the IdP sent
+     * @throws PermissionDeniedException if {@code origin} is absent, matching the old
+     *                                   behaviour of refusing to provision a user whose
+     *                                   authentication method is unknown
+     */
+    @Transactional(transactionManager = "athenaTransactionManager")
+    public AthenaUser provisionUser(String username, String origin, Map<String, String> attributes) {
 
         AthenaUser user = athenaUserRepository.findByUsernameIgnoreCaseAndOrigin(username, origin);
         if (user == null) {
             if (origin == null) {
                 log.warn("User origin is not defined: {}", username);
-                throw HttpAction.unauthorized(webContext);
+                throw new PermissionDeniedException();
             }
             user = new AthenaUser();
             user.setUsername(username);
             user.setOrigin(origin);
-            if (org.springframework.util.StringUtils.hasText(defaultRolesValue) && defaultRoles == null) {
-                synchronized (monitor) {
-                    initRoles();
-                }
-            }
-            user.setRoles(defaultRoles);
+            user.setRoles(newDefaultRoles());
         }
-        mapAttributesToUser(user, athenaProfile);
+        // Only overwrite a field when the assertion actually carried it. The pac4j
+        // implementation used UserProfileUtil.getAttribute, which returned null for an
+        // absent attribute and so wiped the stored value — an IdP omitting an optional
+        // attribute silently erased it. Absent now means "unchanged".
+        ifPresent(attributes, emailAttributeName, user::setEmail);
+        ifPresent(attributes, firstNameAttributeName, user::setFirstName);
+        ifPresent(attributes, lastNameAttributeName, user::setLastName);
+        ifPresent(attributes, middleNameAttributeName, user::setMiddleName);
+        ifPresent(attributes, organizationAttributeName, user::setOrganization);
+
         return athenaUserRepository.save(user);
     }
 
-    private void mapAttributesToUser(AthenaUser user, final AthenaProfile profile) {
+    private static void ifPresent(Map<String, String> attributes, String name,
+                                  Consumer<String> setter) {
 
-        user.setEmail(UserProfileUtil.getAttribute(profile, emailAttributeName));
-        user.setFirstName(UserProfileUtil.getAttribute(profile, firstNameAttributeName));
-        user.setLastName(UserProfileUtil.getAttribute(profile, lastNameAttributeName));
-        user.setMiddleName(UserProfileUtil.getAttribute(profile, middleNameAttributeName));
-        user.setOrganization(UserProfileUtil.getAttribute(profile, organizationAttributeName));
+        if (name != null && attributes.containsKey(name)) {
+            setter.accept(attributes.get(name));
+        }
     }
 
-    private String getAuthenticationMethod(CommonProfile profile) {
+    /**
+     * A fresh list per user. {@code createOrUpdateAthenaUser} handed the same
+     * cached {@code List} instance to every new user, which Hibernate rejects as a
+     * shared collection reference on a {@code @ManyToMany}. The role entities are
+     * shared — only the collection wrapper must not be.
+     */
+    private List<AthenaRole> newDefaultRoles() {
 
-        if (profile.getAttributes().containsKey(ATTR_AUTHENTICATION_METHOD)) {
-            Object attr = profile.getAttribute(ATTR_AUTHENTICATION_METHOD);
-            if (attr instanceof String) {
-                return (String) attr;
-            } else if (attr instanceof JSONArray) {
-                JSONArray array = (JSONArray) attr;
-                if (!array.isEmpty()) {
-                    return array.get(0).toString();
-                }
-            }
+        if (!StringUtils.hasText(defaultRolesValue)) {
+            return new ArrayList<>();
         }
-        return null;
-    }
-
-    @Override
-    public CommonProfile generate(WebContext context, CommonProfile commonProfile) {
-
-        if (commonProfile instanceof AthenaProfile) {
-            AthenaUser user = ((AthenaProfile) commonProfile).getAthenaUser();
-            if (user != null) {
-                List<AthenaRole> roles = user.getRoles();
-                roles.forEach(role -> commonProfile.addRole(role.getName()));
-            }
-        } else {
-            commonProfile.addRole("ROLE_USER");
+        synchronized (monitor) {
+            initRoles();
+            return defaultRoles == null ? new ArrayList<>() : new ArrayList<>(defaultRoles);
         }
-        return commonProfile;
     }
 
     public AthenaUser getCurrentUser() throws PermissionDeniedException {
@@ -197,13 +171,14 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
         if (principal == null) {
             throw new PermissionDeniedException();
         }
-        final AthenaProfile profile = UserProfileUtil.getProfile(principal).orElseThrow(() ->
-                new NotExistException(AthenaUser.class));
-        final AthenaUser user = profile.getAthenaUser();
-        if (user == null) {
-            throw new NotExistException(AthenaUser.class);
+        if (principal instanceof AthenaAuthentication) {
+            AthenaUser user = ((AthenaAuthentication) principal).getPrincipal();
+            if (user == null) {
+                throw new NotExistException(AthenaUser.class);
+            }
+            return user;
         }
-        return user;
+        throw new NotExistException(AthenaUser.class);
     }
 
     public boolean currentUserExists() {
@@ -213,8 +188,10 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
             LOGGER.debug("No current user");
             return false;
         }
-        Optional<AthenaProfile> optional = UserProfileUtil.getProfile(principal);
-        return optional.isPresent() && Objects.nonNull(optional.get().getAthenaUser());
+        if (principal instanceof AthenaAuthentication) {
+            return ((AthenaAuthentication) principal).getPrincipal() != null;
+        }
+        return false;
     }
 
     private void initRoles() {
@@ -244,11 +221,43 @@ public class UserService implements ProfileCreator<TokenCredentials, CommonProfi
         return athenaUserRepository.suggestUsers(suggestRequest);
     }
 
+    /**
+     * Builds the {@code SIMILAR TO} pattern used by the user search.
+     * <p>
+     * The query is parameterised, so this is not SQL injection — but {@code SIMILAR TO}
+     * takes a <em>pattern</em>, and every term used to be interpolated raw. That let a
+     * caller inject pattern syntax: unbalanced parentheses produced a 500, and nested
+     * quantifiers such as {@code ((a|a)*)*} give Postgres catastrophic backtracking across
+     * the whole {@code users} table from a single unauthenticated request.
+     * <p>
+     * Each term is therefore escaped so it matches literally. Postgres has no quoting
+     * function for {@code SIMILAR TO} patterns, so metacharacters are escaped individually
+     * with a backslash — its default escape character, so the queries need no
+     * {@code ESCAPE} clause.
+     */
     private String getSuggestRequest(String query) {
 
         String[] splitted = query.trim().split(" ");
-        List<String> splittedList = Arrays.stream(splitted).map(String::toLowerCase).collect(Collectors.toList());
+        List<String> splittedList = Arrays.stream(splitted)
+                .map(String::toLowerCase)
+                .map(UserService::escapeSimilarTo)
+                .collect(Collectors.toList());
         return "%(" + String.join("|", splittedList) + ")%";
+    }
+
+    /** Metacharacters recognised by Postgres in a {@code SIMILAR TO} pattern. */
+    private static final String SIMILAR_TO_METACHARACTERS = "\\%_|*+?{}()[]";
+
+    private static String escapeSimilarTo(String term) {
+
+        StringBuilder escaped = new StringBuilder(term.length());
+        for (char c : term.toCharArray()) {
+            if (SIMILAR_TO_METACHARACTERS.indexOf(c) >= 0) {
+                escaped.append('\\');
+            }
+            escaped.append(c);
+        }
+        return escaped.toString();
     }
 
     public Page<AthenaUser> getUsersWithLicenses(PageRequest request, String query, boolean pendingOnly) {

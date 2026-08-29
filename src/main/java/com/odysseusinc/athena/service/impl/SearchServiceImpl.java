@@ -38,7 +38,6 @@ import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.impl.solr.SearchResult;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.extractor.ConceptFieldsExtractor;
-import com.opencsv.CSVWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -114,7 +113,9 @@ public class SearchServiceImpl implements SearchService {
         File temp = new File(name);
         while (!done) {
 
-            try (CSVWriter csvWriter = new AthenaCSVWriter(name, separator)) {
+            // search-results export is opened in a spreadsheet, not consumed by the
+            // OMOP tooling, so unlike the bundle files it can be made safe to open.
+            try (AthenaCSVWriter csvWriter = new AthenaCSVWriter(name, separator, true)) {
                 if (first) {
                     csvWriter.writeNext(new String[]{"Id", "Code", "Name", "Standard Class", "Domain", "Vocab",
                             "Validity", "Concept"}, false);
@@ -133,14 +134,20 @@ public class SearchServiceImpl implements SearchService {
                 }
                 cursorMark = nextCursorMark;
                 csvWriter.flush(true);
-            } finally {
+            }
+            // the copy used to sit in a finally, so a failed page was still
+            // streamed to the client, and if the temp file had never been created the
+            // resulting NoSuchFileException replaced the real exception. Copy only after
+            // the page was written; delete either way so a failure cannot leak the file.
+            try {
                 Files.copy(temp.toPath(), osw);
-                Files.delete(temp.toPath());
+            } finally {
+                Files.deleteIfExists(temp.toPath());
             }
         }
     }
 
-    private void writeAll(CSVWriter csvWriter, List<ConceptDTO> concepts) throws IOException {
+    private void writeAll(AthenaCSVWriter csvWriter, List<ConceptDTO> concepts) throws IOException {
 
         ConceptFieldsExtractor extractor = new ConceptFieldsExtractor();
         csvWriter.writeAll(new ArrayList<>(extractor.extractForAll(concepts)));

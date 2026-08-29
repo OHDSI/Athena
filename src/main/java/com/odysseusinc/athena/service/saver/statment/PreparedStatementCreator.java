@@ -1,7 +1,7 @@
 package com.odysseusinc.athena.service.saver.statment;
 
 import com.odysseusinc.athena.util.CDMVersion;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

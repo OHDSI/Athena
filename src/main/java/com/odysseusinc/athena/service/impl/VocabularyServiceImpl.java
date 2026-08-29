@@ -68,7 +68,7 @@ import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections.ListUtils.intersection;
+import static org.apache.commons.collections4.ListUtils.intersection;
 import static org.thymeleaf.util.ListUtils.isEmpty;
 
 @Slf4j
@@ -155,6 +155,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     public DownloadBundle copyBundle(Long id, String bundleName, AthenaUser currentUser) {
         Integer vocabularyVersion = vocabularyReleaseVersionService.getCurrent();
         return this.downloadBundleRepository.findById(id).map(originalBundle -> {
+                    checkBundleAndSharedUser(currentUser, originalBundle);
                     List<Integer> vocabularies = originalBundle.getVocabularyV4Ids();
                     checkBundleVocabularies(vocabularies, currentUser.getId());
                     return saveDownloadItems(
@@ -263,6 +264,14 @@ public class VocabularyServiceImpl implements VocabularyService {
         if (ObjectUtils.notEqual(user.getId(), bundle.getUserId())) {
             throw new PermissionDeniedException();
         }
+    }
+
+    @Override
+    public void checkBundleAndSharedUser(AthenaUser user, long bundleId) {
+
+        checkBundleAndSharedUser(user, downloadBundleRepository.findById(bundleId)
+                .orElseThrow(() -> new NotExistException("Cannot find bundle with id =" + bundleId,
+                        DownloadBundle.class)));
     }
 
     @Override

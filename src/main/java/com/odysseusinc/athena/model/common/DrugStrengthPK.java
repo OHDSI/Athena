@@ -24,7 +24,7 @@ package com.odysseusinc.athena.model.common;
 
 import java.io.Serializable;
 import java.util.Objects;
-import javax.persistence.IdClass;
+import jakarta.persistence.IdClass;
 
 @IdClass(DrugStrengthPK.class)
 public class DrugStrengthPK implements Serializable {

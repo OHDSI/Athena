@@ -1,13 +1,9 @@
 package com.odysseusinc.athena.service.security;
 
-import com.odysseusinc.athena.model.security.AthenaProfile;
 import com.odysseusinc.athena.model.security.AthenaToken;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.AthenaTokenRepository;
-import com.odysseusinc.athena.security.pac4j.ApiTokenCredentials;
 import com.odysseusinc.athena.service.impl.UserService;
-import org.pac4j.core.context.WebContext;
-import org.pac4j.core.profile.creator.ProfileCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +13,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 @Service
-public class UserTokenService implements ProfileCreator<ApiTokenCredentials, AthenaProfile> {
+public class UserTokenService {
 
     @Autowired
     private AthenaTokenRepository repository;
@@ -50,10 +46,5 @@ public class UserTokenService implements ProfileCreator<ApiTokenCredentials, Ath
         SecureRandom random = new SecureRandom();
         random.nextBytes(value);
         return Base64.getEncoder().encodeToString(value);
-    }
-
-    @Override
-    public AthenaProfile create(ApiTokenCredentials credentials, WebContext context) {
-        return (AthenaProfile) credentials.getUserProfile();
     }
 }

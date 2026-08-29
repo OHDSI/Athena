@@ -32,7 +32,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 @Component
 public class DownloadShareToDTO implements Converter<DownloadShare, DownloadShareDTO>, InitializingBean {

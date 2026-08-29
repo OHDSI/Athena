@@ -8,3 +8,9 @@ src/main/resources/public/
 **/resources/config/application*-dev-*.properties
 **/resources/config/application*-dev-*.yaml
 **/resources/config/application*-dev-*.yml
+
+LOG_FILE_IS_UNDEFINED
+docs
+.frontend/
+docker
+docker-compose.yml

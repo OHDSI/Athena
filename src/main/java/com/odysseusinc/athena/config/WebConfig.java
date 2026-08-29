@@ -30,7 +30,6 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -39,8 +38,22 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
 import static com.odysseusinc.athena.model.common.AthenaConstants.DEFAULT_TEMPLATE_NAME;
 
+/**
+ * {@code @EnableWebMvc} was removed here.
+ * <p>
+ * It switches off Spring Boot's MVC auto-configuration wholesale — error handling, content
+ * negotiation, message converters and static resource defaults — leaving this class to
+ * re-supply them. Implementing {@link WebMvcConfigurer} without the annotation keeps every
+ * customisation below while letting Boot's defaults apply underneath.
+ * <p>
+ * It was also masking a latent break. Boot 2.6 switched MVC path matching to
+ * {@code PathPatternParser}, which rejects {@code **} unless it is a complete trailing
+ * segment; {@code @EnableWebMvc} suppressed that property, so patterns like
+ * {@code "/admin/licenses**"} kept working under the old {@code AntPathMatcher}. Boot 3
+ * removed {@code AntPathMatcher} entirely, so those patterns are rewritten below — without
+ * that, removing this annotation fails at startup with {@code PatternParseException}.
+ */
 @Configuration
-@EnableWebMvc
 public class WebConfig implements WebMvcConfigurer {
 
     @Value("${athena.messages.cache_seconds:3600}")
@@ -75,12 +88,17 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addViewController("/auth/login").setViewName(DEFAULT_TEMPLATE_NAME);
         registry.addViewController("/auth/complete").setViewName(DEFAULT_TEMPLATE_NAME);
         registry.addViewController("/auth/reset-password/**").setViewName(DEFAULT_TEMPLATE_NAME);
-        registry.addViewController("/auth/remind-password**").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/auth/remind-password").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/auth/remind-password/**").setViewName(DEFAULT_TEMPLATE_NAME);
         registry.addViewController("/search-terms/**").setViewName(DEFAULT_TEMPLATE_NAME);
-        registry.addViewController("/vocabulary/list**").setViewName(DEFAULT_TEMPLATE_NAME);
-        registry.addViewController("/vocabulary/download-history**").setViewName(DEFAULT_TEMPLATE_NAME);
-        registry.addViewController("/admin/licenses**").setViewName(DEFAULT_TEMPLATE_NAME);
-        registry.addViewController("/admin/statistics**").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/vocabulary/list").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/vocabulary/list/**").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/vocabulary/download-history").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/vocabulary/download-history/**").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/admin/licenses").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/admin/licenses/**").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/admin/statistics").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/admin/statistics/**").setViewName(DEFAULT_TEMPLATE_NAME);
     }
 
     @Bean

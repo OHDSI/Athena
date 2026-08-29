@@ -21,7 +21,7 @@
 
 package com.odysseusinc.athena.service.concept;
 
-import com.opencsv.CSVReader;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -67,10 +67,10 @@ public class SolrInitializer extends ExternalResource {
 
     private static final String CONCEPTS_CSV = "/testdata/concepts-from-import-query.csv";
 
+    /** Read-only inputs: nothing is written back to either. See {@link #initSolr()}. */
     private static final String TEST_SOLR_RESOURCES = "src/test/resources/testdata/solr";
 
     private static final String MAIN_SOLR_CONF_RESOURCES = "src/main/resources/solr";
-    private static final String TEST_SOLR_CONF_RESOURCES = TEST_SOLR_RESOURCES  + "/concepts/conf";
 
 
     public static EmbeddedSolrServer server;
@@ -86,35 +86,50 @@ public class SolrInitializer extends ExternalResource {
         this.initSolr();
     }
 
+    /**
+     * This used to stage the configuration inside {@code src/test/resources} — it
+     * copied {@code src/main/resources/solr} over the committed test tree and then rewrote
+     * {@code solrconfig.xml} in place — before copying the result to a temp directory to
+     * actually run from. So every test run mutated the working tree, and only converged back
+     * to the committed bytes by coincidence.
+     * <p>
+     * The staging now happens in the temp directory instead. The two source trees are read
+     * only, and the layering is unchanged: the committed test tree supplies {@code solr.xml},
+     * {@code core.properties} and the analysis resources ({@code lang/}, {@code stopwords.txt},
+     * {@code synonyms.txt}, {@code protwords.txt}), then the main configuration is copied over
+     * the top of it, then {@code /dataimport} is stripped.
+     */
     private void initSolr() throws Exception {
 
-        this.copySolrConfigurationToTestResources();
-        this.removeUnnecessarySolrConfigurations();
-        this.runEmbeddedSolr();
+        Path tempSolrRoot = Files.newTemporaryFolder().toPath();
+        FileUtils.copyDirectory(Paths.get(TEST_SOLR_RESOURCES).toFile(), tempSolrRoot.toFile());
+        FileUtils.copyDirectory(new File(MAIN_SOLR_CONF_RESOURCES),
+                tempSolrRoot.resolve("concepts").resolve("conf").toFile());
+
+        this.removeUnnecessarySolrConfigurations(tempSolrRoot);
+        this.runEmbeddedSolr(tempSolrRoot);
     }
 
-    private void runEmbeddedSolr() throws Exception {
+    private void runEmbeddedSolr(Path tempSolrRoot) throws Exception {
 
-        Path tempSolrRoot = Files.newTemporaryFolder().toPath();
-        Path baseConfigs = Paths.get(TEST_SOLR_RESOURCES);
-        FileUtils.copyDirectory(baseConfigs.toFile(), tempSolrRoot.toFile());
         NodeConfig cfg = SolrXmlConfig.fromSolrHome(tempSolrRoot, new Properties());
         server = new EmbeddedSolrServer(cfg, "concepts");
         reindexTestConcepts();
     }
 
-    private void removeUnnecessarySolrConfigurations() throws ParserConfigurationException, SAXException, IOException, TransformerException {
+    private void removeUnnecessarySolrConfigurations(Path tempSolrRoot) throws ParserConfigurationException, SAXException, IOException, TransformerException {
 
-        final String solrConfig = TEST_SOLR_CONF_RESOURCES + "/solrconfig.xml";
+        final File solrConfig = tempSolrRoot.resolve("concepts").resolve("conf")
+                .resolve("solrconfig.xml").toFile();
 
-        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File(solrConfig));
+        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(solrConfig);
         final Node config = doc.getElementsByTagName("config").item(0);
         this.removeElementByAttributeValue(config, "name", "/dataimport");
 
         TransformerFactory.newInstance().newTransformer()
                 .transform(
                         new DOMSource(doc),
-                        new StreamResult(new File(solrConfig)));
+                        new StreamResult(solrConfig));
     }
 
     private void removeElementByAttributeValue(Node config, String attribute, String attributeValue) {
@@ -128,10 +143,6 @@ public class SolrInitializer extends ExternalResource {
                 .ifPresent(config::removeChild);
     }
 
-    private void copySolrConfigurationToTestResources() throws IOException {
-        FileUtils.copyDirectory(new File(MAIN_SOLR_CONF_RESOURCES), new File(TEST_SOLR_CONF_RESOURCES));
-    }
-
     private void reindexTestConcepts() throws Exception {
 
         server.deleteByQuery("*:*");
@@ -141,8 +152,14 @@ public class SolrInitializer extends ExternalResource {
 
     private List<SolrInputDocument> getSolrDocsFromResource() throws Exception {
 
-        try (CSVReader csvReader = new CSVReader(new FileReader(SolrConceptPhraseSearchTest.class.getResource(CONCEPTS_CSV).getPath()), ';')) {
-            return csvReader.readAll().stream()
+        // The fixture is plain ';'-delimited with no quoting or escaping, so splitting is
+        // equivalent to a CSV parse here and avoids a dependency purely for tests. The
+        // vendored opencsv it used to rely on cannot run on Java 9+.
+        try (BufferedReader reader = new BufferedReader(
+                new FileReader(SolrConceptPhraseSearchTest.class.getResource(CONCEPTS_CSV).getPath()))) {
+            return reader.lines()
+                    .filter(line -> !line.trim().isEmpty())
+                    .map(line -> line.split(";", -1))
                     .map(strings -> {
                         SolrInputDocument doc = new SolrInputDocument();
                         doc.addField("concept_id", strings[0]);

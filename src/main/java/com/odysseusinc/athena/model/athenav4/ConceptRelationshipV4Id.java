@@ -25,7 +25,7 @@ package com.odysseusinc.athena.model.athenav4;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
-import javax.persistence.IdClass;
+import jakarta.persistence.IdClass;
 
 @IdClass(ConceptRelationshipV4Id.class)
 public class ConceptRelationshipV4Id implements Serializable {

@@ -22,7 +22,7 @@
 
 package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public class AcceptDTO {
     @NotNull
