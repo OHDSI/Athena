@@ -26,6 +26,7 @@ import com.odysseusinc.athena.exceptions.IORuntimeException;
 import com.odysseusinc.athena.exceptions.NotEmptyException;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
+import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.exceptions.WrongFileFormatException;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.JsonResult;
@@ -111,6 +112,14 @@ public class ExceptionHandlingControllerTest {
     @Test
     public void badInputIsBadRequest() {
 
+        ResponseEntity<JsonResult> validationResponse =
+                controller.exceptionHandler(new ValidationException("Please provide the bundle name"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, validationResponse.getStatusCode());
+        assertEquals(JsonResult.ErrorCode.VALIDATION_ERROR.getCode(),
+                validationResponse.getBody().getErrorCode());
+        assertEquals("Please provide the bundle name",
+                validationResponse.getBody().getErrorMessage());
         assertEquals(HttpStatus.BAD_REQUEST,
                 controller.exceptionHandler(new NotUniquieException("email", "invalid")).getStatusCode());
         assertEquals(HttpStatus.BAD_REQUEST,

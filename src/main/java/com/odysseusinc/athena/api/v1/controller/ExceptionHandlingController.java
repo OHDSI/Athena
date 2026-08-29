@@ -37,6 +37,7 @@ import com.odysseusinc.athena.exceptions.LicenseException;
 import com.odysseusinc.athena.exceptions.NotEmptyException;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
+import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.exceptions.WrongFileFormatException;
 import com.odysseusinc.athena.util.JsonResult;
 import java.io.IOException;
@@ -116,6 +117,16 @@ public class ExceptionHandlingController {
         return new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
     }
 
+    /** Request data rejected by the domain validator is a client error, not a server fault. */
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(ValidationException ex) {
+
+        LOGGER.debug("Validation failed: {}", ex.getMessage());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        result.setErrorMessage(ex.getMessage());
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(MessagingException.class)
     public ResponseEntity<JsonResult> exceptionHandler(MessagingException ex) {
 
@@ -155,7 +166,7 @@ public class ExceptionHandlingController {
     @ExceptionHandler(PermissionDeniedException.class)
     public ResponseEntity<JsonResult> exceptionHandler(PermissionDeniedException ex) {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.warn("Permission denied: {}", ex.getMessage());
         JsonResult result = new JsonResult<>(PERMISSION_DENIED);
         result.setErrorMessage(ex.getMessage());
         return new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
@@ -171,14 +182,14 @@ public class ExceptionHandlingController {
     @ExceptionHandler(LicenseException.class)
     public ResponseEntity<LicenseExceptionDTO> exceptionHandler(LicenseException ex) {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.debug("Additional licences required: {}", ex.getMessage());
         return new ResponseEntity<>(new LicenseExceptionDTO(ex.getVocabularyIdV4s()), HttpStatus.OK);
     }
 
     @ExceptionHandler(NotEmptyException.class)
     public ResponseEntity<JsonResult> exceptionHandler(NotEmptyException ex) {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.debug("Operation conflicts with dependent data: {}", ex.getMessage());
         JsonResult result = new JsonResult<>(DEPENDENCY_EXISTS);
         result.setErrorMessage(ex.getMessage());
         return new ResponseEntity<>(result, HttpStatus.CONFLICT);
@@ -187,7 +198,7 @@ public class ExceptionHandlingController {
     @ExceptionHandler(FieldException.class)
     public ResponseEntity<JsonResult> exceptionHandler(FieldException ex) {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.debug("Invalid field [{}]: {}", ex.getField(), ex.getMessage());
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage("Incorrect data");
         result.getValidatorErrors().put(ex.getField(), ex.getMessage());
@@ -197,7 +208,7 @@ public class ExceptionHandlingController {
     @ExceptionHandler(WrongFileFormatException.class)
     public ResponseEntity<JsonResult> exceptionHandler(WrongFileFormatException ex) {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.debug("Invalid file field [{}]: {}", ex.getField(), ex.getMessage());
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage(ex.getMessage());
         result.getValidatorErrors().put(ex.getField(), ex.getMessage());
@@ -207,7 +218,8 @@ public class ExceptionHandlingController {
     @ExceptionHandler(NotExistException.class)
     public ResponseEntity<JsonResult> exceptionHandler(NotExistException ex) {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.debug("Requested entity [{}] was not found: {}",
+                ex.getEntity().getSimpleName(), ex.getMessage());
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage(ex.getMessage());
         result.getValidatorErrors().put(ex.getEntity().getSimpleName(), ex.getMessage());
@@ -217,7 +229,7 @@ public class ExceptionHandlingController {
     @ExceptionHandler(AlreadyExistException.class)
     public ResponseEntity<JsonResult> exceptionHandler(AlreadyExistException ex) {
 
-        LOGGER.error(ex.getMessage(), ex);
+        LOGGER.debug("Requested entity already exists: {}", ex.getMessage());
         JsonResult result = new JsonResult<>(ALREADY_EXIST);
         result.setErrorMessage(ex.getMessage());
         return new ResponseEntity<>(result, HttpStatus.CONFLICT);

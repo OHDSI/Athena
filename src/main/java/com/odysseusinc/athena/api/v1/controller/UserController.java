@@ -175,14 +175,8 @@ public class UserController {
         dto.setCallbackUrl(athenaUrl + registerCallbackUrl);
 
         ArachnePortalResponse res = executeRequest(registerPath, dto);
-        // Arachne's registration endpoint returns void on success, while validation
-        // failures are serialized as an ArachnePortalResponse by its exception handler.
-        // RestTemplate therefore legitimately returns a null body for the successful path.
-        if (res == null) {
-            res = new ArachnePortalResponse(ArachnePortalResponse.ErrorCode.NO_ERROR);
-        }
 
-        if (!res.getErrorCode().equals(ArachnePortalResponse.ErrorCode.NO_ERROR.getCode())) {
+        if (!isSuccessful(res)) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
 
@@ -202,7 +196,18 @@ public class UserController {
                 new HttpEntity<>(request),
                 ArachnePortalResponse.class
         );
-        return responseEntity.getBody();
+        // Arachne's registration and password endpoints return void on success, while
+        // validation failures are serialized as an ArachnePortalResponse. RestTemplate
+        // therefore legitimately returns a null body for the successful path.
+        ArachnePortalResponse response = responseEntity.getBody();
+        return response != null
+                ? response
+                : new ArachnePortalResponse(ArachnePortalResponse.ErrorCode.NO_ERROR);
+    }
+
+    private boolean isSuccessful(ArachnePortalResponse response) {
+
+        return ArachnePortalResponse.ErrorCode.NO_ERROR.getCode().equals(response.getErrorCode());
     }
 
     @Operation(summary = "Request password reset e-mail.")
@@ -214,7 +219,7 @@ public class UserController {
 
         ArachnePortalResponse res = executeRequest(remindPasswordPath, dto);
 
-        if (!res.getErrorCode().equals(ArachnePortalResponse.ErrorCode.NO_ERROR.getCode())) {
+        if (!isSuccessful(res)) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
 
@@ -228,7 +233,7 @@ public class UserController {
 
         ArachnePortalResponse res = executeRequest(resetPasswordPath, dto);
 
-        if (!res.getErrorCode().equals(ArachnePortalResponse.ErrorCode.NO_ERROR.getCode())) {
+        if (!isSuccessful(res)) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
 
