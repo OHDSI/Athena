@@ -1,0 +1,21 @@
+src/test/java/com/odysseusinc/athena/security/saml/SamlRedirectTest.java
+  s_77ea3cbefbd88b::t_197f66e76577b5 74,76,83,85-86
+src/main/java/com/odysseusinc/athena/security/saml/SamlRelyingPartyConfig.java
+  s_77ea3cbefbd88b::t_460d34e78c6ed8 170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "282c204aa70dbc7d43be84b203e86ebb0bd83f03",
+  "prompts": {},
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
