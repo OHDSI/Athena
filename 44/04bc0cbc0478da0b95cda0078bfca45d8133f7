@@ -1,0 +1,12 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "4404bc0cbc0478da0b95cda0078bfca45d8133f7",
+  "prompts": {},
+  "humans": {
+    "h_7f60897e49550e": {
+      "author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
