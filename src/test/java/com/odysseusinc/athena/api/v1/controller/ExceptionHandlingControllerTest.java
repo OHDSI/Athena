@@ -30,9 +30,11 @@ import com.odysseusinc.athena.exceptions.WrongFileFormatException;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.JsonResult;
 import org.junit.Test;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.io.IOException;
 
@@ -124,6 +126,16 @@ public class ExceptionHandlingControllerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,
                 controller.exceptionHandler(new IORuntimeException("disk", new IOException()))
                         .getStatusCode());
+    }
+
+    /** A missing static resource is a normal 404, not an application failure. */
+    @Test
+    public void missingStaticResourceIsNotFoundRatherThanServerError() {
+
+        ResponseEntity<?> response = controller.exceptionHandler(
+                new NoResourceFoundException(HttpMethod.GET, "/robots.txt", "robots.txt"));
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     /**

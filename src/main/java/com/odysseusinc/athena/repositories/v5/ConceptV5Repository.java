@@ -43,7 +43,10 @@ public interface ConceptV5Repository extends JpaRepository<ConceptV5, Long> {
                     + "AND con2.invalid_reason IS NULL "
                     + "AND RELATIONSHIP_ID IN ('Maps to', 'Concept replaced by') "
                     + "AND con.VOCABULARY_ID IN :vocabularyIds "
-                    + "AND con2.VOCABULARY_ID IN :vocabularyIds")
+                    + "AND con2.VOCABULARY_ID IN :vocabularyIds "
+                    + "ORDER BY CASE cr.relationship_id "
+                    + "WHEN 'Concept replaced by' THEN 0 ELSE 1 END, con2.concept_id "
+                    + "LIMIT 1")
     ConceptV5 findReplacedBy(@Param("conceptId") Long conceptId,
                                    @Param("vocabularyIds") List<String> vocabularyIds);
 

@@ -21,6 +21,8 @@
 package com.odysseusinc.athena.security.saml;
 
 import org.junit.Test;
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
+import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -67,6 +69,24 @@ public class SamlRedirectTest {
         assertFalse("the repository must stay non-iterable, or the lazy load is defeated",
                 Iterable.class.isAssignableFrom(
                         SamlRelyingPartyConfig.LazyRelyingPartyRegistrationRepository.class));
+    }
+
+    /**
+     * Athena's production proxy limits forms to this application's own origin. A POST-bound
+     * authentication request is an auto-submitted cross-origin form and the browser blocks it
+     * before it reaches the IdP. The IdP metadata advertises Redirect as well, so select that
+     * binding explicitly instead of relying on metadata order.
+     */
+    @Test
+    public void authenticationRequestUsesRedirectBinding() {
+
+        RelyingPartyRegistration registration = SamlRelyingPartyConfig
+                .registrationBuilder("classpath:/saml/test/idp-metadata.xml")
+                .registrationId(SamlRelyingPartyConfig.REGISTRATION_ID)
+                .build();
+
+        assertEquals(Saml2MessageBinding.REDIRECT,
+                registration.getAssertingPartyMetadata().getSingleSignOnServiceBinding());
     }
 
     @Test

@@ -30,6 +30,7 @@ import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrations;
+import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
 
 import java.io.InputStream;
 import java.security.KeyStore;
@@ -140,8 +141,7 @@ public class SamlRelyingPartyConfig {
 
         KeyMaterial keyMaterial = loadKeyMaterial();
 
-        return RelyingPartyRegistrations
-                .fromMetadataLocation(idpMetadataLocation)
+        return registrationBuilder(idpMetadataLocation)
                 .registrationId(REGISTRATION_ID)
                 .entityId(serviceProviderEntityId)
                 .assertionConsumerServiceLocation("{baseUrl}" + ASSERTION_CONSUMER_SERVICE_PATH)
@@ -160,6 +160,22 @@ public class SamlRelyingPartyConfig {
                         credentials.add(Saml2X509Credential.decryption(
                                 keyMaterial.privateKey(), keyMaterial.certificate())))
                 .build();
+    }
+
+    /**
+     * Keeps metadata-derived authentication-request settings testable without loading the
+     * deployment-only signing keystore.
+     */
+    static RelyingPartyRegistration.Builder registrationBuilder(String metadataLocation) {
+
+        return RelyingPartyRegistrations.fromMetadataLocation(metadataLocation)
+                // Metadata order otherwise selects HTTP-POST, which Spring renders as an
+                // auto-submitted cross-origin form. Production's CSP deliberately permits
+                // forms only to 'self', so browsers block that form before the IdP sees it.
+                // The IdP advertises HTTP-Redirect too; selecting it avoids the form while
+                // retaining the signed AuthnRequest and the POST assertion response.
+                .assertingPartyMetadata(assertingParty -> assertingParty
+                        .singleSignOnServiceBinding(Saml2MessageBinding.REDIRECT));
     }
 
     /** The SP private key and its certificate, read once and used for both credentials. */

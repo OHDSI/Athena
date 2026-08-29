@@ -41,6 +41,7 @@ import com.odysseusinc.athena.exceptions.WrongFileFormatException;
 import com.odysseusinc.athena.util.JsonResult;
 import java.io.IOException;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -49,6 +50,8 @@ import org.springframework.mail.MailException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * There used to be a {@code UserNotFoundException} handler here that issued an HTTP redirect
@@ -60,6 +63,28 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class ExceptionHandlingController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlingController.class);
+
+    /**
+     * Missing static resources are normal 404s. Internet scanners generate many of these;
+     * routing them through the catch-all turned every probe into a 500 and a full stack trace.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> exceptionHandler(NoResourceFoundException ex) {
+
+        LOGGER.debug("Static resource not found: {}", ex.getResourcePath());
+        return ResponseEntity.notFound().build();
+    }
+
+    /**
+     * The response is already unusable when a client closes a streamed download. Do not try
+     * to serialize a JSON error into the existing CSV response: that only creates a second
+     * exception and two large, non-actionable stack traces.
+     */
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public void exceptionHandler(AsyncRequestNotUsableException ex, HttpServletResponse response) {
+
+        LOGGER.debug("Client disconnected before the response completed: {}", ex.getMessage());
+    }
 
     /**
      * Last-resort handler. Deliberately does <b>not</b> put {@code ex.getMessage()} in the
