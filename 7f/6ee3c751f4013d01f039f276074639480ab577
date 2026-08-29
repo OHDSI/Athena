@@ -1,0 +1,32 @@
+src/main/java/com/odysseusinc/athena/api/v1/controller/ExceptionHandlingController.java
+  s_77ea3cbefbd88b::t_2e1d5c681ce9f4 44,53-54,67-87
+  s_77ea3cbefbd88b::t_f364badce529ff 88
+src/test/java/com/odysseusinc/athena/security/saml/SamlRedirectTest.java
+  s_77ea3cbefbd88b::t_1bc213d4a640de 24-25,74-89
+  s_77ea3cbefbd88b::t_01069db404a0f9 90-91
+src/test/java/com/odysseusinc/athena/api/v1/controller/ExceptionHandlingControllerTest.java
+  s_77ea3cbefbd88b::t_6afe9fef4deb65 33,37,131-138
+  s_77ea3cbefbd88b::t_d97e2b7c0f4329 139-140
+src/main/java/com/odysseusinc/athena/repositories/v5/ConceptV5Repository.java
+  s_77ea3cbefbd88b::t_332a85f598d31b 46-49,65
+src/main/java/com/odysseusinc/athena/security/saml/SamlRelyingPartyConfig.java
+  s_77ea3cbefbd88b::t_ca96fa15161ba2 33,171-178
+  s_77ea3cbefbd88b::t_1bc213d4a640de 144,165-170
+  s_77ea3cbefbd88b::t_2ef409cb148748 179-180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "7f6ee3c751f4013d01f039f276074639480ab577",
+  "prompts": {},
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
