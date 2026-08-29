@@ -1,0 +1,29 @@
+src/main/java/com/odysseusinc/athena/api/v1/controller/UserController.java
+  s_77ea3cbefbd88b::t_90d7b07081ef37 199-205
+  s_77ea3cbefbd88b::t_80a6c6340d2426 179,208-210,222,236
+  s_77ea3cbefbd88b::t_4383fff7c2cc42 206-207
+src/test/java/com/odysseusinc/athena/api/v1/controller/ExceptionHandlingControllerTest.java
+  s_77ea3cbefbd88b::t_390e1a42a85ea9 29,115-122
+src/main/java/com/odysseusinc/athena/api/v1/controller/ExceptionHandlingController.java
+  s_77ea3cbefbd88b::t_b56a3aa90304ac 40,120-129,169,185,192,201,211,221-222,232
+src/test/java/com/odysseusinc/athena/api/v1/controller/UserControllerPasswordResetTest.java
+  s_77ea3cbefbd88b::t_1b544044c0b03c 1-28,30-36,38-77,97-118
+  s_77ea3cbefbd88b::t_80a6c6340d2426 29,78-95
+  s_77ea3cbefbd88b::t_0242d6e9c71c47 37,96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "4803f624393fc8f2de80d7e3b854a0d87c50e11f",
+  "prompts": {},
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
