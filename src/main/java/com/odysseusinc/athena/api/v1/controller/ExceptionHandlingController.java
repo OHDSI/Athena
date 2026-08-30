@@ -47,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.mail.MailException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -89,6 +90,25 @@ public class ExceptionHandlingController {
     }
 
     /**
+     * Jackson wraps output failures in {@link HttpMessageNotWritableException}. When the
+     * underlying failure is a client disconnect, the response cannot accept a JSON error
+     * either; returning {@code null} tells MVC that there is no second body to write. Other
+     * conversion failures remain real server errors and retain the catch-all behaviour.
+     */
+    @ExceptionHandler(HttpMessageNotWritableException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(HttpMessageNotWritableException ex) {
+
+        AsyncRequestNotUsableException disconnect =
+                findCause(ex, AsyncRequestNotUsableException.class);
+        if (disconnect != null) {
+            LOGGER.debug("Client disconnected before the response completed: {}",
+                    disconnect.getMessage());
+            return null;
+        }
+        return exceptionHandler((Exception) ex);
+    }
+
+    /**
      * Last-resort handler. Deliberately does <b>not</b> put {@code ex.getMessage()} in the
      * response: this catches anything unmapped, so the message can carry SQL fragments,
      * entity names or file paths, and these endpoints are reachable unauthenticated. The
@@ -101,6 +121,22 @@ public class ExceptionHandlingController {
         JsonResult result = new JsonResult<>(SYSTEM_ERROR);
         result.setErrorMessage("Internal server error");
         return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private static <T extends Throwable> T findCause(Throwable exception, Class<T> causeType) {
+
+        Throwable current = exception;
+        while (current != null) {
+            if (causeType.isInstance(current)) {
+                return causeType.cast(current);
+            }
+            Throwable cause = current.getCause();
+            if (cause == current) {
+                break;
+            }
+            current = cause;
+        }
+        return null;
     }
 
     /**

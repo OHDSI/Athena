@@ -34,7 +34,9 @@ import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -42,6 +44,7 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 /**
  * Every handler used to answer {@code HTTP 200}, so a client could not tell success
@@ -151,6 +154,28 @@ public class ExceptionHandlingControllerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,
                 controller.exceptionHandler(new IORuntimeException("disk", new IOException()))
                         .getStatusCode());
+    }
+
+    /** A client disconnect can be wrapped by Jackson before it reaches controller advice. */
+    @Test
+    public void wrappedClientDisconnectDoesNotAttemptToWriteAnotherResponse() {
+
+        HttpMessageNotWritableException exception = new HttpMessageNotWritableException(
+                "Could not write JSON",
+                new AsyncRequestNotUsableException("ServletOutputStream failed to write"));
+
+        assertNull(controller.exceptionHandler(exception));
+    }
+
+    /** Real JSON conversion defects must not be hidden as routine client disconnects. */
+    @Test
+    public void genuineMessageConversionFailureRemainsAServerError() {
+
+        HttpMessageNotWritableException exception = new HttpMessageNotWritableException(
+                "Could not serialize response", new IllegalStateException("bad mapping"));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,
+                controller.exceptionHandler(exception).getStatusCode());
     }
 
     /** A missing static resource is a normal 404, not an application failure. */
