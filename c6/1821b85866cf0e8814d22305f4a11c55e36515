@@ -1,0 +1,39 @@
+src/test/java/com/odysseusinc/athena/service/impl/BundleOwnershipTest.java
+  s_77ea3cbefbd88b::t_263533975760e5 26,28,31,33-34,36-37,48,58-60,96-107,208-239,245
+  s_77ea3cbefbd88b::t_bfd270e73c53ca 246-263,265
+  s_77ea3cbefbd88b::t_4711d64c30ea49 57,264
+  s_77ea3cbefbd88b::t_471503c8d78d3e 52-54,240-244
+src/main/java/com/odysseusinc/athena/service/impl/VocabularyServiceImpl.java
+  s_77ea3cbefbd88b::t_7f6dfb2f7ccb8f 29,251,262-311
+  s_77ea3cbefbd88b::t_c08352e208ee1c 312
+src/main/java/com/odysseusinc/athena/service/DownloadBundleService.java
+  s_77ea3cbefbd88b::t_7f6dfb2f7ccb8f 56-57
+src/main/java/com/odysseusinc/athena/service/VocabularyService.java
+  s_77ea3cbefbd88b::t_7f6dfb2f7ccb8f 26,54-56
+  s_77ea3cbefbd88b::t_ed8fa646d4ed71 57
+src/test/java/com/odysseusinc/athena/service/impl/DownloadBundleServiceImplTest.java
+  s_77ea3cbefbd88b::t_263533975760e5 15-16,181-222,224
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/vocabulary/RestoreAvailabilityDTO.java
+  s_77ea3cbefbd88b::t_7f6dfb2f7ccb8f 1-14
+src/main/java/com/odysseusinc/athena/service/impl/DownloadBundleServiceImpl.java
+  s_77ea3cbefbd88b::t_7f6dfb2f7ccb8f 206-221
+src/main/java/com/odysseusinc/athena/api/v1/controller/AbstractVocabularyController.java
+  s_77ea3cbefbd88b::t_7f6dfb2f7ccb8f 5,99-112
+  s_77ea3cbefbd88b::t_bf3dbd894a228b 113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "c61821b85866cf0e8814d22305f4a11c55e36515",
+  "prompts": {},
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
