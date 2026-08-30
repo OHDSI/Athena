@@ -52,6 +52,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -124,6 +125,16 @@ public class ExceptionHandlingController {
         LOGGER.debug("Validation failed: {}", ex.getMessage());
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage(ex.getMessage());
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+    }
+
+    /** A path or query parameter that cannot be converted is malformed client input. */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(MethodArgumentTypeMismatchException ex) {
+
+        LOGGER.debug("Invalid value for parameter [{}]: {}", ex.getName(), ex.getValue());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        result.setErrorMessage(String.format("Invalid value for parameter '%s'", ex.getName()));
         return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
     }
 

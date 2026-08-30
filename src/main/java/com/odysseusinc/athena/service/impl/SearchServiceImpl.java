@@ -87,7 +87,7 @@ public class SearchServiceImpl implements SearchService {
             QueryResponse response = solrService.search(solrQuery);
             List<SolrDocument> solrDocumentList = response.getResults();
 
-            LOGGER.info("Debug {}", response.getExplainMap().toString());
+            LOGGER.debug("Search explanation: {}", response.getExplainMap());
 
             return converter.convert(
                     new SearchResult<>(solrQuery, response, solrDocumentList), v5Ids,

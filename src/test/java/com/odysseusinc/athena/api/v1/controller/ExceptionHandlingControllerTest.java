@@ -35,6 +35,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.io.IOException;
@@ -125,6 +126,21 @@ public class ExceptionHandlingControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST,
                 controller.exceptionHandler(
                         new WrongFileFormatException("file", "bad")).getStatusCode());
+    }
+
+    /** A non-numeric path/query parameter is malformed input, not an application failure. */
+    @Test
+    public void numericTypeMismatchIsBadRequest() {
+
+        MethodArgumentTypeMismatchException exception = new MethodArgumentTypeMismatchException(
+                "NaN", Long.class, "id", null, new NumberFormatException("NaN"));
+
+        ResponseEntity<JsonResult> response = controller.exceptionHandler(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(JsonResult.ErrorCode.VALIDATION_ERROR.getCode(),
+                response.getBody().getErrorCode());
+        assertEquals("Invalid value for parameter 'id'", response.getBody().getErrorMessage());
     }
 
     @Test

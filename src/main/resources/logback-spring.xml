@@ -47,7 +47,8 @@
         <appender-ref ref="ERRORS_FILE" />
     </root>
 
-    <logger name="com.odysseusinc.athena.api.v1.controller.ConceptSearchController" level="TRACE">
+    <!-- Keep search analytics in queries.log without duplicating them into the root appenders. -->
+    <logger name="com.odysseusinc.athena.api.v1.controller.ConceptSearchController" level="TRACE" additivity="false">
         <appender-ref ref="SEARCH_FILE" />
     </logger>
 

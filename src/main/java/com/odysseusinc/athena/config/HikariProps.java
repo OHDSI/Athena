@@ -14,7 +14,7 @@ public class HikariProps {
         put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         put("hibernate.hbm2ddl.auto", "none");
         put("hibernate.ddl-auto", "none");
-        put("show-sql", "true");
+        put("hibernate.show_sql", "false");
         put("hibernate.temp.use_jdbc_metadata_defaults", "false");
     }};
 

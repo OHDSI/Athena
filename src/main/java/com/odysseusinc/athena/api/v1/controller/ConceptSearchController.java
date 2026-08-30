@@ -24,6 +24,7 @@ package com.odysseusinc.athena.api.v1.controller;
 
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchResultDTO;
+import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.service.ConceptService;
 import com.odysseusinc.athena.service.SearchService;
 import com.odysseusinc.athena.service.checker.CheckResult;
@@ -79,6 +80,7 @@ public class ConceptSearchController {
     )
             throws IOException, SolrServerException {
 
+        validatePagination(searchDTO);
         if (StringUtils.isNotBlank(searchDTO.getQuery())) {
             JSONObject obj = new JSONObject(searchDTO);
             log.trace("{}", obj);
@@ -100,6 +102,7 @@ public class ConceptSearchController {
     public void downloadCsv(@ModelAttribute ConceptSearchDTO searchDTO, HttpServletResponse response)
             throws IOException, SolrServerException {
 
+        validatePagination(searchDTO);
         CheckResult checkResult = checker.check(searchDTO);
         if (!checkResult.isSuccess()) {
             response.sendError(SC_BAD_REQUEST, checkResult.getDescription());
@@ -112,5 +115,15 @@ public class ConceptSearchController {
 
         searchService.generateCSV(searchDTO, response.getOutputStream());
         response.flushBuffer();
+    }
+
+    private void validatePagination(ConceptSearchDTO searchDTO) {
+
+        if (searchDTO.getPage() == null || searchDTO.getPage() < 1) {
+            throw new ValidationException("Page must be at least 1");
+        }
+        if (searchDTO.getPageSize() == null || searchDTO.getPageSize() < 1) {
+            throw new ValidationException("Page size must be at least 1");
+        }
     }
 }

@@ -125,7 +125,7 @@ public abstract class CSVSaver extends Saver implements ISaver {
                 Connection conn = getDataSource(currentVersion).getConnection();
                 PreparedStatement st = getStatement(ids, conn, bundle)
         ) {
-            LOGGER.info("Preparing to execute (bundle with uuid {}): {}", bundle.getUuid(), st);
+            LOGGER.debug("Preparing to execute (bundle with uuid {}): {}", bundle.getUuid(), st);
             ResultSet rs = st.executeQuery();
             csvWriter.writeAll(rs, isIncludeColumnNames(), false);
 
