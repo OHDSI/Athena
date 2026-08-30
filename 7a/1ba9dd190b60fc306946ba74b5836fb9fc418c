@@ -1,0 +1,37 @@
+src/main/resources/logback-spring.xml
+  s_77ea3cbefbd88b::t_62cebdd50d2ff5 50-51,55
+src/main/java/com/odysseusinc/athena/api/v1/controller/ExceptionHandlingController.java
+  s_77ea3cbefbd88b::t_62cebdd50d2ff5 55,131-137
+  s_77ea3cbefbd88b::t_86747819323c5c 138-140
+src/test/java/com/odysseusinc/athena/api/v1/controller/ConceptSearchControllerValidationTest.java
+  s_77ea3cbefbd88b::t_d0c0679c2d3177 1-53
+src/test/java/com/odysseusinc/athena/api/v1/controller/ExceptionHandlingControllerTest.java
+  s_77ea3cbefbd88b::t_d0c0679c2d3177 38,131-143
+  s_77ea3cbefbd88b::t_441abf9a9c9709 144-145
+src/main/java/com/odysseusinc/athena/config/HikariProps.java
+  s_77ea3cbefbd88b::t_1dd121525c0af8 17,66
+src/main/java/com/odysseusinc/athena/api/v1/controller/ConceptSearchController.java
+  s_77ea3cbefbd88b::t_a84ec17dd334e8 27
+  s_77ea3cbefbd88b::t_62cebdd50d2ff5 83,105,119-127
+  s_77ea3cbefbd88b::t_fdc0aa28907fa2 128
+src/main/java/com/odysseusinc/athena/service/impl/SearchServiceImpl.java
+  s_77ea3cbefbd88b::t_62cebdd50d2ff5 90
+src/main/java/com/odysseusinc/athena/service/saver/CSVSaver.java
+  s_77ea3cbefbd88b::t_62cebdd50d2ff5 128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "7a1ba9dd190b60fc306946ba74b5836fb9fc418c",
+  "prompts": {},
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
