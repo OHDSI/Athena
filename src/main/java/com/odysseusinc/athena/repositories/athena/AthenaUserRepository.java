@@ -51,8 +51,7 @@ public interface AthenaUserRepository
             + "ORDER BY (SELECT MAX(CASE WHEN :pendingOnly IS TRUE THEN li.request_date "
             + "ELSE COALESCE(li.granted_at, li.request_date) END) "
             + "FROM licenses li WHERE li.user_id = us.id "
-            + "AND (:pendingOnly IS FALSE OR li.status = 'PENDING')) DESC NULLS LAST, us.id"
-            + " \n--#pageable\n",
+            + "AND (:pendingOnly IS FALSE OR li.status = 'PENDING')) DESC NULLS LAST, us.id",
             countQuery = "SELECT count(*) " + GET_USERS_WITH_LICENSES)
     Page<AthenaUser> getUsersWithLicenses(@Param("suggestRequest") String suggestRequest,
                                           @Param("pendingOnly") boolean pendingOnly,  Pageable pageable);
