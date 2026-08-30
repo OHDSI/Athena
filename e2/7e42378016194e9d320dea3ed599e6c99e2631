@@ -1,0 +1,22 @@
+src/main/java/com/odysseusinc/athena/repositories/athena/AthenaUserRepository.java
+  s_77ea3cbefbd88b::t_c9cc34cb0b1198 64-65
+src/test/java/com/odysseusinc/athena/repositories/athena/AthenaUserRepositoryPaginationTest.java
+  s_77ea3cbefbd88b::t_c9cc34cb0b1198 39,104-120
+  s_77ea3cbefbd88b::t_77105fc2821ffe 121-122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "e27e42378016194e9d320dea3ed599e6c99e2631",
+  "prompts": {},
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
