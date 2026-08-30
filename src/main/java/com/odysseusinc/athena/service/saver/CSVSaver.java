@@ -103,7 +103,7 @@ public abstract class CSVSaver extends Saver implements ISaver {
             writeContent(bundle, csvWriter, vocabularyIds);
             csvWriter.flush(true);
             putEntry(zos, fileName, path);
-            LOGGER.info("Entry is added to archive {}, bundle uuid: {}", fileName, bundle.getUuid());
+            LOGGER.debug("Archive entry [{}] added for bundle [{}]", fileName, bundle.getId());
             Files.delete(path);
         } catch (Exception ex) {
             throw new IORuntimeException("", ex);

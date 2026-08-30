@@ -93,7 +93,7 @@ public class EmailServiceImpl implements EmailService {
 
         final EmailRecipients recipients = EmailRecipients.builder().to(asList(recipient.getEmail())).build();
         send(EmailType.VOCABULARIES_LINK, buildParameters(url, version, vocabularyReleaseVersion, bundleName, requestedVocabularies), recipients, getAdminEmails());
-        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", recipient.getId(), url);
+        log.debug("Vocabulary download link email queued");
     }
 
     @Override
@@ -101,7 +101,7 @@ public class EmailServiceImpl implements EmailService {
                                       String vocabularyReleaseVersion, String deltaReleaseVersion) {
         final EmailRecipients recipients = EmailRecipients.builder().to(asList(recipient.getEmail())).build();
         send(EmailType.VOCABULARIES_DELTA_LINK, deltaParameters(buildParameters(url, version, vocabularyReleaseVersion, bundleName, requestedVocabularies), deltaReleaseVersion), recipients, getAdminEmails());
-        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", recipient.getId(), url);
+        log.debug("Delta download link email queued");
     }
 
     @Override
@@ -136,7 +136,7 @@ public class EmailServiceImpl implements EmailService {
 
         final EmailRecipients recipients = EmailRecipients.builder().to(asList(recipient.getEmail())).build();
         send(EmailType.VOCABULARIES_SHARED_DOWNLOAD, emailParameters, recipients, getAdminEmails());
-        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", recipient.getId(), url);
+        log.debug("Shared vocabulary download link email queued");
     }
 
     @Override
@@ -145,22 +145,22 @@ public class EmailServiceImpl implements EmailService {
         final Map<String, Object> emailParameters = deltaParameters(getParameters(recipient, bundleOwner, url, cdmVersion, vocabularyReleaseVersion), deltaReleaseVersion);
         final EmailRecipients recipients = EmailRecipients.builder().to(asList(recipient.getEmail())).build();
         send(EmailType.VOCABULARIES_DELTA_SHARED_DOWNLOAD, emailParameters, recipients, getAdminEmails());
-        log.info("Email with link for download zip is sent to user with id: [{}], zip link: [{}]", recipient.getId(), url);
+        log.debug("Shared delta download link email queued");
     }
 
 
     private void send(EmailType messageType, Map<String, Object> parameters, EmailRecipients recipients, List<String> notifyOnFailureEmails) {
 
-        log.debug("Sending {} to {}", messageType, recipients);
+        log.debug("Queueing email [{}]", messageType);
         final String emailBody = contentBuilder.build(messageType.getTemplate(), parameters);
 
         emailSenderService.sendAsync(messageType.getSubject(), emailBody, recipients)
-                .exceptionally(ex -> handleError(ex, messageType, emailBody, recipients.toString(), notifyOnFailureEmails));
+                .exceptionally(ex -> handleError(ex, messageType, notifyOnFailureEmails));
     }
 
-    private Void handleError(Throwable ex, EmailType messageType, String emailBody, String recipients, List<String> notifyOnFailureEmails) {
+    private Void handleError(Throwable ex, EmailType messageType, List<String> notifyOnFailureEmails) {
 
-        log.error("Failed email {} \n\n\n{}\n\n\n, to: {}", messageType, emailBody, recipients, ex);
+        log.error("Failed to send email [{}]", messageType, ex);
          if (CollectionUtils.isNotEmpty(notifyOnFailureEmails)) {
             final Map<String, Object> parameters = Collections.singletonMap("exception", ex.getCause());
 

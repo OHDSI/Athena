@@ -133,8 +133,6 @@ public class VocabularyServiceImpl implements VocabularyService {
 
         DownloadBundle bundle = downloadBundleService.initBundle(bundleName, currentUser, version, vocabularyVersion, delta, deltaVersion);
         downloadBundleService.validate(bundle);
-        log.info("Ready for save download items for bundle with name: [{}] and uuid: [{}], user id: [{}]",
-                bundleName, bundle.getUuid(), bundle.getUserId());
 
         List<Integer> withOmopReqIdV4s = vocabularyConversionService.findByOmopReqIsNotNull()
                 .stream()
@@ -145,7 +143,8 @@ public class VocabularyServiceImpl implements VocabularyService {
 
 
         bundle = saveDownloadItems(bundle, withOmopReqIdV4s);
-        log.info("Download items are added, bundle: [{}]", bundle);
+        log.debug("Download items saved for bundle [{}], item count [{}]",
+                bundle.getId(), bundle.getVocabularies().size());
         return bundle;
     }
 
@@ -183,7 +182,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         } else {
             asyncVocabularyService.generateBundle(bundle, user);
         }
-        log.info("Vocabulary generation is started, bundle name: {}, user id: {}", bundle, user.getId());
+        log.info("Vocabulary generation started for bundle [{}]", bundle.getId());
     }
 
     @Override
@@ -254,8 +253,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         checkBundleVocabularies(downloadBundle.getId(), currentUser.getId());
         asyncVocabularyService.updateStatus(downloadBundle, DownloadBundleStatus.PENDING);
         generateBundle(downloadBundle, currentUser);
-        log.info("Vocabulary restoring is started, bundle id: {}, user id: {}", downloadBundle.getId(),
-                currentUser.getId());
+        log.info("Vocabulary restoration started for bundle [{}]", downloadBundle.getId());
     }
 
     @Override

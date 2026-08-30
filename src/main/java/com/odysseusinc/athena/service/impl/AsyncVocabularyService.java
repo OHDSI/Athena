@@ -113,8 +113,8 @@ public class AsyncVocabularyService {
             bundle = saver.save(zos, bundle, savers);
             zipWriter.addExtraFiles(zos, bundle);
 
-            LOGGER.info("Bundle is saved in zip: {}", bundle);
             updateStatus(bundle, DownloadBundleStatus.READY);
+            LOGGER.info("Vocabulary generation completed for bundle [{}]", bundle.getId());
 
             final Map<String, String> includedVocabularies = bundle.getVocabularies().stream()
                     .map(DownloadItem::getVocabularyConversion)
