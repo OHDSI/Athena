@@ -23,6 +23,7 @@
 package com.odysseusinc.athena.service;
 
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.RestoreAvailabilityDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.License;
@@ -49,6 +50,10 @@ public interface VocabularyService {
     DownloadBundle saveDownloadItems(DownloadBundle bundle, List<Integer> idV4s);
 
     void restoreDownloadBundle(long bundleId);
+
+    RestoreAvailabilityDTO getRestoreAvailability(long bundleId);
+
+    DownloadBundle regenerateDownloadBundleFromCurrentVersion(long bundleId);
 
     void checkBundleUser(AthenaUser user, DownloadBundle bundle);
 

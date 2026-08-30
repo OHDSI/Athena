@@ -26,6 +26,7 @@ import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyToUserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.RestoreAvailabilityDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.exceptions.LicenseException;
@@ -246,9 +247,8 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public void restoreDownloadBundle(long bundleId) {
 
-        DownloadBundle downloadBundle = downloadBundleRepository.getOne(bundleId);
         AthenaUser currentUser = userService.getCurrentUser();
-        checkBundleUser(currentUser, downloadBundle);
+        DownloadBundle downloadBundle = getOwnedBundle(bundleId, currentUser);
         if (!downloadBundle.isArchived()) {
             return;
         }
@@ -257,6 +257,57 @@ public class VocabularyServiceImpl implements VocabularyService {
         asyncVocabularyService.updateStatus(downloadBundle, DownloadBundleStatus.PENDING);
         generateBundle(downloadBundle, currentUser);
         log.info("Vocabulary restoration started for bundle [{}]", downloadBundle.getId());
+    }
+
+    @Override
+    public RestoreAvailabilityDTO getRestoreAvailability(long bundleId) {
+        AthenaUser currentUser = userService.getCurrentUser();
+        DownloadBundle bundle = getOwnedBundle(bundleId, currentUser);
+        if (!bundle.isArchived()) {
+            throw new ValidationException("Only archived bundles can be regenerated.");
+        }
+        return new RestoreAvailabilityDTO(
+                downloadBundleService.canRestoreOriginalVersion(bundle),
+                originalVersionLabel(bundle),
+                vocabularyReleaseVersionService.getCurrentFormatted(),
+                bundle.isDelta()
+        );
+    }
+
+    @Override
+    public DownloadBundle regenerateDownloadBundleFromCurrentVersion(long bundleId) {
+        AthenaUser currentUser = userService.getCurrentUser();
+        DownloadBundle originalBundle = getOwnedBundle(bundleId, currentUser);
+        if (!originalBundle.isArchived()) {
+            throw new ValidationException("Only archived bundles can be regenerated.");
+        }
+
+        List<Integer> vocabularyIds = originalBundle.getVocabularyV4Ids();
+        checkBundleVocabularies(vocabularyIds, currentUser.getId());
+
+        DownloadBundle replacement = downloadBundleService.initBundle(
+                originalBundle.getName(),
+                currentUser,
+                CDMVersion.V5,
+                vocabularyReleaseVersionService.getCurrent(),
+                false,
+                null
+        );
+        downloadBundleService.validate(replacement);
+        return saveDownloadItems(replacement, vocabularyIds);
+    }
+
+    private DownloadBundle getOwnedBundle(long bundleId, AthenaUser currentUser) {
+        DownloadBundle bundle = downloadBundleRepository.findById(bundleId)
+                .orElseThrow(() -> new NotExistException(
+                        "Cannot find bundle with id =" + bundleId, DownloadBundle.class));
+        checkBundleUser(currentUser, bundle);
+        return bundle;
+    }
+
+    private String originalVersionLabel(DownloadBundle bundle) {
+        String vocabularyVersion = bundle.formattedVocabularyVersion();
+        return vocabularyVersion != null ? vocabularyVersion : bundle.formattedReleaseVersion();
     }
 
     @Override

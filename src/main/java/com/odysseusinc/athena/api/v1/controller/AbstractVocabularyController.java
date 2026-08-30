@@ -2,6 +2,7 @@ package com.odysseusinc.athena.api.v1.controller;
 
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.RestoreAvailabilityDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyVersionDTO;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
@@ -93,6 +94,21 @@ public class AbstractVocabularyController {
 
         vocabularyService.restoreDownloadBundle(bundleId);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Check whether an archived bundle can be regenerated from its original release.")
+    @GetMapping("/restore/{id}/availability")
+    public RestoreAvailabilityDTO restoreAvailability(@PathVariable("id") Long bundleId) {
+        return vocabularyService.getRestoreAvailability(bundleId);
+    }
+
+    @Operation(summary = "Regenerate an archived bundle's vocabulary set from the current release.")
+    @PostMapping("/restore/{id}/current")
+    public DownloadBundleDTO regenerateFromCurrentVersion(@PathVariable("id") Long bundleId) {
+        AthenaUser user = userService.getCurrentUser();
+        DownloadBundle bundle = vocabularyService.regenerateDownloadBundleFromCurrentVersion(bundleId);
+        vocabularyService.generateBundle(bundle, user);
+        return conversionService.convert(bundle, DownloadBundleDTO.class);
     }
 
 

@@ -203,6 +203,22 @@ public class DownloadBundleServiceImpl implements DownloadBundleService {
         }
     }
 
+    @Override
+    public boolean canRestoreOriginalVersion(DownloadBundle bundle) {
+        if (bundle.getCdmVersion() != CDMVersion.V5 || bundle.getVocabularyVersion() == null) {
+            return false;
+        }
+        if (!bundle.isDelta()) {
+            return versionService.isCurrent(bundle.getVocabularyVersion())
+                    || versionService.isPresentInHistory(bundle.getVocabularyVersion());
+        }
+        return bundle.getDeltaVersion() != null
+                && bundle.getDeltaVersion() < bundle.getVocabularyVersion()
+                && !versionService.isCurrentMissingInHistory(bundle.getVocabularyVersion())
+                && versionService.isPresentInHistory(bundle.getVocabularyVersion())
+                && versionService.isPresentInHistory(bundle.getDeltaVersion());
+    }
+
     private void archiveByUuid(String uuid) {
 
         FileUtils.deleteQuietly(new File(fileHelper.getZipPath(uuid)));
