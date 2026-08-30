@@ -148,6 +148,15 @@ public class NotificationServiceImplTest {
     }
 
     @Test
+    public void shouldDeleteAllSubscriptionsForUser() {
+        long userId = 42L;
+
+        notificationService.deleteAllSubscriptions(userId);
+
+        verify(notificationRepository).deleteByUserId(userId);
+    }
+
+    @Test
     public void shouldUseAthenaLatestUpdateFormat() {
         LocalDate date = LocalDate.of(2015, 7, 15);
         String version = NotificationServiceImpl.LATEST_UPDATE_FORMATTER.format(date);

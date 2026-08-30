@@ -82,6 +82,14 @@ public class NotificationController {
         return converterUtils.convertList(notifications, VocabularyDTO.class);
     }
 
+    @DeleteMapping
+    public void unsubscribeFromAllVocabularyUpdates(Principal principal) {
+
+        final AthenaUser user = userService.getUser(principal);
+        LOGGER.debug("Delete all vocabulary update subscriptions for user [{}]", user.getId());
+        notificationService.deleteAllSubscriptions(user.getId());
+    }
+
     @DeleteMapping("/{vocabularyCode}")
     public void unsubscribeFromVocabularyUpdate(@PathVariable String vocabularyCode, Principal principal) {
 
