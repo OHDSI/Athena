@@ -1,0 +1,54 @@
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/vocabulary/AthenaUserToUserLicensesDTO.java
+  s_77ea3cbefbd88b::t_ddb22b6846d85e 36-39,64-72
+src/main/java/com/odysseusinc/athena/service/impl/VocabularyServiceImpl.java
+  s_77ea3cbefbd88b::t_13270a4df0d682 396,398
+  s_77ea3cbefbd88b::t_a315caa3e7ccf7 65,68,395,399-400
+  s_77ea3cbefbd88b::t_45bf9992039cfe 34,291,295,322,325-335,345,354-359,391-394,397,401
+  s_77ea3cbefbd88b::t_a29896a1b312e9 324,336-340
+  s_77ea3cbefbd88b::t_a48343cc28828b 402
+src/main/java/com/odysseusinc/athena/repositories/athena/LicenseRepository.java
+  s_77ea3cbefbd88b::t_45bf9992039cfe 26,49-51
+  s_77ea3cbefbd88b::t_a29896a1b312e9 28,33-35,45-48
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/vocabulary/UserVocabularyDTO.java
+  s_77ea3cbefbd88b::t_ddb22b6846d85e 35-36,94-113
+src/main/resources/db/migration/athena/V20260830120000__license_grant_audit.sql
+  s_77ea3cbefbd88b::t_ddb22b6846d85e 1-9
+src/main/java/com/odysseusinc/athena/service/VocabularyService.java
+  s_77ea3cbefbd88b::t_45bf9992039cfe 63,69-73
+src/test/java/com/odysseusinc/athena/service/impl/LicenseAdministrationTest.java
+  s_77ea3cbefbd88b::t_a29896a1b312e9 112,128,141
+  s_77ea3cbefbd88b::t_9c244d1219fc0a 1-111,113-127,129-140,142-156
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/vocabulary/LicenseGrantorDTO.java
+  s_77ea3cbefbd88b::t_ddb22b6846d85e 1-39
+src/main/java/com/odysseusinc/athena/api/v1/controller/VocabularyController.java
+  s_77ea3cbefbd88b::t_45bf9992039cfe 70,168-169,172-173,186-202,214-215,218-219,228,234,238-239
+  s_77ea3cbefbd88b::t_285b56e561168d 46,71-72,145-152
+src/main/java/com/odysseusinc/athena/api/v1/controller/dto/vocabulary/UserLicensesDTO.java
+  s_77ea3cbefbd88b::t_ddb22b6846d85e 26,33,54-63
+src/main/java/com/odysseusinc/athena/repositories/athena/AthenaUserRepository.java
+  s_77ea3cbefbd88b::t_285b56e561168d 51-55
+  s_77ea3cbefbd88b::t_45bf9992039cfe 47-48
+src/main/java/com/odysseusinc/athena/model/athena/License.java
+  s_77ea3cbefbd88b::t_ddb22b6846d85e 84-92,152-181
+src/test/java/com/odysseusinc/athena/config/PublicEndpointMatchingTest.java
+  s_77ea3cbefbd88b::t_45bf9992039cfe 84
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/vocabulary/LicenceToUserVocabularyDTO.java
+  s_77ea3cbefbd88b::t_13270a4df0d682 27
+  s_77ea3cbefbd88b::t_ddb22b6846d85e 63-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "8d8e5886755d08adc8ab3afd2ad930b5dcc51c05",
+  "prompts": {},
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
