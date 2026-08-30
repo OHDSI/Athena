@@ -61,7 +61,8 @@ public interface AthenaUserRepository
     @Query(nativeQuery = true, value =
             "SELECT * FROM users WHERE lower(firstname) SIMILAR TO :suggestRequest "
                     + "OR lower(lastname) SIMILAR TO :suggestRequest "
-                    + "OR lower(middlename) SIMILAR TO :suggestRequest ORDER BY firstname, lastname, middlename")
+                    + "OR lower(middlename) SIMILAR TO :suggestRequest "
+                    + "OR lower(email) SIMILAR TO :suggestRequest ORDER BY firstname, lastname, middlename")
     List<AthenaUser> suggestUsers(@Param("suggestRequest") String suggestRequest);
 
     List<AthenaUser> findByRoles_name(String role);

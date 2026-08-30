@@ -36,6 +36,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -98,6 +99,25 @@ class AthenaUserRepositoryPaginationTest {
         assertEquals(2, allUsers.getTotalElements());
         assertEquals(1, pendingUsers.getTotalElements());
         assertEquals("status-filter-pending", pendingUsers.getContent().getFirst().getUsername());
+    }
+
+    @Test
+    void userSuggestionsMatchEmailAddress() {
+
+        AthenaUser user = new AthenaUser();
+        user.setUsername("email-suggestion-user");
+        user.setEmail("distinct-address@example.com");
+        user.setFirstName("Completely");
+        user.setLastName("Different");
+        user.setOrigin("test");
+        userRepository.save(user);
+        entityManager.flush();
+        entityManager.clear();
+
+        List<AthenaUser> suggestions = userRepository.suggestUsers("%distinct-address%");
+
+        assertEquals(1, suggestions.size());
+        assertEquals("email-suggestion-user", suggestions.getFirst().getUsername());
     }
 
     private void saveUserWithLicense(String username, VocabularyConversion vocabulary,
