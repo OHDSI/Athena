@@ -44,10 +44,15 @@ public interface AthenaUserRepository
             + "id IN (SELECT DISTINCT user_id FROM licenses where status IN ('PENDING') OR :pendingOnly IS FALSE) "
             + "AND (lower(firstname) SIMILAR TO :suggestRequest "
             + "OR lower(lastname) SIMILAR TO :suggestRequest "
-            + "OR lower(middlename) SIMILAR TO :suggestRequest) ";
+            + "OR lower(middlename) SIMILAR TO :suggestRequest "
+            + "OR lower(email) SIMILAR TO :suggestRequest) ";
 
     @Query(nativeQuery = true, value = "SELECT * " + GET_USERS_WITH_LICENSES
-            + "ORDER BY firstname, lastname, middlename" + " \n--#pageable\n",
+            + "ORDER BY (SELECT MAX(CASE WHEN :pendingOnly IS TRUE THEN li.request_date "
+            + "ELSE COALESCE(li.granted_at, li.request_date) END) "
+            + "FROM licenses li WHERE li.user_id = us.id "
+            + "AND (:pendingOnly IS FALSE OR li.status = 'PENDING')) DESC NULLS LAST, us.id"
+            + " \n--#pageable\n",
             countQuery = "SELECT count(*) " + GET_USERS_WITH_LICENSES)
     Page<AthenaUser> getUsersWithLicenses(@Param("suggestRequest") String suggestRequest,
                                           @Param("pendingOnly") boolean pendingOnly,  Pageable pageable);

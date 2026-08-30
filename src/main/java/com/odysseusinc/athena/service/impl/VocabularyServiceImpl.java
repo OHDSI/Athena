@@ -31,6 +31,7 @@ import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.exceptions.LicenseException;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
+import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.DownloadItem;
 import com.odysseusinc.athena.model.athena.DownloadShare;
@@ -61,8 +62,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
@@ -285,10 +288,11 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public List<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids) {
+    public List<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, AthenaUser grantedBy) {
 
         final List<License> newLicenses = vocabularyV4Ids.stream()
                 .map(v4Id -> buildLicense(user, v4Id, APPROVED))
+                .peek(license -> recordGrant(license, grantedBy))
                 .collect(toList());
 
         final List<License> savedLicenses = licenseRepository.saveAll(newLicenses);
@@ -315,19 +319,42 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public void acceptLicense(Long id, boolean accepted) {
+    public void cancelPendingLicense(Long licenseId) {
 
-        License userLicense = licenseRepository.getOne(id);
+        License license = licenseRepository.findByIdForUpdate(licenseId)
+                .orElseThrow(() -> new NotExistException("License request does not exist", License.class));
+        if (license.getStatus() != LicenseStatus.PENDING) {
+            throw new ValidationException("Only pending license requests can be cancelled");
+        }
+        licenseRepository.deleteById(licenseId);
+        conceptService.invalidateGraphCache(license.getUser().getId());
+    }
+
+    @Override
+    public void acceptLicense(Long id, boolean accepted, AthenaUser resolvedBy) {
+
+        License userLicense = licenseRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new NotExistException("License request does not exist", License.class));
+        if (userLicense.getStatus() != LicenseStatus.PENDING) {
+            throw new ValidationException("License request has already been resolved");
+        }
         String vocabularyName = userLicense.getVocabularyConversion().getName();
         AthenaUser user = userLicense.getUser();
         if (accepted) {
             userLicense.setStatus(LicenseStatus.APPROVED);
+            recordGrant(userLicense, resolvedBy);
             licenseRepository.save(userLicense);
         } else {
             licenseRepository.deleteById(id);
         }
         conceptService.invalidateGraphCache(user.getId());
         emailService.sendLicenseAcceptance(user, accepted, vocabularyName);
+    }
+
+    @Override
+    public long countPendingLicenses() {
+
+        return licenseRepository.countByStatus(LicenseStatus.PENDING);
     }
 
     @Override
@@ -359,6 +386,18 @@ public class VocabularyServiceImpl implements VocabularyService {
 
         VocabularyConversion vocabularyConversion = vocabularyConversionService.findByVocabularyV4Id(vocabularyV4Id);
         return new License(user, vocabularyConversion, status);
+    }
+
+    private void recordGrant(License license, AthenaUser grantedBy) {
+
+        license.setGrantedAt(new Date());
+        license.setGrantedByUserId(grantedBy.getId());
+        String name = Stream.of(
+                grantedBy.getFirstName(), grantedBy.getMiddleName(), grantedBy.getLastName())
+                .filter(Objects::nonNull)
+                .filter(part -> !part.isBlank())
+                .collect(Collectors.joining(" "));
+        license.setGrantedByName(name.isBlank() ? grantedBy.getUsername() : name);
     }
 
     private void checkBundleVocabularies(List<Integer> bundleVocabularyIdV4s, Long userId) {

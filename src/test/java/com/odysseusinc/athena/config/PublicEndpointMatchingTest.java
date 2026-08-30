@@ -81,7 +81,7 @@ public class PublicEndpointMatchingTest {
     public void theOtherAdvertisedPublicEndpointsMatch() {
 
         assertTrue(isPublic("/api/v1/users/remind-password"));
-        assertTrue(isPublic("/api/v1/vocabularies/licenses/accept/mail"));
+        assertFalse(isPublic("/api/v1/vocabularies/licenses/accept/mail"));
         assertTrue(isPublic("/api/v1/build-number"));
         assertTrue(isPublic("/api/v1/vocabularies/zip/some-uuid"));
     }

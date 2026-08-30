@@ -24,6 +24,7 @@ package com.odysseusinc.athena.api.v1.controller.converter.vocabulary;
 
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.LicenseGrantorDTO;
 import com.odysseusinc.athena.model.athena.License;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import jakarta.validation.constraints.NotNull;
@@ -59,6 +60,11 @@ public class LicenceToUserVocabularyDTO implements Converter<License, UserVocabu
         dto.setLicenseId(id);
         dto.setAvailable(true);
         dto.setRequestDate(license.getRequestDate());
+        dto.setGrantedAt(license.getGrantedAt());
+        if (license.getGrantedByUserId() != null || license.getGrantedByName() != null) {
+            dto.setGrantedBy(new LicenseGrantorDTO(
+                    license.getGrantedByUserId(), license.getGrantedByName()));
+        }
 
         LicenseStatus status = license.getStatus();
         dto.setStatus(status);

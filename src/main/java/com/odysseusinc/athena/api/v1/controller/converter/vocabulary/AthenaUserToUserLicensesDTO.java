@@ -33,6 +33,10 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+
 @Component
 public class AthenaUserToUserLicensesDTO implements Converter<AthenaUser, UserLicensesDTO>, InitializingBean {
 
@@ -57,7 +61,15 @@ public class AthenaUserToUserLicensesDTO implements Converter<AthenaUser, UserLi
 
         UserLicensesDTO dto = new UserLicensesDTO();
         dto.setUser(conversionService.convert(user, BaseAthenaUserWithEmailDTO.class));
-        dto.setVocabularyDTOs(converterUtils.convertList(user.getLicenses(), UserVocabularyDTO.class));
+        List<UserVocabularyDTO> vocabularies = converterUtils.convertList(
+                user.getLicenses(), UserVocabularyDTO.class);
+        dto.setVocabularyDTOs(vocabularies);
+        dto.setLatestActivityDate(vocabularies.stream()
+                .map(vocabulary -> vocabulary.getGrantedAt() != null
+                        ? vocabulary.getGrantedAt() : vocabulary.getRequestDate())
+                .filter(Objects::nonNull)
+                .max(Comparator.naturalOrder())
+                .orElse(null));
         return dto;
     }
 

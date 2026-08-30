@@ -101,7 +101,6 @@ public class WebSecurityConfig {
             "/api/v1/users/professional-types",
             "/api/v1/users/countries",
             "/api/v1/users/provinces",
-            "/api/v1/vocabularies/licenses/accept/mail",  // token-bound link from email
             // Vocabulary release version, read by the front end's About dialog before a user
             // signs in. Spelled the way the controller maps it — the camelCase form that was
             // listed here matches no handler.

@@ -32,6 +32,8 @@ public class UserVocabularyDTO extends VocabularyDTO {
     private boolean available;
     private Long licenseId;
     private Date requestDate;
+    private Date grantedAt;
+    private LicenseGrantorDTO grantedBy;
     private LicenseStatus status;
     private String token;
 
@@ -88,5 +90,25 @@ public class UserVocabularyDTO extends VocabularyDTO {
     public void setRequestDate(Date requestDate) {
 
         this.requestDate = requestDate;
+    }
+
+    public Date getGrantedAt() {
+
+        return grantedAt;
+    }
+
+    public void setGrantedAt(Date grantedAt) {
+
+        this.grantedAt = grantedAt;
+    }
+
+    public LicenseGrantorDTO getGrantedBy() {
+
+        return grantedBy;
+    }
+
+    public void setGrantedBy(LicenseGrantorDTO grantedBy) {
+
+        this.grantedBy = grantedBy;
     }
 }

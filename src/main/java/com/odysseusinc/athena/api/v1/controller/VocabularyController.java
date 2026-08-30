@@ -43,6 +43,7 @@ import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.impl.UserService;
+import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -66,6 +67,9 @@ import jakarta.validation.Valid;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
+import java.util.Comparator;
+import java.util.Objects;
 
 @Tag(name = "VocabularyController")
 @RestController
@@ -138,6 +142,14 @@ public class VocabularyController extends AbstractVocabularyController {
         final Page<AthenaUser> users = userService.getUsersWithLicenses(pageRequest, query, pendingOnly);
 
         List<UserLicensesDTO> dtos = converterUtils.convertList(users.getContent(), UserLicensesDTO.class);
+        if (pendingOnly) {
+            dtos.forEach(dto -> dto.setLatestActivityDate(dto.getVocabularyDTOs().stream()
+                    .filter(vocabulary -> vocabulary.getStatus() == LicenseStatus.PENDING)
+                    .map(vocabulary -> vocabulary.getRequestDate())
+                    .filter(Objects::nonNull)
+                    .max(Comparator.naturalOrder())
+                    .orElse(null)));
+        }
         return new CustomPageImpl(dtos, pageRequest, users.getTotalElements());
     }
 
@@ -153,10 +165,12 @@ public class VocabularyController extends AbstractVocabularyController {
     @Secured("ROLE_ADMIN")
     @Operation(summary = "Add user's licenses.")
     @PostMapping("licenses")
-    public ResponseEntity<Void> saveLicenses(@RequestBody @Valid AddingUserLicensesDTO dto) {
+    public ResponseEntity<Void> saveLicenses(@RequestBody @Valid AddingUserLicensesDTO dto,
+                                             Principal principal) {
 
         final AthenaUser user = userService.get(dto.getUserId());
-        vocabularyService.grantLicenses(user, dto.getVocabularyV4Ids());
+        final AthenaUser grantedBy = userService.getUser(principal);
+        vocabularyService.grantLicenses(user, dto.getVocabularyV4Ids(), grantedBy);
         return ResponseEntity.ok().build();
     }
 
@@ -167,6 +181,23 @@ public class VocabularyController extends AbstractVocabularyController {
 
         vocabularyService.deleteLicense(licenseId);
         return ResponseEntity.ok().build();
+    }
+
+    @Secured("ROLE_ADMIN")
+    @Operation(summary = "Cancel a pending license request without notifying the user.")
+    @DeleteMapping("licenses/requests/{id}")
+    public ResponseEntity<Void> cancelLicenseRequest(@PathVariable("id") Long licenseId) {
+
+        vocabularyService.cancelPendingLicense(licenseId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Secured("ROLE_ADMIN")
+    @Operation(summary = "Count pending license requests.")
+    @GetMapping("licenses/pending/count")
+    public Map<String, Long> countPendingLicenseRequests() {
+
+        return Map.of("count", vocabularyService.countPendingLicenses());
     }
 
     @Operation(summary = "Request user's license.")
@@ -180,10 +211,12 @@ public class VocabularyController extends AbstractVocabularyController {
     @Secured("ROLE_ADMIN")
     @Operation(summary = "Accept user's license.")
     @PostMapping("licenses/accept")
-    public ResponseEntity<Void> acceptLicense(@Valid @RequestBody AcceptDTO acceptDTO) {
+    public ResponseEntity<Void> acceptLicense(@Valid @RequestBody AcceptDTO acceptDTO,
+                                              Principal principal) {
 
         licenseService.checkLicense(acceptDTO.getId());
-        vocabularyService.acceptLicense(acceptDTO.getId(), acceptDTO.getAccepted());
+        AthenaUser resolvedBy = userService.getUser(principal);
+        vocabularyService.acceptLicense(acceptDTO.getId(), acceptDTO.getAccepted(), resolvedBy);
         return ResponseEntity.ok().build();
     }
 
@@ -192,15 +225,18 @@ public class VocabularyController extends AbstractVocabularyController {
      * and a link cannot issue a POST. {@code token} is what makes the request specific to one
      * licence.
      */
+    @Secured("ROLE_ADMIN")
     @Operation(summary = "Accept user's license via mail.")
     @GetMapping("licenses/accept/mail")
     public void acceptLicenseViaMail(@RequestParam("id") Long id,
                                      @RequestParam("accepted") Boolean accepted,
                                      @RequestParam("token") String token,
+                                     Principal principal,
                                      HttpServletResponse response) throws IOException {
 
         licenseService.checkLicense(id, token);
-        vocabularyService.acceptLicense(id, accepted);
+        AthenaUser resolvedBy = userService.getUser(principal);
+        vocabularyService.acceptLicense(id, accepted, resolvedBy);
         response.sendRedirect("/admin/licenses");
     }
 

@@ -23,12 +23,14 @@
 package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
 import com.odysseusinc.athena.api.v1.controller.dto.BaseAthenaUserWithEmailDTO;
+import java.util.Date;
 import java.util.List;
 
 public class UserLicensesDTO {
 
     private BaseAthenaUserWithEmailDTO user;
     private List<UserVocabularyDTO> vocabularyDTOs;
+    private Date latestActivityDate;
 
     public BaseAthenaUserWithEmailDTO getUser() {
 
@@ -48,5 +50,15 @@ public class UserLicensesDTO {
     public void setVocabularyDTOs(List<UserVocabularyDTO> vocabularyDTOs) {
 
         this.vocabularyDTOs = vocabularyDTOs;
+    }
+
+    public Date getLatestActivityDate() {
+
+        return latestActivityDate;
+    }
+
+    public void setLatestActivityDate(Date latestActivityDate) {
+
+        this.latestActivityDate = latestActivityDate;
     }
 }
