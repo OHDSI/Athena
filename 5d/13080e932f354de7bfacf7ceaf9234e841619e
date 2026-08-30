@@ -1,0 +1,35 @@
+src/main/java/com/odysseusinc/athena/service/saver/CSVSaver.java
+  s_77ea3cbefbd88b::t_16f2b281a4a099 106
+src/main/java/com/odysseusinc/athena/service/mail/EmailServiceImpl.java
+  s_77ea3cbefbd88b::t_6e9999a4d5e2fe 154
+  s_77ea3cbefbd88b::t_16f2b281a4a099 96,104,139,148,163
+  s_77ea3cbefbd88b::t_d3fefecabc045b 158,161
+src/main/java/com/odysseusinc/athena/service/impl/VocabularyServiceImpl.java
+  s_77ea3cbefbd88b::t_16f2b281a4a099 146-147,185,256
+src/main/java/com/odysseusinc/athena/api/v1/controller/DownloadsController.java
+  s_77ea3cbefbd88b::t_16f2b281a4a099 26,43-45,79-82,89,92-93,97
+  s_77ea3cbefbd88b::t_6e9999a4d5e2fe 75-76
+src/test/java/com/odysseusinc/athena/api/v1/controller/DownloadsControllerTest.java
+  s_77ea3cbefbd88b::t_c8a9086ffb32d5 1-23,25-30,34-35,38-62,64-81,83-92,118-125,127-129,131-134,165-167
+  s_77ea3cbefbd88b::t_747d7b8a3b7b2d 24,31-33,36-37,63,82,93-117,126,130,135-164
+src/main/java/com/odysseusinc/athena/service/writer/ZipWriter.java
+  s_77ea3cbefbd88b::t_16f2b281a4a099 107
+src/main/java/com/odysseusinc/athena/service/impl/AsyncVocabularyService.java
+  s_77ea3cbefbd88b::t_16f2b281a4a099 117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "5d13080e932f354de7bfacf7ceaf9234e841619e",
+  "prompts": {},
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
