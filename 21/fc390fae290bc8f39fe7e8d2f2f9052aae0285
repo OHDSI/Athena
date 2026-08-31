@@ -1,0 +1,28 @@
+properties/test/application.properties
+  s_77ea3cbefbd88b::t_329102ee0aac18 5-6,135
+properties/prod/application.properties
+  s_77ea3cbefbd88b::t_329102ee0aac18 11-15
+properties/dev/application.properties
+  s_77ea3cbefbd88b::t_329102ee0aac18 7-11
+properties/qa/application.properties
+  s_77ea3cbefbd88b::t_329102ee0aac18 11-15
+src/test/java/com/odysseusinc/athena/config/TomcatQueryCharacterConfigurationTest.java
+  s_77ea3cbefbd88b::t_0371dacad1fc10 27-28
+  s_77ea3cbefbd88b::t_329102ee0aac18 1-26,29-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "21fc390fae290bc8f39fe7e8d2f2f9052aae0285",
+  "prompts": {},
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
