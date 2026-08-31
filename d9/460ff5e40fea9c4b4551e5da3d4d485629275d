@@ -1,0 +1,22 @@
+src/main/java/com/odysseusinc/athena/service/impl/VocabularyServiceImpl.java
+  s_77ea3cbefbd88b::t_816a65172c2400 256-259
+src/test/java/com/odysseusinc/athena/service/impl/BundleOwnershipTest.java
+  s_77ea3cbefbd88b::t_816a65172c2400 36,64,114-119,256-269
+  s_77ea3cbefbd88b::t_188c3054ac513e 270-271
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "d9460ff5e40fea9c4b4551e5da3d4d485629275d",
+  "prompts": {},
+  "sessions": {
+    "s_77ea3cbefbd88b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a048c9-e99a-7271-9a9a-62025a34851a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
