@@ -26,7 +26,7 @@ import com.odysseusinc.athena.api.v1.controller.dto.arachne.ArachnePortalRespons
 import com.odysseusinc.athena.api.v1.controller.dto.arachne.UserRegistrationDTO;
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.AthenaUserDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.BaseAthenaUserDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.BaseAthenaUserWithEmailDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.RemindPasswordDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.ResetPasswordDTO;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
@@ -41,6 +41,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -250,10 +251,14 @@ public class UserController {
     }
 
     @GetMapping(value = "/suggest")
-    public ResponseEntity<List<BaseAthenaUserDTO>> suggest(@RequestParam("query") String query) {
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<List<BaseAthenaUserWithEmailDTO>> suggest(@RequestParam("query") String query) {
 
         List<AthenaUser> users = userService.suggest(query);
-        List<BaseAthenaUserDTO> dtos = converterUtils.convertList(users, BaseAthenaUserDTO.class);
+        List<BaseAthenaUserWithEmailDTO> dtos = converterUtils.convertList(
+                users,
+                BaseAthenaUserWithEmailDTO.class
+        );
         return new ResponseEntity<>(dtos, OK);
     }
 }

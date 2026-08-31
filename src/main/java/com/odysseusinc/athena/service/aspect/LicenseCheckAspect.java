@@ -25,12 +25,12 @@ package com.odysseusinc.athena.service.aspect;
 import static java.lang.String.format;
 
 import com.odysseusinc.athena.exceptions.LicenseException;
+import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.VocabularyConversion;
 import com.odysseusinc.athena.model.athenav5.ConceptV5;
 import com.odysseusinc.athena.repositories.v5.ConceptV5Repository;
 import com.odysseusinc.athena.service.VocabularyConversionService;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -51,8 +51,10 @@ public class LicenseCheckAspect {
     @Before(value = "@annotation(com.odysseusinc.athena.service.aspect.LicenseCheck) && args(conceptId,..)")
     public void check(long conceptId) throws PermissionDeniedException {
 
+        ConceptV5 conceptV5 = conceptRepository.findById(conceptId)
+                .orElseThrow(() -> new NotExistException(
+                        format("Concept with id %d does not exist", conceptId), ConceptV5.class));
         List<VocabularyConversion> unavailable = vocabularyConversionService.getUnavailableVocabularyConversions();
-        ConceptV5 conceptV5 = conceptRepository.getOne(conceptId);
 
         String conceptVocabularyIdV5 = conceptV5.getVocabulary().getId();
 
@@ -68,4 +70,3 @@ public class LicenseCheckAspect {
         }
     }
 }
-

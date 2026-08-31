@@ -30,6 +30,7 @@ import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.exceptions.WrongFileFormatException;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.JsonResult;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -102,6 +103,16 @@ public class ExceptionHandlingControllerTest {
         assertEquals(HttpStatus.NOT_FOUND,
                 controller.exceptionHandler(
                         new NotExistException("gone", AthenaUser.class)).getStatusCode());
+    }
+
+    @Test
+    public void missingJpaProxyIsNotFoundWithoutExposingHibernateDetails() {
+
+        ResponseEntity<JsonResult> response = controller.exceptionHandler(
+                new EntityNotFoundException("No row for SecretEntity at internal_schema"));
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Requested entity does not exist", response.getBody().getErrorMessage());
     }
 
     @Test

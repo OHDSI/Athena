@@ -42,6 +42,7 @@ import com.odysseusinc.athena.exceptions.WrongFileFormatException;
 import com.odysseusinc.athena.util.JsonResult;
 import java.io.IOException;
 import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -270,6 +271,20 @@ public class ExceptionHandlingController {
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage(ex.getMessage());
         result.getValidatorErrors().put(ex.getEntity().getSimpleName(), ex.getMessage());
+        return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Defensive fallback for lazy JPA references created by legacy {@code getOne} calls.
+     * A missing row is a 404, not an application failure; keep Hibernate's entity details
+     * out of the response and avoid a production ERROR stack trace for stale client links.
+     */
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(EntityNotFoundException ex) {
+
+        LOGGER.debug("JPA entity was not found: {}", ex.getMessage());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        result.setErrorMessage("Requested entity does not exist");
         return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
     }
 

@@ -25,6 +25,7 @@ package com.odysseusinc.athena.service.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.model.athenav5.ConceptAncestor;
 import com.odysseusinc.athena.model.athenav5.ConceptAncestorRelationV5;
 import com.odysseusinc.athena.model.athenav5.ConceptAncestor_;
@@ -116,7 +117,9 @@ public class ConceptServiceImpl implements ConceptService {
     @LicenseCheck
     public ConceptV5 getByIdWithLicenseCheck(Long id) {
 
-        return conceptRepository.getOne(id);
+        return conceptRepository.findById(id)
+                .orElseThrow(() -> new NotExistException(
+                        String.format("Concept with id %d does not exist", id), ConceptV5.class));
     }
 
     @Override
