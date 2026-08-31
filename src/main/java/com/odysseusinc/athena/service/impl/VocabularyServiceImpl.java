@@ -253,7 +253,10 @@ public class VocabularyServiceImpl implements VocabularyService {
             return;
         }
         downloadBundleService.validate(downloadBundle);
-        checkBundleVocabularies(downloadBundle.getId(), currentUser.getId());
+        // This is an exact rebuild of a package the owner was already allowed to create.
+        // Current vocabulary flags must not invalidate an older retained release: a
+        // vocabulary can be disabled today while remaining present in that release.
+        // Current rules are still enforced by regenerateDownloadBundleFromCurrentVersion.
         asyncVocabularyService.updateStatus(downloadBundle, DownloadBundleStatus.PENDING);
         generateBundle(downloadBundle, currentUser);
         log.info("Vocabulary restoration started for bundle [{}]", downloadBundle.getId());

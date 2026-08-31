@@ -33,6 +33,7 @@ import com.odysseusinc.athena.repositories.athena.DownloadShareRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
+import com.odysseusinc.athena.service.saver.v5.history.delta.CacheDeltaService;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import com.odysseusinc.athena.util.Fn;
@@ -60,6 +61,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -108,6 +110,12 @@ class BundleOwnershipTest {
     /** Read at the top of copyBundle, before the bundle is even loaded. */
     @Mock
     private VocabularyReleaseVersionService vocabularyReleaseVersionService;
+
+    @Mock
+    private AsyncVocabularyService asyncVocabularyService;
+
+    @Mock
+    private CacheDeltaService cacheDeltaService;
 
     private static AthenaUser user(long id, String email) {
 
@@ -243,6 +251,22 @@ class BundleOwnershipTest {
         assertEquals(2026_08_29, result.getVocabularyVersion());
         assertEquals(1, result.getVocabularies().size());
         verify(downloadBundleService).validate(replacement);
+    }
+
+    @Test
+    void exactHistoricalRestoreIgnoresCurrentVocabularyAvailability() {
+        AthenaUser owner = user(1L, "owner@example.com");
+        DownloadBundle archived = bundleOwnedBy(owner.getId());
+        archived.setStatus(DownloadBundleStatus.ARCHIVED);
+        archived.setDelta(false);
+        when(userService.getCurrentUser()).thenReturn(owner);
+
+        vocabularyService.restoreDownloadBundle(BUNDLE_ID);
+
+        verify(downloadBundleService).validate(archived);
+        verify(asyncVocabularyService).updateStatus(archived, DownloadBundleStatus.PENDING);
+        verify(asyncVocabularyService).generateBundle(archived, owner);
+        verifyNoInteractions(vocabularyConversionService);
     }
 
     @Test
