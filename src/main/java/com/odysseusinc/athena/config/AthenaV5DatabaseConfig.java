@@ -28,6 +28,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -46,6 +47,11 @@ import jakarta.persistence.EntityManagerFactory;
 public class AthenaV5DatabaseConfig extends HikariConfig{
 
     public final static String V5_PERSISTENCE_UNIT_NAME = "ATHENA_V5_UNIT";
+
+    public AthenaV5DatabaseConfig(@Qualifier("athenaV5HikariProps") HikariProps hikariProps) {
+
+        hikariProps.setToConfig(this);
+    }
 
     @Bean
     public HikariDataSource dataSourceAthenaV5() {
