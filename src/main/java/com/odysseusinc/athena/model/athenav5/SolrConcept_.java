@@ -24,6 +24,7 @@ package com.odysseusinc.athena.model.athenav5;
 
 import java.util.Date;
 import jakarta.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.metamodel.ListAttribute;
 import jakarta.persistence.metamodel.StaticMetamodel;
 
 @StaticMetamodel(SolrConcept.class)
@@ -39,5 +40,5 @@ public class SolrConcept_ {
     public static volatile SingularAttribute<SolrConcept, Date> validStart;
     public static volatile SingularAttribute<SolrConcept, Date> validEnd;
     public static volatile SingularAttribute<SolrConcept, String> invalidReason;
+    public static volatile ListAttribute<SolrConcept, ConceptSynonymV5> synonyms;
 }
-
