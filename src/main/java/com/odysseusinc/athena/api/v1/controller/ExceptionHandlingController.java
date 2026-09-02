@@ -47,6 +47,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.mail.MailException;
@@ -55,6 +56,10 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.beans.InvalidPropertyException;
+import org.springframework.validation.BindException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -173,6 +178,41 @@ public class ExceptionHandlingController {
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage(String.format("Invalid value for parameter '%s'", ex.getName()));
         return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+    }
+
+    /** Indexed or otherwise malformed bean properties are invalid query parameters. */
+    @ExceptionHandler(InvalidPropertyException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(InvalidPropertyException ex) {
+
+        LOGGER.debug("Request parameter binding failed: {}", ex.getMessage());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        result.setErrorMessage("Invalid request parameters");
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(BindException ex) {
+
+        LOGGER.debug("Request parameter binding failed: {}", ex.getMessage());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        result.setErrorMessage("Invalid request parameters");
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Void> exceptionHandler(HttpRequestMethodNotSupportedException ex) {
+
+        LOGGER.debug("Request method [{}] is not supported", ex.getMethod());
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .allow(ex.getSupportedHttpMethods().toArray(HttpMethod[]::new))
+                .build();
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<Void> exceptionHandler(HttpMediaTypeNotAcceptableException ex) {
+
+        LOGGER.debug("No response representation matches the request Accept header");
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
 
     @ExceptionHandler(MessagingException.class)
