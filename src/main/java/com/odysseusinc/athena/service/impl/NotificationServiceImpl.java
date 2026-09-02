@@ -22,7 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Arrays;
+import java.util.Objects;
 
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
@@ -51,20 +52,22 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void createSubscriptions(Long userId, String[] vocabularyCodes) {
 
-        final List<String> subscribedVocabularies = notificationRepository.findByUserId(userId).stream()
-                .map(Notification::getVocabularyCode).collect(Collectors.toList());
+        final String[] requestedVocabularies = Arrays.stream(vocabularyCodes)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toArray(String[]::new);
 
-        final String[] newVocabulariesToSubscribe = Stream.of(vocabularyCodes)
-                .filter(code -> !subscribedVocabularies.contains(code)).toArray(String[]::new);
-
-        vocabularyRepository.findByIdIn(newVocabulariesToSubscribe).forEach(vocabulary -> {
+        vocabularyRepository.findByIdIn(requestedVocabularies).forEach(vocabulary -> {
             final VocabularyConversion vocabularyConversion = vocabularyConversionRepository.findByIdV5(vocabulary.getId());
             String theLatestVersion = null;
             if(vocabularyConversion.getLatestUpdate()!=null) {
                 theLatestVersion = LATEST_UPDATE_FORMATTER.format(toOffsetDateTime(vocabularyConversion.getLatestUpdate()));
             }
-                final Notification newNotification = new Notification(userId, vocabularyConversion, vocabulary.getId(), theLatestVersion);
-                notificationRepository.save(newNotification);
+            notificationRepository.insertIfAbsent(
+                    userId,
+                    vocabularyConversion.getIdV4(),
+                    vocabulary.getId(),
+                    theLatestVersion);
         });
     }
 

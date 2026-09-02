@@ -8,12 +8,9 @@ import com.odysseusinc.athena.repositories.athena.NotificationRepository;
 import com.odysseusinc.athena.repositories.athena.VocabularyConversionRepository;
 import com.odysseusinc.athena.repositories.v5.VocabularyRepository;
 import com.odysseusinc.athena.service.mail.EmailService;
-import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -50,8 +47,6 @@ public class NotificationServiceImplTest {
     private VocabularyRepository vocabularyRepository;
     @Mock
     private VocabularyV5 vocabularyV5;
-    @Captor
-    private ArgumentCaptor<Notification> captor;
     @InjectMocks
     private NotificationServiceImpl notificationService;
     private Notification subscription;
@@ -68,6 +63,7 @@ public class NotificationServiceImplTest {
         when(vocabularyConversionRepository.findByLatestUpdateIsNotNull()).thenReturn(Arrays.asList(conversion));
 
         when(vocabularyRepository.findByIdIn(any())).thenReturn(Arrays.asList(vocabularyV5));
+        when(vocabularyV5.getId()).thenReturn(code);
     }
 
     @Test
@@ -123,28 +119,35 @@ public class NotificationServiceImplTest {
     @Test
     public void shouldCreateVocabularySubscriptionWhenLatestUpdateIsNull() {
 
-        when(notificationRepository.findByUserId(any())).thenReturn(Lists.emptyList());
         when(vocabularyConversionRepository.findByIdV5(any())).thenReturn(new VocabularyConversion());
 
         notificationService.createSubscriptions(-1L, new String[]{code});
 
-        verify(notificationRepository, times(1)).save(captor.capture());
-        Notification newNotification = captor.getValue();
-        assertThat(newNotification.getActualVersion()).isNull();
+        verify(notificationRepository).insertIfAbsent(-1L, null, code, null);
     }
 
     @Test
     public void shouldCreateVocabularySubscriptionWhenLatestUpdateIsSet() {
         VocabularyConversion conversion = new VocabularyConversion();
         conversion.setLatestUpdate(new Date(july02Millis));
-        when(notificationRepository.findByUserId(any())).thenReturn(Lists.emptyList());
         when(vocabularyConversionRepository.findByIdV5(any())).thenReturn(conversion);
 
         notificationService.createSubscriptions(-1L, new String[]{code});
 
-        verify(notificationRepository, times(1)).save(captor.capture());
-        Notification newNotification = captor.getValue();
-        assertThat(newNotification.getActualVersion()).isEqualTo("02-Jul-2021");
+        verify(notificationRepository).insertIfAbsent(-1L, null, code, "02-Jul-2021");
+    }
+
+    @Test
+    public void shouldDeduplicateVocabularyCodesWithinOneRequest() {
+
+        when(vocabularyConversionRepository.findByIdV5(any()))
+                .thenReturn(new VocabularyConversion());
+
+        notificationService.createSubscriptions(-1L, new String[]{code, code});
+
+        verify(vocabularyRepository).findByIdIn(argThat(
+                requested -> requested.length == 1 && code.equals(requested[0])));
+        verify(notificationRepository, times(1)).insertIfAbsent(-1L, null, code, null);
     }
 
     @Test

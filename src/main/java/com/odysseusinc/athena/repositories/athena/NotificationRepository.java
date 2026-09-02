@@ -52,4 +52,17 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Query("delete from Notification notification where notification.userId = :userId")
     int deleteByUserId(@Param("userId") Long userId);
 
+    @Modifying
+    @Query(nativeQuery = true, value = """
+            INSERT INTO notifications
+                (user_id, vocabulary_id_v4, vocabulary_code, actual_version)
+            VALUES
+                (:userId, :vocabularyIdV4, :vocabularyCode, :actualVersion)
+            ON CONFLICT (vocabulary_id_v4, user_id) DO NOTHING
+            """)
+    int insertIfAbsent(@Param("userId") Long userId,
+                       @Param("vocabularyIdV4") Integer vocabularyIdV4,
+                       @Param("vocabularyCode") String vocabularyCode,
+                       @Param("actualVersion") String actualVersion);
+
 }

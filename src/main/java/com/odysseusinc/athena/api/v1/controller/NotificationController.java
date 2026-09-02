@@ -41,7 +41,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 
@@ -68,7 +67,7 @@ public class NotificationController {
 
     @PostMapping
     public void subscribeToVocabularyUpdates(
-            @Valid @RequestBody String[] vocabularyCodes, Principal principal) {
+            @RequestBody String[] vocabularyCodes, Principal principal) {
 
         final AthenaUser user = userService.getUser(principal);
         notificationService.createSubscriptions(user.getId(), vocabularyCodes);
