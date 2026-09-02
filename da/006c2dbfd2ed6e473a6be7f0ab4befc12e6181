@@ -1,0 +1,33 @@
+properties/test/application.properties
+  s_36c4c656946574::t_e18e419d4d8744 60
+src/main/java/com/odysseusinc/athena/config/HikariConfig.java
+  s_36c4c656946574::t_e18e419d4d8744 31-37
+src/main/java/com/odysseusinc/athena/config/AthenaV5DatabaseConfig.java
+  s_36c4c656946574::t_e18e419d4d8744 31,51-55,79
+properties/qa/application.properties
+  s_36c4c656946574::t_e18e419d4d8744 73
+properties/dev/application.properties
+  s_36c4c656946574::t_e18e419d4d8744 81
+src/test/java/com/odysseusinc/athena/config/HikariConfigurationTest.java
+  s_36c4c656946574::t_ccb77684e36cc6 1-39
+properties/prod/application.properties
+  s_36c4c656946574::t_e18e419d4d8744 73
+src/main/java/com/odysseusinc/athena/config/AthenaV5HistoryDatabaseConfig.java
+  s_36c4c656946574::t_e18e419d4d8744 31,51-56,80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "da006c2dbfd2ed6e473a6be7f0ab4befc12e6181",
+  "prompts": {},
+  "sessions": {
+    "s_36c4c656946574": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a062d1-1b9a-7d83-b1f5-e9d80dc82060",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
