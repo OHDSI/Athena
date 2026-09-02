@@ -32,16 +32,16 @@ import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.VocabularyConversionRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.service.DownloadBundleService.BundleType;
+import com.odysseusinc.athena.service.job.BundleGenerationHeartbeat;
+import com.odysseusinc.athena.service.job.BundleGenerationQueueService;
 import com.odysseusinc.athena.service.mail.EmailService;
 import com.odysseusinc.athena.service.saver.*;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.service.writer.ZipWriter;
 import com.odysseusinc.athena.util.CDMVersion;
-import com.odysseusinc.athena.util.DownloadBundleStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -49,16 +49,13 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
-import org.springframework.scheduling.annotation.Async;
-
-
 @Service
-@Transactional
-public class AsyncVocabularyService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncVocabularyService.class);
+public class BundleGenerationService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BundleGenerationService.class);
 
     private final DownloadBundleRepository downloadBundleRepository;
     private final DownloadBundleService downloadBundleService;
@@ -71,8 +68,11 @@ public class AsyncVocabularyService {
     private final UrlBuilder urlBuilder;
     private final VocabularyConversionRepository vocabularyConversionRepository;
     private final ZipWriter zipWriter;
+    private final UserService userService;
+    private final BundleGenerationQueueService queueService;
+    private final BundleGenerationHeartbeat heartbeat;
 
-    public AsyncVocabularyService(DownloadBundleRepository downloadBundleRepository, DownloadBundleService downloadBundleService, EmailService emailService, FileHelper fileHelper, List<SaverV4> saversV4, List<SaverV5> saversV5, List<SaverV5History> saverV5Histories, List<SaverV5Delta> saverV5Deltas, UrlBuilder urlBuilder, VocabularyConversionRepository vocabularyConversionRepository, ZipWriter zipWriter) {
+    public BundleGenerationService(DownloadBundleRepository downloadBundleRepository, DownloadBundleService downloadBundleService, EmailService emailService, FileHelper fileHelper, List<SaverV4> saversV4, List<SaverV5> saversV5, List<SaverV5History> saverV5Histories, List<SaverV5Delta> saverV5Deltas, UrlBuilder urlBuilder, VocabularyConversionRepository vocabularyConversionRepository, ZipWriter zipWriter, UserService userService, BundleGenerationQueueService queueService, BundleGenerationHeartbeat heartbeat) {
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadBundleService = downloadBundleService;
         this.emailService = emailService;
@@ -84,38 +84,68 @@ public class AsyncVocabularyService {
         this.urlBuilder = urlBuilder;
         this.vocabularyConversionRepository = vocabularyConversionRepository;
         this.zipWriter = zipWriter;
+        this.userService = userService;
+        this.queueService = queueService;
+        this.heartbeat = heartbeat;
     }
 
-    @Async("bundleExecutor")
-    public void generateBundle(DownloadBundle bundle, AthenaUser user) {
+    public void generateBundle(long bundleId, String workerId) {
 
-        save(bundle, user);
+        DownloadBundle bundle = downloadBundleRepository.findById(bundleId)
+                .orElseThrow(() -> new NotExistException(
+                        "Cannot find bundle with id =" + bundleId, DownloadBundle.class));
+        AthenaUser user = userService.get(bundle.getUserId());
+        save(bundle, user, workerId);
     }
 
-    @Async("bundleDeltaExecutor")
-    public void generateSlowExecutableBundle(DownloadBundle bundle, AthenaUser user) {
-
-        save(bundle, user);
-    }
-
-    private void save(DownloadBundle bundle, AthenaUser user) {
+    private void save(DownloadBundle bundle, AthenaUser user, String workerId) {
         List<Integer> idV4s = bundle.getVocabularyV4Ids();
-        try (FileOutputStream fout = new FileOutputStream(fileHelper.getZipPath(bundle.getUuid()));
-             ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fout))) {
+        long bundleId = bundle.getId();
+        String partialZipPath = fileHelper.getPartialZipPath(
+                bundle.getUuid(), UUID.randomUUID().toString());
+        BundleGenerationHeartbeat.Lease lease = null;
+        try {
+            lease = heartbeat.start(bundleId, workerId);
+            BundleGenerationHeartbeat.Lease activeLease = lease;
+            try (FileOutputStream fout = new FileOutputStream(partialZipPath);
+                 ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fout))) {
 
-            List<?> ids = getIds(bundle, idV4s);
+                List<?> ids = getIds(bundle, idV4s);
 
+                BundleType type = downloadBundleService.getType(bundle);
+                downloadBundleService.validate(bundle);
+                List<? extends ISaver> savers = getSavers(type);
+
+                SaverService saver = new SaverService(
+                        downloadBundleService,
+                        ids,
+                        fileHelper,
+                        activeLease::check);
+                bundle = saver.save(zos, bundle, savers);
+                zipWriter.addExtraFiles(zos, bundle);
+            }
+
+            activeLease.check();
+            queueService.heartbeat(bundleId, workerId);
+            fileHelper.publishZip(bundle.getUuid(), partialZipPath);
+            queueService.markReady(bundleId, workerId);
+            LOGGER.info("Vocabulary generation completed for bundle [{}]", bundleId);
+        } catch (Exception ex) {
+            fileHelper.deletePartialZip(partialZipPath);
+            boolean failureRecorded = queueService.markFailed(bundleId, workerId, ex);
+            LOGGER.error(ex.getMessage(), ex);
+            if (failureRecorded) {
+                emailService.sendFailedSaving(user);
+            }
+            return;
+        } finally {
+            if (lease != null) {
+                lease.close();
+            }
+        }
+
+        try {
             BundleType type = downloadBundleService.getType(bundle);
-            downloadBundleService.validate(bundle);
-            List<? extends ISaver> savers = getSavers(type);
-
-            SaverService saver = new SaverService(downloadBundleService, ids, fileHelper);
-            bundle = saver.save(zos, bundle, savers);
-            zipWriter.addExtraFiles(zos, bundle);
-
-            updateStatus(bundle, DownloadBundleStatus.READY);
-            LOGGER.info("Vocabulary generation completed for bundle [{}]", bundle.getId());
-
             final Map<String, String> includedVocabularies = bundle.getVocabularies().stream()
                     .map(DownloadItem::getVocabularyConversion)
                     .filter(vocab -> !vocab.getOmopReqValue())
@@ -126,13 +156,11 @@ public class AsyncVocabularyService {
                             (existing, replacement) -> existing,
                             LinkedHashMap::new
                     ));
-
             sendEmail(bundle, user, type, includedVocabularies);
-
-        } catch (Exception ex) {
-            updateStatus(bundle, DownloadBundleStatus.FAILED);
-            LOGGER.error(ex.getMessage(), ex);
-            emailService.sendFailedSaving(user);
+        } catch (Exception emailFailure) {
+            // The archive is complete and downloadable; a notifier outage must not make it failed.
+            LOGGER.error("Bundle [{}] is ready, but its completion email could not be queued",
+                    bundleId, emailFailure);
         }
     }
 
@@ -181,12 +209,5 @@ public class AsyncVocabularyService {
                 return vocabularyConversionRepository.findIdsV5ByIdsV4(idV4s);
         }
         throw new NotExistException("Unsupported CDM version: " + bundle.getCdmVersion(), CDMVersion.class);
-    }
-
-
-    protected void updateStatus(DownloadBundle bundle, DownloadBundleStatus status) {
-
-        bundle.setStatus(status);
-        downloadBundleRepository.save(bundle);
     }
 }

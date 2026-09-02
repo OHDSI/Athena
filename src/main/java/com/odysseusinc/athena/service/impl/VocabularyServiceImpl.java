@@ -47,9 +47,8 @@ import com.odysseusinc.athena.repositories.athena.LicenseRepository;
 import com.odysseusinc.athena.repositories.athena.NotificationRepository;
 import com.odysseusinc.athena.service.*;
 import com.odysseusinc.athena.service.mail.EmailService;
-import com.odysseusinc.athena.service.saver.v5.history.delta.CacheDeltaService;
+import com.odysseusinc.athena.service.job.BundleGenerationQueueService;
 import com.odysseusinc.athena.util.CDMVersion;
-import com.odysseusinc.athena.util.DownloadBundleStatus;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -82,7 +81,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     private static final String DEFAULT_SORT_COLUMN = "idV4";
     public static final Integer CPT4_ID_V4 = 4;
 
-    private final AsyncVocabularyService asyncVocabularyService;
+    private final BundleGenerationQueueService bundleGenerationQueueService;
     private final ConceptService conceptService;
     private final ConverterUtils converterUtils;
     private final DownloadBundleRepository downloadBundleRepository;
@@ -95,16 +94,14 @@ public class VocabularyServiceImpl implements VocabularyService {
     private final UserService userService;
     private final VocabularyConversionService vocabularyConversionService;
 
-    protected final CacheDeltaService cacheDeltaService;
-
     private final DownloadBundleService downloadBundleService;
 
     private final VocabularyReleaseVersionService vocabularyReleaseVersionService;
 
     @Autowired
-    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, CacheDeltaService cacheDeltaService, DownloadBundleService downloadBundleService, VocabularyReleaseVersionService vocabularyReleaseVersionService) {
+    public VocabularyServiceImpl(BundleGenerationQueueService bundleGenerationQueueService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, DownloadBundleService downloadBundleService, VocabularyReleaseVersionService vocabularyReleaseVersionService) {
 
-        this.asyncVocabularyService = asyncVocabularyService;
+        this.bundleGenerationQueueService = bundleGenerationQueueService;
         this.conceptService = conceptService;
         this.converterUtils = converterUtils;
         this.downloadBundleRepository = downloadBundleRepository;
@@ -116,7 +113,6 @@ public class VocabularyServiceImpl implements VocabularyService {
         this.notificationRepository = notificationRepository;
         this.userService = userService;
         this.vocabularyConversionService = vocabularyConversionService;
-        this.cacheDeltaService = cacheDeltaService;
         this.downloadBundleService = downloadBundleService;
         this.vocabularyReleaseVersionService = vocabularyReleaseVersionService;
     }
@@ -181,12 +177,9 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     @Override
     public void generateBundle(DownloadBundle bundle, AthenaUser user) {
-        if (bundle.isDelta() && !cacheDeltaService.isDeltaVersionCached(bundle.getVocabularyVersion(), bundle.getDeltaVersion())) {
-            asyncVocabularyService.generateSlowExecutableBundle(bundle, user);
-        } else {
-            asyncVocabularyService.generateBundle(bundle, user);
-        }
-        log.info("Vocabulary generation started for bundle [{}]", bundle.getId());
+
+        bundleGenerationQueueService.enqueue(bundle.getId());
+        log.info("Vocabulary generation queued for bundle [{}]", bundle.getId());
     }
 
     @Override
@@ -257,7 +250,6 @@ public class VocabularyServiceImpl implements VocabularyService {
         // Current vocabulary flags must not invalidate an older retained release: a
         // vocabulary can be disabled today while remaining present in that release.
         // Current rules are still enforced by regenerateDownloadBundleFromCurrentVersion.
-        asyncVocabularyService.updateStatus(downloadBundle, DownloadBundleStatus.PENDING);
         generateBundle(downloadBundle, currentUser);
         log.info("Vocabulary restoration started for bundle [{}]", downloadBundle.getId());
     }

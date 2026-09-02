@@ -24,6 +24,7 @@ package com.odysseusinc.athena.util;
 
 public enum DownloadBundleStatus {
     PENDING,
+    GENERATING,
     READY,
     FAILED,
     ARCHIVED

@@ -114,6 +114,21 @@ public class DownloadBundle {
     @Column(name = "delta")
     private boolean delta;
 
+    @Column(name = "generation_started_at")
+    private Date generationStartedAt;
+
+    @Column(name = "generation_heartbeat_at")
+    private Date generationHeartbeatAt;
+
+    @Column(name = "generation_worker")
+    private String generationWorker;
+
+    @Column(name = "generation_attempts", nullable = false)
+    private int generationAttempts;
+
+    @Column(name = "generation_failure")
+    private String generationFailure;
+
     private boolean cpt4;
 
     public DownloadBundle() {

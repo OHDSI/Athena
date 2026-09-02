@@ -35,12 +35,20 @@ public class SaverService<T> {
     private DownloadBundleService bundleService;
     private List<T> ids;
     private FileHelper fileHelper;
+    private Runnable leaseCheck;
 
     public SaverService(DownloadBundleService bundleService, List ids, FileHelper fileHelper) {
+
+        this(bundleService, ids, fileHelper, () -> { });
+    }
+
+    public SaverService(DownloadBundleService bundleService, List ids, FileHelper fileHelper,
+                        Runnable leaseCheck) {
 
         this.bundleService = bundleService;
         this.ids = ids;
         this.fileHelper = fileHelper;
+        this.leaseCheck = leaseCheck;
     }
 
     public DownloadBundle save(ZipOutputStream zos, DownloadBundle bundle, List<? extends ISaver> savers)
@@ -49,7 +57,11 @@ public class SaverService<T> {
         bundle.setCpt4(savers.stream().anyMatch(saver -> saver.containCpt4(ids)));
         DownloadBundle result = bundleService.save(bundle);
 
-        savers.forEach(saver -> saver.save(zos, result, ids));
+        for (ISaver saver : savers) {
+            leaseCheck.run();
+            saver.save(zos, result, ids);
+            leaseCheck.run();
+        }
         fileHelper.deleteTempDirectory(bundle.getUuid());
         return result;
     }

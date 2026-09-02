@@ -33,7 +33,7 @@ import com.odysseusinc.athena.repositories.athena.DownloadShareRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
-import com.odysseusinc.athena.service.saver.v5.history.delta.CacheDeltaService;
+import com.odysseusinc.athena.service.job.BundleGenerationQueueService;
 import com.odysseusinc.athena.util.CDMVersion;
 import com.odysseusinc.athena.util.DownloadBundleStatus;
 import com.odysseusinc.athena.util.Fn;
@@ -112,10 +112,7 @@ class BundleOwnershipTest {
     private VocabularyReleaseVersionService vocabularyReleaseVersionService;
 
     @Mock
-    private AsyncVocabularyService asyncVocabularyService;
-
-    @Mock
-    private CacheDeltaService cacheDeltaService;
+    private BundleGenerationQueueService bundleGenerationQueueService;
 
     private static AthenaUser user(long id, String email) {
 
@@ -264,8 +261,7 @@ class BundleOwnershipTest {
         vocabularyService.restoreDownloadBundle(BUNDLE_ID);
 
         verify(downloadBundleService).validate(archived);
-        verify(asyncVocabularyService).updateStatus(archived, DownloadBundleStatus.PENDING);
-        verify(asyncVocabularyService).generateBundle(archived, owner);
+        verify(bundleGenerationQueueService).enqueue(BUNDLE_ID);
         verifyNoInteractions(vocabularyConversionService);
     }
 

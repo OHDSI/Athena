@@ -25,6 +25,7 @@ package com.odysseusinc.athena.repositories.athena;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import jakarta.persistence.PersistenceContext;
 
@@ -56,4 +57,100 @@ public interface DownloadBundleRepository extends JpaRepository<DownloadBundle, 
     DownloadBundle findByUuid(String uuid);
 
     List<DownloadBundle> findByStatus(DownloadBundleStatus status);
+
+    boolean existsByStatus(DownloadBundleStatus status);
+
+    @Query(nativeQuery = true, value = """
+            SELECT *
+            FROM download_bundle
+            WHERE status = 'PENDING'
+            ORDER BY created, id
+            FOR UPDATE SKIP LOCKED
+            LIMIT 1
+            """)
+    Optional<DownloadBundle> findNextPendingForUpdate();
+
+    @Query(nativeQuery = true, value = """
+            SELECT *
+            FROM download_bundle
+            WHERE id = :bundleId
+              AND status = 'PENDING'
+            FOR UPDATE
+            """)
+    Optional<DownloadBundle> findPendingByIdForUpdate(@Param("bundleId") long bundleId);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value = """
+            UPDATE download_bundle
+            SET generation_heartbeat_at = :heartbeat
+            WHERE id = :bundleId
+              AND status = 'GENERATING'
+              AND generation_worker = :workerId
+            """)
+    int heartbeatGenerating(@Param("bundleId") long bundleId,
+                            @Param("workerId") String workerId,
+                            @Param("heartbeat") Date heartbeat);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value = """
+            UPDATE download_bundle
+            SET status = 'READY',
+                generation_heartbeat_at = :finishedAt,
+                generation_worker = NULL,
+                generation_failure = NULL
+            WHERE id = :bundleId
+              AND status = 'GENERATING'
+              AND generation_worker = :workerId
+            """)
+    int markReadyGenerating(@Param("bundleId") long bundleId,
+                            @Param("workerId") String workerId,
+                            @Param("finishedAt") Date finishedAt);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value = """
+            UPDATE download_bundle
+            SET status = 'FAILED',
+                generation_heartbeat_at = :finishedAt,
+                generation_worker = NULL,
+                generation_failure = :failure
+            WHERE id = :bundleId
+              AND status = 'GENERATING'
+              AND generation_worker = :workerId
+            """)
+    int markFailedGenerating(@Param("bundleId") long bundleId,
+                             @Param("workerId") String workerId,
+                             @Param("finishedAt") Date finishedAt,
+                             @Param("failure") String failure);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value = """
+            UPDATE download_bundle
+            SET status = 'PENDING',
+                generation_started_at = NULL,
+                generation_heartbeat_at = NULL,
+                generation_worker = NULL
+            WHERE status = 'GENERATING'
+              AND generation_heartbeat_at < :staleBefore
+              AND generation_attempts < :maxAttempts
+            """)
+    int requeueStaleGenerating(@Param("staleBefore") Date staleBefore,
+                               @Param("maxAttempts") int maxAttempts);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value = """
+            UPDATE download_bundle
+            SET status = 'FAILED',
+                generation_failure = 'Generation interrupted too many times',
+                generation_worker = NULL
+            WHERE status = 'GENERATING'
+              AND generation_heartbeat_at < :staleBefore
+              AND generation_attempts >= :maxAttempts
+            """)
+    int failExhaustedGenerating(@Param("staleBefore") Date staleBefore,
+                                @Param("maxAttempts") int maxAttempts);
 }
