@@ -1,0 +1,27 @@
+src/test/java/com/odysseusinc/athena/service/impl/NotificationServiceImplTest.java
+  s_36c4c656946574::t_8c8b816db74f07 66,126,137
+  s_36c4c656946574::t_25bd030dfc7261 141-150
+  s_36c4c656946574::t_b361c34a27fe1f 138-140
+src/main/java/com/odysseusinc/athena/repositories/athena/NotificationRepository.java
+  s_36c4c656946574::t_8c8b816db74f07 55-67
+src/main/java/com/odysseusinc/athena/service/impl/NotificationServiceImpl.java
+  s_36c4c656946574::t_8c8b816db74f07 25-26,55-58,60,66-70
+src/main/java/com/odysseusinc/athena/api/v1/controller/NotificationController.java
+  s_36c4c656946574::t_fc42da1a99f94e 70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "7a51bd18eeb6a664a59f063a468b6396d3215a3b",
+  "prompts": {},
+  "sessions": {
+    "s_36c4c656946574": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a062d1-1b9a-7d83-b1f5-e9d80dc82060",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
