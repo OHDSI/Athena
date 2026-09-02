@@ -1,0 +1,22 @@
+src/main/java/com/odysseusinc/athena/api/v1/controller/converter/ConceptSearchDTOToSolrQuery.java
+  s_36c4c656946574::t_a1bb469d2d5c25 89-90
+  s_36c4c656946574::t_de84d2045c8808 31,41-42,68-88,91,115,117-121,124-128,130-134,136
+src/test/java/com/odysseusinc/athena/api/v1/controller/converter/ConceptSearchSortingTest.java
+  s_36c4c656946574::t_de84d2045c8808 1-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "0029097be1bae47a5e37931818252bce7f724d1d",
+  "prompts": {},
+  "sessions": {
+    "s_36c4c656946574": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a062d1-1b9a-7d83-b1f5-e9d80dc82060",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
