@@ -1,0 +1,23 @@
+src/main/java/com/odysseusinc/athena/model/athenav5/SolrConcept_.java
+  s_36c4c656946574::t_fc42da1a99f94e 27,43
+src/main/java/com/odysseusinc/athena/model/athenav5/ConceptSynonymV5.java
+  s_36c4c656946574::t_fc42da1a99f94e 33,84-103
+src/main/java/com/odysseusinc/athena/model/athenav5/ConceptAncestorRelationId.java
+  s_36c4c656946574::t_fc42da1a99f94e 26,31-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "7abb0a1fa6f60fe60679b133efedf44dbe05036d",
+  "prompts": {},
+  "sessions": {
+    "s_36c4c656946574": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a062d1-1b9a-7d83-b1f5-e9d80dc82060",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
