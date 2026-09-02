@@ -1,0 +1,24 @@
+src/main/java/com/odysseusinc/athena/api/v1/controller/ExceptionHandlingController.java
+  s_36c4c656946574::t_de84d2045c8808 59-61,183,195-206,208
+  s_36c4c656946574::t_41794670b317e0 62,209-216
+  s_36c4c656946574::t_95a77835b1ffa7 184-194
+  s_36c4c656946574::t_1c41c2f9454a42 50
+  s_36c4c656946574::t_91b607f06c5939 207
+  s_36c4c656946574::t_ce93a41dc9ea04 217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f935a20ab73b8f3186952892cd6f3ede537de6d2",
+  "prompts": {},
+  "sessions": {
+    "s_36c4c656946574": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a062d1-1b9a-7d83-b1f5-e9d80dc82060",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "konstjar <iaroshovets@ohdsi.org>"
+    }
+  }
+}
