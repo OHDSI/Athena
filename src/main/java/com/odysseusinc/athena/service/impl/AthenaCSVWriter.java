@@ -148,8 +148,17 @@ public class AthenaCSVWriter implements Closeable {
      * Prefixing with an apostrophe is the standard neutralisation — spreadsheets read it as
      * "the rest is literal text" and do not display it. A leading {@code -} is left alone when
      * the value is a plain negative number, so numeric columns keep sorting as numbers.
+     * <p>
+     * This writer never quotes, so a separator or line break inside a value would start a new
+     * cell or row whose first character escaped the check above. Those characters are replaced
+     * with a space, which keeps the value in its own cell.
      */
-    private static String neutralise(String value) {
+    private String neutralise(String value) {
+
+        return keepInOneCell(guardFormula(value));
+    }
+
+    private static String guardFormula(String value) {
 
         if (value.isEmpty() || FORMULA_TRIGGERS.indexOf(value.charAt(0)) < 0) {
             return value;
@@ -158,6 +167,21 @@ public class AthenaCSVWriter implements Closeable {
             return value;
         }
         return "'" + value;
+    }
+
+    private String keepInOneCell(String value) {
+
+        StringBuilder result = null;
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c == separator || c == '\r' || c == '\n') {
+                if (result == null) {
+                    result = new StringBuilder(value);
+                }
+                result.setCharAt(i, ' ');
+            }
+        }
+        return result == null ? value : result.toString();
     }
 
     private static boolean isNumber(String value) {
