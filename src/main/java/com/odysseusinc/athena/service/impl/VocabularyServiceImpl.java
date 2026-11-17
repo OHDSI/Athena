@@ -29,6 +29,7 @@ import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.exceptions.LicenseException;
+import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
@@ -53,6 +54,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -85,6 +87,14 @@ public class VocabularyServiceImpl implements VocabularyService {
     private final DownloadItemRepository downloadItemRepository;
     private final DownloadShareRepository downloadShareRepository;
     private final EmailService emailService;
+
+    /**
+     * How many bundles one user may have waiting for generation at once. Generation is
+     * expensive and runs on a small shared pool, so without a ceiling a single account can
+     * queue enough work to delay everybody else's downloads indefinitely.
+     */
+    @Value("${bundle.max-pending-per-user:5}")
+    private int maxPendingBundlesPerUser = 5;
     private final GenericConversionService conversionService;
     private final LicenseRepository licenseRepository;
     private final NotificationRepository notificationRepository;
@@ -131,6 +141,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public DownloadBundle saveBundle(String bundleName, List<Integer> idV4s, AthenaUser currentUser, CDMVersion version, Integer vocabularyVersion, boolean delta, Integer deltaVersion) {
 
+        checkPendingBundleLimit(currentUser);
         DownloadBundle bundle = downloadBundleService.initBundle(bundleName, currentUser, version, vocabularyVersion, delta, deltaVersion);
         downloadBundleService.validate(bundle);
         log.info("Ready for save download items for bundle with name: [{}] and uuid: [{}], user id: [{}]",
@@ -141,6 +152,9 @@ public class VocabularyServiceImpl implements VocabularyService {
                 .map(VocabularyConversion::getIdV4)
                 .collect(toList());
         withOmopReqIdV4s.addAll(idV4s);
+        // One download item per vocabulary, however often an id is repeated in the request
+        // or already included as OMOP-required.
+        withOmopReqIdV4s = withOmopReqIdV4s.stream().distinct().collect(toList());
         checkBundleVocabularies(withOmopReqIdV4s, currentUser.getId());
 
 
@@ -156,6 +170,7 @@ public class VocabularyServiceImpl implements VocabularyService {
         Integer vocabularyVersion = vocabularyReleaseVersionService.getCurrent();
         return this.downloadBundleRepository.findById(id).map(originalBundle -> {
                     checkBundleAndSharedUser(currentUser, originalBundle);
+                    checkPendingBundleLimit(currentUser);
                     List<Integer> vocabularies = originalBundle.getVocabularyV4Ids();
                     checkBundleVocabularies(vocabularies, currentUser.getId());
                     return saveDownloadItems(
@@ -252,10 +267,21 @@ public class VocabularyServiceImpl implements VocabularyService {
         }
         downloadBundleService.validate(downloadBundle);
         checkBundleVocabularies(downloadBundle.getId(), currentUser.getId());
+        checkPendingBundleLimit(currentUser);
         asyncVocabularyService.updateStatus(downloadBundle, DownloadBundleStatus.PENDING);
         generateBundle(downloadBundle, currentUser);
         log.info("Vocabulary restoring is started, bundle id: {}, user id: {}", downloadBundle.getId(),
                 currentUser.getId());
+    }
+
+    private void checkPendingBundleLimit(AthenaUser user) {
+
+        long pending = downloadBundleRepository.countByUserIdAndStatus(user.getId(), DownloadBundleStatus.PENDING);
+        if (pending >= maxPendingBundlesPerUser) {
+            throw new ValidationException(format(
+                    "You already have %d bundles being prepared. Please wait until they are ready before requesting another.",
+                    pending));
+        }
     }
 
     @Override
