@@ -56,4 +56,6 @@ public interface DownloadBundleRepository extends JpaRepository<DownloadBundle, 
     DownloadBundle findByUuid(String uuid);
 
     List<DownloadBundle> findByStatus(DownloadBundleStatus status);
+
+    long countByUserIdAndStatus(Long userId, DownloadBundleStatus status);
 }
