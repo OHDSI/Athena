@@ -21,6 +21,8 @@
 
 package com.odysseusinc.athena.service.concept;
 
+import com.odysseusinc.athena.service.checker.LimitChecker;
+import org.springframework.test.util.ReflectionTestUtils;
 import static com.odysseusinc.athena.service.concept.SolrTestUtils.createConceptSearchDTO;
 import static org.junit.Assert.assertEquals;
 
@@ -55,7 +57,7 @@ public class SolrConceptDoNotCountDuplicationInFieldSearchTest {
 
         conceptSearchDTOToSolrQuery = new ConceptSearchDTOToSolrQuery(
                 conceptSearchPhraseToSolrQueryService,
-                null,
+                limitChecker(),
                 null,
                 conceptSearchQueryPartCreator
         );
@@ -85,6 +87,11 @@ public class SolrConceptDoNotCountDuplicationInFieldSearchTest {
         );
     }
 
+    /** Pagination is bounded by the configured maximum page size, so the converter needs one. */
+    private static LimitChecker limitChecker() {
 
-
+        LimitChecker limitChecker = new LimitChecker();
+        ReflectionTestUtils.setField(limitChecker, "maxLimitPageSize", 1000);
+        return limitChecker;
+    }
 }
