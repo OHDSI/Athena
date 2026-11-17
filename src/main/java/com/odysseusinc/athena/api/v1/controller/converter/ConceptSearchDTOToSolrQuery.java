@@ -30,6 +30,7 @@ import static org.apache.solr.common.params.CommonParams.FQ;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
+import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
 import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
@@ -104,12 +105,34 @@ public class ConceptSearchDTOToSolrQuery {
         return field;
     }
 
-    private void setPagination(ConceptSearchDTO source, SolrQuery result) {
+    /**
+     * {@code page} and {@code pageSize} come straight off the query string of a public
+     * endpoint, so they are bounded here: {@code rows} by the configured
+     * {@code solr.limit.max.page.size} (the same ceiling the CSV export already pages with),
+     * and {@code start} so that {@code (page - 1) * pageSize} cannot overflow.
+     */
+    void setPagination(ConceptSearchDTO source, SolrQuery result) {
 
-        if (source.getPage() != null && source.getPageSize() != null) {
-            result.setStart((source.getPage() - 1) * source.getPageSize());
-            result.setRows(source.getPageSize());
+        Integer page = source.getPage();
+        Integer pageSize = source.getPageSize();
+        if (page == null || pageSize == null) {
+            return;
         }
+        int maxPageSize = limitChecker.getMaxLimitPageSize();
+        if (pageSize < 1 || pageSize > maxPageSize) {
+            throw new ValidationException("Page size must be between 1 and " + maxPageSize);
+        }
+        if (page < 1) {
+            throw new ValidationException("Page must be at least 1");
+        }
+        int start;
+        try {
+            start = Math.multiplyExact(page - 1, pageSize);
+        } catch (ArithmeticException e) {
+            throw new ValidationException("Page is out of range");
+        }
+        result.setStart(start);
+        result.setRows(pageSize);
     }
 
     private void setQuery(ConceptSearchDTO source, SolrQuery query, QueryBoosts queryBoosts) {
