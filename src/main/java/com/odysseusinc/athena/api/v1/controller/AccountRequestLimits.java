@@ -23,6 +23,7 @@ class AccountRequestLimits {
     private final int reminderAddress;
     private final int reminderEmail;
     private final int resetAddress;
+    private final int confirmAddress;
     private final int registerAddress;
     private final int registerEmail;
 
@@ -34,9 +35,11 @@ class AccountRequestLimits {
                          @Value("${athena.auth.limits.reminders-per-email:5}") int reminderEmail,
                          @Value("${athena.auth.limits.resets-per-ip:60}") int resetAddress,
                          @Value("${athena.auth.limits.registrations-per-ip:30}") int registerAddress,
-                         @Value("${athena.auth.limits.registrations-per-email:5}") int registerEmail) {
+                         @Value("${athena.auth.limits.registrations-per-email:5}") int registerEmail,
+                         @Value("${athena.auth.limits.confirmations-per-ip:60}") int confirmAddress) {
         Assert.isTrue(windowSeconds > 0 && loginAddress > 0 && loginEmail > 0 && reminderAddress > 0
-                && reminderEmail > 0 && resetAddress > 0 && registerAddress > 0 && registerEmail > 0, "Account request limits must be positive.");
+                && reminderEmail > 0 && resetAddress > 0 && confirmAddress > 0
+                && registerAddress > 0 && registerEmail > 0, "Account request limits must be positive.");
         jdbc = JdbcClient.create(source);
         this.windowSeconds = windowSeconds;
         this.loginAddress = loginAddress;
@@ -44,6 +47,7 @@ class AccountRequestLimits {
         this.reminderAddress = reminderAddress;
         this.reminderEmail = reminderEmail;
         this.resetAddress = resetAddress;
+        this.confirmAddress = confirmAddress;
         this.registerAddress = registerAddress;
         this.registerEmail = registerEmail;
     }
@@ -65,6 +69,10 @@ class AccountRequestLimits {
     boolean allowReminder(String address, String email) {
         return take("reminder-ip", address, reminderAddress) == 0
                 && take("reminder-email", email.strip(), reminderEmail) == 0;
+    }
+
+    int confirmationDelay(String address) {
+        return take("confirm-ip", address, confirmAddress);
     }
 
     int resetDelay(String address) {

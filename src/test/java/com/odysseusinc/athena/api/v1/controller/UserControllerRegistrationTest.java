@@ -57,7 +57,7 @@ public class UserControllerRegistrationTest {
         Flyway.configure().dataSource(source).locations("db/migration/share", "db/migration/athena").load().migrate();
         db = JdbcClient.create(source);
         mvc = MockMvcBuilders.standaloneSetup(new RegistrationController(context.getBean(RegistrationService.class),
-                new AccountRequestLimits(source, 900, 100, 10, 30, 5, 60, 100, 20))).build();
+                new AccountRequestLimits(source, 900, 100, 10, 30, 5, 60, 100, 20, 60))).build();
     }
 
     @AfterClass public static void close() {

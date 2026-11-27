@@ -8,6 +8,9 @@ import com.odysseusinc.athena.service.registration.AccountEmailQueue;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.nio.charset.StandardCharsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +20,7 @@ import static com.odysseusinc.athena.api.v1.controller.dto.arachne.ArachnePortal
 @RestController
 @RequestMapping("/api/v1/users")
 public class LocalPasswordController {
+    private static final Logger log = LoggerFactory.getLogger(LocalPasswordController.class);
     private final PasswordRecoveryService recovery;
     private final AccountEmailQueue queue;
 
@@ -30,8 +34,13 @@ public class LocalPasswordController {
 
     @PostMapping("/remind-password")
     public ArachnePortalResponse<Void> remind(@Valid @RequestBody RemindPasswordDTO form, HttpServletRequest request) {
-        if (limits.allowReminder(request.getRemoteAddr(), form.getEmail())) {
-            queue.enqueueReset(form.getEmail());
+        try {
+            if (limits.allowReminder(request.getRemoteAddr(), form.getEmail())) {
+                queue.enqueueReset(form.getEmail());
+            }
+        } catch (DataAccessException e) {
+            // Database exception messages may contain account data.
+            log.error("Password reminder could not be queued ({}).", e.getClass().getSimpleName());
         }
         return new ArachnePortalResponse<>(NO_ERROR);
     }

@@ -98,7 +98,7 @@ class LocalLoginFlowTest {
     }
 
     @Test void clientBudgetsAreIndependentAndBlockAttemptsAcrossEmails() {
-        var limits = new AccountRequestLimits(dataSource, 900, 1, 10, 1, 5, 1, 1, 1);
+        var limits = new AccountRequestLimits(dataSource, 900, 1, 10, 1, 5, 1, 1, 1, 1);
         String client = "192.0.2.96";
         assertEquals(0, limits.loginDelay(client, "first-limit@example.org"));
         org.junit.jupiter.api.Assertions.assertTrue(limits.loginDelay(client, "second-limit@example.org") > 0);
@@ -107,6 +107,8 @@ class LocalLoginFlowTest {
         assertEquals(0, limits.registrationDelay(client, "register-limit@example.org"));
         org.junit.jupiter.api.Assertions.assertTrue(limits.registrationDelay(client, "other-limit@example.org") > 0);
         org.junit.jupiter.api.Assertions.assertTrue(limits.registrationDelay("192.0.2.98", "REGISTER-LIMIT@example.org") > 0);
+        assertEquals(0, limits.confirmationDelay(client));
+        org.junit.jupiter.api.Assertions.assertTrue(limits.confirmationDelay(client) > 0);
         assertEquals(0, limits.resetDelay(client));
         org.junit.jupiter.api.Assertions.assertTrue(limits.resetDelay(client) > 0);
         assertEquals(0, limits.loginDelay("192.0.2.97", "second-limit@example.org"));

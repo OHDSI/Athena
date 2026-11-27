@@ -50,7 +50,9 @@ public class RegistrationDictionaryRepository {
     }
 
     private List<Location> suggest(JdbcClient.StatementSpec statement, String query, int limit, String includeId) {
-        return statement.param("pattern", "%" + query + "%")
+        // PostgreSQL ILIKE uses backslash as its default escape character.
+        String literal = query == null ? "" : query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        return statement.param("pattern", "%" + literal + "%")
                 .param("limit", limit)
                 .param("selected", includeId)
                 .query(Location.class).list();

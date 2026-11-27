@@ -5,6 +5,7 @@ import org.flywaydb.core.Flyway;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -26,8 +27,11 @@ public class RegistrationDictionaryControllerTest {
     public static void setUp() {
         var dataSource = new DriverManagerDataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         Flyway.configure().dataSource(dataSource).locations("db/migration/share", "db/migration/athena").load().migrate();
+        JdbcClient.create(dataSource).sql("INSERT INTO countries (name, alfa2, alfa3) VALUES (?, 'XX', 'XXX')")
+                .param("Test%_\\Country").update();
         var repository = new RegistrationDictionaryRepository(dataSource);
-        mvc = MockMvcBuilders.standaloneSetup(new RegistrationDictionaryController(repository)).build();
+        mvc = MockMvcBuilders.standaloneSetup(new RegistrationDictionaryController(repository))
+                .setControllerAdvice(new ExceptionHandlingController()).build();
     }
 
     @Test
@@ -52,6 +56,35 @@ public class RegistrationDictionaryControllerTest {
                 .andExpect(jsonPath("$.result", hasSize(1)))
                 .andExpect(jsonPath("$.result[0].id").value(4))
                 .andExpect(jsonPath("$.result[0].name").value("Afghanistan"));
+    }
+
+    @Test
+    public void emptyCountryQueryWithoutSelectionReturnsTheRequestedPage() throws Exception {
+        mvc.perform(get("/api/v1/users/countries").param("query", "").param("limit", "5"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.result", hasSize(5)));
+    }
+
+    @Test
+    public void wildcardCharactersMatchLiterally() throws Exception {
+        for (String query : new String[]{"%", "_", "\\", "%_\\"}) {
+            mvc.perform(get("/api/v1/users/countries").param("query", query).param("limit", "10"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.result[*].isoCode").value(containsInAnyOrder("XX")));
+        }
+    }
+
+    @Test
+    public void bothDictionariesEnforceTheSamePageBounds() throws Exception {
+        for (String path : new String[]{"/api/v1/users/countries", "/api/v1/users/provinces"}) {
+            for (String limit : new String[]{"-1", "251"}) {
+                mvc.perform(get(path).param("countryId", "US").param("query", "").param("limit", limit))
+                        .andExpect(status().isBadRequest());
+            }
+            mvc.perform(get(path).param("countryId", "US").param("query", "").param("limit", "0"))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.result", hasSize(0)));
+            mvc.perform(get(path).param("countryId", "US").param("query", "").param("limit", "250"))
+                    .andExpect(status().isOk());
+        }
     }
 
     @Test

@@ -72,7 +72,10 @@ public class RegistrationController {
     public record Confirmation(@NotBlank @Size(max = 128) String token) {}
 
     @PostMapping("/confirm-email")
-    public ResponseEntity<ArachnePortalResponse<Void>> confirm(@Valid @RequestBody Confirmation form) {
+    public ResponseEntity<ArachnePortalResponse<Void>> confirm(@Valid @RequestBody Confirmation form,
+                                                              HttpServletRequest request) {
+        int delay = limits.confirmationDelay(request.getRemoteAddr());
+        if (delay > 0) return AccountRequestLimits.retryLater(delay);
         if (!registration.confirm(form.token())) {
             var error = new ArachnePortalResponse<Void>(VALIDATION_ERROR);
             error.setErrorMessage("This confirmation link is invalid or has expired.");
