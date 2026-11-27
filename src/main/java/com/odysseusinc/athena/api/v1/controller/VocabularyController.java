@@ -95,12 +95,12 @@ public class VocabularyController extends AbstractVocabularyController {
     @Operation(summary = "Share bundle")
     @PostMapping(value = "/downloads/{id}/share")
     public ResponseEntity<Boolean> shareBundle(@PathVariable("id") Long bundleId,
-                                               @RequestBody DownloadShareChangeDTO changeDTO,
+                                               @Valid @RequestBody DownloadShareChangeDTO changeDTO,
                                                Principal principal) {
 
         final AthenaUser user = userService.getUser(principal);
         downloadBundleService.checkBundleOwner(user, bundleId);
-        downloadShareService.change(bundleId, changeDTO.getEmailList(), user);
+        downloadShareService.change(bundleId, changeDTO.getRecipients(), user);
 
         return ResponseEntity.ok(Boolean.TRUE);
     }

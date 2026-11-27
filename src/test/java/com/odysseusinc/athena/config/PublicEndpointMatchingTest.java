@@ -80,6 +80,7 @@ public class PublicEndpointMatchingTest {
     @Test
     public void theOtherAdvertisedPublicEndpointsMatch() {
 
+        assertTrue(isPublic("/api/v1/users/confirm-email"));
         assertTrue(isPublic("/api/v1/users/remind-password"));
         assertFalse(isPublic("/api/v1/vocabularies/licenses/accept/mail"));
         assertTrue(isPublic("/api/v1/build-number"));
@@ -110,10 +111,10 @@ public class PublicEndpointMatchingTest {
 
     /** Both ends of the logout popup are reached without a session by definition. */
     @Test
-    public void theLogoutPopupPathsArePublic() {
+    public void legacyPopupPathsHaveNoPublicApiMatchers() {
 
-        assertTrue(isPublic("/auth/slo"));
-        assertTrue(isPublic("/auth/logged-out"));
+        assertFalse(isPublic("/auth/slo"));
+        assertFalse(isPublic("/auth/logged-out"));
     }
 
     /** user enumeration must stay behind authentication. */
@@ -127,6 +128,8 @@ public class PublicEndpointMatchingTest {
     @Test
     public void registrationIsPublicOnlyAsAPost() {
 
+        assertTrue(isPublic(HttpMethod.POST, "/api/v1/users/login"));
+        assertFalse(isPublic(HttpMethod.GET, "/api/v1/users/login"));
         assertTrue(isPublic(HttpMethod.POST, "/api/v1/users"));
         assertFalse(isPublic(HttpMethod.GET, "/api/v1/users"));
     }

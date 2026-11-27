@@ -84,9 +84,9 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addViewController("/").setViewName(DEFAULT_TEMPLATE_NAME);
         registry.addViewController("/index.html").setViewName(DEFAULT_TEMPLATE_NAME);
+        registry.addViewController("/auth/confirm-email").setViewName(DEFAULT_TEMPLATE_NAME);
         registry.addViewController("/auth/register").setViewName(DEFAULT_TEMPLATE_NAME);
         registry.addViewController("/auth/login").setViewName(DEFAULT_TEMPLATE_NAME);
-        registry.addViewController("/auth/complete").setViewName(DEFAULT_TEMPLATE_NAME);
         registry.addViewController("/auth/reset-password/**").setViewName(DEFAULT_TEMPLATE_NAME);
         registry.addViewController("/auth/remind-password").setViewName(DEFAULT_TEMPLATE_NAME);
         registry.addViewController("/auth/remind-password/**").setViewName(DEFAULT_TEMPLATE_NAME);

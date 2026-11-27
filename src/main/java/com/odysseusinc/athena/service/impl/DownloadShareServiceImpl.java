@@ -22,7 +22,6 @@
 
 package com.odysseusinc.athena.service.impl;
 
-import com.google.common.base.Splitter;
 import com.odysseusinc.athena.api.v1.controller.converter.UrlBuilder;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.DownloadShare;
@@ -67,22 +66,17 @@ public class DownloadShareServiceImpl implements DownloadShareService {
     }
 
     @Override
-    public void change(long bundleId, String emails, AthenaUser user) {
+    public void change(long bundleId, List<String> emails, AthenaUser user) {
 
         DownloadBundle bundle = downloadBundleRepository.getOne(bundleId);
-        if (emails == null || emails.isEmpty()) {
+        if (emails.isEmpty()) {
             deleteByDownloadBundle(bundle);
             return;
         }
 
-        // User emails are not validated to avoid the possibility
-        // for the current user to get the real emails of other users registered in the system
-        List<String> emailsList = Splitter.on(",").trimResults().splitToList(emails)
-                .stream().distinct().collect(Collectors.toList());
-
-        List<DownloadShare> sharedBundles = emailsList.stream()
+        List<DownloadShare> sharedBundles = emails.stream().distinct()
                 .map(email -> new DownloadShare(bundle, email, user))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         List<DownloadShare> existingSharedBundles = getBundleShares(bundle);
 

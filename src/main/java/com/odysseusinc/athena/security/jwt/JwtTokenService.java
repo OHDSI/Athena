@@ -39,6 +39,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Issues and validates the JWTs Athena uses as its session token.
@@ -84,10 +85,16 @@ public class JwtTokenService {
      */
     public String issue(AthenaUser user) {
 
+        return issue(user.getUsername(), user.getOrigin(), user.getBrowserSessionVersion());
+    }
+
+    public String issue(String login, String origin, long sessionVersion) {
         Instant now = Instant.now();
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .subject(user.getUsername())
-                .claim(Claims.ORIGIN, user.getOrigin())
+                .jwtID(UUID.randomUUID().toString())
+                .subject(login)
+                .claim(Claims.ORIGIN, origin)
+                .claim(Claims.SESSION_VERSION, sessionVersion)
                 .issueTime(Date.from(now))
                 .expirationTime(Date.from(now.plus(expiration)))
                 .build();
@@ -140,7 +147,10 @@ public class JwtTokenService {
                 log.debug("Rejected a token with no subject");
                 return Optional.empty();
             }
-            return Optional.of(new TokenIdentity(subject, claims.getStringClaim(Claims.ORIGIN)));
+            // Tokens issued before session versioning belong to version zero.
+            Long version = claims.getLongClaim(Claims.SESSION_VERSION);
+            return Optional.of(new TokenIdentity(subject, claims.getStringClaim(Claims.ORIGIN),
+                    version == null ? 0L : version));
 
         } catch (ParseException e) {
             // Covers a JWE or any other non-signed-JWT shape as well as plain garbage.
@@ -163,6 +173,7 @@ public class JwtTokenService {
     /** Claim names. {@code origin} distinguishes users federated from different IdPs. */
     static final class Claims {
         static final String ORIGIN = "origin";
+        static final String SESSION_VERSION = "session_version";
 
         private Claims() {
         }
@@ -177,15 +188,22 @@ public class JwtTokenService {
         private final String username;
         private final String origin;
 
-        public TokenIdentity(String username, String origin) {
+        private final long sessionVersion;
+
+        public TokenIdentity(String username, String origin, long sessionVersion) {
 
             this.username = username;
             this.origin = origin;
+            this.sessionVersion = sessionVersion;
         }
 
         public String getUsername() {
 
             return username;
+        }
+
+        public long getSessionVersion() {
+            return sessionVersion;
         }
 
         public String getOrigin() {

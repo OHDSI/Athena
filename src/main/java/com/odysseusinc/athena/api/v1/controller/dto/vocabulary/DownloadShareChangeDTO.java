@@ -22,8 +22,25 @@
 
 package com.odysseusinc.athena.api.v1.controller.dto.vocabulary;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import java.util.Arrays;
+import java.util.List;
+
 public class DownloadShareChangeDTO {
+    @NotNull
+    @Size(max = 25599)
     private String emailList;
+
+    @JsonIgnore
+    @Size(max = 100)
+    public List<@NotBlank @Size(max = 255) @Email String> getRecipients() {
+        if (emailList == null || emailList.isEmpty()) return List.of();
+        return Arrays.stream(emailList.split(",", 101)).map(String::strip).toList();
+    }
 
     public String getEmailList() {
         return emailList;

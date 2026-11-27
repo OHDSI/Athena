@@ -49,7 +49,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         "com.odysseusinc.athena.config",
         // This list predates the pac4j removal, when everything security-related was
         // wired explicitly from Pac4jConfig inside `config`. The replacement puts the JWT,
-        // API-token, HMAC and SAML beans under `security`, and without this entry none of the
+        // API-token and HMAC beans under `security`, and without this entry none of the
         // eight is registered - the context fails on the first one it needs. The Cucumber
         // suite does not catch it: it builds its context from TestConfiguration, not from
         // this class.

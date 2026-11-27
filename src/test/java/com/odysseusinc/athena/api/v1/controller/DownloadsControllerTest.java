@@ -80,6 +80,7 @@ public class DownloadsControllerTest {
         assertEquals("application/zip", response.getContentType());
         assertArrayEquals(archive, response.getContentAsByteArray());
         assertEquals(1, fixture.historyService.updateCount);
+        assertEquals(fixture.bundle.getUserId(), fixture.historyService.recordedUser);
     }
 
     private static Fixture fixture(Path zip) {
@@ -105,6 +106,8 @@ public class DownloadsControllerTest {
                         return bundle;
                     }
                     if ("checkBundleVocabularies".equals(method.getName())) {
+                        assertEquals(bundle.getId(), args[0]);
+                        assertEquals(bundle.getUserId(), args[1]);
                         return null;
                     }
                     throw new UnsupportedOperationException(method.getName());
@@ -137,9 +140,11 @@ public class DownloadsControllerTest {
 
     private static final class RecordingHistoryService implements DownloadsHistoryService {
         private int updateCount;
+        private Long recordedUser;
 
         @Override
         public void updateStatistics(DownloadBundle bundle, Long userId) {
+            recordedUser = userId;
             updateCount++;
         }
 

@@ -32,7 +32,16 @@ public class AsyncConfiguration implements AsyncConfigurer {
         return fixedSizePool(1, "email-sender-");
     }
 
-    @Bean(name = "bundleWorkerScheduler")
+    @Bean
+    public ThreadPoolTaskScheduler resetEmailScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setThreadNamePrefix("reset-email-");
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.setAwaitTerminationSeconds(awaitTerminationSeconds);
+        return scheduler;
+    }
+
+    @Bean(name = {"bundleWorkerScheduler", "taskScheduler"})
     public ThreadPoolTaskScheduler bundleWorkerScheduler() {
 
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();

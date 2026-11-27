@@ -20,28 +20,32 @@
 
 package com.odysseusinc.athena.api.v1.controller.dto.arachne;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Address block of {@link UserRegistrationDTO}, forwarded to the Arachne portal.
- * <p>
- * Vendored from {@code com.odysseusinc.arachne.commons.api.v1.dto.CommonAddressDTO}.
- * The original carried a custom {@code @AnyFieldNotBlank} class-level validator;
- * it is not reproduced because this type is never validated in Athena (see
- * {@link UserRegistrationDTO}).
- */
+/** Address submitted by the registration form. */
 @Getter
 @Setter
 public class AddressDTO {
 
     private String phone;
+    @NotBlank
     private String mobile;
+    @NotBlank
     private String address1;
     private String address2;
+    @NotBlank
     private String city;
+    @NotBlank
     private String zipCode;
+    @NotNull
     private CountryDTO country;
     private StateProvinceDTO stateProvince;
+    @Email
+    @Size(max = 255)
     private String contactEmail;
 }
