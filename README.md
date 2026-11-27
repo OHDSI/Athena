@@ -74,10 +74,6 @@ no addresses, credentials or key material of their own — every such value is w
 
 ### Account sign-in
 
-Athena verifies bcrypt credentials in its own database. New users confirm their
-email address before signing in. Imported credentials use the existing Athena user ID.
-Build the matching AthenaUI checkout with `mvn package -Dathena.ui.dir=/path/to/AthenaUI`.
-
 Each Athena replica uses the Athena database to enforce the following fixed-window limits.
 All sign-in attempts count. A throttled registration, sign-in or reset submission returns HTTP 429 with
 `Retry-After` in seconds. Reminder requests return the same acknowledgement for unknown
@@ -102,7 +98,7 @@ forwarding headers with the verified client address.
 
 ### Account emails through Amazon SES
 
-Registration confirmation and local password recovery use an independent SMTP connection. Configure the backend with `ATHENA_SES_USERNAME` and `ATHENA_SES_PASSWORD` (SES SMTP credentials for the endpoint's region), `ATHENA_SES_FROM` (a verified sender address), and the public HTTPS `athena.url` for links. The account mail sender defaults to `email-smtp.us-west-2.amazonaws.com` on port `587` and requires STARTTLS. Override the endpoint with `ATHENA_SES_HOST` and `ATHENA_SES_PORT` if needed. Supply credentials through deployment secrets.
+Registration confirmation and local password recovery use an independent SMTP connection. Configure the backend with `ATHENA_SES_USERNAME` and `ATHENA_SES_PASSWORD` (SES SMTP credentials for the endpoint's region), `ATHENA_SES_FROM` (a verified sender address), and the public HTTPS `athena.url` for links. The account mail sender defaults to `email-smtp.<region>.amazonaws.com` on port `587` and requires STARTTLS. Override the endpoint with `ATHENA_SES_HOST` and `ATHENA_SES_PORT` if needed. Supply credentials through deployment secrets.
 
 Athena queues registration confirmations in the account-creation transaction and queues eligible password-reset emails before acknowledging the reminder. Confirmation links open an Athena page where the recipient confirms with a button. Opening or previewing the link leaves the account pending.
 The response is the same for known, unknown and throttled addresses. Each replica polls for
