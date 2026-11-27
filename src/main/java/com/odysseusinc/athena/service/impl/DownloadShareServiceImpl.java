@@ -23,6 +23,7 @@
 package com.odysseusinc.athena.service.impl;
 
 import com.odysseusinc.athena.api.v1.controller.converter.UrlBuilder;
+import com.odysseusinc.athena.exceptions.LicenseException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.DownloadShare;
 import com.odysseusinc.athena.model.security.AthenaUser;
@@ -30,6 +31,7 @@ import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadShareRepository;
 import com.odysseusinc.athena.service.DownloadBundleService;
 import com.odysseusinc.athena.service.DownloadShareService;
+import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.mail.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,14 +52,16 @@ public class DownloadShareServiceImpl implements DownloadShareService {
     private final EmailService emailService;
     private final UserService userService;
     private final UrlBuilder urlBuilder;
+    private final VocabularyService vocabularyService;
     @Autowired
-    public DownloadShareServiceImpl(DownloadBundleService downloadBundleService, DownloadBundleRepository downloadBundleRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, UserService userService, UrlBuilder urlBuilder) {
+    public DownloadShareServiceImpl(DownloadBundleService downloadBundleService, DownloadBundleRepository downloadBundleRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, UserService userService, UrlBuilder urlBuilder, VocabularyService vocabularyService) {
         this.downloadBundleService = downloadBundleService;
         this.downloadBundleRepository = downloadBundleRepository;
         this.downloadShareRepository = downloadShareRepository;
         this.emailService = emailService;
         this.userService = userService;
         this.urlBuilder = urlBuilder;
+        this.vocabularyService = vocabularyService;
     }
 
     @Override
@@ -97,7 +101,7 @@ public class DownloadShareServiceImpl implements DownloadShareService {
         newSharedBundles.forEach(downloadShare -> {
             AthenaUser recipient = userService.getUser(downloadShare.getUserEmail());
             if (recipient != null) {
-                final String bundleUrl = urlBuilder.downloadVocabulariesLink(bundle.getUuid());
+                final String bundleUrl = bundleUrlFor(recipient, bundle);
                 switch (this.downloadBundleService.getType(bundle)) {
                     case V5_DELTAS:
                         emailService.sendDeltaWereSharedNotification(recipient, bundleOwner, bundleUrl, bundle.getCdmVersion(),
@@ -114,6 +118,23 @@ public class DownloadShareServiceImpl implements DownloadShareService {
                 }
             }
         });
+    }
+
+    /**
+     * The direct archive link is a bearer URL: {@code /zip/{uuid}} is public and, without a
+     * session, is checked against the bundle owner's licences. It must therefore only be sent
+     * to recipients who hold every licence the bundle needs, mirroring
+     * {@code getDownloadHistory}, which already hides the link from those who do not. Anyone
+     * else is sent to the download page, where they can request the missing licences.
+     */
+    private String bundleUrlFor(AthenaUser recipient, DownloadBundle bundle) {
+
+        try {
+            vocabularyService.checkBundleVocabularies(bundle.getId(), recipient.getId());
+            return urlBuilder.downloadVocabulariesLink(bundle.getUuid());
+        } catch (LicenseException e) {
+            return urlBuilder.downloadVocabulariesPageUrl();
+        }
     }
 
     @Override
