@@ -13,7 +13,7 @@ and is included here as the `ui` submodule, built from source during packaging.
 | Build | Maven |
 | Search | Apache Solr (core `concepts`) |
 | Storage | PostgreSQL |
-| Auth | SAML SSO |
+| Auth | Athena email and password |
 
 ---
 
@@ -58,8 +58,7 @@ build` in `ui/`, which is slow and pointless if the front end is being served el
 
 Profiles live in `properties/{dev,qa,prod,test}/`; the selected one is copied into the jar at
 build time. `dev` is the default. The settings worth knowing are the four datasources
-(`spring.datasource-db`, `-v4`, `-v5`, `-v5-history`), `athena.solrServerUrl`, and the SAML
-block under `cas.*`.
+(`spring.datasource-db`, `-v4`, `-v5`, `-v5-history`), `athena.solrServerUrl`, and the public Athena URL.
 
 `dev` and `test` are self-contained and need nothing extra. The `qa` and `prod` profiles carry
 no addresses, credentials or key material of their own — every such value is written as
@@ -69,28 +68,48 @@ no addresses, credentials or key material of their own — every such value is w
 |---|---|
 | `SALT` | Signing secret for issued tokens. At least 32 bytes; startup fails otherwise. |
 | `ATHENA_TOKEN_SECRET` | Shared secret for the API token header. |
-| `ATHENA_ASYNC_AUTH_REDIRECT` | Absolute URL the identity provider returns the browser to after login. |
-| `ATHENA_SLO_URL` | Identity provider logout URL. |
-| `ATHENA_URL` | Public base URL. The SSO flow derives it from the request when unset, but links in outgoing e-mail cannot — set it. |
+| `ATHENA_URL` | Public base URL for links in account emails. |
 | `ATHENA_V5_HISTORY_DB_PASSWORD` | Password for the `-v5-history` datasource. |
 | `ATHENA_SOLR_URL` | Solr base URL. Defaults to `http://localhost:8984/solr`. |
-| `ATHENA_SAML_SP_METADATA_LOCATION` | This service provider's metadata. |
-| `CAS_DEFAULT_IDP` | Identity provider entity id. |
-| `CAS_ENTITY_ID` | This service provider's entity id, as registered with the identity provider. |
-| `CAS_IDP_METADATA_LOCATION` | Identity provider metadata, e.g. `file:/path/to/idp-metadata.xml`. |
-| `CAS_KEYSTORE_FILE` | Keystore holding the SAML signing key, e.g. `file:/path/to/keystore.jks`. |
-| `CAS_KEYSTORE_PASSWORD` | Keystore password. |
-| `CAS_KEYSTORE_KEY_ALIAS` | Alias of the signing key inside the keystore. |
-| `CAS_KEYSTORE_KEY_PASSWORD` | Password of that key. |
 
-> No SAML keystore or deployed metadata ships with the application. To exercise SSO locally,
-> supply your own and point `cas.key-manager.key-store-file` at it.
+### Account sign-in
 
-> The service provider metadata registered with the identity provider must declare an
-> assertion consumer service whose `Location` resolves to exactly `<base>/auth/callback`.
-> Metadata generated for the previous pac4j implementation carries a
-> `?client_name=SAML2Client` suffix; that has to be regenerated and re-registered, or
-> assertions are rejected and the browser appears to loop on login.
+Each Athena replica uses the Athena database to enforce the following fixed-window limits.
+All sign-in attempts count. A throttled registration, sign-in or reset submission returns HTTP 429 with
+`Retry-After` in seconds. Reminder requests return the same acknowledgement for unknown
+addresses, active links, and throttled requests. While a 30-minute link is active,
+requesting another email preserves the first link and its original expiry.
+
+| Spring property | Default |
+|---|---:|
+| `athena.auth.limits.window-seconds` | 900 |
+| `athena.auth.limits.registrations-per-email` | 5 |
+| `athena.auth.limits.registrations-per-ip` | 30 |
+| `athena.auth.limits.login-per-email` | 10 |
+| `athena.auth.limits.login-per-ip` | 100 |
+| `athena.auth.limits.reminders-per-email` | 5 |
+| `athena.auth.limits.reminders-per-ip` | 30 |
+| `athena.auth.limits.resets-per-ip` | 60 |
+
+Set the same positive values on each replica. Email limits use the same case folding as
+sign-in. IP limits use the servlet's resolved client address. With forwarded headers enabled,
+restrict backend access to the trusted ingress and configure it to overwrite incoming
+forwarding headers with the verified client address.
+
+### Account emails through Amazon SES
+
+Registration confirmation and local password recovery use an independent SMTP connection. Configure the backend with `ATHENA_SES_USERNAME` and `ATHENA_SES_PASSWORD` (SES SMTP credentials for the endpoint's region), `ATHENA_SES_FROM` (a verified sender address), and the public HTTPS `athena.url` for links. The account mail sender defaults to `email-smtp.<region>.amazonaws.com` on port `587` and requires STARTTLS. Override the endpoint with `ATHENA_SES_HOST` and `ATHENA_SES_PORT` if needed. Supply credentials through deployment secrets.
+
+Athena queues registration confirmations in the account-creation transaction and queues eligible password-reset emails before acknowledging the reminder. Confirmation links open an Athena page where the recipient confirms with a button. Opening or previewing the link leaves the account pending.
+The response is the same for known, unknown and throttled addresses. Each replica polls for
+pending mail every second (`athena.recovery.mail.poll-delay`) and sends through the account
+SMTP connection outside the request and database transaction. A failed or interrupted delivery
+becomes eligible again after a two-minute lease. Retries reuse the same link and stop at its
+original expiry or when it is consumed. If SMTP accepts a message but Athena loses the
+acknowledgement, a retry can deliver a second copy of that same link. All replicas use the
+same existing `salt` secret to reconstruct pending links.
+
+License and download notifications use the existing `spring.mail.*` settings. Configure SES credentials separately for registration and password recovery.
 
 ### Tests
 

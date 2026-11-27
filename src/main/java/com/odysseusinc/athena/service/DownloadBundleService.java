@@ -53,6 +53,8 @@ public interface DownloadBundleService {
 
     void validate(DownloadBundle bundle, BundleType type);
 
+    boolean canRestoreOriginalVersion(DownloadBundle bundle);
+
     enum BundleType {
         V4_5,
         V5,

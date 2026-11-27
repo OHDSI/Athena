@@ -25,6 +25,7 @@ package com.odysseusinc.athena.api.v1.controller.converter.vocabulary;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * The ReleaseVocabularyVersionConverter is designed to convert version formats between the old and new representations.
@@ -33,8 +34,8 @@ import java.util.Date;
  */
 public class ReleaseVocabularyVersionConverter {
 
-    private static final ThreadLocal<SimpleDateFormat> NEW_DATE_FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyyMMdd"));
-    private static final ThreadLocal<SimpleDateFormat> OLD_DATE_FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd-MMM-yy"));
+    private static final ThreadLocal<SimpleDateFormat> NEW_DATE_FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyyMMdd", Locale.US));
+    private static final ThreadLocal<SimpleDateFormat> OLD_DATE_FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd-MMM-yy", Locale.US));
 
     private static final String CDM_VERSION = "5";
 
@@ -46,7 +47,7 @@ public class ReleaseVocabularyVersionConverter {
         if (stringToConvert.matches("\\d{8}")) {
             try {
                 Date date = NEW_DATE_FORMAT.get().parse(stringToConvert);
-                return String.format("v%s %s", CDM_VERSION, OLD_DATE_FORMAT.get().format(date).toUpperCase());
+                return String.format("v%s %s", CDM_VERSION, OLD_DATE_FORMAT.get().format(date).toUpperCase(Locale.ROOT));
             } catch (ParseException e) {
                 throw new IllegalArgumentException("Error parsing date: " + stringToConvert, e);
             }

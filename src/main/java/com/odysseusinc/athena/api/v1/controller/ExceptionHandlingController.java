@@ -42,16 +42,24 @@ import com.odysseusinc.athena.exceptions.WrongFileFormatException;
 import com.odysseusinc.athena.util.JsonResult;
 import java.io.IOException;
 import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.mail.MailException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.beans.InvalidPropertyException;
+import org.springframework.validation.BindException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -88,6 +96,25 @@ public class ExceptionHandlingController {
     }
 
     /**
+     * Jackson wraps output failures in {@link HttpMessageNotWritableException}. When the
+     * underlying failure is a client disconnect, the response cannot accept a JSON error
+     * either; returning {@code null} tells MVC that there is no second body to write. Other
+     * conversion failures remain real server errors and retain the catch-all behaviour.
+     */
+    @ExceptionHandler(HttpMessageNotWritableException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(HttpMessageNotWritableException ex) {
+
+        AsyncRequestNotUsableException disconnect =
+                findCause(ex, AsyncRequestNotUsableException.class);
+        if (disconnect != null) {
+            LOGGER.debug("Client disconnected before the response completed: {}",
+                    disconnect.getMessage());
+            return null;
+        }
+        return exceptionHandler((Exception) ex);
+    }
+
+    /**
      * Last-resort handler. Deliberately does <b>not</b> put {@code ex.getMessage()} in the
      * response: this catches anything unmapped, so the message can carry SQL fragments,
      * entity names or file paths, and these endpoints are reachable unauthenticated. The
@@ -100,6 +127,22 @@ public class ExceptionHandlingController {
         JsonResult result = new JsonResult<>(SYSTEM_ERROR);
         result.setErrorMessage("Internal server error");
         return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private static <T extends Throwable> T findCause(Throwable exception, Class<T> causeType) {
+
+        Throwable current = exception;
+        while (current != null) {
+            if (causeType.isInstance(current)) {
+                return causeType.cast(current);
+            }
+            Throwable cause = current.getCause();
+            if (cause == current) {
+                break;
+            }
+            current = cause;
+        }
+        return null;
     }
 
     /**
@@ -127,12 +170,61 @@ public class ExceptionHandlingController {
         return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
     }
 
+    /** A path or query parameter that cannot be converted is malformed client input. */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(MethodArgumentTypeMismatchException ex) {
+
+        LOGGER.debug("Invalid value for parameter [{}]: {}", ex.getName(), ex.getValue());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        result.setErrorMessage(String.format("Invalid value for parameter '%s'", ex.getName()));
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+    }
+
+    /** Indexed or otherwise malformed bean properties are invalid query parameters. */
+    @ExceptionHandler(InvalidPropertyException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(InvalidPropertyException ex) {
+
+        LOGGER.debug("Request parameter binding failed: {}", ex.getMessage());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        result.setErrorMessage("Invalid request parameters");
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(BindException ex) {
+
+        LOGGER.debug("Request parameter binding failed: {}", ex.getMessage());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        result.setErrorMessage("Invalid request parameters");
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Void> exceptionHandler(HttpRequestMethodNotSupportedException ex) {
+
+        LOGGER.debug("Request method [{}] is not supported", ex.getMethod());
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .allow(ex.getSupportedHttpMethods().toArray(HttpMethod[]::new))
+                .build();
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<Void> exceptionHandler(HttpMediaTypeNotAcceptableException ex) {
+
+        LOGGER.debug("No response representation matches the request Accept header");
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
+    }
+
+    /*
+     * Mail and I/O failures keep their detail in the log only: their messages carry SMTP
+     * relay responses and absolute file-system paths, which are of no use to the caller.
+     */
     @ExceptionHandler(MessagingException.class)
     public ResponseEntity<JsonResult> exceptionHandler(MessagingException ex) {
 
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(EMAIL_ERROR);
-        result.setErrorMessage(ex.getMessage());
+        result.setErrorMessage("Failed to send email");
         return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -141,7 +233,7 @@ public class ExceptionHandlingController {
 
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(EMAIL_ERROR);
-        result.setErrorMessage(ex.getMessage());
+        result.setErrorMessage("Failed to send email");
         return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -150,7 +242,7 @@ public class ExceptionHandlingController {
 
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(SYSTEM_ERROR);
-        result.setErrorMessage(ex.getMessage());
+        result.setErrorMessage("Internal server error");
         return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -159,7 +251,7 @@ public class ExceptionHandlingController {
 
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(SYSTEM_ERROR);
-        result.setErrorMessage(ex.getMessage());
+        result.setErrorMessage("Internal server error");
         return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -223,6 +315,20 @@ public class ExceptionHandlingController {
         JsonResult result = new JsonResult<>(VALIDATION_ERROR);
         result.setErrorMessage(ex.getMessage());
         result.getValidatorErrors().put(ex.getEntity().getSimpleName(), ex.getMessage());
+        return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Defensive fallback for lazy JPA references created by legacy {@code getOne} calls.
+     * A missing row is a 404, not an application failure; keep Hibernate's entity details
+     * out of the response and avoid a production ERROR stack trace for stale client links.
+     */
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<JsonResult> exceptionHandler(EntityNotFoundException ex) {
+
+        LOGGER.debug("JPA entity was not found: {}", ex.getMessage());
+        JsonResult result = new JsonResult<>(VALIDATION_ERROR);
+        result.setErrorMessage("Requested entity does not exist");
         return new ResponseEntity<>(result, HttpStatus.NOT_FOUND);
     }
 

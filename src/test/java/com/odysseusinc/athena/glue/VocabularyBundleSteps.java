@@ -6,6 +6,8 @@ import com.odysseusinc.athena.repositories.v5history.VocabularyReleaseVersionRep
 import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
 import com.odysseusinc.athena.service.VocabularyService;
 import com.odysseusinc.athena.service.VocabularyServiceV5;
+import com.odysseusinc.athena.service.impl.BundleGenerationService;
+import com.odysseusinc.athena.service.job.BundleGenerationQueueService;
 import com.odysseusinc.athena.service.saver.v5.history.delta.CacheDeltaService;
 import com.odysseusinc.athena.service.writer.FileHelper;
 import com.odysseusinc.athena.util.CDMVersion;
@@ -69,6 +71,12 @@ public class VocabularyBundleSteps {
 
     @Autowired
     private VocabularyService vocabularyService;
+
+    @Autowired
+    private BundleGenerationQueueService bundleGenerationQueueService;
+
+    @Autowired
+    private BundleGenerationService bundleGenerationService;
 
     @Autowired
     private VocabularyReleaseVersionRepository vocabularyReleaseVersionRepository;
@@ -259,6 +267,10 @@ public class VocabularyBundleSteps {
 
     private List<FileInfo> generateAndDownload(DownloadBundle bundle, AthenaUser user) throws IOException {
         vocabularyService.generateBundle(bundle, user);
+        BundleGenerationQueueService.Claim claim = bundleGenerationQueueService
+                .claim(bundle.getId(), "cucumber")
+                .orElseThrow(() -> new IllegalStateException("The test bundle was not queued"));
+        bundleGenerationService.generateBundle(claim.bundleId(), claim.workerId());
         return downloadBundle(bundle);
     }
 

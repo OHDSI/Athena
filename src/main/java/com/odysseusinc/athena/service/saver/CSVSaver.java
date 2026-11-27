@@ -103,7 +103,7 @@ public abstract class CSVSaver extends Saver implements ISaver {
             writeContent(bundle, csvWriter, vocabularyIds);
             csvWriter.flush(true);
             putEntry(zos, fileName, path);
-            LOGGER.info("Entry is added to archive {}, bundle uuid: {}", fileName, bundle.getUuid());
+            LOGGER.debug("Archive entry [{}] added for bundle [{}]", fileName, bundle.getId());
             Files.delete(path);
         } catch (Exception ex) {
             throw new IORuntimeException("", ex);
@@ -125,7 +125,7 @@ public abstract class CSVSaver extends Saver implements ISaver {
                 Connection conn = getDataSource(currentVersion).getConnection();
                 PreparedStatement st = getStatement(ids, conn, bundle)
         ) {
-            LOGGER.info("Preparing to execute (bundle with uuid {}): {}", bundle.getUuid(), st);
+            LOGGER.debug("Preparing to execute (bundle with uuid {}): {}", bundle.getUuid(), st);
             ResultSet rs = st.executeQuery();
             csvWriter.writeAll(rs, isIncludeColumnNames(), false);
 

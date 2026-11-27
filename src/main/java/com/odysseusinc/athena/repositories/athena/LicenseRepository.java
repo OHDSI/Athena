@@ -23,12 +23,16 @@
 package com.odysseusinc.athena.repositories.athena;
 
 import com.odysseusinc.athena.model.athena.License;
+import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.LockModeType;
+
+import java.util.Optional;
 
 @Repository
 public interface LicenseRepository extends JpaRepository<License, Long> {
@@ -38,4 +42,10 @@ public interface LicenseRepository extends JpaRepository<License, Long> {
     License findByUserIdAndVocabularyIdV4(@Param("userId") Long userId, @Param("vocabularyId") Integer vocabularyId);
 
     License findByIdAndToken(Long licenseId, String token);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select license from License license where license.id = :id")
+    Optional<License> findByIdForUpdate(@Param("id") Long id);
+
+    long countByStatus(LicenseStatus status);
 }

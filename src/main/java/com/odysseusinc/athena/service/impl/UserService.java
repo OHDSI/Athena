@@ -26,121 +26,29 @@ import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.security.AthenaRole;
 import com.odysseusinc.athena.model.security.AthenaUser;
-import com.odysseusinc.athena.repositories.athena.AthenaRoleRepository;
 import com.odysseusinc.athena.repositories.athena.AthenaUserRepository;
 import com.odysseusinc.athena.security.AthenaAuthentication;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 public class UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private AthenaUserRepository athenaUserRepository;
-    @Autowired
-    private AthenaRoleRepository athenaRoleRepository;
-
-    @Value("${athena.security.defaultRoles}")
-    private String defaultRolesValue;
-
-    private List<AthenaRole> defaultRoles;
-
-    private final Object monitor = new Object();
-    @Value("${athena.security.saml.attributes.email}")
-    private String emailAttributeName = "email";
-    @Value("${athena.security.saml.attributes.first_name}")
-    private String firstNameAttributeName = "firstName";
-    @Value("${athena.security.saml.attributes.last_name}")
-    private String lastNameAttributeName = "lastName";
-    @Value("${athena.security.saml.attributes.middle_name}")
-    private String middleNameAttributeName;
-    @Value("${athena.security.saml.attributes.organization}")
-    private String organizationAttributeName;
-
-    /**
-     * Creates or updates the local user record for someone who has just authenticated
-     * against the identity provider. Driven by already-flattened assertion attributes.
-     *
-     * @param username   the assertion subject; with {@code origin} this is the natural
-     *                   key of {@link AthenaUser}
-     * @param origin     which identity provider asserted this user
-     * @param attributes assertion attributes, keyed by the raw names the IdP sent
-     * @throws PermissionDeniedException if {@code origin} is absent, matching the old
-     *                                   behaviour of refusing to provision a user whose
-     *                                   authentication method is unknown
-     */
-    @Transactional(transactionManager = "athenaTransactionManager")
-    public AthenaUser provisionUser(String username, String origin, Map<String, String> attributes) {
-
-        AthenaUser user = athenaUserRepository.findByUsernameIgnoreCaseAndOrigin(username, origin);
-        if (user == null) {
-            if (origin == null) {
-                log.warn("User origin is not defined: {}", username);
-                throw new PermissionDeniedException();
-            }
-            user = new AthenaUser();
-            user.setUsername(username);
-            user.setOrigin(origin);
-            user.setRoles(newDefaultRoles());
-        }
-        // Only overwrite a field when the assertion actually carried it. The pac4j
-        // implementation used UserProfileUtil.getAttribute, which returned null for an
-        // absent attribute and so wiped the stored value — an IdP omitting an optional
-        // attribute silently erased it. Absent now means "unchanged".
-        ifPresent(attributes, emailAttributeName, user::setEmail);
-        ifPresent(attributes, firstNameAttributeName, user::setFirstName);
-        ifPresent(attributes, lastNameAttributeName, user::setLastName);
-        ifPresent(attributes, middleNameAttributeName, user::setMiddleName);
-        ifPresent(attributes, organizationAttributeName, user::setOrganization);
-
-        return athenaUserRepository.save(user);
-    }
-
-    private static void ifPresent(Map<String, String> attributes, String name,
-                                  Consumer<String> setter) {
-
-        if (name != null && attributes.containsKey(name)) {
-            setter.accept(attributes.get(name));
-        }
-    }
-
-    /**
-     * A fresh list per user. {@code createOrUpdateAthenaUser} handed the same
-     * cached {@code List} instance to every new user, which Hibernate rejects as a
-     * shared collection reference on a {@code @ManyToMany}. The role entities are
-     * shared — only the collection wrapper must not be.
-     */
-    private List<AthenaRole> newDefaultRoles() {
-
-        if (!StringUtils.hasText(defaultRolesValue)) {
-            return new ArrayList<>();
-        }
-        synchronized (monitor) {
-            initRoles();
-            return defaultRoles == null ? new ArrayList<>() : new ArrayList<>(defaultRoles);
-        }
-    }
 
     public AthenaUser getCurrentUser() throws PermissionDeniedException {
 
@@ -192,17 +100,6 @@ public class UserService {
             return ((AthenaAuthentication) principal).getPrincipal() != null;
         }
         return false;
-    }
-
-    private void initRoles() {
-
-        if (defaultRoles == null) {
-            if (StringUtils.hasText(defaultRolesValue)) {
-                defaultRoles = athenaRoleRepository.findByNames(Arrays.asList(defaultRolesValue.split(",")));
-            } else {
-                defaultRoles = new ArrayList<>();
-            }
-        }
     }
 
     public AthenaUser get(Long userId) {

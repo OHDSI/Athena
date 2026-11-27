@@ -30,6 +30,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import java.util.Objects;
 
 @Entity
 @Table(name = "concept_synonym")
@@ -79,5 +80,25 @@ public class ConceptSynonymV5 extends EntityV5 implements Serializable {
     public void setLanguageConceptId(String languageConceptId) {
 
         this.languageConceptId = languageConceptId;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof ConceptSynonymV5 that)) {
+            return false;
+        }
+        return Objects.equals(id, that.id)
+                && Objects.equals(name, that.name)
+                && Objects.equals(languageConceptId, that.languageConceptId);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(id, name, languageConceptId);
     }
 }

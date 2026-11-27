@@ -28,4 +28,10 @@ public class HikariConfig {
         return new HikariProps();
     }
 
+    @Bean
+    @ConfigurationProperties("spring.datasource-v5-history.hikari")
+    protected HikariProps athenaV5HistoryHikariProps() {
+        return new HikariProps();
+    }
+
 }

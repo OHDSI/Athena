@@ -22,14 +22,13 @@
 
 package com.odysseusinc.athena.api.v1.controller.converter;
 
-import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_CODE;
-import static com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService.CONCEPT_NAME;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.solr.common.params.CommonParams.FQ;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odysseusinc.athena.api.v1.controller.dto.ConceptSearchDTO;
+import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.checker.LimitChecker;
 import com.odysseusinc.athena.service.impl.ConceptSearchPhraseToSolrQueryService;
@@ -39,6 +38,8 @@ import com.odysseusinc.athena.service.impl.QueryBoosts;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -64,8 +65,30 @@ public class ConceptSearchDTOToSolrQuery {
     private static final String CLASS_ID = "concept_class_id";
     private static final String INVALID_REASON = "invalid_reason";
     private static final String STANDARD_CONCEPT = "standard_concept";
-    private static final String CASE_INSENSITIVE_SUFFIX = "_ci";
-    private static final List<String> CASE_INSENSITIVE_FIELDS = Arrays.asList(CONCEPT_CODE, CONCEPT_NAME);
+    private static final Map<String, String> SORT_FIELDS = Map.ofEntries(
+            Map.entry("relevance", "score"),
+            Map.entry("score", "score"),
+            Map.entry("name", "concept_name_ci"),
+            Map.entry("concept_name", "concept_name_ci"),
+            Map.entry("concept_name_ci", "concept_name_ci"),
+            Map.entry("code", "concept_code_ci"),
+            Map.entry("concept_code", "concept_code_ci"),
+            Map.entry("concept_code_ci", "concept_code_ci"),
+            Map.entry("classname", CLASS_ID),
+            Map.entry(CLASS_ID, CLASS_ID),
+            Map.entry("standardconcept", STANDARD_CONCEPT),
+            Map.entry(STANDARD_CONCEPT, STANDARD_CONCEPT),
+            Map.entry("invalidreason", INVALID_REASON),
+            Map.entry(INVALID_REASON, INVALID_REASON),
+            Map.entry("domain", DOMAIN_ID),
+            Map.entry("domainid", DOMAIN_ID),
+            Map.entry(DOMAIN_ID, DOMAIN_ID),
+            Map.entry("vocabulary", VOCABULARY_ID),
+            Map.entry("vocabularyid", VOCABULARY_ID),
+            Map.entry(VOCABULARY_ID, VOCABULARY_ID),
+            Map.entry("id", "concept_id"),
+            Map.entry("concept_id", "concept_id")
+    );
 
     private final ConceptSearchPhraseToSolrQueryService conceptSearchPhraseToSolrQueryService;
     private final LimitChecker limitChecker;
@@ -89,27 +112,58 @@ public class ConceptSearchDTOToSolrQuery {
         return facetName + "s";
     }
 
-    private void setSorting(ConceptSearchDTO source, SolrQuery result) {
+    void setSorting(ConceptSearchDTO source, SolrQuery result) {
 
-        if (source.getSort() != null && source.getOrder() != null) {
-            result.setSort(getSortFieldWithSuffix(source.getSort()), SolrQuery.ORDER.valueOf(source.getOrder()));
+        if (source.getSort() == null && source.getOrder() == null) {
+            return;
         }
+        if (isBlank(source.getSort()) || isBlank(source.getOrder())) {
+            throw new ValidationException("Both sort and order must be provided");
+        }
+
+        String requestedField = source.getSort().trim().toLowerCase(Locale.ROOT);
+        String sortField = SORT_FIELDS.get(requestedField);
+        if (sortField == null) {
+            throw new ValidationException("Unsupported sort field: " + source.getSort());
+        }
+
+        SolrQuery.ORDER order;
+        try {
+            order = SolrQuery.ORDER.valueOf(source.getOrder().trim().toLowerCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            throw new ValidationException("Order must be 'asc' or 'desc'");
+        }
+        result.setSort(sortField, order);
     }
 
-    private String getSortFieldWithSuffix(String field) {
+    /**
+     * {@code page} and {@code pageSize} come straight off the query string of a public
+     * endpoint, so they are bounded here: {@code rows} by the configured
+     * {@code solr.limit.max.page.size} (the same ceiling the CSV export already pages with),
+     * and {@code start} so that {@code (page - 1) * pageSize} cannot overflow.
+     */
+    void setPagination(ConceptSearchDTO source, SolrQuery result) {
 
-        if (CASE_INSENSITIVE_FIELDS.contains(field)) {
-            return field + CASE_INSENSITIVE_SUFFIX;
+        Integer page = source.getPage();
+        Integer pageSize = source.getPageSize();
+        if (page == null || pageSize == null) {
+            return;
         }
-        return field;
-    }
-
-    private void setPagination(ConceptSearchDTO source, SolrQuery result) {
-
-        if (source.getPage() != null && source.getPageSize() != null) {
-            result.setStart((source.getPage() - 1) * source.getPageSize());
-            result.setRows(source.getPageSize());
+        int maxPageSize = limitChecker.getMaxLimitPageSize();
+        if (pageSize < 1 || pageSize > maxPageSize) {
+            throw new ValidationException("Page size must be between 1 and " + maxPageSize);
         }
+        if (page < 1) {
+            throw new ValidationException("Page must be at least 1");
+        }
+        int start;
+        try {
+            start = Math.multiplyExact(page - 1, pageSize);
+        } catch (ArithmeticException e) {
+            throw new ValidationException("Page is out of range");
+        }
+        result.setStart(start);
+        result.setRows(pageSize);
     }
 
     private void setQuery(ConceptSearchDTO source, SolrQuery query, QueryBoosts queryBoosts) {

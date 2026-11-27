@@ -104,8 +104,7 @@ public class ZipWriter {
                 addToZip(file, zip, baseName);
             } else {
                 String name = filePath.substring(baseName.length() + 1);
-                LOGGER.info("Adding zip entry : absolute path file {}, baseName {}, baseName length {}, entry name {}",
-                        filePath, baseName, baseName.length(), name);
+                LOGGER.debug("Adding extra archive entry [{}]", name);
                 ZipEntry zipEntry = new ZipEntry(name);
                 zip.putNextEntry(zipEntry);
                 IOUtils.copy(Files.newInputStream(Paths.get(filePath)), zip);

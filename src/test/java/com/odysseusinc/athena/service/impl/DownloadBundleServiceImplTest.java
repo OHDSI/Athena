@@ -12,6 +12,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -174,6 +176,48 @@ class DownloadBundleServiceImplTest {
         ValidationException exception = assertThrows(ValidationException.class, () ->
                 bundleService.validate(downloadBundle));
         assertEquals("Please provide the bundle name", exception.getMessage());
+    }
+
+    @Test
+    void currentVocabularyVersionCanBeRestoredWithoutHistory() {
+        DownloadBundle bundle = bundle(2026_08_29, null, false);
+        when(versionService.isCurrent(bundle.getVocabularyVersion())).thenReturn(true);
+
+        assertTrue(bundleService.canRestoreOriginalVersion(bundle));
+    }
+
+    @Test
+    void retainedHistoricalVocabularyVersionCanBeRestored() {
+        DownloadBundle bundle = bundle(2026_02_27, null, false);
+        when(versionService.isPresentInHistory(bundle.getVocabularyVersion())).thenReturn(true);
+
+        assertTrue(bundleService.canRestoreOriginalVersion(bundle));
+    }
+
+    @Test
+    void removedHistoricalVocabularyVersionCannotBeRestored() {
+        DownloadBundle bundle = bundle(2024_08_30, null, false);
+
+        assertFalse(bundleService.canRestoreOriginalVersion(bundle));
+    }
+
+    @Test
+    void deltaRequiresBothRetainedVersions() {
+        DownloadBundle bundle = bundle(2026_08_29, 2026_02_27, true);
+        when(versionService.isPresentInHistory(bundle.getVocabularyVersion())).thenReturn(true);
+        when(versionService.isPresentInHistory(bundle.getDeltaVersion())).thenReturn(false);
+
+        assertFalse(bundleService.canRestoreOriginalVersion(bundle));
+    }
+
+    private DownloadBundle bundle(Integer vocabularyVersion, Integer deltaVersion, boolean delta) {
+        return Fn.create(DownloadBundle::new, bundle -> {
+            bundle.setCdmVersion(CDMVersion.V5);
+            bundle.setName("TestBundle");
+            bundle.setVocabularyVersion(vocabularyVersion);
+            bundle.setDeltaVersion(deltaVersion);
+            bundle.setDelta(delta);
+        });
     }
 
 

@@ -20,37 +20,43 @@
 
 package com.odysseusinc.athena.api.v1.controller.dto.arachne;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Registration payload. Bound from the AthenaUI request body and forwarded
- * verbatim to the Arachne portal.
- * <p>
- * Vendored from {@code com.odysseusinc.arachne.commons.api.v1.dto.CommonUserRegistrationDTO}.
- * Field names are a wire contract on both sides — do not rename them.
- * <p>
- * The original carried bean-validation annotations, which are intentionally not
- * reproduced: {@code UserController.register} binds this type without
- * {@code @Valid}, so they never executed in Athena. Validation is performed by
- * the portal. Adding {@code @Valid} here would be a behaviour change, not a fix.
- */
+/** Registration payload accepted from AthenaUI. */
 @Getter
 @Setter
 public class UserRegistrationDTO {
 
+    @NotBlank
+    @Email
+    @Size(max = 128)
     private String email;
+    @NotBlank
+    @Size(min = 8)
     private String password;
+    @NotBlank
+    @Size(min = 2, max = 255)
     private String firstname;
+    @Size(max = 255)
     private String middlename;
+    @NotBlank
+    @Size(min = 2, max = 255)
     private String lastname;
+    @NotBlank
+    @Size(min = 2, max = 255)
     private String organization;
+    @Size(max = 255)
     private String department;
+    @NotNull
     private Long professionalTypeId;
-    /**
-     * Never read by Athena, but populated by AthenaUI (country / stateProvince)
-     * and forwarded to the portal. Removing it silently drops those fields.
-     */
+    @NotNull
+    @Valid
     private AddressDTO address;
     private String uuid;
     private String registrantToken;
