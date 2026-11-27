@@ -67,12 +67,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            authenticate(request.getHeader(headerName));
+            authenticate(request.getHeader(headerName), response);
         }
         filterChain.doFilter(request, response);
     }
 
-    private void authenticate(String token) {
+    private void authenticate(String token, HttpServletResponse response) {
 
         if (token == null || token.isEmpty()) {
             return;
@@ -83,6 +83,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (user == null) {
                 // Valid signature, but the user has since been removed.
                 log.debug("Token subject [{}] no longer resolves to a user", identity.getUsername());
+                return;
+            }
+            if (user.getBrowserSessionVersion() != identity.getSessionVersion()) {
+                response.setHeader("Athena-Session-Invalid", "true");
                 return;
             }
             SecurityContextHolder.getContext()

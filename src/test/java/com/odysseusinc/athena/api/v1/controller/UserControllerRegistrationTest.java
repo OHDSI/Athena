@@ -1,96 +1,163 @@
-/*
- *
- * Copyright 2026 Odysseus Data Services, Inc. (EPAM Systems company)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Company: Odysseus Data Services, Inc.
- * Created: August 28, 2026
- *
- */
-
 package com.odysseusinc.athena.api.v1.controller;
 
-import com.odysseusinc.athena.api.v1.controller.dto.arachne.ArachnePortalResponse;
-import com.odysseusinc.athena.api.v1.controller.dto.arachne.UserRegistrationDTO;
-import org.junit.Test;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import com.odysseusinc.athena.service.registration.RegistrationService;
+import com.odysseusinc.athena.service.registration.AccountEmailQueue;
+import javax.sql.DataSource;
+import org.flywaydb.core.Flyway;
+import org.junit.*;
+import org.mockito.ArgumentCaptor;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.mail.MailSendException;
+import java.net.URI;
+import com.odysseusinc.athena.service.mail.AccountMail;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.testcontainers.containers.PostgreSQLContainer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Covers Athena's adapter contract with Arachne's registration endpoint.
- */
 public class UserControllerRegistrationTest {
 
-    @Test
-    public void emptyPortalSuccessIsReturnedAsAthenaSuccess() throws Exception {
+    @ClassRule
+    public static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16.2");
+    private static final AccountMail mail = mock(AccountMail.class);
+    private static AnnotationConfigApplicationContext context;
+    private static JdbcClient db;
+    private static MockMvc mvc;
 
-        RestTemplate restTemplate = new RestTemplate();
-        MockRestServiceServer portal = MockRestServiceServer.createServer(restTemplate);
-        UserController controller = controller(restTemplate);
-
-        portal.expect(requestTo("https://portal.example/api/v1/auth/registration"))
-                .andExpect(method(HttpMethod.POST))
-                // Arachne declares this endpoint as void and sends no body on success.
-                .andRespond(withSuccess());
-
-        ResponseEntity response = controller.register(new UserRegistrationDTO());
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(ArachnePortalResponse.ErrorCode.NO_ERROR.getCode(),
-                ((ArachnePortalResponse<?>) response.getBody()).getErrorCode());
-        portal.verify();
+    @EnableTransactionManagement
+    static class Config {
+        @Bean AccountEmailQueue queue(DataSource source) {
+            return new AccountEmailQueue(source, mail, "https://athena.example.org", "test-signing-key");
+        }
+        @Bean DataSource dataSource() {
+            return new DriverManagerDataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        }
+        @Bean DataSourceTransactionManager accountJdbcTransactionManager(DataSource source) {
+            return new DataSourceTransactionManager(source);
+        }
+        @Bean RegistrationService registrationService(DataSource source, AccountEmailQueue queue) {
+            return new RegistrationService(source, queue, "ROLE_USER");
+        }
     }
 
-    @Test
-    public void portalValidationFailureIsStillReturnedAsBadRequest() throws Exception {
-
-        RestTemplate restTemplate = new RestTemplate();
-        MockRestServiceServer portal = MockRestServiceServer.createServer(restTemplate);
-        UserController controller = controller(restTemplate);
-
-        portal.expect(requestTo("https://portal.example/api/v1/auth/registration"))
-                .andExpect(method(HttpMethod.POST))
-                .andRespond(withSuccess("{\"errorCode\":3,\"errorMessage\":\"Invalid password\","
-                                + "\"validatorErrors\":{\"password\":\"too short\"}}",
-                        MediaType.APPLICATION_JSON));
-
-        ResponseEntity response = controller.register(new UserRegistrationDTO());
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals(ArachnePortalResponse.ErrorCode.VALIDATION_ERROR.getCode(),
-                ((ArachnePortalResponse<?>) response.getBody()).getErrorCode());
-        portal.verify();
+    @BeforeClass public static void setup() {
+        context = new AnnotationConfigApplicationContext(Config.class);
+        DataSource source = context.getBean(DataSource.class);
+        Flyway.configure().dataSource(source).locations("db/migration/share", "db/migration/athena").load().migrate();
+        db = JdbcClient.create(source);
+        mvc = MockMvcBuilders.standaloneSetup(new RegistrationController(context.getBean(RegistrationService.class),
+                new AccountRequestLimits(source, 900, 100, 10, 30, 5, 60, 100, 20, 60))).build();
     }
 
-    private UserController controller(RestTemplate restTemplate) {
+    @AfterClass public static void close() {
+        if (context != null) context.close();
+    }
 
-        UserController controller = new UserController(null, null, restTemplate, null);
-        ReflectionTestUtils.setField(controller, "arachneUrl", "https://portal.example");
-        ReflectionTestUtils.setField(controller, "registerPath", "/api/v1/auth/registration");
-        ReflectionTestUtils.setField(controller, "registerToken", "athena");
-        ReflectionTestUtils.setField(controller, "athenaUrl", "https://athena.example");
-        return controller;
+    @Before public void resetMail() {
+        reset(mail);
+    }
+
+    private String payload(String email) {
+        return """
+                {"firstname":"Clara","lastname":"Jones","organization":"Example","department":"Engineering",
+                 "professionalTypeId":1,"email":"%s","password":"Known-password-47!",
+                 "address":{"address1":"1 Main Street","city":"Oakland","zipCode":"94612","mobile":"5551234",
+                            "country":{"isoCode":"US"},"stateProvince":{"isoCode":"US-CA"}}}
+                """.formatted(email);
+    }
+
+    private ResultActions register(String body) throws Exception {
+        return mvc.perform(post("/api/v1/users").contentType("application/json").content(body));
+    }
+
+    private ResultActions confirm(String token) throws Exception {
+        return mvc.perform(post("/api/v1/users/confirm-email").contentType("application/json")
+                .content("{\"token\":\"" + token + "\"}"));
+    }
+
+    private String emailedToken(String email) {
+        context.getBean(AccountEmailQueue.class).deliverPending();
+        var url = ArgumentCaptor.forClass(URI.class);
+        verify(mail).sendConfirmation(eq(new AccountMail.Recipient(email, "Clara")), url.capture());
+        String link = url.getValue().toString();
+        assertTrue(link.startsWith("https://athena.example.org/auth/confirm-email#token="));
+        return link.substring(link.indexOf('=') + 1);
+    }
+
+    @Test public void storesBcryptWithProfileAndConfirmsOnce() throws Exception {
+        String email = "signup@example.org";
+        register(payload(email)).andExpect(status().isOk()).andExpect(jsonPath("$.errorCode").value(0))
+                .andExpect(jsonPath("$.result").isEmpty());
+        var row = db.sql("""
+                SELECT d.password, d.confirmation_token_hash FROM users_data d
+                JOIN users u ON u.id = d.athena_user_id
+                JOIN users_roles ur ON ur.user_id = u.id JOIN roles r ON r.id = ur.role_id
+                JOIN countries c ON c.id = d.country_id JOIN states_provinces s ON s.id = d.state_province_id
+                WHERE u.login = :email AND u.origin = 'Athena' AND r.name = 'ROLE_USER'
+                AND u.firstname = 'Clara' AND d.department = 'Engineering' AND d.professional_type_id = 1
+                AND d.city = 'Oakland' AND c.alfa2 = 'US' AND s.iso_code = 'US-CA'
+                AND d.email_confirmed_at IS NULL
+                """).param("email", email).query().singleRow();
+        assertTrue(new BCryptPasswordEncoder().matches("Known-password-47!", (String) row.get("password")));
+        String token = emailedToken(email);
+        assertNotEquals(token, row.get("confirmation_token_hash"));
+        mvc.perform(get("/api/v1/users/confirm-email").param("token", token))
+                .andExpect(redirectedUrl("/auth/confirm-email#token=" + token));
+        confirm(token).andExpect(status().isOk());
+        confirm(token).andExpect(status().isBadRequest());
+        register(payload("SIGNUP@example.org")).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.validatorErrors.email").isString());
+    }
+
+    @Test public void reportsFieldErrorsWithoutClaimingExistingUsers() throws Exception {
+        register(payload("admin@ADMIN.ru")).andExpect(status().isBadRequest()).andExpect(jsonPath("$.errorCode").value(5));
+        register("{}").andExpect(status().isBadRequest()).andExpect(jsonPath("$.errorCode").value(3))
+                .andExpect(jsonPath("$.validatorErrors.password").isString());
+        register(payload("invalid@example.org").replace("Known-password-47!", "é".repeat(37)))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.validatorErrors.password").isString());
+        register(payload("invalid@example.org").replace("\"US\"", "\"PT\"")).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.validatorErrors['address.stateProvince']").isString());
+        register(payload("invalid@example.org").replace("\"professionalTypeId\":1", "\"professionalTypeId\":100"))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.validatorErrors.professionalTypeId").isString());
+        verifyNoInteractions(mail);
+    }
+
+    @Test public void failedConfirmationDeliveryRetriesTheOriginalLink() throws Exception {
+        String email = "retry@example.org";
+        register(payload(email)).andExpect(status().isOk());
+        verifyNoInteractions(mail);
+        doThrow(new MailSendException("Unavailable")).doNothing().when(mail).sendConfirmation(any(), any());
+        var queue = context.getBean(AccountEmailQueue.class);
+        queue.deliverPending();
+        db.sql("UPDATE users_data SET confirmation_delivery_due_at = now() WHERE email = ?").param(email).update();
+        queue.deliverPending();
+        var links = ArgumentCaptor.forClass(URI.class);
+        verify(mail, times(2)).sendConfirmation(any(), links.capture());
+        assertEquals(links.getAllValues().get(0), links.getValue());
+        confirm(links.getValue().getFragment().substring(6)).andExpect(status().isOk());
+    }
+
+    @Test public void expiredLinkCanBeRenewedWithoutChangingCredentials() throws Exception {
+        String email = "expired@example.org";
+        register(payload(email)).andExpect(status().isOk());
+        String oldToken = emailedToken(email);
+        db.sql("UPDATE users_data SET confirmation_expires_at = now() - interval '1 minute' WHERE email = :email")
+                .param("email", email).update();
+        confirm(oldToken).andExpect(status().isBadRequest());
+        reset(mail);
+        register(payload(email).replace("Known-password-47!", "Different-password-73!")).andExpect(status().isBadRequest());
+        register(payload(email)).andExpect(status().isOk());
+        confirm(emailedToken(email)).andExpect(status().isOk());
     }
 }

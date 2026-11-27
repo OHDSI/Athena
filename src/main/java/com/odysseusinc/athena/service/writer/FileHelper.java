@@ -27,6 +27,10 @@ import com.odysseusinc.athena.exceptions.IORuntimeException;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.StandardCopyOption;
+import java.io.IOException;
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +45,33 @@ public class FileHelper {
     public String getZipPath(@NotNull String uuid) {
 
         return getStoreFilesPath() + File.separator + uuid + ".zip";
+    }
+
+    public String getPartialZipPath(@NotNull String uuid, @NotNull String generationId) {
+
+        makeDirectory(new File(getStoreFilesPath()));
+        return getZipPath(uuid) + "." + generationId + ".part";
+    }
+
+    public void publishZip(@NotNull String uuid, @NotNull String partialZipPath) throws IOException {
+
+        Path partial = Paths.get(partialZipPath);
+        Path destination = Paths.get(getZipPath(uuid));
+        try {
+            Files.move(partial, destination,
+                    StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException ignored) {
+            Files.move(partial, destination, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    public void deletePartialZip(@NotNull String partialZipPath) {
+
+        try {
+            Files.deleteIfExists(Paths.get(partialZipPath));
+        } catch (IOException ignored) {
+            // The original generation failure is more useful than a cleanup failure.
+        }
     }
 
     public String getPath(@NotNull String uuid) {

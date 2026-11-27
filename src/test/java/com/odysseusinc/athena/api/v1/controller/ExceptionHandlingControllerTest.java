@@ -30,17 +30,22 @@ import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.exceptions.WrongFileFormatException;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.util.JsonResult;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 /**
  * Every handler used to answer {@code HTTP 200}, so a client could not tell success
@@ -101,6 +106,16 @@ public class ExceptionHandlingControllerTest {
     }
 
     @Test
+    public void missingJpaProxyIsNotFoundWithoutExposingHibernateDetails() {
+
+        ResponseEntity<JsonResult> response = controller.exceptionHandler(
+                new EntityNotFoundException("No row for SecretEntity at internal_schema"));
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Requested entity does not exist", response.getBody().getErrorMessage());
+    }
+
+    @Test
     public void conflictsAreReportedAsConflict() {
 
         assertEquals(HttpStatus.CONFLICT,
@@ -127,6 +142,21 @@ public class ExceptionHandlingControllerTest {
                         new WrongFileFormatException("file", "bad")).getStatusCode());
     }
 
+    /** A non-numeric path/query parameter is malformed input, not an application failure. */
+    @Test
+    public void numericTypeMismatchIsBadRequest() {
+
+        MethodArgumentTypeMismatchException exception = new MethodArgumentTypeMismatchException(
+                "NaN", Long.class, "id", null, new NumberFormatException("NaN"));
+
+        ResponseEntity<JsonResult> response = controller.exceptionHandler(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(JsonResult.ErrorCode.VALIDATION_ERROR.getCode(),
+                response.getBody().getErrorCode());
+        assertEquals("Invalid value for parameter 'id'", response.getBody().getErrorMessage());
+    }
+
     @Test
     public void ioFailuresAreServerErrors() {
 
@@ -135,6 +165,28 @@ public class ExceptionHandlingControllerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,
                 controller.exceptionHandler(new IORuntimeException("disk", new IOException()))
                         .getStatusCode());
+    }
+
+    /** A client disconnect can be wrapped by Jackson before it reaches controller advice. */
+    @Test
+    public void wrappedClientDisconnectDoesNotAttemptToWriteAnotherResponse() {
+
+        HttpMessageNotWritableException exception = new HttpMessageNotWritableException(
+                "Could not write JSON",
+                new AsyncRequestNotUsableException("ServletOutputStream failed to write"));
+
+        assertNull(controller.exceptionHandler(exception));
+    }
+
+    /** Real JSON conversion defects must not be hidden as routine client disconnects. */
+    @Test
+    public void genuineMessageConversionFailureRemainsAServerError() {
+
+        HttpMessageNotWritableException exception = new HttpMessageNotWritableException(
+                "Could not serialize response", new IllegalStateException("bad mapping"));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,
+                controller.exceptionHandler(exception).getStatusCode());
     }
 
     /** Mail and I/O failures must not hand paths or SMTP responses to the caller. */

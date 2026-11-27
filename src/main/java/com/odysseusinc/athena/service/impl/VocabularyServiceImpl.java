@@ -26,11 +26,13 @@ import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.converter.vocabulary.VocabularyToUserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadBundleDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.DownloadShareDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.RestoreAvailabilityDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.UserVocabularyDTO;
 import com.odysseusinc.athena.api.v1.controller.dto.vocabulary.VocabularyDTO;
 import com.odysseusinc.athena.exceptions.LicenseException;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
+import com.odysseusinc.athena.exceptions.ValidationException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.model.athena.DownloadItem;
 import com.odysseusinc.athena.model.athena.DownloadShare;
@@ -45,9 +47,8 @@ import com.odysseusinc.athena.repositories.athena.LicenseRepository;
 import com.odysseusinc.athena.repositories.athena.NotificationRepository;
 import com.odysseusinc.athena.service.*;
 import com.odysseusinc.athena.service.mail.EmailService;
-import com.odysseusinc.athena.service.saver.v5.history.delta.CacheDeltaService;
+import com.odysseusinc.athena.service.job.BundleGenerationQueueService;
 import com.odysseusinc.athena.util.CDMVersion;
-import com.odysseusinc.athena.util.DownloadBundleStatus;
 import com.odysseusinc.athena.util.extractor.LicenseStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -61,8 +62,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.APPROVED;
 import static com.odysseusinc.athena.util.extractor.LicenseStatus.PENDING;
@@ -78,7 +81,7 @@ public class VocabularyServiceImpl implements VocabularyService {
     private static final String DEFAULT_SORT_COLUMN = "idV4";
     public static final Integer CPT4_ID_V4 = 4;
 
-    private final AsyncVocabularyService asyncVocabularyService;
+    private final BundleGenerationQueueService bundleGenerationQueueService;
     private final ConceptService conceptService;
     private final ConverterUtils converterUtils;
     private final DownloadBundleRepository downloadBundleRepository;
@@ -91,16 +94,14 @@ public class VocabularyServiceImpl implements VocabularyService {
     private final UserService userService;
     private final VocabularyConversionService vocabularyConversionService;
 
-    protected final CacheDeltaService cacheDeltaService;
-
     private final DownloadBundleService downloadBundleService;
 
     private final VocabularyReleaseVersionService vocabularyReleaseVersionService;
 
     @Autowired
-    public VocabularyServiceImpl(AsyncVocabularyService asyncVocabularyService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, CacheDeltaService cacheDeltaService, DownloadBundleService downloadBundleService, VocabularyReleaseVersionService vocabularyReleaseVersionService) {
+    public VocabularyServiceImpl(BundleGenerationQueueService bundleGenerationQueueService, ConceptService conceptService, ConverterUtils converterUtils, DownloadBundleRepository downloadBundleRepository, DownloadItemRepository downloadItemRepository, DownloadShareRepository downloadShareRepository, EmailService emailService, GenericConversionService conversionService, LicenseRepository licenseRepository, NotificationRepository notificationRepository, UserService userService, VocabularyConversionService vocabularyConversionService, DownloadBundleService downloadBundleService, VocabularyReleaseVersionService vocabularyReleaseVersionService) {
 
-        this.asyncVocabularyService = asyncVocabularyService;
+        this.bundleGenerationQueueService = bundleGenerationQueueService;
         this.conceptService = conceptService;
         this.converterUtils = converterUtils;
         this.downloadBundleRepository = downloadBundleRepository;
@@ -112,7 +113,6 @@ public class VocabularyServiceImpl implements VocabularyService {
         this.notificationRepository = notificationRepository;
         this.userService = userService;
         this.vocabularyConversionService = vocabularyConversionService;
-        this.cacheDeltaService = cacheDeltaService;
         this.downloadBundleService = downloadBundleService;
         this.vocabularyReleaseVersionService = vocabularyReleaseVersionService;
     }
@@ -133,8 +133,6 @@ public class VocabularyServiceImpl implements VocabularyService {
 
         DownloadBundle bundle = downloadBundleService.initBundle(bundleName, currentUser, version, vocabularyVersion, delta, deltaVersion);
         downloadBundleService.validate(bundle);
-        log.info("Ready for save download items for bundle with name: [{}] and uuid: [{}], user id: [{}]",
-                bundleName, bundle.getUuid(), bundle.getUserId());
 
         List<Integer> withOmopReqIdV4s = vocabularyConversionService.findByOmopReqIsNotNull()
                 .stream()
@@ -145,7 +143,8 @@ public class VocabularyServiceImpl implements VocabularyService {
 
 
         bundle = saveDownloadItems(bundle, withOmopReqIdV4s);
-        log.info("Download items are added, bundle: [{}]", bundle);
+        log.debug("Download items saved for bundle [{}], item count [{}]",
+                bundle.getId(), bundle.getVocabularies().size());
         return bundle;
     }
 
@@ -178,12 +177,9 @@ public class VocabularyServiceImpl implements VocabularyService {
 
     @Override
     public void generateBundle(DownloadBundle bundle, AthenaUser user) {
-        if (bundle.isDelta() && !cacheDeltaService.isDeltaVersionCached(bundle.getVocabularyVersion(), bundle.getDeltaVersion())) {
-            asyncVocabularyService.generateSlowExecutableBundle(bundle, user);
-        } else {
-            asyncVocabularyService.generateBundle(bundle, user);
-        }
-        log.info("Vocabulary generation is started, bundle name: {}, user id: {}", bundle, user.getId());
+
+        bundleGenerationQueueService.enqueue(bundle.getId());
+        log.info("Vocabulary generation queued for bundle [{}]", bundle.getId());
     }
 
     @Override
@@ -244,18 +240,69 @@ public class VocabularyServiceImpl implements VocabularyService {
     @Override
     public void restoreDownloadBundle(long bundleId) {
 
-        DownloadBundle downloadBundle = downloadBundleRepository.getOne(bundleId);
         AthenaUser currentUser = userService.getCurrentUser();
-        checkBundleUser(currentUser, downloadBundle);
+        DownloadBundle downloadBundle = getOwnedBundle(bundleId, currentUser);
         if (!downloadBundle.isArchived()) {
             return;
         }
         downloadBundleService.validate(downloadBundle);
-        checkBundleVocabularies(downloadBundle.getId(), currentUser.getId());
-        asyncVocabularyService.updateStatus(downloadBundle, DownloadBundleStatus.PENDING);
+        // This is an exact rebuild of a package the owner was already allowed to create.
+        // Current vocabulary flags must not invalidate an older retained release: a
+        // vocabulary can be disabled today while remaining present in that release.
+        // Current rules are still enforced by regenerateDownloadBundleFromCurrentVersion.
         generateBundle(downloadBundle, currentUser);
-        log.info("Vocabulary restoring is started, bundle id: {}, user id: {}", downloadBundle.getId(),
-                currentUser.getId());
+        log.info("Vocabulary restoration started for bundle [{}]", downloadBundle.getId());
+    }
+
+    @Override
+    public RestoreAvailabilityDTO getRestoreAvailability(long bundleId) {
+        AthenaUser currentUser = userService.getCurrentUser();
+        DownloadBundle bundle = getOwnedBundle(bundleId, currentUser);
+        if (!bundle.isArchived()) {
+            throw new ValidationException("Only archived bundles can be regenerated.");
+        }
+        return new RestoreAvailabilityDTO(
+                downloadBundleService.canRestoreOriginalVersion(bundle),
+                originalVersionLabel(bundle),
+                vocabularyReleaseVersionService.getCurrentFormatted(),
+                bundle.isDelta()
+        );
+    }
+
+    @Override
+    public DownloadBundle regenerateDownloadBundleFromCurrentVersion(long bundleId) {
+        AthenaUser currentUser = userService.getCurrentUser();
+        DownloadBundle originalBundle = getOwnedBundle(bundleId, currentUser);
+        if (!originalBundle.isArchived()) {
+            throw new ValidationException("Only archived bundles can be regenerated.");
+        }
+
+        List<Integer> vocabularyIds = originalBundle.getVocabularyV4Ids();
+        checkBundleVocabularies(vocabularyIds, currentUser.getId());
+
+        DownloadBundle replacement = downloadBundleService.initBundle(
+                originalBundle.getName(),
+                currentUser,
+                CDMVersion.V5,
+                vocabularyReleaseVersionService.getCurrent(),
+                false,
+                null
+        );
+        downloadBundleService.validate(replacement);
+        return saveDownloadItems(replacement, vocabularyIds);
+    }
+
+    private DownloadBundle getOwnedBundle(long bundleId, AthenaUser currentUser) {
+        DownloadBundle bundle = downloadBundleRepository.findById(bundleId)
+                .orElseThrow(() -> new NotExistException(
+                        "Cannot find bundle with id =" + bundleId, DownloadBundle.class));
+        checkBundleUser(currentUser, bundle);
+        return bundle;
+    }
+
+    private String originalVersionLabel(DownloadBundle bundle) {
+        String vocabularyVersion = bundle.formattedVocabularyVersion();
+        return vocabularyVersion != null ? vocabularyVersion : bundle.formattedReleaseVersion();
     }
 
     @Override
@@ -287,10 +334,11 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public List<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids) {
+    public List<License> grantLicenses(AthenaUser user, List<Integer> vocabularyV4Ids, AthenaUser grantedBy) {
 
         final List<License> newLicenses = vocabularyV4Ids.stream()
                 .map(v4Id -> buildLicense(user, v4Id, APPROVED))
+                .peek(license -> recordGrant(license, grantedBy))
                 .collect(toList());
 
         final List<License> savedLicenses = licenseRepository.saveAll(newLicenses);
@@ -317,19 +365,42 @@ public class VocabularyServiceImpl implements VocabularyService {
     }
 
     @Override
-    public void acceptLicense(Long id, boolean accepted) {
+    public void cancelPendingLicense(Long licenseId) {
 
-        License userLicense = licenseRepository.getOne(id);
+        License license = licenseRepository.findByIdForUpdate(licenseId)
+                .orElseThrow(() -> new NotExistException("License request does not exist", License.class));
+        if (license.getStatus() != LicenseStatus.PENDING) {
+            throw new ValidationException("Only pending license requests can be cancelled");
+        }
+        licenseRepository.deleteById(licenseId);
+        conceptService.invalidateGraphCache(license.getUser().getId());
+    }
+
+    @Override
+    public void acceptLicense(Long id, boolean accepted, AthenaUser resolvedBy) {
+
+        License userLicense = licenseRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new NotExistException("License request does not exist", License.class));
+        if (userLicense.getStatus() != LicenseStatus.PENDING) {
+            throw new ValidationException("License request has already been resolved");
+        }
         String vocabularyName = userLicense.getVocabularyConversion().getName();
         AthenaUser user = userLicense.getUser();
         if (accepted) {
             userLicense.setStatus(LicenseStatus.APPROVED);
+            recordGrant(userLicense, resolvedBy);
             licenseRepository.save(userLicense);
         } else {
             licenseRepository.deleteById(id);
         }
         conceptService.invalidateGraphCache(user.getId());
         emailService.sendLicenseAcceptance(user, accepted, vocabularyName);
+    }
+
+    @Override
+    public long countPendingLicenses() {
+
+        return licenseRepository.countByStatus(LicenseStatus.PENDING);
     }
 
     @Override
@@ -361,6 +432,18 @@ public class VocabularyServiceImpl implements VocabularyService {
 
         VocabularyConversion vocabularyConversion = vocabularyConversionService.findByVocabularyV4Id(vocabularyV4Id);
         return new License(user, vocabularyConversion, status);
+    }
+
+    private void recordGrant(License license, AthenaUser grantedBy) {
+
+        license.setGrantedAt(new Date());
+        license.setGrantedByUserId(grantedBy.getId());
+        String name = Stream.of(
+                grantedBy.getFirstName(), grantedBy.getMiddleName(), grantedBy.getLastName())
+                .filter(Objects::nonNull)
+                .filter(part -> !part.isBlank())
+                .collect(Collectors.joining(" "));
+        license.setGrantedByName(name.isBlank() ? grantedBy.getUsername() : name);
     }
 
     private void checkBundleVocabularies(List<Integer> bundleVocabularyIdV4s, Long userId) {

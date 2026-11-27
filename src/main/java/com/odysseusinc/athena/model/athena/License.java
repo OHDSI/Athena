@@ -81,6 +81,15 @@ public class License {
     @Column(name = "request_date")
     private Date requestDate;
 
+    @Column(name = "granted_at")
+    private Date grantedAt;
+
+    @Column(name = "granted_by_user_id")
+    private Long grantedByUserId;
+
+    @Column(name = "granted_by_name")
+    private String grantedByName;
+
     public Long getId() {
 
         return id;
@@ -139,5 +148,35 @@ public class License {
     public void setRequestDate(Date requestDate) {
 
         this.requestDate = requestDate;
+    }
+
+    public Date getGrantedAt() {
+
+        return grantedAt;
+    }
+
+    public void setGrantedAt(Date grantedAt) {
+
+        this.grantedAt = grantedAt;
+    }
+
+    public Long getGrantedByUserId() {
+
+        return grantedByUserId;
+    }
+
+    public void setGrantedByUserId(Long grantedByUserId) {
+
+        this.grantedByUserId = grantedByUserId;
+    }
+
+    public String getGrantedByName() {
+
+        return grantedByName;
+    }
+
+    public void setGrantedByName(String grantedByName) {
+
+        this.grantedByName = grantedByName;
     }
 }

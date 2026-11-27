@@ -22,37 +22,22 @@
 
 package com.odysseusinc.athena.api.v1.controller;
 
-import com.odysseusinc.athena.api.v1.controller.dto.arachne.ArachnePortalResponse;
-import com.odysseusinc.athena.api.v1.controller.dto.arachne.UserRegistrationDTO;
 import com.odysseusinc.athena.api.v1.controller.converter.ConverterUtils;
 import com.odysseusinc.athena.api.v1.controller.dto.AthenaUserDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.BaseAthenaUserDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.RemindPasswordDTO;
-import com.odysseusinc.athena.api.v1.controller.dto.ResetPasswordDTO;
+import com.odysseusinc.athena.api.v1.controller.dto.BaseAthenaUserWithEmailDTO;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.service.impl.UserService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import jakarta.validation.Valid;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.List;
 
@@ -64,30 +49,7 @@ import static org.springframework.http.HttpStatus.OK;
 public class UserController {
 
     private final GenericConversionService conversionService;
-    @Value("${athena.url}")
-    private String athenaUrl;
-    @Value("${arachne.portal.url}")
-    private String arachneUrl;
-    @Value("${arachne.portal.professionalTypesPath}")
-    private String professionalTypesPath;
-    @Value("${arachne.portal.countriesPath}")
-    private String countriesPath;
-    @Value("${arachne.portal.provincePath}")
-    private String provincePath;
-    @Value("${arachne.portal.registerPath}")
-    private String registerPath;
-    @Value("${arachne.portal.remindPasswordPath}")
-    private String remindPasswordPath;
-    @Value("${arachne.portal.resetPasswordPath}")
-    private String resetPasswordPath;
-    @Value("${arachne.portal.registerToken}")
-    private String registerToken;
-    @Value("${arachne.portal.remindToken}")
-    private String remindToken;
-    private final String registerCallbackUrl = "/auth/login";
     private final UserService userService;
-
-    private final RestTemplate restTemplate;
 
     private final ConverterUtils converterUtils;
 
@@ -96,148 +58,11 @@ public class UserController {
     public UserController(
             GenericConversionService conversionService,
             UserService userService,
-            RestTemplate restTemplate,
             ConverterUtils converterUtils) {
 
         this.conversionService = conversionService;
         this.userService = userService;
-        this.restTemplate = restTemplate;
         this.converterUtils = converterUtils;
-    }
-
-    @GetMapping(value = "/professional-types")
-    public ArachnePortalResponse listProfessionalTypes() throws URISyntaxException {
-
-        String uri = UriComponentsBuilder
-                .fromUriString(arachneUrl)
-                .replacePath(professionalTypesPath)
-                .toUriString();
-
-        ResponseEntity<ArachnePortalResponse> responseEntity = restTemplate.exchange(
-                uri,
-                HttpMethod.GET,
-                null,
-                ArachnePortalResponse.class
-        );
-
-        return responseEntity.getBody();
-    }
-
-    @GetMapping(value = "/countries")
-    public ArachnePortalResponse searchCountries(
-            @RequestParam("query") String query,
-            @RequestParam("limit") Integer limit,
-            @RequestParam(value = "includeId", required = false) Long includeId
-    ) {
-        String uri = UriComponentsBuilder
-                .fromUriString(arachneUrl)
-                .replacePath(countriesPath)
-                .queryParam("query", query)
-                .queryParam("limit", limit)
-                .queryParam("includeId", includeId)
-                .toUriString();
-        ResponseEntity<ArachnePortalResponse> responseEntity = restTemplate.exchange(
-                uri,
-                HttpMethod.GET,
-                null,
-                ArachnePortalResponse.class
-        );
-        return responseEntity.getBody();
-    }
-
-    @GetMapping(value = "/provinces")
-    public ArachnePortalResponse searchProvinces(
-            @RequestParam("countryId") String countryIdParam,
-            @RequestParam("query") String query,
-            @RequestParam("limit") Integer limit,
-            @RequestParam(value = "includeId", required = false) String includeIdParam
-    ) {
-        String uri = UriComponentsBuilder
-                .fromUriString(arachneUrl)
-                .replacePath(provincePath)
-                .queryParam("countryId", countryIdParam)
-                .queryParam("query", query)
-                .queryParam("limit", limit)
-                .queryParam("includeId", includeIdParam)
-                .toUriString();
-        ResponseEntity<ArachnePortalResponse> responseEntity = restTemplate.exchange(
-                uri,
-                HttpMethod.GET,
-                null,
-                ArachnePortalResponse.class);
-        return responseEntity.getBody();
-    }
-
-    @PostMapping
-    public ResponseEntity register(@RequestBody UserRegistrationDTO dto) throws PermissionDeniedException {
-
-        dto.setRegistrantToken(registerToken);
-        dto.setCallbackUrl(athenaUrl + registerCallbackUrl);
-
-        ArachnePortalResponse res = executeRequest(registerPath, dto);
-
-        if (!isSuccessful(res)) {
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
-
-        return new ResponseEntity<>(res, HttpStatus.OK);
-    }
-
-    private ArachnePortalResponse executeRequest(String path, Object request) {
-
-        String uri = UriComponentsBuilder
-                .fromUriString(arachneUrl)
-                .replacePath(path)
-                .toUriString();
-
-        ResponseEntity<ArachnePortalResponse> responseEntity = restTemplate.exchange(
-                uri,
-                HttpMethod.POST,
-                new HttpEntity<>(request),
-                ArachnePortalResponse.class
-        );
-        // Arachne's registration and password endpoints return void on success, while
-        // validation failures are serialized as an ArachnePortalResponse. RestTemplate
-        // therefore legitimately returns a null body for the successful path.
-        ArachnePortalResponse response = responseEntity.getBody();
-        return response != null
-                ? response
-                : new ArachnePortalResponse(ArachnePortalResponse.ErrorCode.NO_ERROR);
-    }
-
-    private boolean isSuccessful(ArachnePortalResponse response) {
-
-        return ArachnePortalResponse.ErrorCode.NO_ERROR.getCode().equals(response.getErrorCode());
-    }
-
-    @Operation(summary = "Request password reset e-mail.")
-    @PostMapping(value = "/remind-password")
-    public ResponseEntity remindPassword(@RequestBody @Valid RemindPasswordDTO dto) {
-
-        dto.setRegistrantToken(remindToken);
-        dto.setCallbackUrl(athenaUrl);
-
-        ArachnePortalResponse res = executeRequest(remindPasswordPath, dto);
-
-        if (!isSuccessful(res)) {
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
-
-        return new ResponseEntity<>(res, HttpStatus.OK);
-    }
-
-    @Operation(summary = "Reset password for specified e-mail.")
-    @PostMapping(value = "/reset-password")
-    public ResponseEntity resetPassword(@RequestBody @Valid ResetPasswordDTO dto)
-            throws URISyntaxException, IOException {
-
-        ArachnePortalResponse res = executeRequest(resetPasswordPath, dto);
-
-        if (!isSuccessful(res)) {
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
-
-        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @GetMapping(value = "/me")
@@ -250,10 +75,14 @@ public class UserController {
     }
 
     @GetMapping(value = "/suggest")
-    public ResponseEntity<List<BaseAthenaUserDTO>> suggest(@RequestParam("query") String query) {
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<List<BaseAthenaUserWithEmailDTO>> suggest(@RequestParam("query") String query) {
 
         List<AthenaUser> users = userService.suggest(query);
-        List<BaseAthenaUserDTO> dtos = converterUtils.convertList(users, BaseAthenaUserDTO.class);
+        List<BaseAthenaUserWithEmailDTO> dtos = converterUtils.convertList(
+                users,
+                BaseAthenaUserWithEmailDTO.class
+        );
         return new ResponseEntity<>(dtos, OK);
     }
 }

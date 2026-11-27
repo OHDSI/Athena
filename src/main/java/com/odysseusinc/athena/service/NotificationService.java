@@ -8,4 +8,6 @@ public interface NotificationService {
     void createSubscriptions(Long userId, String[] vocabularyCodes);
 
     void deleteSubscription(Long userId, String vocabularyCode);
+
+    void deleteAllSubscriptions(Long userId);
 }

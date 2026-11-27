@@ -23,11 +23,19 @@ package com.odysseusinc.athena.service.impl;
 import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.exceptions.PermissionDeniedException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
+import com.odysseusinc.athena.model.athena.DownloadItem;
 import com.odysseusinc.athena.model.athena.DownloadShare;
+import com.odysseusinc.athena.model.athena.VocabularyConversion;
 import com.odysseusinc.athena.model.security.AthenaUser;
 import com.odysseusinc.athena.repositories.athena.DownloadBundleRepository;
+import com.odysseusinc.athena.repositories.athena.DownloadItemRepository;
 import com.odysseusinc.athena.repositories.athena.DownloadShareRepository;
+import com.odysseusinc.athena.service.DownloadBundleService;
+import com.odysseusinc.athena.service.VocabularyConversionService;
 import com.odysseusinc.athena.service.VocabularyReleaseVersionService;
+import com.odysseusinc.athena.service.job.BundleGenerationQueueService;
+import com.odysseusinc.athena.util.CDMVersion;
+import com.odysseusinc.athena.util.DownloadBundleStatus;
 import com.odysseusinc.athena.util.Fn;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,13 +46,22 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -78,9 +95,24 @@ class BundleOwnershipTest {
     @Mock
     private DownloadShareRepository downloadShareRepository;
 
+    @Mock
+    private DownloadItemRepository downloadItemRepository;
+
+    @Mock
+    private DownloadBundleService downloadBundleService;
+
+    @Mock
+    private VocabularyConversionService vocabularyConversionService;
+
+    @Mock
+    private UserService userService;
+
     /** Read at the top of copyBundle, before the bundle is even loaded. */
     @Mock
     private VocabularyReleaseVersionService vocabularyReleaseVersionService;
+
+    @Mock
+    private BundleGenerationQueueService bundleGenerationQueueService;
 
     private static AthenaUser user(long id, String email) {
 
@@ -177,5 +209,78 @@ class BundleOwnershipTest {
 
         assertThrows(NotExistException.class, () ->
                 vocabularyService.checkBundleAndSharedUser(user(1L, "owner@example.com"), BUNDLE_ID));
+    }
+
+    @Test
+    void currentVersionFallbackCreatesAFullBundleAndKeepsTheArchive() {
+        AthenaUser owner = user(1L, "owner@example.com");
+        VocabularyConversion vocabulary = Fn.create(VocabularyConversion::new, v -> v.setIdV4(7));
+        DownloadBundle original = bundleOwnedBy(owner.getId());
+        original.setName("Archived delta");
+        original.setStatus(DownloadBundleStatus.ARCHIVED);
+        original.setDelta(true);
+        original.setVocabularyVersion(2026_02_27);
+        original.setDeltaVersion(2025_11_28);
+        original.setVocabularies(List.of(new DownloadItem(original, vocabulary)));
+
+        DownloadBundle replacement = Fn.create(DownloadBundle::new, bundle -> {
+            bundle.setName(original.getName());
+            bundle.setCdmVersion(CDMVersion.V5);
+            bundle.setVocabularyVersion(2026_08_29);
+            bundle.setDelta(false);
+        });
+
+        when(userService.getCurrentUser()).thenReturn(owner);
+        when(vocabularyReleaseVersionService.getCurrent()).thenReturn(2026_08_29);
+        when(vocabularyConversionService.getUnavailableVocabularies(owner.getId(), false))
+                .thenReturn(Collections.emptyList());
+        when(downloadBundleService.initBundle(
+                eq(original.getName()), same(owner), eq(CDMVersion.V5), eq(2026_08_29), eq(false), isNull()))
+                .thenReturn(replacement);
+        when(downloadBundleRepository.save(replacement)).thenReturn(replacement);
+        when(downloadItemRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DownloadBundle result = vocabularyService.regenerateDownloadBundleFromCurrentVersion(BUNDLE_ID);
+
+        assertSame(replacement, result);
+        assertEquals(DownloadBundleStatus.ARCHIVED, original.getStatus());
+        assertFalse(result.isDelta());
+        assertEquals(2026_08_29, result.getVocabularyVersion());
+        assertEquals(1, result.getVocabularies().size());
+        verify(downloadBundleService).validate(replacement);
+    }
+
+    @Test
+    void exactHistoricalRestoreIgnoresCurrentVocabularyAvailability() {
+        AthenaUser owner = user(1L, "owner@example.com");
+        DownloadBundle archived = bundleOwnedBy(owner.getId());
+        archived.setStatus(DownloadBundleStatus.ARCHIVED);
+        archived.setDelta(false);
+        when(userService.getCurrentUser()).thenReturn(owner);
+
+        vocabularyService.restoreDownloadBundle(BUNDLE_ID);
+
+        verify(downloadBundleService).validate(archived);
+        verify(bundleGenerationQueueService).enqueue(BUNDLE_ID);
+        verifyNoInteractions(vocabularyConversionService);
+    }
+
+    @Test
+    void aStrangerCannotCheckRestoreAvailability() {
+        bundleOwnedBy(1L).setStatus(DownloadBundleStatus.ARCHIVED);
+        when(userService.getCurrentUser()).thenReturn(user(2L, "stranger@example.com"));
+
+        assertThrows(PermissionDeniedException.class, () ->
+                vocabularyService.getRestoreAvailability(BUNDLE_ID));
+    }
+
+    @Test
+    void aStrangerCannotRegenerateFromCurrentVersion() {
+        bundleOwnedBy(1L).setStatus(DownloadBundleStatus.ARCHIVED);
+        when(userService.getCurrentUser()).thenReturn(user(2L, "stranger@example.com"));
+
+        assertThrows(PermissionDeniedException.class, () ->
+                vocabularyService.regenerateDownloadBundleFromCurrentVersion(BUNDLE_ID));
+        verify(downloadBundleService, never()).initBundle(any(), any(), any(), any(), anyBoolean(), any());
     }
 }

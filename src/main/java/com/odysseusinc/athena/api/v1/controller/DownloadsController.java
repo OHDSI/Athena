@@ -23,6 +23,7 @@
 package com.odysseusinc.athena.api.v1.controller;
 
 
+import com.odysseusinc.athena.exceptions.NotExistException;
 import com.odysseusinc.athena.model.athena.DownloadBundle;
 import com.odysseusinc.athena.service.DownloadsHistoryService;
 import com.odysseusinc.athena.service.VocabularyService;
@@ -37,9 +38,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static java.lang.System.currentTimeMillis;
 
@@ -69,25 +72,26 @@ public class DownloadsController {
 
         DownloadBundle bundle = vocabularyService.getDownloadBundle(uuid);
 
-        final Long userId = userService.getCurrentUserId() != null ? userService.getCurrentUserId() : bundle.getUserId();
+        Long currentUserId = userService.getCurrentUserId();
+        final Long userId = currentUserId != null ? currentUserId : bundle.getUserId();
 
         vocabularyService.checkBundleVocabularies(bundle.getId(), userId);
+        Path archive = Paths.get(fileHelper.getZipPath(uuid));
+        if (!Files.isRegularFile(archive)) {
+            throw new NotExistException("Download archive is no longer available", DownloadBundle.class);
+        }
         downloadsHistoryService.updateStatistics(bundle, userId);
 
         String version = bundle.getCdmVersion().name().toLowerCase().replace(".", "_");
         String archiveName = String.format("vocabulary_download_%s_{%s}_%s.zip",
                 version, uuid, currentTimeMillis());
 
-        String contentType = "application/zip, application/octet-stream";
-        response.setContentType(contentType);
-        response.setHeader("Content-type", contentType);
+        response.setContentType("application/zip");
         response.setHeader("Content-Disposition",
                 "attachment; filename=" + archiveName);
-        response.setContentLengthLong(new File(fileHelper.getZipPath(uuid)).length());
-        try (FileInputStream is = new FileInputStream(fileHelper.getZipPath(uuid))) {
+        response.setContentLengthLong(Files.size(archive));
+        try (FileInputStream is = new FileInputStream(archive.toFile())) {
             IOUtils.copy(is, response.getOutputStream());
-        } finally {
-            response.flushBuffer();
         }
     }
 }
