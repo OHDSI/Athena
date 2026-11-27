@@ -215,12 +215,16 @@ public class ExceptionHandlingController {
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
 
+    /*
+     * Mail and I/O failures keep their detail in the log only: their messages carry SMTP
+     * relay responses and absolute file-system paths, which are of no use to the caller.
+     */
     @ExceptionHandler(MessagingException.class)
     public ResponseEntity<JsonResult> exceptionHandler(MessagingException ex) {
 
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(EMAIL_ERROR);
-        result.setErrorMessage(ex.getMessage());
+        result.setErrorMessage("Failed to send email");
         return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -229,7 +233,7 @@ public class ExceptionHandlingController {
 
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(EMAIL_ERROR);
-        result.setErrorMessage(ex.getMessage());
+        result.setErrorMessage("Failed to send email");
         return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -238,7 +242,7 @@ public class ExceptionHandlingController {
 
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(SYSTEM_ERROR);
-        result.setErrorMessage(ex.getMessage());
+        result.setErrorMessage("Internal server error");
         return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -247,7 +251,7 @@ public class ExceptionHandlingController {
 
         LOGGER.error(ex.getMessage(), ex);
         JsonResult result = new JsonResult<>(SYSTEM_ERROR);
-        result.setErrorMessage(ex.getMessage());
+        result.setErrorMessage("Internal server error");
         return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

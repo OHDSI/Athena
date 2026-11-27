@@ -189,6 +189,26 @@ public class ExceptionHandlingControllerTest {
                 controller.exceptionHandler(exception).getStatusCode());
     }
 
+    /** Mail and I/O failures must not hand paths or SMTP responses to the caller. */
+    @Test
+    public void ioAndMailFailuresDoNotLeakTheInternalMessage() {
+
+        String path = "/opt/athena/files/archive.zip (No such file or directory)";
+        String smtp = "550 relay denied by smtp.internal.example";
+
+        assertNoLeak(controller.exceptionHandler(new IOException(path)), "/opt/athena");
+        assertNoLeak(controller.exceptionHandler(new IORuntimeException(path, new IOException())), "/opt/athena");
+        assertNoLeak(controller.exceptionHandler(new jakarta.mail.MessagingException(smtp)), "smtp.internal");
+        assertNoLeak(controller.exceptionHandler(new org.springframework.mail.MailSendException(smtp)), "smtp.internal");
+    }
+
+    private static void assertNoLeak(ResponseEntity<JsonResult> response, String internal) {
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertFalse("the internal message must stay in the log, not the response",
+                String.valueOf(response.getBody().getErrorMessage()).contains(internal));
+    }
+
     /** A missing static resource is a normal 404, not an application failure. */
     @Test
     public void missingStaticResourceIsNotFoundRatherThanServerError() {
