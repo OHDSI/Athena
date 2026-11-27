@@ -52,11 +52,15 @@ import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SearchServiceImpl implements SearchService {
 
+    private static final String ROLE_ADMIN = "ROLE_ADMIN";
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchService.class);
 
     private final Character separator;
@@ -82,7 +86,7 @@ public class SearchServiceImpl implements SearchService {
         List<String> v5Ids = conversionService.getUnavailableVocabularies();
         SolrQuery solrQuery = converterToSolrQuery.createQuery(searchDTO, v5Ids);
 
-        if (debug) {
+        if (debug && isAdmin()) {
             QueryDebugUtils.addDebugAndScore(solrQuery);
             QueryResponse response = solrService.search(solrQuery);
             List<SolrDocument> solrDocumentList = response.getResults();
@@ -99,6 +103,19 @@ public class SearchServiceImpl implements SearchService {
         QueryResponse solrResponse = solrService.search(solrQuery);
         List<SolrDocument> solrDocumentList = solrResponse.getResults();
         return converter.convert(new SearchResult<>(solrQuery, solrResponse, solrDocumentList), v5Ids, null, null);
+    }
+
+    /**
+     * Debug output (Solr's per-document score explanation and the expanded query) is a
+     * relevance-tuning aid. {@code /api/v1/concepts} is public, so the flag is honoured only for
+     * administrators and silently ignored for everyone else.
+     */
+    private static boolean isAdmin() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(ROLE_ADMIN::equals);
     }
 
     @Override
