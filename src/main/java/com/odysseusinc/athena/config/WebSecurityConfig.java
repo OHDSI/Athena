@@ -27,8 +27,6 @@ import com.odysseusinc.athena.security.apitoken.ApiTokenAuthenticationFilter;
 import com.odysseusinc.athena.security.hmac.HmacVerifyingFilter;
 import com.odysseusinc.athena.security.jwt.JwtAuthenticationFilter;
 import com.odysseusinc.athena.security.jwt.JwtTokenService;
-import com.odysseusinc.athena.security.saml.SamlAuthenticationSuccessHandler;
-import com.odysseusinc.athena.security.saml.SamlRelyingPartyConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -40,10 +38,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter;
-import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;
-import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
-import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -66,7 +60,7 @@ import java.util.Optional;
  *   <li><b>Public endpoints</b> — registration, password reset, bundle download by
  *       UUID, build number, static assets.</li>
  *   <li><b>{@code /api/**}</b> — JWT session token; authentication required.</li>
- *   <li><b>SAML + everything else</b> — SSO login, logout, view controllers.</li>
+ *   <li><b>UI</b> — stateless view controllers and resources.</li>
  * </ol>
  */
 @Slf4j
@@ -114,7 +108,7 @@ public class WebSecurityConfig {
     private static final String[] PUBLIC_RESOURCES = {
             "/", "/error", "/index.html", "/**.js", "/fonts/**", "/icons/**", "/img/**",
             "/app.*.js", "/webjars/**", "/swagger-ui.html", "/swagger-resources/**",
-            "/v3/api-docs/**", "/auth/saml-metadata", "/auth/slo", "/auth/logged-out"
+            "/v3/api-docs/**"
     };
 
 
@@ -138,6 +132,9 @@ public class WebSecurityConfig {
 
         List<RequestMatcher> matchers = new ArrayList<>();
         matchers.add(matcher(HttpMethod.POST, "/api/v1/users"));
+        matchers.add(matcher(HttpMethod.POST, "/api/v1/users/login"));
+        matchers.add(matcher(HttpMethod.GET, "/api/v1/users/confirm-email"));
+        matchers.add(matcher(HttpMethod.POST, "/api/v1/users/confirm-email"));
         for (String pattern : PUBLIC_ENDPOINTS) {
             matchers.add(matcher(pattern));
         }
@@ -278,70 +275,16 @@ public class WebSecurityConfig {
                 .build();
     }
 
-    /**
-     * SAML SSO and the remaining UI routes.
-     * <p>
-     * The assertion consumer service stays on the path the identity provider already has
-     * registered ({@code /auth/callback}) — see {@link SamlRelyingPartyConfig}.
-     * {@code /auth/sso} remains the login entry point; requiring authentication there is what
-     * triggers the SAML entry point, so the externally visible URL is unchanged.
-     * <p>
-     * {@code loginPage} has to be set explicitly. Spring Security only auto-redirects to a
-     * single identity provider when the registration repository is {@link Iterable}, and this
-     * one deliberately is not — see
-     * {@link SamlRelyingPartyConfig#AUTHENTICATION_REQUEST_PATH}. Without it the default
-     * {@code /login} chooser renders with an empty provider list and the popup never leaves
-     * the application.
-     */
     @Bean
     @Order(4)
-    public SecurityFilterChain samlFilterChain(HttpSecurity http,
-                                               SamlAuthenticationSuccessHandler successHandler,
-                                               RelyingPartyRegistrationRepository registrations)
-            throws Exception {
-
+    public SecurityFilterChain localUiFilterChain(HttpSecurity http) throws Exception {
+        // API and S2S requests are handled by the preceding chains.
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-                .saml2Login(saml2 -> saml2
-                        .loginProcessingUrl(SamlRelyingPartyConfig.ASSERTION_CONSUMER_SERVICE_PATH)
-                        .loginPage(SamlRelyingPartyConfig.AUTHENTICATION_REQUEST_PATH)
-                        // Spring Security insists on {registrationId} in the assertion
-                        // consumer service path unless a converter supplies the
-                        // registration itself. The IdP already has /auth/callback
-                        // registered with no such variable, so pin the single
-                        // registration here rather than change the endpoint.
-                        .authenticationConverter(fixedRegistrationConverter(registrations))
-                        .successHandler(successHandler))
-                .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/auth/sso").authenticated()
-                        .anyRequest().permitAll())
-                .logout(logout -> logout.logoutSuccessUrl("/"))
+                .logout(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
                 .build();
-    }
-
-    /**
-     * Resolves the one and only relying party regardless of the request path, so the
-     * assertion consumer service can stay on the registered {@code /auth/callback}
-     * instead of Spring Security's {@code /login/saml2/sso/{registrationId}}.
-     * <p>
-     * Delegates to {@link DefaultRelyingPartyRegistrationResolver} rather than reading
-     * the repository directly, because the delegate is what expands the
-     * {@code {baseUrl}} placeholder in the registration's assertion consumer service
-     * location — that expanded value goes into the {@code AssertionConsumerServiceURL}
-     * of the outgoing {@code AuthnRequest}, and IdPs validate it.
-     */
-    private Saml2AuthenticationTokenConverter fixedRegistrationConverter(
-            RelyingPartyRegistrationRepository registrations) {
-
-        RelyingPartyRegistrationResolver delegate =
-                new DefaultRelyingPartyRegistrationResolver(registrations);
-
-        return new Saml2AuthenticationTokenConverter(
-                (RelyingPartyRegistrationResolver) (request, ignoredRegistrationId) ->
-                        delegate.resolve(request, SamlRelyingPartyConfig.REGISTRATION_ID));
     }
 
     /**

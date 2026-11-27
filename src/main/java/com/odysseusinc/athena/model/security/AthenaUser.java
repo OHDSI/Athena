@@ -51,6 +51,14 @@ public class AthenaUser implements UserDetails {
     private Long id;
     @Column(name = "login", nullable = false)
     private String username;
+    @Column(name = "browser_session_version", insertable = false, updatable = false)
+    private long browserSessionVersion;
+
+    @JsonIgnore
+    public long getBrowserSessionVersion() {
+        return browserSessionVersion;
+    }
+
     @Transient
     private String password;
     @Column(name = "email")

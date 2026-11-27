@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.jdbc.support.JdbcTransactionManager;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -69,6 +70,12 @@ public class AthenaDatabaseConfig extends HikariConfig {
                     "com.odysseusinc.athena.model.security");
             setJpaProperties(HikariProps.JPA_PROPERTIES);
         }};
+    }
+
+    @Bean
+    public JdbcTransactionManager accountJdbcTransactionManager(
+            @Qualifier("dataSourceAthenaDB") HikariDataSource source) {
+        return new JdbcTransactionManager(source);
     }
 
     @Primary

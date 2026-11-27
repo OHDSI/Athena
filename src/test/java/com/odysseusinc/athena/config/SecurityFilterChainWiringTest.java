@@ -144,13 +144,13 @@ public class SecurityFilterChainWiringTest {
      * server-to-server chain or swallowed by the broader {@code /api/**} one.
      */
     @Test
-    public void chainsAreOrderedServerToServerThenPublicThenApiThenSaml() throws Exception {
+    public void chainsAreOrderedServerToServerThenPublicThenApiThenUi() throws Exception {
 
         assertEquals("s2s must be the first chain", 1, orderOf("s2sFilterChain"));
         assertEquals("public endpoints must precede the authenticated /api/** chain",
                 2, orderOf("publicFilterChain"));
-        assertEquals("/api/** must precede the SAML catch-all", 3, orderOf("apiFilterChain"));
-        assertEquals("SAML is the catch-all and must be last", 4, orderOf("samlFilterChain"));
+        assertEquals("/api/** must precede the UI catch-all", 3, orderOf("apiFilterChain"));
+        assertEquals("UI is the catch-all and must be last", 4, orderOf("localUiFilterChain"));
     }
 
     /**
@@ -186,9 +186,7 @@ public class SecurityFilterChainWiringTest {
 
     /**
      * The chains in declared precedence, first match wins — the same resolution
-     * {@code FilterChainProxy} performs at runtime. The SAML catch-all is omitted: it needs a
-     * relying party registration, and anything reaching it has already failed the assertions
-     * that use this.
+     * {@code FilterChainProxy} performs at runtime. Only the API chains participate in this assertion.
      */
     private SecurityFilterChain firstChainMatching(String uri) throws Exception {
 

@@ -29,7 +29,6 @@ import com.odysseusinc.athena.service.impl.UserService;
 import org.junit.Test;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.List;
@@ -60,7 +59,6 @@ public class UserControllerSuggestionTest {
         UserController controller = new UserController(
                 conversionService,
                 userService,
-                new RestTemplate(),
                 new ConverterUtils(conversionService)
         );
 

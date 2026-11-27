@@ -31,40 +31,26 @@ import java.util.TreeMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Guards the JSON contract with the Arachne portal.
- * <p>
- * These DTOs used to come from the {@code arachne-commons} library. Now that they
- * are vendored, nothing external pins their shape, so this test does: the portal
- * is a separate deployment and a renamed or dropped field fails silently at
- * runtime rather than at compile time.
- * <p>
- * In particular {@code address} is never read by any Java code in Athena — it is
- * populated by AthenaUI and forwarded verbatim — so it looks unused and is an
- * obvious candidate for a well-meaning cleanup. Do not remove it.
- * <p>
- * Deliberately JUnit 4: surefire 2.19.1 has no JUnit 5 provider, so a
- * {@code org.junit.jupiter} test here would never run.
- */
+/** Pins the JSON fields used by AthenaUI and the remaining Arachne integrations. */
 public class ArachnePortalContractTest {
 
     /** The mapper Spring builds for RestTemplate's Jackson converter. */
     private final ObjectMapper mapper = Jackson2ObjectMapperBuilder.json().build();
 
     @Test
-    public void registrationPayloadKeepsEveryFieldThePortalExpects() throws Exception {
+    public void registrationPayloadPreservesItsWireFields() throws Exception {
 
         List<String> expected = Arrays.asList(
                 "address", "callbackUrl", "department", "email", "firstname",
                 "lastname", "middlename", "organization", "password",
                 "professionalTypeId", "registrantToken", "uuid");
 
-        assertEquals("UserRegistrationDTO field set changed - the portal contract is broken",
+        assertEquals("UserRegistrationDTO field set changed",
                 expected, sortedFieldNames(new UserRegistrationDTO()));
     }
 
     @Test
-    public void addressBlockKeepsEveryFieldThePortalExpects() throws Exception {
+    public void registrationAddressPreservesItsWireFields() throws Exception {
 
         List<String> expected = Arrays.asList(
                 "address1", "address2", "city", "contactEmail", "country",
@@ -133,11 +119,10 @@ public class ArachnePortalContractTest {
         assertEquals("US", dto.getAddress().getCountry().getIsoCode());
         assertEquals("CA", dto.getAddress().getStateProvince().getIsoCode());
 
-        // and it must still be there when forwarded to the portal
-        String forwarded = mapper.writeValueAsString(dto);
-        assertTrue("address must be forwarded to the portal, not dropped",
-                forwarded.contains("\"isoCode\":\"US\"")
-                        && forwarded.contains("\"isoCode\":\"CA\""));
+        String serialized = mapper.writeValueAsString(dto);
+        assertTrue("address must survive serialization",
+                serialized.contains("\"isoCode\":\"US\"")
+                        && serialized.contains("\"isoCode\":\"CA\""));
     }
 
     @SuppressWarnings("unchecked")
